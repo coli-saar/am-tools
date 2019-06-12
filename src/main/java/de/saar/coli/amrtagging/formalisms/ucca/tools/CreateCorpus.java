@@ -46,10 +46,10 @@ import java.util.List;
  */
 public class CreateCorpus {
      @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus ")//, required = true)
-    private String corpusPath = "TODO";
+    private String corpusPath = "examples/irtg_corpus_astar.txt";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "TODO";
+    private String outPath = "temp/";
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "train";
@@ -128,7 +128,9 @@ public class CreateCorpus {
             //System.out.println(simpleAlignViz(inst)); //this generates a string that you can compile with graphviz dot to get a visualization of what the grouping induced by the alignment looks like.
             //System.out.println(inst.getSentence());
             //System.out.println(inst.getAlignments());
-            //System.out.println(inst.getGraph());
+            //System.out.println(inst.getGraph().);
+            //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
+            //break;
             try {
                 ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
@@ -176,6 +178,7 @@ public class CreateCorpus {
                     }
                 }
             } catch (Exception ex){
+                problems++;
                 System.err.println("Ignoring an exception:");
                 ex.printStackTrace();
             }
