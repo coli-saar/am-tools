@@ -1,5 +1,5 @@
 plugins {
-    id 'application'
+    //id 'application' //this caused a bug since no main class is specified. But what should even be the main class here?
     id 'java'
     id 'java-library'
 }
@@ -11,8 +11,16 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.coli-saar:alto:2.3.4'
+    compile 'com.github.coli-saar:alto:ab749396c38c8016a52b4349768ccb6c13549ac4'
+    
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'
+    
+    // the following dependencies are in alto, but we need to include them here again
+    // (this stuff seems to not be recursive)
+    implementation 'com.beust:jcommander:1.69'
+    implementation 'net.sf.jgrapht:jgrapht:0.8.3'
+    implementation 'edu.stanford.nlp:stanford-corenlp:3.8.0'
+    implementation 'edu.mit:jwi:2.2.3'
 }
 
