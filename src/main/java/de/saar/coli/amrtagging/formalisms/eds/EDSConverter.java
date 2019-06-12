@@ -29,10 +29,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-import org.jgrapht.alg.connectivity.BiconnectivityInspector;
+import org.jgrapht.alg.BiconnectivityInspector;
 import org.jgrapht.graph.DirectedMultigraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
-import org.jgrapht.alg.connectivity.ConnectivityInspector;
+import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.graph.Multigraph;
 
 /**

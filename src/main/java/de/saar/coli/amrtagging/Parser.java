@@ -334,7 +334,7 @@ public class Parser {
     
     Pair<SGraph, Tree<String>> run() throws ParserException {
         Object input = irtg.getInterpretation("string").getAlgebra().parseString(sentInternal.stream().collect(Collectors.joining(" ")));
-        TreeAutomaton<String> auto = irtg.parseSimple("string", input);
+        TreeAutomaton<String> auto = (TreeAutomaton) irtg.parseSimple("string", input);
         auto.makeAllRulesExplicit();
         //System.err.println(auto);
         Tree<String> vit = auto.viterbi();

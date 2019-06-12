@@ -86,7 +86,7 @@ public class FixUnalignedNodes {
         interps.put("spanmap", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
-        loaderIRTG.addAllInterpretations(interps);
+        loaderIRTG.addAllInterpretations((Map) interps); // TODO fix type conflict properly
         Corpus corpus = Corpus.readCorpusWithStrictFormatting(new FileReader(corpusPath), loaderIRTG);
         Corpus retCorpus = new Corpus();
         
