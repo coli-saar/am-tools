@@ -1,0 +1,10 @@
+repositories {
+    mavenCentral()
+    maven {url 'http://akci.coli.uni-saarland.de/artifactory/external'}
+    maven {url 'https://jitpack.io'}
+}
+
+dependencies {
+    implementation 'com.github.coli-saar:alto:2.3.4'
+}
+
