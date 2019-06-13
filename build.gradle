@@ -1,7 +1,7 @@
 plugins {
-    //id 'application' //this caused a bug since no main class is specified. But what should even be the main class here?
     id 'java'
     id 'java-library'
+    id 'groovy'
     id 'com.github.johnrengelman.shadow' version '4.0.2'
 }
 
