@@ -2,6 +2,8 @@ plugins {
     //id 'application' //this caused a bug since no main class is specified. But what should even be the main class here?
     id 'java'
     id 'java-library'
+    id 'groovy'    
+    id 'com.github.johnrengelman.shadow' version '4.0.2'
 }
 
 repositories {
@@ -15,7 +17,11 @@ dependencies {
     
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'
-    
+
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.codehaus.groovy:groovy-all:2.4.13'
+
     // the following dependencies are in alto, but we need to include them here again
     // (this stuff seems to not be recursive)
     implementation 'com.beust:jcommander:1.69'

@@ -12,6 +12,7 @@ import de.up.ling.irtg.automata.TreeAutomaton
 import de.up.ling.tree.Tree
 import static org.junit.Assert.*
 import org.junit.*
+import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder
 
 /**
  *
