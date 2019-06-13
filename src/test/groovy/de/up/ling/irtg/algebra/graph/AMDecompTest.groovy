@@ -13,6 +13,8 @@ import de.up.ling.tree.Tree
 import static org.junit.Assert.*
 import org.junit.*
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder
+import de.saar.coli.amrtagging.formalisms.amr.*
+import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder
 
 /**
  *
@@ -81,7 +83,8 @@ class AMDecompTest {
     
     private void decompSelfTest(String graphString, int nrCorefs) {
         SGraph graph = pg(graphString)
-        ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra(AMSignatureBuilder.makeDecompositionSignature(graph, nrCorefs));
+        AMSignatureBuilder sigbuilder = new AMRSignatureBuilder();
+        ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra(sigbuilder.makeDecompositionSignature(graph, nrCorefs));
         TreeAutomaton decomp = new AMDecompositionAutomaton(alg, null, graph);
         decomp.processAllRulesBottomUp(null, 60000);
         assert decomp.countTrees() > 0;

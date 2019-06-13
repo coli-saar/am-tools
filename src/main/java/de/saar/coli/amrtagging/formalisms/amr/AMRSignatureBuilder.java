@@ -5,7 +5,6 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr;
 
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
