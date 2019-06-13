@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.up.ling.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar;
 
+import de.saar.coli.irtg.experimental.astar.Astar;
 import de.up.ling.irtg.util.NumbersCombine;
 import it.unimi.dsi.fastutil.PriorityQueue;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;

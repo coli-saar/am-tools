@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.up.ling.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -16,7 +16,7 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.experimental.astar.TypeInterner.AMAlgebraTypeInterner;
+import de.saar.coli.irtg.experimental.astar.TypeInterner.AMAlgebraTypeInterner;
 import de.up.ling.irtg.siblingfinder.SiblingFinder;
 import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.ArrayMap;

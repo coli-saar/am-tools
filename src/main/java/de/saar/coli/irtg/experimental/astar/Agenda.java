@@ -3,13 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.up.ling.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar;
 
 /**
  *
  * @author koller
  */
-public interface OutsideEstimator {
-    public double evaluate(Item it);
-    public void setBias(double bias);
+public interface Agenda {
+    public void enqueue(Item item);
+    public boolean isEmpty();
+    public Item dequeue();
 }

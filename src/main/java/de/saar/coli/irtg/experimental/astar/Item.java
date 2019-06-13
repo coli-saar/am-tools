@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.up.ling.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar;
 
-import de.up.ling.irtg.experimental.astar.Astar.Evaluable;
+import de.saar.coli.irtg.experimental.astar.Astar.Evaluable;
 
 /**
  *
