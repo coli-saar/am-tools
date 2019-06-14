@@ -139,6 +139,11 @@ public class ConllSentence extends ArrayList<ConllEntry>{
   }
   
   
+  public Tree<String> toAMTerm() {
+      throw new UnsupportedOperationException();
+  }
+  
+  
   public void addPos(List<String> pos){
       if (pos.size() != this.size()){
           throw new IllegalArgumentException("Size of pos list must be equal to sentence length");
