@@ -229,6 +229,7 @@ public class ConllEntry {
      */
     public String getReLexLabel() {
         String label = this.lexLabel;
+        
         if (!lemma.equals(DEFAULT_NULL) && label.contains("$LEMMA$")){
             label = label.replace("$LEMMA$", this.lemma);
         }
@@ -238,6 +239,7 @@ public class ConllEntry {
         if (!replacement.equals(DEFAULT_NULL)  && label.contains("$REPL$")){
             label = label.replace("$REPL$", this.replacement);
         }
+        
         return label;
     }
 
