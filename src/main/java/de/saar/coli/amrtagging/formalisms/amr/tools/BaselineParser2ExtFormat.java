@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
@@ -134,7 +135,7 @@ public class BaselineParser2ExtFormat {
         Corpus corpus = Corpus.readCorpus(new FileReader(p2ext.corpusPath), dummyIrtg);
 
         Reader r = new FileReader(p2ext.path + "tagProbs.txt");
-        List<List<List<Pair<String, Double>>>> tagProbs = Util.readSupertagProbs(r, true);
+        List<List<List<AnnotatedSupertag>>> tagProbs = Util.readSupertagProbs(r, true);
 
         //read edge
         List<Map<String, Int2ObjectMap<Int2DoubleMap>>> edgeLabel2pos2pos2prob = new ArrayList<>();
@@ -168,7 +169,7 @@ public class BaselineParser2ExtFormat {
             }
         }
 
-        Iterator<List<List<Pair<String, Double>>>> tagProbsIt = tagProbs.iterator();
+        Iterator<List<List<AnnotatedSupertag>>> tagProbsIt = tagProbs.iterator();
         //List<String> nextTaggedSent = Arrays.asList(taggedSentsIt.next());
 
         String suffix = "" + p2ext.k;
@@ -222,7 +223,7 @@ public class BaselineParser2ExtFormat {
             //System.err.println("sent: " + sent);
             SGraph gold = (SGraph) inst.getInputObjects().get(graphInterp);
             //System.err.println("gold: " + gold);
-            List<List<Pair<String, Double>>> tagProb = tagProbsIt.next();
+            List<List<AnnotatedSupertag>> tagProb = tagProbsIt.next();
 
             //now parse and write result
             forkJoinPool.execute(() -> {
@@ -296,7 +297,7 @@ public class BaselineParser2ExtFormat {
         private final Int2ObjectMap<Set<Integer>> id2component;
 
         // for one sentence
-        public JAMRParser(Map<String, Int2ObjectMap<Int2DoubleMap>> edgeProbsHere, List<List<Pair<String, Double>>> tagProb, double threshold) {
+        public JAMRParser(Map<String, Int2ObjectMap<Int2DoubleMap>> edgeProbsHere, List<List<AnnotatedSupertag>> tagProb, double threshold) {
 
             int sentLength = tagProb.size();
             int labelCount = edgeProbsHere.keySet().size();
@@ -307,14 +308,14 @@ public class BaselineParser2ExtFormat {
             id2component = new Int2ObjectOpenHashMap<>();
             int pos = 0;
             // the lists of (tag, prob) pairs for this each word in the sentence
-            for (List<Pair<String, Double>> tp : tagProb) {
+            for (List<AnnotatedSupertag> tp : tagProb) {
                 // for this word...
                 // sort tags by probability
 
-                tp.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -Double.compare(o1.right, o2.right));
+                tp.sort((AnnotatedSupertag o1, AnnotatedSupertag o2) -> -Double.compare(o1.probability, o2.probability));
                 // treat predictions of graphs differently from predictions of NULL
-                if (!tp.get(0).left.equals("NULL")) {
-                    String tagString = tp.get(0).left; // get the best one
+                if (!tp.get(0).graph.equals("NULL")) {
+                    String tagString = tp.get(0).graph; // get the best one
                     if (tagString.equals("UNK")) {
                         unkCount++;
                         tagString = "(l <root> / \"--LEX--\")";

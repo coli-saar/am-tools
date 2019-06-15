@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utility functions, mostly data reading.
@@ -57,6 +59,8 @@ public class Util {
         return ret;    
     }
     
+    private static Pattern typePattern = Pattern.compile("(.*?)--TYPE--(.*)");
+    
     /**
      * Reads supertag probabilities from a file.<p>
      * 
@@ -76,7 +80,7 @@ public class Util {
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    public static List<List<List<Pair<String, Double>>>> readSupertagProbs(Reader reader, boolean areLogs) throws FileNotFoundException, IOException {
+    public static List<List<List<AnnotatedSupertag>>> readSupertagProbs(Reader reader, boolean areLogs) throws FileNotFoundException, IOException {
         /*
         if (!new File(path).exists()) {
             System.err.println("Info: file '"+path+"' does not exist, trying to proceed without it. (This is ok for the edges file)");
@@ -85,16 +89,16 @@ public class Util {
         */
         
         BufferedReader br = new BufferedReader(reader);
-        List<List<List<Pair<String, Double>>>> ret = new ArrayList<>();
+        List<List<List<AnnotatedSupertag>>> ret = new ArrayList<>();
         int l = 0;
         
         while (br.ready()) {
             String line = br.readLine();
-            String[] parts = split(line, "\t");//one part per word
-            List<List<Pair<String, Double>>> sentList = new ArrayList<>();
+            String[] parts = split(line, "\\s+");//one part per word
+            List<List<AnnotatedSupertag>> sentList = new ArrayList<>();
             
             for (String part : parts) {
-                List<Pair<String, Double>> wordList = new ArrayList<>();
+                List<AnnotatedSupertag> wordList = new ArrayList<>();
                 String[] tAndPs = split(part, " ");//the possibilities for this word (each: token with prob)
 
                 sentList.add(wordList);
@@ -104,10 +108,8 @@ public class Util {
                     if (sepInd >= 0) {
                         String t = raw2readable(tAndP.substring(0, sepInd));
                         
-                        // strip off --TYPE-- suffixes if they are there
-                        if( t.endsWith("--TYPE--")) {
-                            t = t.substring(0, t.length()-8);
-                        }
+                        Matcher m = typePattern.matcher(t);
+                        AnnotatedSupertag st = m.matches() ? new AnnotatedSupertag(m.group(1), m.group(2), 0) : new AnnotatedSupertag(t, null, 0);
                         
                         Double p = Double.valueOf(tAndP.substring(sepInd+1));
 
@@ -115,7 +117,8 @@ public class Util {
                             p = Math.exp(p);
                         }
 
-                        wordList.add(new Pair(t, p));
+                        st.probability = p;
+                        wordList.add(st);
                     } else {
                         System.err.println("***WARNING*** could not read probability for token "+org.apache.commons.lang3.StringEscapeUtils.escapeJava(tAndP));
                         System.err.println(l);
@@ -132,39 +135,44 @@ public class Util {
         return ret;    
     }
     
+    
     /**
      * expects tagProbs to have probabilities, not logs.
      * @param tagProbs
      * @return 
      */
-    public static List<List<List<Pair<String, Double>>>> groupTagsByType(List<List<List<Pair<String, Double>>>> tagProbs) {
+    public static List<List<List<AnnotatedSupertag>>> groupTagsByType(List<List<List<AnnotatedSupertag>>> tagProbs) {
         //System.err.println("All graph types found:");
-        List<List<List<Pair<String, Double>>>> ret = new ArrayList<>();
-        for (List<List<Pair<String, Double>>> sentence : tagProbs) {
-            List<List<Pair<String, Double>>> newSent = new ArrayList<>();
+        List<List<List<AnnotatedSupertag>>> ret = new ArrayList<>();
+        for (List<List<AnnotatedSupertag>> sentence : tagProbs) {
+            List<List<AnnotatedSupertag>> newSent = new ArrayList<>();
             StringJoiner sj = new StringJoiner("  |||  ");
-            for (List<Pair<String, Double>> word : sentence) {
-                List<Pair<String, Double>> newWord = new ArrayList<>();
+            for (List<AnnotatedSupertag> word : sentence) {
+                List<AnnotatedSupertag> newWord = new ArrayList<>();
                 Object2DoubleMap<String> type2total = new Object2DoubleOpenHashMap<>();
                 Object2DoubleMap<String> type2bestScore = new Object2DoubleOpenHashMap<>();
                 Map<String, String> type2bestTag = new HashMap<>();
-                for (Pair<String, Double> tAndP : word) {
+                
+                for (AnnotatedSupertag tAndP : word) {
                     String type;
-                    if (tAndP.left.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
-                        type = tAndP.left.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1];
+                    if (tAndP.graph.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
+                        type = tAndP.graph.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1];
                     } else {
                         type = "NULL";
                     }
-                    type2total.put(type, type2total.getDouble(type)+tAndP.right);
-                    if (tAndP.right > type2bestScore.getDouble(type)) {
-                        type2bestTag.put(type, tAndP.left);
-                        type2bestScore.put(type, tAndP.right.doubleValue());
+                    type2total.put(type, type2total.getDouble(type)+tAndP.probability);
+                    if (tAndP.probability > type2bestScore.getDouble(type)) {
+                        type2bestTag.put(type, tAndP.graph);
+                        type2bestScore.put(type, tAndP.probability);
                     }
                 }
+                
                 for (String type : type2bestTag.keySet()) {
-                    newWord.add(new Pair(type2bestTag.get(type), type2total.getDouble(type)));
+                    AnnotatedSupertag st = new AnnotatedSupertag(type2bestTag.get(type), type, type2total.getDouble(type));
+                    newWord.add(st);
+//                    newWord.add(new Pair(type2bestTag.get(type), type2total.getDouble(type)));
                 }
-                newWord.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -Double.compare(o1.right, o2.right)); //sort in descending order
+                newWord.sort((AnnotatedSupertag o1, AnnotatedSupertag o2) -> -Double.compare(o1.probability, o2.probability)); //sort in descending order
                 newSent.add(newWord);
                 sj.add(type2bestTag.keySet().toString());
             }

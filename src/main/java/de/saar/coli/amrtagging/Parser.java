@@ -71,7 +71,7 @@ public class Parser {
      * @param stringAlg
      * @throws ParseException 
      */
-    Parser(List<List<Pair<String, Double>>> fragmentProbs, List<List<Pair<String, Double>>> labelProbs,
+    Parser(List<List<AnnotatedSupertag>> fragmentProbs, List<List<Pair<String, Double>>> labelProbs,
             Map<String, Int2ObjectMap<Int2DoubleMap>> edgeLabel2pos2pos2prob, List<String> sent, int maxK,
             double edgeExponent, double edgeFactor, double tagExponent,
             boolean addNull, boolean addEdges, Algebra stringAlg) throws ParseException {
@@ -87,11 +87,11 @@ public class Parser {
         Set<Type>[] types = new Set[l];
         for (int i = 0; i<l; i++) {
             types[i] = new HashSet<>();
-            List<Pair<String, Double>> tAndPs = fragmentProbs.get(i);
+            List<AnnotatedSupertag> tAndPs = fragmentProbs.get(i);
             for (int k = 0; k<Math.min(maxK, tAndPs.size()); k++) {
-                Pair<String, Double> tAndP = tAndPs.get(k);
-                if (tAndP.left.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
-                    types[i].addAll(new Type(tAndP.left.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1]).getAllSubtypes());
+                AnnotatedSupertag tAndP = tAndPs.get(k);
+                if (tAndP.graph.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
+                    types[i].addAll(new Type(tAndP.graph.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1]).getAllSubtypes());
                 }
             }
         }
@@ -110,13 +110,13 @@ public class Parser {
         
         //add constants and NULL operations
         for (int i = 0; i<l; i++) {
-            List<Pair<String, Double>> ifp = fragmentProbs.get(i);//graph fragment probabilities at word i //f for fragment, i for i, p for probability
+            List<AnnotatedSupertag> ifp = fragmentProbs.get(i);//graph fragment probabilities at word i //f for fragment, i for i, p for probability
             List<Pair<String, Double>> ilp = labelProbs == null ? null : labelProbs.get(i);//only get label probs if there are any //l for label, i for i, p for probability
             double min = 1.0;
             boolean foundNull = false;
             for (int k = 0; k<Math.min(maxK, ifp.size()); k++) {
-                Pair<String, Double> fAndP = ifp.get(k);
-                if (fAndP.left.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
+                AnnotatedSupertag fAndP = ifp.get(k);
+                if (fAndP.graph.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
                     //i.e. we actually have a graph fragment
                     String label = "\""+LEXMARKER_OUT+i+"\"";//mark label with word position (this may be replaced in next if clause), for use in a different script.
                     if (ilp != null) {
@@ -126,14 +126,14 @@ public class Parser {
                             label = ilp.get(1).left;
                         }
                     }
-                    String fullGraphString = Util.raw2readable(fAndP.left).replace(DependencyExtractor.LEX_MARKER, Util.raw2readable(label));
-                    String type = fAndP.left.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1];
+                    String fullGraphString = Util.raw2readable(fAndP.graph).replace(DependencyExtractor.LEX_MARKER, Util.raw2readable(label));
+                    String type = fAndP.graph.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1];
                     int head = i;
                     String nt = head+"|"+new Type(type).toString();//to make strings consistent with method below
                     String ruleLabel = gensym("const_"+i+"__");
-                    ruleLabel2tag.put(ruleLabel, fAndP.left);
-                    grammarAuto.addRule(grammarAuto.createRule(nt, ruleLabel, new String[0], Math.pow(fAndP.right, tagExponent)));
-                    min = Math.min(min, Math.pow(fAndP.right, tagExponent));
+                    ruleLabel2tag.put(ruleLabel, fAndP.graph);
+                    grammarAuto.addRule(grammarAuto.createRule(nt, ruleLabel, new String[0], Math.pow(fAndP.probability, tagExponent)));
+                    min = Math.min(min, Math.pow(fAndP.probability, tagExponent));
                     graphHom.add(ruleLabel, Tree.create(fullGraphString, new Tree[0]));
                     stringHom.add(ruleLabel, Tree.create(sentInternal.get(i), new Tree[0]));
                 } else {
@@ -144,7 +144,7 @@ public class Parser {
                             if (head != i) {
                                 String nt = head+"|"+type;
                                 String ruleLabel = gensym("NULL_"+i+"__");
-                                grammarAuto.addRule(grammarAuto.createRule(nt, ruleLabel, new String[]{nt}, Math.pow(fAndP.right, tagExponent)));
+                                grammarAuto.addRule(grammarAuto.createRule(nt, ruleLabel, new String[]{nt}, Math.pow(fAndP.probability, tagExponent)));
                                 Tree tNull = Tree.create(sentInternal.get(i), new Tree[0]);
                                 Tree tVar = Tree.create("?1", new Tree[0]);
                                 Tree<String> stringOp;

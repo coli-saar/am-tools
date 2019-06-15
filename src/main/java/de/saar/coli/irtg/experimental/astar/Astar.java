@@ -10,6 +10,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.common.io.Files;
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.algebra.Algebra;
@@ -567,7 +568,7 @@ public class Astar {
         Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
 
         int nullSupertagId = -1;
-        List<List<List<Pair<String, Double>>>> supertags = Util.readSupertagProbs(supertagsReader, true);
+        List<List<List<AnnotatedSupertag>>> supertags = Util.readSupertagProbs(supertagsReader, true);
         Interner<String> supertagLexicon = new Interner<>();
         Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
@@ -575,8 +576,8 @@ public class Astar {
         Set<Type> types = new HashSet<>();
 
         // calculate supertag lexicon
-        for (List<List<Pair<String, Double>>> sentence : supertags) {
-            for (List<Pair<String, Double>> token : sentence) {
+        for (List<List<AnnotatedSupertag>> sentence : supertags) {
+            for (List<AnnotatedSupertag> token : sentence) {
                 // check same #supertags for each token
                 if (numSupertagsPerToken == 0) {
                     numSupertagsPerToken = token.size();
@@ -584,16 +585,24 @@ public class Astar {
                     assert numSupertagsPerToken == token.size();
                 }
 
-                for (Pair<String, Double> st : token) {
-                    String supertag = st.left;
+                for (AnnotatedSupertag st : token) {
+                    String supertag = st.graph;
 
                     if (!supertagLexicon.isKnownObject(supertag)) {
                         int id = supertagLexicon.addObject(supertag);
                         Pair<SGraph, Type> gAndT = alg.parseString(supertag);
+                        
+                        if( st.type != null ) {
+                            // if supertag had an explicit type annotation in the file,
+                            // use that one
+                            gAndT.right = new Type(st.type);
+                        }
+                        
                         idToSupertag.put(id, gAndT);
-                        types.add(gAndT.right); // XXX
+                        types.add(gAndT.right);
                         
                         System.err.printf("supertag %s -> type %s\n", supertag, gAndT.right);
+                        System.err.println(gAndT.left);
 
                         if ("NULL".equals(supertag)) {
                             nullSupertagId = id;
@@ -610,15 +619,15 @@ public class Astar {
 
         // build supertag array
         List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
-        for (List<List<Pair<String, Double>>> sentence : supertags) {
+        for (List<List<AnnotatedSupertag>> sentence : supertags) {
             SupertagProbabilities tagpHere = new SupertagProbabilities(FAKE_NEG_INFINITY, nullSupertagId);
             for (int tokenPos = 0; tokenPos < sentence.size(); tokenPos++) {
-                List<Pair<String, Double>> token = sentence.get(tokenPos);
+                List<AnnotatedSupertag> token = sentence.get(tokenPos);
                 for (int stPos = 0; stPos < numSupertagsPerToken; stPos++) {
-                    Pair<String, Double> st = token.get(stPos);
-                    String supertag = st.left;
+                    AnnotatedSupertag st = token.get(stPos);
+                    String supertag = st.graph;
                     int supertagId = supertagLexicon.resolveObject(supertag);
-                    tagpHere.put(tokenPos, supertagId, Math.log(st.right)); // wasteful: first exp in Util.readProbs, then log again here
+                    tagpHere.put(tokenPos, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
                 }
             }
 

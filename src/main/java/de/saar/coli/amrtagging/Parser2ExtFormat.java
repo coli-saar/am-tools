@@ -139,7 +139,7 @@ public class Parser2ExtFormat {
         
         Corpus corpus = Corpus.readCorpus(new FileReader(p2ext.corpusPath), dummyIrtg);
         Reader r = new FileReader(p2ext.path+"tagProbs.txt");        
-        List<List<List<Pair<String, Double>>>> tagProbs = Util.readSupertagProbs(r, true);
+        List<List<List<AnnotatedSupertag>>> tagProbs = Util.readSupertagProbs(r, true);
         
         if (p2ext.groupByTypes) {
             tagProbs = Util.groupTagsByType(tagProbs);
@@ -186,7 +186,7 @@ public class Parser2ExtFormat {
         
         
         
-        Iterator<List<List<Pair<String, Double>>>> tagProbsIt = tagProbs.iterator();
+        Iterator<List<List<AnnotatedSupertag>>> tagProbsIt = tagProbs.iterator();
         Iterator<List<List<Pair<String, Double>>>> labelProbsIt = labelProbs == null ? null : labelProbs.iterator();
         //List<String> nextTaggedSent = Arrays.asList(taggedSentsIt.next());
         
@@ -239,7 +239,7 @@ public class Parser2ExtFormat {
             final int i = nextInstanceID.incValue();
             List<String> sent = ((List<String>)inst.getInputObjects().get("repstring")).stream().map(s -> s.toLowerCase()).collect(Collectors.toList());
             SGraph gold = (SGraph)inst.getInputObjects().get(graphInterp);
-            List<List<Pair<String, Double>>> tagProb = tagProbsIt.next();
+            List<List<AnnotatedSupertag>> tagProb = tagProbsIt.next();
             List<List<Pair<String, Double>>> labelProb = labelProbsIt == null ? null : labelProbsIt.next();
             
             //now parse and write result

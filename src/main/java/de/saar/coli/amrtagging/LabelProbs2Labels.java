@@ -31,21 +31,21 @@ public class LabelProbs2Labels {
         String type = args[1];
         
         Reader r = new FileReader(args[0]+args[1]+"Probs.txt");        
-        List<List<List<Pair<String, Double>>>> labelProbs = Util.readSupertagProbs(r, true);
+        List<List<List<AnnotatedSupertag>>> labelProbs = Util.readSupertagProbs(r, true);
         
         boolean useNull = Boolean.parseBoolean(args[2]);
         
         FileWriter w = new FileWriter(args[0]+args[1]+"s.txt");
         
-        for (List<List<Pair<String, Double>>> sent : labelProbs) {
+        for (List<List<AnnotatedSupertag>> sent : labelProbs) {
             StringJoiner sj = new StringJoiner(" ");
-            for (List<Pair<String, Double>> word : sent) {
+            for (List<AnnotatedSupertag> word : sent) {
                 if (!word.isEmpty()) {
-                    List<Pair<String, Double>> sorted = new ArrayList<>(word);
-                    sorted.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -Double.compare(o1.right, o2.right));
-                    String label = sorted.get(0).left;
+                    List<AnnotatedSupertag> sorted = new ArrayList<>(word);
+                    sorted.sort((AnnotatedSupertag o1, AnnotatedSupertag o2) -> -Double.compare(o1.probability, o2.probability));
+                    String label = sorted.get(0).graph;
                     if (!useNull && label.equals("NULL") && sorted.size() > 1) {
-                        label = sorted.get(1).left;
+                        label = sorted.get(1).graph;
                     }
                     sj.add(label);
                 } else {
