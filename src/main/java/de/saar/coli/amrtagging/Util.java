@@ -94,7 +94,7 @@ public class Util {
         
         while (br.ready()) {
             String line = br.readLine();
-            String[] parts = split(line, "\\s+");//one part per word
+            String[] parts = split(line, "\t");//one part per word
             List<List<AnnotatedSupertag>> sentList = new ArrayList<>();
             
             for (String part : parts) {
@@ -124,6 +124,7 @@ public class Util {
                         System.err.println(l);
                         System.err.println(Arrays.toString(tAndPs));
                         System.err.println(org.apache.commons.lang3.StringEscapeUtils.escapeJava(line));
+                        System.exit(2);
                     }
                 }
             }

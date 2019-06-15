@@ -601,9 +601,6 @@ public class Astar {
                         idToSupertag.put(id, gAndT);
                         types.add(gAndT.right);
                         
-                        System.err.printf("supertag %s -> type %s\n", supertag, gAndT.right);
-                        System.err.println(gAndT.left);
-
                         if ("NULL".equals(supertag)) {
                             nullSupertagId = id;
                         }
