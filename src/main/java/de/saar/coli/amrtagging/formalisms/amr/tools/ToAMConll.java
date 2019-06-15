@@ -213,7 +213,7 @@ public class ToAMConll {
             
         }
       
-      ConllSentence.writeFile(cli.outPath+"/corpus.amconll", output);
+      ConllSentence.writeToFile(cli.outPath+"/corpus.amconll", output);
     }
     
     

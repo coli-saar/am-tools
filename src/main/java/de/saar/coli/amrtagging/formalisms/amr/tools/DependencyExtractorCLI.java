@@ -218,7 +218,7 @@ public class DependencyExtractorCLI {
                         }
                         synchronized (outCorpus){
                            outCorpus.add(cs);
-                           ConllSentence.writeFile(cli.outPath+"/corpus.amconll", outCorpus);
+                           ConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
                            dictionary.writeToFile(cli.outPath+"/supertags.txt");
                         }
                     }
@@ -244,7 +244,7 @@ public class DependencyExtractorCLI {
         forkJoinPool.shutdown();
         forkJoinPool.awaitTermination(cli.limit, TimeUnit.MINUTES);
         
-        ConllSentence.writeFile(cli.outPath+"/corpus.amconll", outCorpus);
+        ConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
         dictionary.writeToFile(cli.outPath+"/supertags.txt");
         
         

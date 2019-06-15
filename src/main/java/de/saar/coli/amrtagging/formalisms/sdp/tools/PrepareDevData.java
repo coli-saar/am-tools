@@ -84,6 +84,6 @@ public class PrepareDevData {
             currentSent.addNEs(neTags);
             out.add(currentSent);
         } 
-        ConllSentence.writeFile(cli.outPath+"/"+cli.prefix+".amconll", out);
+        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
     }
 }

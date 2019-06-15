@@ -10,7 +10,6 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -18,6 +17,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -189,15 +189,31 @@ public class ConllSentence extends ArrayList<ConllEntry> {
     }
 
     /**
-     * Writes a list of ConllSentences to a file. TODO: might want to set the
-     * line of the objects to where it was written to file.
+     * Writes a list of ConllSentences to a file.
+     * 
+     * @see #write(java.io.Writer, java.util.List) 
      *
      * @param filename
      * @param sents
      * @throws IOException
      */
-    public static void writeFile(String filename, List<ConllSentence> sents) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
+    public static void writeToFile(String filename, List<ConllSentence> sents) throws IOException {
+        write(new FileWriter(filename), sents);
+    }
+    
+    /**
+     * Writes a list of ConllSentences to a writer.<p>
+     * 
+     * TODO: might want to set the
+     * line of the objects to where it was written to file.
+     *
+     * @param writer
+     * @param sents
+     * @throws IOException
+     */
+    public static void write(Writer writer, List<ConllSentence> sents) throws IOException {
+        BufferedWriter bw = new BufferedWriter(writer);
+        
         for (ConllSentence s : sents) {
             for (String key : s.attributes.keySet()) {
                 bw.write("#");

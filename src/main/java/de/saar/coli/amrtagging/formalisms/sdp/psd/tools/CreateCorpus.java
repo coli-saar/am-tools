@@ -256,7 +256,7 @@ public class CreateCorpus {
     private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
         if (outPath != null && prefix != null){
             new File(outPath).mkdirs();
-            ConllSentence.writeFile(outPath+"/"+prefix+".amconll", outCorpus);
+            ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
             if (vocab == null){ //only write vocab if it wasn't restored.
                 supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
             }

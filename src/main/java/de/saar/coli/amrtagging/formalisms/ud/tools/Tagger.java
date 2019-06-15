@@ -68,7 +68,7 @@ public class Tagger {
             sent.addNEs(stanfSent.nerTags());
         }
         
-        ConllSentence.writeFile(cli.outPath+cli.prefix+".amconll", sents);
+        ConllSentence.writeToFile(cli.outPath+cli.prefix+".amconll", sents);
         
     }
         

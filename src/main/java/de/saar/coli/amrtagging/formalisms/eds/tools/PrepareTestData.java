@@ -117,7 +117,7 @@ public class PrepareTestData {
             goldAMR.println();
             
         } 
-        ConllSentence.writeFile(cli.outPath+"/"+cli.prefix+".amconll", out);
+        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
         goldEDM.close();
         goldAMR.close();
     }
