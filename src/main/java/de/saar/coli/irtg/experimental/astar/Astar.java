@@ -7,7 +7,10 @@ package de.saar.coli.irtg.experimental.astar;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
+import com.google.common.io.Files;
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
@@ -20,6 +23,7 @@ import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.ArrayMap;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 import de.up.ling.irtg.util.MutableInteger;
+import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -34,10 +38,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,6 +57,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import javax.swing.UnsupportedLookAndFeelException;
 import me.tongfei.progressbar.ProgressBar;
 
@@ -319,7 +325,7 @@ public class Astar {
         if (realOutside > item.getOutsideEstimate() + EPS) {
             logger.accept(String.format("WARNING: Inadmissible estimate (realOutside=%f, item=%s).", realOutside, item.toString()));
         }
-        
+
         if (item.getLeft() == null) {
             // leaf; decode op as supertag
             String supertag = supertagLexicon.resolveId(item.getOperation());
@@ -350,7 +356,7 @@ public class Astar {
             return Tree.create(edgeLabelLexicon.resolveId(item.getOperation()), left, right);
         }
     }
-    
+
     ParsingResult decode(Item goalItem) {
         if (goalItem == null) {
             return null;
@@ -363,7 +369,7 @@ public class Astar {
             for (int i = 0; i < N; i++) {
                 leafOrderToStringOrder.add(0);
             }
-            
+
             Tree<String> amTerm = decode(goalItem, goalItemLogProb, leafOrderToStringOrder, new MutableInteger(0));
 
             return new ParsingResult(amTerm, goalItemLogProb, leafOrderToStringOrder);
@@ -371,6 +377,7 @@ public class Astar {
     }
 
     static class ParsingResult {
+
         public Tree<String> amTerm;
         public double logProb;
         public IntList leafOrderToStringOrder;
@@ -488,81 +495,84 @@ public class Astar {
         @Parameter(names = "--sort", description = "Sort corpus by sentence length.")
         private boolean sort = false;
 
-        @Parameter(names = "--no-file-suffix", description = "With this flag, no date/time suffixes are appended to output files")
-        private boolean noFileSuffix = false;
-
-        @Parameter(names = "--typelex", description = "Save/load the type lexicon to this file (relative to given path).")
+        @Parameter(names = "--typecache", description = "Save/load the type lexicon to this file.")
         private String typeInternerFilename = null;
+
+        @Parameter(names = {"--amconll", "-a"}, description = "AM-CoNLL file containing the corpus to parse.", required = true)
+        private String amconllFilename;
+
+        @Parameter(names = {"--probs", "-p"}, description = "File with supertag and edge probabilities.", required = true)
+        private String probsFilename;
+
+        @Parameter(names = {"--out", "-o"}, description = "AM-CoNLL file to which the parsed corpus will be written.")
+        private String outFilename;
 
         @Parameter(names = "--help", help = true)
         private boolean help = false;
 
-        @Override
-        public String toString() {
-            StringBuilder buf = new StringBuilder();
-            String filename = getPath() == null ? "--" : getPath().toFile().getAbsolutePath();
-            buf.append("Input path: " + filename + "\n");
-
-            if (typeInternerFilename != null) {
-                buf.append("Save/load interner from/to file: " + getTypeInternerFilename().getAbsolutePath() + "\n");
-            }
-
-            if (Math.abs(bias) > EPS) {
-                buf.append("Bias: " + bias + "\n");
-            }
-
-            if (declutter) {
-                buf.append("Declutter: true\n");
-            }
-
-            if (sort) {
-                buf.append("Sort: true\n");
-            }
-
-            if (parseOnly != null) {
-                buf.append("Parse only: " + parseOnly + "\n");
-            }
-
-            return buf.toString();
-        }
-
-        public Path getPath() {
-            if (arguments == null) {
+        private File resolveFilename(String filename) {
+            if (filename == null) {
                 return null;
             } else {
-                return Paths.get(arguments.get(0));
+                return Paths.get(filename).toFile();
             }
         }
 
-        public File getTypeInternerFilename() {
-            if (typeInternerFilename == null) {
-                return null;
+        public File getTypeInternerFile() {
+            return resolveFilename(typeInternerFilename);
+        }
+
+        public File getAmConllFile() {
+            return resolveFilename(amconllFilename);
+        }
+
+        public File getProbsFile() {
+            return resolveFilename(probsFilename);
+        }
+
+        public File getOutFile() {
+            if (outFilename != null) {
+                return resolveFilename(outFilename);
             } else {
-                return getPath().resolve(typeInternerFilename).toFile();
+                String defaultOutFilename = Files.getNameWithoutExtension(amconllFilename) + "_" + timestamp + ".amconll";
+                return resolveFilename(defaultOutFilename);
             }
         }
 
+        public File getLogFile() {
+            return Paths.get(amconllFilename).getParent().resolve("log_" + timestamp + ".txt").toFile();
+        }
+
+        private String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date());
     }
 
-    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException, InterruptedException {
+    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException, InterruptedException, ParseException {
         Args arguments = new Args();
         JCommander jc = JCommander.newBuilder().addObject(arguments).build();
-        jc.parse(args);
-        jc.setProgramName("Astar");
+        jc.setProgramName("java -cp build/libs/am-tools-all.jar de.saar.coli.irtg.experimental.astar.Astar");
 
-        if (arguments.help || arguments.getPath() == null) {
+        try {
+            jc.parse(args);
+        } catch (ParameterException e) {
+            System.err.println(e.getMessage());
+            System.err.println();
+            jc.usage();
+            System.exit(1);
+        }
+
+        // TODO catch missing required arguments
+        if (arguments.help) {
             jc.usage();
             System.exit(0);
         }
 
-        System.err.print(arguments.toString());
-
-        Path path = arguments.getPath();
-
         // read supertags
+        ZipFile probsZipFile = new ZipFile(arguments.getProbsFile());
+        ZipEntry supertagsZipEntry = probsZipFile.getEntry("tagProbs.txt");
+        Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
+
         int nullSupertagId = -1;
-        Reader r = new FileReader(path.resolve("tagProbs.txt").toFile().getAbsolutePath());
-        List<List<List<Pair<String, Double>>>> supertags = Util.readSupertagProbs(r, true);
+        List<List<List<Pair<String, Double>>>> supertags = Util.readSupertagProbs(supertagsReader, true);
         Interner<String> supertagLexicon = new Interner<>();
         Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
@@ -619,8 +629,9 @@ public class Astar {
         }
 
         // calculate edge-label lexicon
-        r = new FileReader(path.resolve("opProbs.txt").toFile().getAbsolutePath());
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(r, true, 0.01, 5, true);  // TODO make these configurable
+        ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
+        Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.01, 5, true);  // TODO make these configurable
         Interner<String> edgeLabelLexicon = new Interner<>();
 
         for (List<List<Pair<String, Double>>> sentence : edges) {
@@ -655,49 +666,49 @@ public class Astar {
 
         // precalculate type interner for the supertags in tagp;
         // this can take a few minutes
-        AMAlgebraTypeInterner typelex = null;
+        AMAlgebraTypeInterner typecache = null;
 
         if (arguments.typeInternerFilename != null) {
-            if (arguments.getTypeInternerFilename().exists()) {
-                try (InputStream is = new GZIPInputStream(new FileInputStream(arguments.getTypeInternerFilename()))) {
-                    System.err.printf("\nLoad type interner from file %s ...\n", arguments.getTypeInternerFilename());
-                    typelex = AMAlgebraTypeInterner.read(is);
+            if (arguments.getTypeInternerFile().exists()) {
+                try (InputStream is = new GZIPInputStream(new FileInputStream(arguments.getTypeInternerFile()))) {
+                    System.err.printf("\nLoad type interner from file %s ...\n", arguments.getTypeInternerFile());
+                    typecache = AMAlgebraTypeInterner.read(is);
                     System.err.println("Done.");
                 }
             }
         }
 
-        if (typelex == null) {
+        if (typecache == null) {
             System.err.printf("\nBuild type interner from %d types ...\n", types.size());
             CpuTimeStopwatch typew = new CpuTimeStopwatch();
             typew.record();
-            typelex = new AMAlgebraTypeInterner(types, edgeLabelLexicon);
+            typecache = new AMAlgebraTypeInterner(types, edgeLabelLexicon);
             typew.record();
             System.err.printf("Done, %.1f ms\n", typew.getMillisecondsBefore(1));
 
             if (arguments.typeInternerFilename != null) {
-                try (OutputStream os = new GZIPOutputStream(new FileOutputStream(arguments.getTypeInternerFilename()))) {
-                    System.err.printf("Write type interner to file %s ...\n", arguments.getTypeInternerFilename());
-                    typelex.save(os);
+                try (OutputStream os = new GZIPOutputStream(new FileOutputStream(arguments.getTypeInternerFile()))) {
+                    System.err.printf("Write type interner to file %s ...\n", arguments.getTypeInternerFile());
+                    typecache.save(os);
                     os.flush();
                     System.err.println("Done.");
                 }
             }
         }
 
-        final AMAlgebraTypeInterner typeLexicon = typelex;
+        final AMAlgebraTypeInterner typeLexicon = typecache;
+
+        // load input amconll file
+        final List<ConllSentence> corpus = ConllSentence.read(new FileReader(arguments.getAmConllFile()));
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);
 
-        // TODO better file name generation using Path
-        String suffix = arguments.noFileSuffix ? ".txt" : "_" + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date()) + ".txt";
-        File resultFile = path.resolve("results" + suffix).toFile();
-        PrintWriter resultW = new PrintWriter(new FileWriter(resultFile));
-        PrintWriter idW = new PrintWriter(new FileWriter(path.resolve("indices" + suffix).toFile()));
-        PrintWriter logW = new PrintWriter(new FileWriter(path.resolve("log" + suffix).toFile()));
+        File logfile = arguments.getLogFile();
+        File outfile = arguments.getOutFile();
+        PrintWriter logW = new PrintWriter(new FileWriter(logfile));
 
-        System.err.printf("\nWriting graphs to %s.\n\n", resultFile.getAbsolutePath());
+        System.err.printf("\nWriting graphs to %s.\n\n", outfile.getAbsolutePath());
 
         List<Integer> sentenceIndices = IntStream.rangeClosed(0, tagp.size() - 1).boxed().collect(Collectors.toList());
         if (arguments.sort) {
@@ -744,7 +755,10 @@ public class Astar {
                         if (parsingResult != null) {
                             // TODO find out how this can happen - this doesn't look like a normal
                             // "no parse" case.
-                            result = new ApplyModifyGraphAlgebra().evaluate(parsingResult.amTerm).left.toIsiAmrStringWithSources();
+                            // TODO what did I mean with that??
+
+                            ConllSentence sent = corpus.get(ii);
+                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder);
                         }
 
                         w.record();
@@ -753,12 +767,6 @@ public class Astar {
                                 : String.format("[%04d] %s", ii, astar.getRuntimeStatistics().toString());
 
                         synchronized (logW) {
-                            resultW.println(result);
-                            resultW.flush();
-
-                            idW.println(ii);
-                            idW.flush();
-
                             logW.println(reportString);
                             logW.printf("[%04d] init %.1f ms; parse %.1f ms; evaluate %.1f ms\n", ii,
                                     w.getMillisecondsBefore(1),
@@ -780,18 +788,18 @@ public class Astar {
         forkJoinPool.awaitTermination(1000, TimeUnit.MINUTES);
 
         pb.close();
-
-        resultW.close();
-        idW.close();
         logW.close();
+
+        // write parsed corpus to output file
+        ConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);
     }
-    
+
     /**
      * For testing only.
-     * 
-     * @param n 
+     *
+     * @param n
      */
     void setN(int n) {
-       N = n; 
+        N = n;
     }
 }
