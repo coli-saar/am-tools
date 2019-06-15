@@ -498,14 +498,11 @@ public class Astar {
         @Parameter(names = "--typecache", description = "Save/load the type lexicon to this file.")
         private String typeInternerFilename = null;
 
-        @Parameter(names = {"--amconll", "-a"}, description = "AM-CoNLL file containing the corpus to parse.", required = true)
-        private String amconllFilename;
-
-        @Parameter(names = {"--probs", "-p"}, description = "File with supertag and edge probabilities.", required = true)
+        @Parameter(names = {"--scores", "-s"}, description = "File with supertag and edge scores.", required = true)
         private String probsFilename;
 
-        @Parameter(names = {"--out", "-o"}, description = "AM-CoNLL file to which the parsed corpus will be written.")
-        private String outFilename;
+        @Parameter(names = {"--outdir", "-o"}, description = "Directory to which outputs are written.")
+        private String outFilename = "";
 
         @Parameter(names = "--help", help = true)
         private boolean help = false;
@@ -518,29 +515,28 @@ public class Astar {
             }
         }
 
+        private File resolveOutputFilename(String filename) {
+            if (filename == null) {
+                return null;
+            } else {
+                return Paths.get(outFilename).resolve(filename).toFile();
+            }
+        }
+
         public File getTypeInternerFile() {
             return resolveFilename(typeInternerFilename);
         }
 
-        public File getAmConllFile() {
-            return resolveFilename(amconllFilename);
-        }
-
-        public File getProbsFile() {
+        public File getScoreFile() {
             return resolveFilename(probsFilename);
         }
 
         public File getOutFile() {
-            if (outFilename != null) {
-                return resolveFilename(outFilename);
-            } else {
-                String defaultOutFilename = Files.getNameWithoutExtension(amconllFilename) + "_" + timestamp + ".amconll";
-                return resolveFilename(defaultOutFilename);
-            }
+            return resolveOutputFilename("results_" + timestamp + ".amconll");
         }
 
         public File getLogFile() {
-            return Paths.get(amconllFilename).getParent().resolve("log_" + timestamp + ".txt").toFile();
+            return resolveOutputFilename("log_" + timestamp + ".txt");
         }
 
         private String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date());
@@ -560,14 +556,13 @@ public class Astar {
             System.exit(1);
         }
 
-        // TODO catch missing required arguments
         if (arguments.help) {
             jc.usage();
             System.exit(0);
         }
 
         // read supertags
-        ZipFile probsZipFile = new ZipFile(arguments.getProbsFile());
+        ZipFile probsZipFile = new ZipFile(arguments.getScoreFile());
         ZipEntry supertagsZipEntry = probsZipFile.getEntry("tagProbs.txt");
         Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
 
@@ -597,6 +592,8 @@ public class Astar {
                         Pair<SGraph, Type> gAndT = alg.parseString(supertag);
                         idToSupertag.put(id, gAndT);
                         types.add(gAndT.right); // XXX
+                        
+                        System.err.printf("supertag %s -> type %s\n", supertag, gAndT.right);
 
                         if ("NULL".equals(supertag)) {
                             nullSupertagId = id;
@@ -699,7 +696,8 @@ public class Astar {
         final AMAlgebraTypeInterner typeLexicon = typecache;
 
         // load input amconll file
-        final List<ConllSentence> corpus = ConllSentence.read(new FileReader(arguments.getAmConllFile()));
+        ZipEntry inputEntry = probsZipFile.getEntry("corpus.amconll");
+        final List<ConllSentence> corpus = ConllSentence.read(new InputStreamReader(probsZipFile.getInputStream(inputEntry)));
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);

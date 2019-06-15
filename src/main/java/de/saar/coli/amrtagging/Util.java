@@ -103,6 +103,12 @@ public class Util {
                     int sepInd = tAndP.lastIndexOf("|");
                     if (sepInd >= 0) {
                         String t = raw2readable(tAndP.substring(0, sepInd));
+                        
+                        // strip off --TYPE-- suffixes if they are there
+                        if( t.endsWith("--TYPE--")) {
+                            t = t.substring(0, t.length()-8);
+                        }
+                        
                         Double p = Double.valueOf(tAndP.substring(sepInd+1));
 
                         if (areLogs) {
