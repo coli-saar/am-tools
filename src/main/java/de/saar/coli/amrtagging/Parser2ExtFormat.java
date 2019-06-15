@@ -30,11 +30,11 @@ import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -138,12 +138,13 @@ public class Parser2ExtFormat {
         dummyIrtg.addInterpretation(graphInterp, new Interpretation(new GraphAlgebra(), new Homomorphism(new Signature(), new Signature())));
         
         Corpus corpus = Corpus.readCorpus(new FileReader(p2ext.corpusPath), dummyIrtg);
+        Reader r = new FileReader(p2ext.path+"tagProbs.txt");        
+        List<List<List<Pair<String, Double>>>> tagProbs = Util.readSupertagProbs(r, true);
         
-        
-        List<List<List<Pair<String, Double>>>> tagProbs = Util.readProbs(p2ext.path+"tagProbs.txt", true);
         if (p2ext.groupByTypes) {
             tagProbs = Util.groupTagsByType(tagProbs);
         }
+        
         List<List<List<Pair<String, Double>>>> labelProbs = null;
         //currently we never use these labels directly, instead relying on a separate relabel step later. TODO: add option to label here.
 //        if (new File(p2ext.path+"labelProbs.txt").exists()) {
@@ -153,9 +154,10 @@ public class Parser2ExtFormat {
         
         
         //read edge
-        List<List<List<Pair<String, Double>>>> edgesProbs = Util.readEdgeProbs(p2ext.path+"opProbs.txt", true,
-                p2ext.edgeThreshold, p2ext.edgeLabelK, p2ext.shift);
+        r = new FileReader(p2ext.path+"opProbs.txt");
+        List<List<List<Pair<String, Double>>>> edgesProbs = Util.readEdgeProbs(r, true, p2ext.edgeThreshold, p2ext.edgeLabelK, p2ext.shift);
         List<Map<String, Int2ObjectMap<Int2DoubleMap>>> edgeLabel2pos2pos2prob = new ArrayList<>();
+        
         if (edgesProbs != null) {
             for (List<List<Pair<String, Double>>> edgesInSentence : edgesProbs) {
                 Map<String, Int2ObjectMap<Int2DoubleMap>> mapHere = new HashMap<>();

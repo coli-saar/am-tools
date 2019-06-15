@@ -20,11 +20,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,42 +58,57 @@ public class Util {
     }
     
     /**
-     * Reads supertag probabilities from a file.
-     * Result dimensions are [sentences][words in the sentence][available choices for the word]
+     * Reads supertag probabilities from a file.<p>
+     * 
+     * Result dimensions are [sentences][words in the sentence][available choices for the word].
      * Text file is expected to be one sentence per line, words separated by tabs
      * and choices per word separated by single spaces. Generally reads string-probability
-     * pairs in the format s|p (with no whitespace allowed in s).
-     * Applies raw2readable on all strings (replacing whitespacemarker)
-     * @param path path to the text file
+     * pairs in the format s|p (with no whitespace allowed in s).<p>
+     * 
+     * Applies raw2readable on all strings (replacing whitespace marker by whitespace).<p>
+     * 
+     * Update June 2019, AK: This method no longer silently returns null if the
+     * input file does not exist. 
+     * 
+     * @param reader Reader from which to read
      * @param areLogs whether probabilities are logs or not.
      * @return
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    public static List<List<List<Pair<String, Double>>>> readProbs(String path, boolean areLogs) throws FileNotFoundException, IOException {
+    public static List<List<List<Pair<String, Double>>>> readSupertagProbs(Reader reader, boolean areLogs) throws FileNotFoundException, IOException {
+        /*
         if (!new File(path).exists()) {
             System.err.println("Info: file '"+path+"' does not exist, trying to proceed without it. (This is ok for the edges file)");
             return null;
         }
-        BufferedReader br = new BufferedReader(new FileReader(path));
+        */
+        
+        BufferedReader br = new BufferedReader(reader);
         List<List<List<Pair<String, Double>>>> ret = new ArrayList<>();
         int l = 0;
+        
         while (br.ready()) {
             String line = br.readLine();
             String[] parts = split(line, "\t");//one part per word
             List<List<Pair<String, Double>>> sentList = new ArrayList<>();
+            
             for (String part : parts) {
                 List<Pair<String, Double>> wordList = new ArrayList<>();
-                sentList.add(wordList);
                 String[] tAndPs = split(part, " ");//the possibilities for this word (each: token with prob)
+
+                sentList.add(wordList);
+
                 for (String tAndP : tAndPs) {
                     int sepInd = tAndP.lastIndexOf("|");
                     if (sepInd >= 0) {
                         String t = raw2readable(tAndP.substring(0, sepInd));
                         Double p = Double.valueOf(tAndP.substring(sepInd+1));
+
                         if (areLogs) {
                             p = Math.exp(p);
                         }
+
                         wordList.add(new Pair(t, p));
                     } else {
                         System.err.println("***WARNING*** could not read probability for token "+org.apache.commons.lang3.StringEscapeUtils.escapeJava(tAndP));
@@ -103,9 +118,11 @@ public class Util {
                     }
                 }
             }
+
             ret.add(sentList);
             l++;
         }
+
         return ret;    
     }
     
@@ -154,10 +171,15 @@ public class Util {
     
     /**
      * Reads edge probabilities from a text file. Dimensions of the result are
-     * [sentences][1][edges for the sentence] (the 1 is a historical remnant).
+     * [sentences][1][edges for the sentence] (the 1 is a historical remnant).<p>
+     * 
      * Edges with label o from i to j with probability p are expected to be in the
-     * format o[i,j]|p , with one sentence per line and edges per sentence separated by tabs.
-     * @param path path to text file
+     * format o[i,j]|p , with one sentence per line and edges per sentence separated by tabs.<p>
+     * 
+     * Update June 2019, AK: This method no longer silently returns null if the
+     * input file does not exist. 
+     * 
+     * @param reader Reader from which to read
      * @param areLogs log probabilities or not
      * @param threshold threshold where to cut off probabilities for edges (non-log values).
      * Edges with scores below this threshold are not added to the resulting list. Try something like 0.01.
@@ -170,14 +192,16 @@ public class Util {
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    public static List<List<List<Pair<String, Double>>>> readEdgeProbs(String path, boolean areLogs,
+    public static List<List<List<Pair<String, Double>>>> readEdgeProbs(Reader reader, boolean areLogs,
             double threshold, int maxLabels, boolean shift) throws FileNotFoundException, IOException {
+        /*
         if (!new File(path).exists()) {
             System.err.println("Info: file '"+path+"' does not exist, trying to proceed without it. (This is ok for the edges file)");
             return null;
         }
+        */
         
-        BufferedReader br = new BufferedReader(new FileReader(path));
+        BufferedReader br = new BufferedReader(reader);
         List<List<List<Pair<String, Double>>>> ret = new ArrayList<>();
         
         sentenceLoop:
@@ -259,7 +283,7 @@ public class Util {
     }
     
     /**
-     * Call on strings from {@link #readProbs(java.lang.String, boolean) } to
+     * Call on strings from {@link #readSupertagProbs(java.lang.String, boolean) } to
      * remove whitespace markers.
      * 
      * @param raw

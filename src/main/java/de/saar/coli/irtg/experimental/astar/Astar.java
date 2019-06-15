@@ -30,11 +30,13 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -559,7 +561,8 @@ public class Astar {
 
         // read supertags
         int nullSupertagId = -1;
-        List<List<List<Pair<String, Double>>>> supertags = Util.readProbs(path.resolve("tagProbs.txt").toFile().getAbsolutePath(), true);
+        Reader r = new FileReader(path.resolve("tagProbs.txt").toFile().getAbsolutePath());
+        List<List<List<Pair<String, Double>>>> supertags = Util.readSupertagProbs(r, true);
         Interner<String> supertagLexicon = new Interner<>();
         Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
@@ -616,7 +619,8 @@ public class Astar {
         }
 
         // calculate edge-label lexicon
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(path.resolve("opProbs.txt").toFile().getAbsolutePath(), true, 0.01, 5, true);  // TODO make these configurable
+        r = new FileReader(path.resolve("opProbs.txt").toFile().getAbsolutePath());
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(r, true, 0.01, 5, true);  // TODO make these configurable
         Interner<String> edgeLabelLexicon = new Interner<>();
 
         for (List<List<Pair<String, Double>>> sentence : edges) {

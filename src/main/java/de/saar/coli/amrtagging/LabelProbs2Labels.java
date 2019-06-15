@@ -6,15 +6,17 @@
 package de.saar.coli.amrtagging;
 
 import de.saar.basic.Pair;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.StringJoiner;
 
 /**
  * Extracts the highest-scoring labels from a file with label probabilities (e.g.~produced by neural tagger).
+ * 
  * @author Jonas
  */
 public class LabelProbs2Labels {
@@ -27,7 +29,9 @@ public class LabelProbs2Labels {
      */
     public static void main(String[] args) throws IOException {
         String type = args[1];
-        List<List<List<Pair<String, Double>>>> labelProbs = Util.readProbs(args[0]+args[1]+"Probs.txt", true);
+        
+        Reader r = new FileReader(args[0]+args[1]+"Probs.txt");        
+        List<List<List<Pair<String, Double>>>> labelProbs = Util.readSupertagProbs(r, true);
         
         boolean useNull = Boolean.parseBoolean(args[2]);
         
