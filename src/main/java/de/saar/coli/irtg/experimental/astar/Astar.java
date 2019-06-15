@@ -729,7 +729,6 @@ public class Astar {
                                 String.format("[%04d] %s", ii, astar.getRuntimeStatistics().toString());
 
                         synchronized (logW) {
-                            // TODO make sure that graphs are / can be printed in corpus order, not iteration order
                             resultW.println(result);
                             resultW.flush();
 

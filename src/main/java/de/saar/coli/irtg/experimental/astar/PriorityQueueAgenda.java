@@ -5,7 +5,6 @@
  */
 package de.saar.coli.irtg.experimental.astar;
 
-import de.saar.coli.irtg.experimental.astar.Astar;
 import de.up.ling.irtg.util.NumbersCombine;
 import it.unimi.dsi.fastutil.PriorityQueue;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;

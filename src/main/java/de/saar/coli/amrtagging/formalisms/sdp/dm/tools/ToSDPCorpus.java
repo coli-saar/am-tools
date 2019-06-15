@@ -15,7 +15,6 @@ import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 
 import java.io.FileNotFoundException;
@@ -26,7 +25,7 @@ import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 
 
-import java.util.ArrayList;
+import java.util.List;
 import se.liu.ida.nlp.sdp.toolkit.io.Constants;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphWriter2015;
 
@@ -68,7 +67,7 @@ public class ToSDPCorpus {
             return;
         }
         
-        ArrayList<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
         GraphReader2015 goldReader = null;
         if (cli.goldCorpus != null){
             goldReader = new GraphReader2015(cli.goldCorpus);

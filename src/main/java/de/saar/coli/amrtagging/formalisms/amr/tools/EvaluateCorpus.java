@@ -9,13 +9,11 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 
 
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 
 import java.io.FileNotFoundException;
@@ -23,6 +21,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -61,7 +60,7 @@ public class EvaluateCorpus {
             return;
         }
         
-        ArrayList<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
         PrintWriter o = new PrintWriter(cli.outPath+"/parserOut.txt");
         PrintWriter l = new PrintWriter(cli.outPath+"/labels.txt");
         PrintWriter indices = new PrintWriter(cli.outPath+"/indices.txt");

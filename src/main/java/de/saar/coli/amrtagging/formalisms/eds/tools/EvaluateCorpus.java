@@ -70,7 +70,7 @@ public class EvaluateCorpus {
             return;
         }
         
-        ArrayList<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
 
         PrintWriter amr = new PrintWriter(cli.outPath+".amr.txt");
         PrintWriter edm = new PrintWriter(cli.outPath+".edm");
