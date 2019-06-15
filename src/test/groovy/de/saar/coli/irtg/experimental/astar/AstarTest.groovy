@@ -10,6 +10,7 @@ package de.saar.coli.irtg.experimental.astar
 import static org.junit.Assert.*
 import org.junit.*
 import static de.up.ling.irtg.util.TestingTools.*;
+import de.saar.coli.irtg.experimental.astar.Astar.ParsingResult
 import de.up.ling.irtg.signature.Interner
 import de.up.ling.irtg.signature.Signature
 import de.up.ling.irtg.util.MutableInteger
@@ -29,7 +30,7 @@ class AstarTest {
         Interner<String> supertagLex = intern(["(u<root> / john)":1, "(u<root> / mary)" : 2, "(u<root> / likes :ARG0 (v<s>) :ARG1 (w<o>)":3])
         Interner<String> edgeLex = intern(["APP_s":1, "APP_o":2])
         Astar a = new Astar(null, new SupertagProbabilities(0,0), new Int2ObjectOpenHashMap(), supertagLex, edgeLex, null);
-        // public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon) {
+        a.setN(3)
         
         Item itJohn = li(0, 1, 1);
         Item itLikes = li(1, 2, 3);
@@ -38,16 +39,10 @@ class AstarTest {
         Item itLikesMary = opi(1, 3, 2, itLikes, itMary);
         Item itAll = opi(0, 3, 1, itLikesMary, itJohn);
         
-        IntList leafOrderToStringOrder = new IntArrayList(3);
-        for( int i = 0; i < 3; i++ ) {
-            leafOrderToStringOrder.add(0);
-        }
+        ParsingResult result = a.decode(itAll);
         
-        Tree<String> amTerm = a.decode(itAll, 0, leafOrderToStringOrder, new MutableInteger(0));
-        
-        assertEquals([1,2,0], leafOrderToStringOrder)
-        assertEquals("APP_s(APP_o('(u<root> / likes :ARG0 (v<s>) :ARG1 (w<o>)','(u<root> / mary)'),'(u<root> / john)')", amTerm.toString())
-//        System.err.println(amTerm)
+        assertEquals([1,2,0], result.leafOrderToStringOrder)
+        assertEquals(pt("APP_s(APP_o('(u<root> / likes :ARG0 (v<s>) :ARG1 (w<o>)','(u<root> / mary)'),'(u<root> / john)')"), result.amTerm)
     }
     
     private Interner<String> intern(Map<String,Integer> symbols) {
@@ -75,9 +70,3 @@ class AstarTest {
     }
 }
 
-/*
-        SGraph g1 = pg("(w<root> / want-01  :ARG0 (b/b1)  :ARG1 (g/g))")
-        SGraph g2 = pg("(g<root> :ARG2 (b/b2))")
-        SGraph gold = pg("(w<root> / want-01 :ARG0 (b/b1)  :ARG1 (g/g) :ARG2 (b2/b2))")
-
-*/

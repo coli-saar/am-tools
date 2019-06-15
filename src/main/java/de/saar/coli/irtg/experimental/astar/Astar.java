@@ -8,8 +8,6 @@ package de.saar.coli.irtg.experimental.astar;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractor;
-import de.saar.coli.amrtagging.Parser;
 import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
@@ -65,7 +63,7 @@ public class Astar {
     static final double FAKE_NEG_INFINITY = -1000000;
     private boolean declutterAgenda = false; // previously dequeued items will never be enqueued again
 
-    private final int N;
+    private int N;
     private final EdgeProbabilities edgep;
     private final SupertagProbabilities tagp;
     private final OutsideEstimator outside;
@@ -311,7 +309,7 @@ public class Astar {
         set.add(item);
     }
 
-    Tree<String> decode(Item item, double logProbGoalItem, IntList leafOrderToStringOrder, MutableInteger nextLeafPosition) {
+    private Tree<String> decode(Item item, double logProbGoalItem, IntList leafOrderToStringOrder, MutableInteger nextLeafPosition) {
         double realOutside = logProbGoalItem - item.getLogProb();
 //        System.err.printf("item: %s\n", item);
 
@@ -350,20 +348,8 @@ public class Astar {
             return Tree.create(edgeLabelLexicon.resolveId(item.getOperation()), left, right);
         }
     }
-
-    /**
-     * Parses the given string and returns an AM term.
-     *
-     * @return
-     */
-    public ParsingResult parse() {
-        Item goalItem = process();
-
-        /*
-        for (int i = 0; i < 10; i++) {
-            process();
-        }
-         */
+    
+    ParsingResult decode(Item goalItem) {
         if (goalItem == null) {
             return null;
         } else {
@@ -382,8 +368,7 @@ public class Astar {
         }
     }
 
-    private static class ParsingResult {
-
+    static class ParsingResult {
         public Tree<String> amTerm;
         public double logProb;
         public IntList leafOrderToStringOrder;
@@ -743,7 +728,8 @@ public class Astar {
 
                         w.record();
 
-                        parsingResult = astar.parse();
+                        Item goalItem = astar.process();
+                        parsingResult = astar.decode(goalItem);
                         w.record();
                     } catch (Throwable e) {
                         synchronized (logW) {
@@ -794,5 +780,14 @@ public class Astar {
         resultW.close();
         idW.close();
         logW.close();
+    }
+    
+    /**
+     * For testing only.
+     * 
+     * @param n 
+     */
+    void setN(int n) {
+       N = n; 
     }
 }
