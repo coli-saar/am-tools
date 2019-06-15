@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.github.coli-saar:alto:2.3.5'
+    compile 'com.github.coli-saar:alto:d88aeea9'
     
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'
@@ -24,9 +24,10 @@ dependencies {
     // the following dependencies are in alto, but we need to include them here again
     // (this stuff seems to not be recursive)
     // (doesn't it? it seems to work fine without the dependencies - AK)
-//    implementation 'com.beust:jcommander:1.69'
-//    implementation 'net.sf.jgrapht:jgrapht:0.8.3'
-//    implementation 'edu.stanford.nlp:stanford-corenlp:3.8.0'
-//    implementation 'edu.mit:jwi:2.2.3'
+    // (for me it does - ML)
+    implementation 'com.beust:jcommander:1.69'
+    implementation 'net.sf.jgrapht:jgrapht:0.8.3'
+    implementation 'edu.stanford.nlp:stanford-corenlp:3.8.0'
+    implementation 'edu.mit:jwi:2.2.3'
 }
 
