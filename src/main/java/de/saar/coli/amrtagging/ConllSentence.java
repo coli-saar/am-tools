@@ -286,13 +286,19 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         for( ConllEntry e : this ) {
             e.setHead(0);
             e.setEdgeLabel(ConllEntry.IGNORE);
+            e.setDelexSupertag(ConllEntry.DEFAULT_NULL);
         }
         
         // perform left-to-right DFS over term and assign incoming edges
         int rootPos = amTerm.dfs((Tree<String> node, List<Integer> childrenValues) -> {
             if( childrenValues.isEmpty() ) {
+                // leaf
                 int leafPosition = nextLeafPosition.incValue();
                 int stringPosition = leafOrderToStringOrder.get(leafPosition);
+                
+                ConllEntry entry = this.get(stringPosition);
+                entry.setDelexSupertag(node.getLabel());
+                
                 return stringPosition;
             } else {
                 assert childrenValues.size() == 2;
