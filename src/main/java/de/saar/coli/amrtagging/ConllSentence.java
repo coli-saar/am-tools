@@ -282,6 +282,13 @@ public class ConllSentence extends ArrayList<ConllEntry> {
     public void setDependenciesFromAmTerm(Tree<String> amTerm, List<Integer> leafOrderToStringOrder) {
         MutableInteger nextLeafPosition = new MutableInteger(0);
         
+        // all tokens that are not mentioned in the term will be ignored
+        for( ConllEntry e : this ) {
+            e.setHead(0);
+            e.setEdgeLabel(ConllEntry.IGNORE);
+        }
+        
+        // perform left-to-right DFS over term and assign incoming edges
         int rootPos = amTerm.dfs((Tree<String> node, List<Integer> childrenValues) -> {
             if( childrenValues.isEmpty() ) {
                 int leafPosition = nextLeafPosition.incValue();
@@ -301,9 +308,10 @@ public class ConllSentence extends ArrayList<ConllEntry> {
             }
         });
         
+        // mark root token as root
         ConllEntry rootEntry = this.get(rootPos);
         rootEntry.setHead(0);
-        rootEntry.setEdgeLabel("root");
+        rootEntry.setEdgeLabel(ConllEntry.ROOT_SYM);
     }
 
 }

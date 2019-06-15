@@ -26,14 +26,9 @@ class ConllSentenceTest {
         
         sent.setDependenciesFromAmTerm(amterm, leafOrderToStringOrder);
         
-        assertEquals(2, sent[0].getHead());
-        assertEquals("APP_s", sent[0].getEdgeLabel());
-        
-        assertEquals(0, sent[1].getHead());
-        assertEquals("root", sent[1].getEdgeLabel());
-        
-        assertEquals(2, sent[2].getHead());
-        assertEquals("APP_o", sent[2].getEdgeLabel());
+        assertIncoming(sent[0], 2, "APP_s")
+        assertIncoming(sent[1], 0, ConllEntry.ROOT_SYM)
+        assertIncoming(sent[2], 2, "APP_o")
     }
     
     @Test
@@ -44,19 +39,17 @@ class ConllSentenceTest {
         
         sent.setDependenciesFromAmTerm(amterm, leafOrderToStringOrder);
         
-        assertEquals(2, sent[0].getHead());
-        assertEquals("APP_s", sent[0].getEdgeLabel());
-        
-        assertEquals(0, sent[1].getHead());
-        assertEquals("root", sent[1].getEdgeLabel());
-        
-        assertEquals(5, sent[3].getHead());
-        assertEquals("APP_s", sent[3].getEdgeLabel());
-        
-        assertEquals(2, sent[4].getHead());
-        assertEquals("APP_v", sent[4].getEdgeLabel());
+        assertIncoming(sent[0], 2, "APP_s")
+        assertIncoming(sent[1], 0, ConllEntry.ROOT_SYM)
+        assertIncoming(sent[2], 0, ConllEntry.IGNORE)
+        assertIncoming(sent[3], 5, "APP_s")
+        assertIncoming(sent[4], 2, "APP_v")
     }
     
+    public void assertIncoming(ConllEntry entry, int expectedHead, String expectedEdgeLabel) {
+        assertEquals(expectedHead, entry.getHead());
+        assertEquals(expectedEdgeLabel, entry.getEdgeLabel());
+    }
     
     public ConllSentence s(List<ConllEntry> entries) {
         ConllSentence ret = new ConllSentence();
