@@ -8,6 +8,10 @@ plugins {
 
 mainClassName = 'de.saar.coli.irtg.experimental.astar.Astar'
 
+application {
+    applicationDefaultJvmArgs = ['-ea']
+}
+
 repositories {
     mavenCentral()
     maven { url 'http://akci.coli.uni-saarland.de/artifactory/external' }

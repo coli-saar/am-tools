@@ -165,6 +165,8 @@ public class Astar {
     }
 
     private Item process() {
+        System.err.printf("start processing, N=%d\n", N);
+
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
 
@@ -189,6 +191,8 @@ public class Astar {
             final int i_final = i;
 
             tagp.foreachInOrder(i, (supertagId, prob) -> {
+                System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
+
                 if (supertagId != tagp.getNullSupertagId()) { // skip NULL entries - NULL items are created on the fly during the agenda exploration phase
                     Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
                     it.setCreatedBySupertag(supertagId);
@@ -197,6 +201,8 @@ public class Astar {
                 }
             });
         }
+
+        System.err.printf("agenda empty: %s\n", Boolean.toString(agenda.isEmpty()));
 
         // iterate over agenda
         while (!agenda.isEmpty()) {
@@ -211,7 +217,7 @@ public class Astar {
 
             numDequeuedItems++;
 
-//            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it);
+            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it);
             // return first found goal item
             if (isGoal(it)) {
                 w.record(); // agenda looping time
@@ -393,8 +399,6 @@ public class Astar {
             return "ParsingResult{" + "amTerm=" + amTerm + ", logProb=" + logProb + ", leafOrderToStringOrder=" + leafOrderToStringOrder + '}';
         }
 
-        
-        
     }
 
     // check whether the item is a goal item
@@ -586,28 +590,36 @@ public class Astar {
         for (List<List<AnnotatedSupertag>> sentence : supertags) {
             for (List<AnnotatedSupertag> token : sentence) {
                 // check same #supertags for each token
-                if (numSupertagsPerToken == 0) {
+                // -> in latest version, some tokens get 15 supertags, some 16.
+                
+                // calculate min #supertags per token
+                if( numSupertagsPerToken == 0 || token.size() < numSupertagsPerToken ) {
                     numSupertagsPerToken = token.size();
-                } else {
-                    assert numSupertagsPerToken == token.size();
                 }
+                
 
+//                System.err.printf("%d supertags/token\n", token.size());
+//                if (numSupertagsPerToken == 0) {
+//                    numSupertagsPerToken = token.size();
+//                } else {
+//                    assert numSupertagsPerToken == token.size();
+//                }
                 for (AnnotatedSupertag st : token) {
                     String supertag = st.graph;
 
                     if (!supertagLexicon.isKnownObject(supertag)) {
                         int id = supertagLexicon.addObject(supertag);
                         Pair<SGraph, Type> gAndT = alg.parseString(supertag);
-                        
-                        if( st.type != null ) {
+
+                        if (st.type != null) {
                             // if supertag had an explicit type annotation in the file,
                             // use that one
                             gAndT.right = new Type(st.type);
                         }
-                        
+
                         idToSupertag.put(id, gAndT);
                         types.add(gAndT.right);
-                        
+
                         if ("NULL".equals(supertag)) {
                             nullSupertagId = id;
                         }
@@ -620,19 +632,30 @@ public class Astar {
             System.err.println("Did not find an entry for the NULL supertag - exiting.");
             System.exit(1);
         }
+        
+        System.err.printf("found %d supertags per token\n", numSupertagsPerToken);
 
         // build supertag array
         List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
+        int x = 0; // AKAKAK
         for (List<List<AnnotatedSupertag>> sentence : supertags) {
             SupertagProbabilities tagpHere = new SupertagProbabilities(FAKE_NEG_INFINITY, nullSupertagId);
+
             for (int tokenPos = 0; tokenPos < sentence.size(); tokenPos++) {
                 List<AnnotatedSupertag> token = sentence.get(tokenPos);
+
                 for (int stPos = 0; stPos < numSupertagsPerToken; stPos++) {
                     AnnotatedSupertag st = token.get(stPos);
                     String supertag = st.graph;
                     int supertagId = supertagLexicon.resolveObject(supertag);
                     tagpHere.put(tokenPos, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
                 }
+            }
+            
+            if (arguments.parseOnly == null || x++ == arguments.parseOnly) {
+                System.err.printf("sentence length: %d\n", tagpHere.getLength());
+                tagpHere.prettyprint(idToSupertag, System.err);
+//                System.err.println(tagpHere);
             }
 
             tagp.add(tagpHere);
@@ -731,14 +754,18 @@ public class Astar {
         for (int i : sentenceIndices) { // loop over corpus
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
                 final int ii = i;
+                
+                System.err.printf("*** parse it %d ***\n", ii);
 
 //                System.err.printf("\n[%02d] EDGES:\n", ii);
 //                edgep.get(ii).prettyprint(edgeLabelLexicon, System.err);
                 forkJoinPool.execute(() -> {
                     Astar astar = null;
                     ParsingResult parsingResult = null;
-                    String result = "(u / unparseable)";
+//                    String result = "(u / unparseable)";
                     CpuTimeStopwatch w = new CpuTimeStopwatch();
+                    
+                    System.err.println("aa");
 
                     try {
                         w.record();
@@ -751,18 +778,20 @@ public class Astar {
                                 logW.println(s);
                             }
                         });
+                        
+                        System.err.println("bb");
 
                         w.record();
 
                         Item goalItem = astar.process();
                         System.err.println("goal item:");
                         System.err.println(goalItem);
-                        
+
                         parsingResult = astar.decode(goalItem);
-                        
+
                         System.err.println("parsing result:");
                         System.err.println(parsingResult);
-                        
+
                         w.record();
                     } catch (Throwable e) {
                         synchronized (logW) {
@@ -821,8 +850,8 @@ public class Astar {
     void setN(int n) {
         N = n;
     }
-    
-    public Function<String,Type> getSupertagToTypeFunction() {
+
+    public Function<String, Type> getSupertagToTypeFunction() {
         return (supertag) -> {
             int supertagId = supertagLexicon.resolveObject(supertag);
             int typeId = supertagTypes.get(supertagId);
