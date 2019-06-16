@@ -6,7 +6,7 @@ plugins {
     id 'application'
 }
 
-mainClassName = 'de.saar.coli.amrtagging.formalisms.sdp.dm.tools.ToSDPCorpus'
+mainClassName = 'de.saar.coli.irtg.experimental.astar.Astar'
 
 repositories {
     mavenCentral()

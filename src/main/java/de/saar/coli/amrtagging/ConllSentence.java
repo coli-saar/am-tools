@@ -296,6 +296,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         return read(new FileReader(filename));
     }
     
+    
     public void setDependenciesFromAmTerm(Tree<String> amTerm, List<Integer> leafOrderToStringOrder, Function<String,Type> supertagToType) {
         MutableInteger nextLeafPosition = new MutableInteger(0);
         
@@ -304,7 +305,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
             e.setHead(0);
             e.setEdgeLabel(ConllEntry.IGNORE);
             e.setDelexSupertag(ConllEntry.DEFAULT_NULL);
-            e.setType(Type.EMPTY_TYPE);
+            e.setType(null);
         }
         
         // perform left-to-right DFS over term and assign incoming edges
@@ -339,4 +340,11 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         rootEntry.setEdgeLabel(ConllEntry.ROOT_SYM);
     }
 
+    public String getId() {
+        if( getAttr("id") != null ) {
+            return getAttr("id");
+        } else {
+            return "#NO-ID";
+        }
+    }
 }

@@ -387,6 +387,14 @@ public class Astar {
             this.logProb = logProb;
             this.leafOrderToStringOrder = leafOrderToStringOrder;
         }
+
+        @Override
+        public String toString() {
+            return "ParsingResult{" + "amTerm=" + amTerm + ", logProb=" + logProb + ", leafOrderToStringOrder=" + leafOrderToStringOrder + '}';
+        }
+
+        
+        
     }
 
     // check whether the item is a goal item
@@ -545,7 +553,7 @@ public class Astar {
     public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException, InterruptedException, ParseException {
         Args arguments = new Args();
         JCommander jc = JCommander.newBuilder().addObject(arguments).build();
-        jc.setProgramName("java -cp build/libs/am-tools-all.jar de.saar.coli.irtg.experimental.astar.Astar");
+        jc.setProgramName("java -cp am-tools-all.jar de.saar.coli.irtg.experimental.astar.Astar");
 
         try {
             jc.parse(args);
@@ -747,7 +755,14 @@ public class Astar {
                         w.record();
 
                         Item goalItem = astar.process();
+//                        System.err.println("goal item:");
+//                        System.err.println(goalItem);
+                        
                         parsingResult = astar.decode(goalItem);
+                        
+//                        System.err.println("parsing result:");
+//                        System.err.println(parsingResult);
+                        
                         w.record();
                     } catch (Throwable e) {
                         synchronized (logW) {
@@ -755,19 +770,20 @@ public class Astar {
                             e.printStackTrace(logW);
                         }
                     } finally {
+                        ConllSentence sent = corpus.get(ii);
+
                         if (parsingResult != null) {
                             // TODO find out how this can happen - this doesn't look like a normal
                             // "no parse" case.
                             // TODO what did I mean with that??
 
-                            ConllSentence sent = corpus.get(ii);
                             sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder, astar.getSupertagToTypeFunction());
                         }
 
                         w.record();
                         String reportString = (astar == null || astar.getRuntimeStatistics() == null)
                                 ? String.format("[%04d] no runtime statistics available", ii)
-                                : String.format("[%04d] %s", ii, astar.getRuntimeStatistics().toString());
+                                : String.format("[%04d] %s %s", ii, sent.getId(), astar.getRuntimeStatistics().toString());
 
                         synchronized (logW) {
                             logW.println(reportString);
