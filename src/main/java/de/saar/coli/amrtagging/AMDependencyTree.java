@@ -285,8 +285,10 @@ public class AMDependencyTree {
             } else {
                 s = sg.toIsiAmrStringWithSources();
             }
-
-            chart.put(leaf.getId(), new Item<>(leaf.getId(), new HashSet<>(), leaf.getType(), Tree.create(s + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + leaf.getType().toString())));
+            
+            Tree<String> t = Tree.create(s + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + leaf.getType().toString());
+            Item<String> it = new Item<>(leaf.getId(), new HashSet<>(), leaf.getType(), t);
+            chart.put(leaf.getId(), it);
         }
 
         //System.err.println("Chart "+chart);

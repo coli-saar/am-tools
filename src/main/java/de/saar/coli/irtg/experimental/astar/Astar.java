@@ -8,7 +8,6 @@ package de.saar.coli.irtg.experimental.astar;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import com.google.common.io.Files;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.ConllSentence;
@@ -35,7 +34,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +52,7 @@ import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
@@ -762,7 +761,7 @@ public class Astar {
                             // TODO what did I mean with that??
 
                             ConllSentence sent = corpus.get(ii);
-                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder);
+                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder, astar.getSupertagToTypeFunction());
                         }
 
                         w.record();
@@ -805,5 +804,13 @@ public class Astar {
      */
     void setN(int n) {
         N = n;
+    }
+    
+    public Function<String,Type> getSupertagToTypeFunction() {
+        return (supertag) -> {
+            int supertagId = supertagLexicon.resolveObject(supertag);
+            int typeId = supertagTypes.get(supertagId);
+            return typeLexicon.resolveID(typeId);
+        };
     }
 }

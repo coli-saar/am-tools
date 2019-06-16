@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging;
 
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  *
@@ -244,7 +246,6 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         int lineNr = 1;
         sent.setLineNr(lineNr);
         while ((l = br.readLine()) != null) {
-
             if (l.startsWith("#")) {
                 if (l.contains(":")) {
                     int index = l.indexOf(":");
@@ -295,7 +296,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         return read(new FileReader(filename));
     }
     
-    public void setDependenciesFromAmTerm(Tree<String> amTerm, List<Integer> leafOrderToStringOrder) {
+    public void setDependenciesFromAmTerm(Tree<String> amTerm, List<Integer> leafOrderToStringOrder, Function<String,Type> supertagToType) {
         MutableInteger nextLeafPosition = new MutableInteger(0);
         
         // all tokens that are not mentioned in the term will be ignored
@@ -303,6 +304,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
             e.setHead(0);
             e.setEdgeLabel(ConllEntry.IGNORE);
             e.setDelexSupertag(ConllEntry.DEFAULT_NULL);
+            e.setType(Type.EMPTY_TYPE);
         }
         
         // perform left-to-right DFS over term and assign incoming edges
@@ -314,6 +316,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 
                 ConllEntry entry = this.get(stringPosition);
                 entry.setDelexSupertag(node.getLabel());
+                entry.setType(supertagToType.apply(node.getLabel()));
                 
                 return stringPosition;
             } else {

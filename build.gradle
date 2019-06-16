@@ -3,7 +3,10 @@ plugins {
     id 'java-library'
     id 'groovy'
     id 'com.github.johnrengelman.shadow' version '4.0.2'
+    id 'application'
 }
+
+mainClassName = 'de.saar.coli.amrtagging.formalisms.sdp.dm.tools.ToSDPCorpus'
 
 repositories {
     mavenCentral()
