@@ -755,13 +755,13 @@ public class Astar {
                         w.record();
 
                         Item goalItem = astar.process();
-//                        System.err.println("goal item:");
-//                        System.err.println(goalItem);
+                        System.err.println("goal item:");
+                        System.err.println(goalItem);
                         
                         parsingResult = astar.decode(goalItem);
                         
-//                        System.err.println("parsing result:");
-//                        System.err.println(parsingResult);
+                        System.err.println("parsing result:");
+                        System.err.println(parsingResult);
                         
                         w.record();
                     } catch (Throwable e) {
