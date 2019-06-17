@@ -86,18 +86,32 @@ public class AMRBlobUtils {
 //    }
     
     
+    /**
+     * Returns true if this edge belongs to the blob of its start node.
+     * 
+     * @param edge
+     * @return 
+     */
     public boolean isOutbound(GraphEdge edge) {
         return isOutboundBase(edge);//isStandalone(edgeLabel) || ;
     }
     
+    /**
+     * Returns true if this edge belongs to the blob of its end node.
+     * 
+     * @param edge
+     * @return 
+     */
     public boolean isInbound(GraphEdge edge) {
         return !isOutbound(edge);
     }
 
+    /*
     public boolean isStandalone(String edgeLabel) {
         return false;
         //return !isInboundBase(edgeLabel) && !isOutboundBase(edgeLabel);
     }
+    */
     
     
     
@@ -136,7 +150,10 @@ public class AMRBlobUtils {
     
     
     /**
-     * A function that assigns a weight to each constant. Used for scoring source assignments according to heuristic preferences in the ACL 2018 experiments.
+     * A function that assigns a weight to each constant. Used for scoring 
+     * source assignments according to heuristic preferences in the ACL 2018 
+     * experiments.
+     * 
      * @param g
      * @return 
      */

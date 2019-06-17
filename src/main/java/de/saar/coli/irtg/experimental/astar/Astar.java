@@ -9,7 +9,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import de.saar.basic.Pair;
-import de.saar.basic.StringTools;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
@@ -71,6 +70,9 @@ import me.tongfei.progressbar.ProgressBar;
 public class Astar {
 
     static final double FAKE_NEG_INFINITY = -1000000;
+    private static final String IGNORE_EDGELABEL = "IGNORE";
+    private static final String ROOT_EDGELABEL = "ROOT";
+    
     private boolean declutterAgenda = false; // previously dequeued items will never be enqueued again
 
     private int N;
@@ -108,7 +110,10 @@ public class Astar {
         w.record();
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
-        this.outside = new StaticOutsideEstimator(edgep, tagp);
+
+//        this.outside = new StaticOutsideEstimator(edgep, tagp);
+        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+//        this.outside = new TrivialOutsideEstimator();
 
         w.record();
         // precompute supertag types
@@ -167,7 +172,7 @@ public class Astar {
     }
 
     private Item process() {
-        System.err.printf("start processing, N=%d\n", N);
+        edgep.prettyprint(edgeLabelLexicon, System.err);
 
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
@@ -189,11 +194,11 @@ public class Astar {
         }
 
         // initialize agenda
-        for (int i = 0; i < N; i++) {
+        for (int i = 1; i < N; i++) {  // no items for 0
             final int i_final = i;
 
             tagp.foreachInOrder(i, (supertagId, prob) -> {
-                System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
+//                System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
 
                 if (supertagId != tagp.getNullSupertagId()) { // skip NULL entries - NULL items are created on the fly during the agenda exploration phase
                     Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
@@ -203,8 +208,6 @@ public class Astar {
                 }
             });
         }
-
-        System.err.printf("agenda empty: %s\n", Boolean.toString(agenda.isEmpty()));
 
         // iterate over agenda
         while (!agenda.isEmpty()) {
@@ -220,6 +223,7 @@ public class Astar {
             numDequeuedItems++;
 
             System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it.toString(typeLexicon));
+
             // return first found goal item
             if (isGoal(it)) {
                 w.record(); // agenda looping time
@@ -268,13 +272,14 @@ public class Astar {
                     for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineLeft(op, partner, it);
                         double logEdgeProbability = edgep.get(partner.getRoot(), it.getRoot(), op); // AKAKAK
-                        
+
+                        /*
                         System.err.println("analysis for it:");
                         ((StaticOutsideEstimator) outside).analyze(it, supertagLexicon, edgeLabelLexicon);
                         
                         System.err.println("analysis for result:");
                         ((StaticOutsideEstimator) outside).analyze(result, supertagLexicon, edgeLabelLexicon);
-                        
+                         */
                         assert result.getScore() <= it.getScore() + EPS : String.format("[1R] Generated %s from it: %s <--[%s:%f]-- partner: %s", result.toString(typeLexicon), it.toString(typeLexicon), edgeLabelLexicon.resolveId(op), logEdgeProbability, partner.toString(typeLexicon));
                         agenda.enqueue(result);
                     }
@@ -291,15 +296,29 @@ public class Astar {
             // skip to the right
             if (it.getEnd() < N) {
                 Item skipRight = makeSkipItem(it, it.getStart(), it.getEnd() + 1, it.getEnd());
-                assert skipRight.getScore() <= it.getScore() + EPS;
-                agenda.enqueue(skipRight);
+
+                if (skipRight != null) {
+                    assert skipRight.getScore() <= it.getScore() + EPS;
+                    agenda.enqueue(skipRight);
+                }
             }
 
             // skip to the left
-            if (it.getStart() > 0) {
+            if (it.getStart() > 1) {
                 Item skipLeft = makeSkipItem(it, it.getStart() - 1, it.getEnd(), it.getStart() - 1);
-                assert skipLeft.getScore() <= it.getScore() + EPS;
-                agenda.enqueue(skipLeft);
+
+                if (skipLeft != null) {
+                    assert skipLeft.getScore() <= it.getScore() + EPS;
+                    agenda.enqueue(skipLeft);
+                }
+            }
+            
+            // add ROOT edge from 0
+            if( isAlmostGoal(it) ) {
+                System.err.println(" --> almost goal");
+                Item goalItem = makeGoalItem(it);
+                System.err.println(" --> goal: " + goalItem);
+                agenda.enqueue(goalItem);
             }
         }
 
@@ -308,12 +327,32 @@ public class Astar {
 
         return null;
     }
+    
+    private boolean isAlmostGoal(Item it) {
+        return it.getStart() == 1 && it.getEnd() == N && typeLexicon.resolveID(it.getType()).keySet().isEmpty();
+    }
+    
+    private Item makeGoalItem(Item almostGoalItem) {
+        double rootProb = edgep.get(0, almostGoalItem.getRoot(), edgep.getRootEdgeId());
+        Item goalItem = new Item(almostGoalItem.getStart()-1, almostGoalItem.getEnd(), almostGoalItem.getRoot(), almostGoalItem.getType(), almostGoalItem.getLogProb() + rootProb);
+        goalItem.setOutsideEstimate(0);
+        goalItem.setCreatedByOperation(-1, almostGoalItem, null);
+        return goalItem;
+    }
 
     private static final double EPS = 1e-6;
 
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
-        double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId()); // ID for NULL
-        double newItemCost = originalItem.getLogProb() + nullProb;
+        double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
+        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
+
+        if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
+            // either NULL or IGNORE didn't exist - probably IGNORE
+//            System.err.printf("Warning: couldn't skip %s to %d; nullProb=%f, ignoreProb=%f\n", originalItem, skippedPosition, nullProb, ignoreProb);
+            return null;
+        }
+
+        double newItemCost = originalItem.getLogProb() + nullProb + ignoreProb;
 
         Item itemAfterSkip = new Item(newStart, newEnd, originalItem.getRoot(), originalItem.getType(), newItemCost);
         itemAfterSkip.setOutsideEstimate(outside.evaluate(itemAfterSkip));
@@ -413,7 +452,7 @@ public class Astar {
 
     // check whether the item is a goal item
     private boolean isGoal(Item item) {
-        return item.getStart() == 0 && item.getEnd() == N && typeLexicon.resolveID(item.getType()).keySet().isEmpty();
+        return item.getStart() == 0 && item.getEnd() == N && typeLexicon.resolveID(item.getType()).keySet().isEmpty();  
     }
 
     // combine functor with an argument on the right
@@ -598,9 +637,12 @@ public class Astar {
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
 //        int numSupertagsPerToken = 0;
         Set<Type> types = new HashSet<>();
+        int x = 0;
 
         // calculate supertag lexicon
         for (List<List<AnnotatedSupertag>> sentence : supertags) {
+//            System.err.printf("Sentence %d has %d tokens\n", x++, sentence.size());
+
             for (List<AnnotatedSupertag> token : sentence) {
                 // check same #supertags for each token
                 // -> in latest version, some tokens get 15 supertags, some 16.
@@ -647,7 +689,7 @@ public class Astar {
 //        System.err.printf("found %d supertags per token\n", numSupertagsPerToken);
         // build supertag array
         List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
-        int x = 0; // AKAKAK
+        x = 0; // AKAKAK
         for (List<List<AnnotatedSupertag>> sentence : supertags) {
             SupertagProbabilities tagpHere = new SupertagProbabilities(FAKE_NEG_INFINITY, nullSupertagId);
 
@@ -663,8 +705,7 @@ public class Astar {
             }
 
             if (arguments.parseOnly == null || x++ == arguments.parseOnly) {
-                System.err.printf("sentence length: %d\n", tagpHere.getLength());
-                tagpHere.prettyprint(idToSupertag, System.err);
+//                tagpHere.prettyprint(idToSupertag, System.err);
 //                System.err.println(tagpHere);
             }
 
@@ -674,8 +715,9 @@ public class Astar {
         // calculate edge-label lexicon
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.01, 5, true);  // TODO make these configurable
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.001, 10, true);  // TODO make these configurable  // was: 0.1, 5
         Interner<String> edgeLabelLexicon = new Interner<>();
+        x = 0;
 
         for (List<List<Pair<String, Double>>> sentence : edges) {
             for (List<Pair<String, Double>> b : sentence) {
@@ -690,7 +732,7 @@ public class Astar {
         List<EdgeProbabilities> edgep = new ArrayList<>();
         for (List<List<Pair<String, Double>>> sentence : edges) {
             for (List<Pair<String, Double>> b : sentence) {
-                EdgeProbabilities edgepHere = new EdgeProbabilities(FAKE_NEG_INFINITY);
+                EdgeProbabilities edgepHere = new EdgeProbabilities(FAKE_NEG_INFINITY, edgeLabelLexicon.resolveObject(IGNORE_EDGELABEL), edgeLabelLexicon.resolveObject(ROOT_EDGELABEL));
 
                 for (Pair<String, Double> edge : b) {
                     Edge e = Edge.parse(edge.left);
@@ -765,8 +807,6 @@ public class Astar {
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
                 final int ii = i;
 
-                System.err.printf("*** parse it %d ***\n", ii);
-
 //                System.err.printf("\n[%02d] EDGES:\n", ii);
 //                edgep.get(ii).prettyprint(edgeLabelLexicon, System.err);
                 forkJoinPool.execute(() -> {
@@ -774,8 +814,6 @@ public class Astar {
                     ParsingResult parsingResult = null;
 //                    String result = "(u / unparseable)";
                     CpuTimeStopwatch w = new CpuTimeStopwatch();
-
-                    System.err.println("aa");
 
                     try {
                         w.record();
@@ -792,8 +830,6 @@ public class Astar {
                             });
                         }
 
-                        System.err.println("bb");
-
                         w.record();
 
                         Item goalItem = astar.process();
@@ -804,7 +840,6 @@ public class Astar {
 
                         System.err.println("parsing result:");
                         System.err.println(parsingResult);
-
                         w.record();
                     } catch (Throwable e) {
                         astar.logger.accept(String.format("Exception (sentence id=%d):\n", ii));

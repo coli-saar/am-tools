@@ -79,9 +79,14 @@ public class SupertagProbabilities {
 
         if (m != null) {
             for (Int2DoubleMap.Entry entry : m.int2DoubleEntrySet()) {
-                if (entry.getIntKey() != nullSupertagId) { // skip NULL
-                    max = Math.max(max, entry.getDoubleValue());
-                }
+                // DON'T skip NULL
+                max = Math.max(max, entry.getDoubleValue());
+
+                
+//                
+//                if (entry.getIntKey() != nullSupertagId) { // skip NULL
+//                    max = Math.max(max, entry.getDoubleValue());
+//                }
             }
         }
 

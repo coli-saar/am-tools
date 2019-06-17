@@ -243,6 +243,7 @@ public class Util {
                         }
                     } 
                     
+                    // P(edge from first to second exists)
                     double p = Double.parseDouble(parts[0].substring(sepInd+1));
                     
                     if (areLogs) {
@@ -253,6 +254,8 @@ public class Util {
                         for (int i = 1; i<=maxLabels && i<parts.length; i++) {
                             sepInd = parts[i].lastIndexOf("|");
                             String label = parts[i].substring(0, sepInd);
+                            
+                            // P(label | edge from first to second)
                             double pl = Double.parseDouble(parts[i].substring(sepInd+1));
                             if (areLogs) {
                                 pl = Math.exp(pl);

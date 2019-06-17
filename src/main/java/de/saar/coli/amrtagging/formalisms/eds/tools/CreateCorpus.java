@@ -5,19 +5,17 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
-import de.saar.coli.amrtagging.formalisms.sdp.dm.tools.*;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
-import de.saar.coli.amrtagging.formalisms.eds.Aligner;
 import de.saar.coli.amrtagging.formalisms.eds.EDSBlobUtils;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
 import de.saar.coli.amrtagging.formalisms.eds.EDSUtils;
@@ -25,8 +23,6 @@ import de.saar.coli.amrtagging.formalisms.eds.PostprocessLemmatize;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
-import de.up.ling.irtg.codec.GraphVizDotOutputCodec;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.simple.Sentence;
@@ -40,12 +36,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *  Create DM training data.
+ *  Create EDS training data.
  * @author matthias
  */
 public class CreateCorpus {
@@ -115,14 +110,17 @@ public class CreateCorpus {
         int moreIncoming = 0;
         PrintWriter goldEDM = new PrintWriter(cli.outPath+cli.prefix+"-gold.edm");
         PrintWriter goldAMR = new PrintWriter(cli.outPath+cli.prefix+"-gold.amr.txt");
-        for (counter = 0; counter < allSents.size();counter++){
+        
+        for (counter = 0; counter < allSents.size(); counter++){
             if (counter % 10 == 0 && counter>0){
                 System.err.println(counter);
                 System.err.println("decomposable so far " + 100*(1.0 - (problems / (float) counter))+ "%");
             }
+            
             if (counter % 1000 == 0 && counter>0){ //every now and then write intermediate results.
                 cli.write(outCorpus, supertagDictionary);
             }
+            
             totalCounter ++;
             MRInstance inst = EDSConverter.toSGraph(allGraphs.get(counter), allSents.get(counter));
             
@@ -175,7 +173,7 @@ public class CreateCorpus {
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
-                        System.err.println(EDSUtils.simpleAlignViz(inst));
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst));
                     }
                 }
             } catch (Exception ex){

@@ -29,11 +29,21 @@ public class EdgeProbabilities {
     private int maxFrom, maxTo;
     private IntIterable EMPTY = new IntArrayList();
     private IntSet ignoredEdgeLabels; // edge labels that should be ignored by #getBestIncomingProb and #getBestIncomingEdge
+    private int ignoreEdgeId;
+    private int rootEdgeId;
 
-    public EdgeProbabilities(double defaultValue) {
+    /**
+     * Creates a new edge probs structure.
+     * 
+     * @param defaultValue log-probability of edges that don't exist (approximates -INFINITY)
+     * @param ignoreEdgeId the ID of the edge label "IGNORE"
+     */
+    public EdgeProbabilities(double defaultValue, int ignoreEdgeId, int rootEdgeId) {
         probs = new Int2ObjectOpenHashMap<>();
         this.defaultValue = defaultValue;
         ignoredEdgeLabels = new IntOpenHashSet();
+        this.ignoreEdgeId = ignoreEdgeId;
+        this.rootEdgeId = rootEdgeId;
     }
 
     public void addIgnoredEdgeLabel(int labelId) {
@@ -292,4 +302,13 @@ public class EdgeProbabilities {
             out.println(pp.get(to));
         }
     }
+
+    public int getIgnoreEdgeId() {
+        return ignoreEdgeId;
+    }
+
+    public int getRootEdgeId() {
+        return rootEdgeId;
+    }
+    
 }

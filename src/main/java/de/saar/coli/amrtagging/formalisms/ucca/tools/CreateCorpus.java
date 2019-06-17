@@ -11,10 +11,10 @@ import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
-import static de.saar.coli.amrtagging.formalisms.eds.EDSUtils.simpleAlignViz;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
@@ -22,7 +22,6 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.corpus.Corpus;
 import de.up.ling.irtg.corpus.CorpusReadingException;
@@ -171,7 +170,9 @@ public class CreateCorpus {
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst));
                     }
+                    
                     if (problems > 1){ //ignore the first problems
                         //SGraphDrawer.draw(inst.getGraph(), "");
                         //break;

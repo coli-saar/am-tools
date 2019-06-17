@@ -29,12 +29,12 @@ public class EDSBlobUtils extends AMRBlobUtils{
     public static final String COORD = "op";
     //public static final String SUBORD = "sub";
     
-    public static final HashSet<String> EXCEPTIONS_TARGET = new HashSet<String>(){{
+    public static final Set<String> EXCEPTIONS_TARGET = new HashSet<String>(){{
         add("udef_q");
         add("nominalization"); //this rule is really bs but it helps us decompose more graphs.
     }};
     
-    public static final HashSet<String> EXCEPTIONS_SOURCE = new HashSet<String>(){{
+    public static final Set<String> EXCEPTIONS_SOURCE = new HashSet<String>(){{
     }};
     
     

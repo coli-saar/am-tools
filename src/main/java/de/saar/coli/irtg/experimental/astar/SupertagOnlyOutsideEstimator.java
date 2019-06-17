@@ -67,20 +67,24 @@ public class SupertagOnlyOutsideEstimator implements OutsideEstimator {
         for (int i = start; i < end; i++) {
             double scoreWithInEdge = bestTagp[i];
             double scoreWithIgnore = tagp.get(i, tagp.getNullSupertagId()); // NULL score
+            double bestScore = Math.max(scoreWithIgnore, scoreWithInEdge);
 
-            if (Math.max(scoreWithInEdge, scoreWithIgnore) < Astar.FAKE_NEG_INFINITY / 2) {
+            if (bestScore < Astar.FAKE_NEG_INFINITY / 2) {
                 System.err.printf("No good supertag for pos %d (while computing left scores for pos %d): withInEdge=%f, withIgnore=%f\n", i, k, scoreWithInEdge, scoreWithIgnore);
                 System.exit(1);
             }
 
 //                System.err.printf("  left @%d: score from i=%d with_ignore=%f, with_in_edge=%f\n", k, i, scoreWithIgnore, scoreWithInEdge);
 
-            if (scoreWithInEdge > scoreWithIgnore) {
-                sum += scoreWithInEdge;
-            } else {
-                sum += scoreWithIgnore;
-                
-            }
+            sum += bestScore;
+            
+//            
+//            if (scoreWithInEdge > scoreWithIgnore) {
+//                sum += scoreWithInEdge;
+//            } else {
+//                sum += scoreWithIgnore;
+//                
+//            }
 
             sum += sumBias;//add a bias to speed up the process
         }
@@ -98,20 +102,20 @@ public class SupertagOnlyOutsideEstimator implements OutsideEstimator {
 
         // calculate best supertag for each token
         bestTagp = new double[N];
-        for (int k = 0; k < N; k++) {
+        for (int k = 1; k < N; k++) {
             bestTagp[k] = tagp.getMaxProb(k);
 //            System.err.printf("best tag @%d: %f\n", k, bestTagp[k]);
         }
 
         // calculate left-side outside estimates
         outsideLeft = new double[N];
-        for (int k = 0; k < N; k++) {
-            sumContext(k, 0, k, outsideLeft);
+        for (int k = 1; k < N; k++) {
+            sumContext(k, 1, k, outsideLeft);
         }
 
         // calculate right-side outside estimates
         outsideRight = new double[N + 1];
-        for (int k = 0; k <= N; k++) {
+        for (int k = 1; k <= N; k++) {
             sumContext(k, k, N, outsideRight);
         }
         
