@@ -6,12 +6,10 @@
 package de.saar.coli.amrtagging;
 
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 
 import java.util.Set;
 
@@ -48,7 +46,7 @@ public class ConllEntry {
     public static final int NOID = -2;
     
     
-    public ConllEntry(int id,String form){
+    public ConllEntry(int id, String form){
         this.id = id;
         this.form = form;
     }
@@ -229,6 +227,7 @@ public class ConllEntry {
      */
     public String getReLexLabel() {
         String label = this.lexLabel;
+        
         if (!lemma.equals(DEFAULT_NULL) && label.contains("$LEMMA$")){
             label = label.replace("$LEMMA$", this.lemma);
         }
@@ -238,6 +237,7 @@ public class ConllEntry {
         if (!replacement.equals(DEFAULT_NULL)  && label.contains("$REPL$")){
             label = label.replace("$REPL$", this.replacement);
         }
+        
         return label;
     }
 

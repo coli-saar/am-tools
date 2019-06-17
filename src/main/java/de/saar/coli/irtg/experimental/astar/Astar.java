@@ -3,38 +3,44 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.up.ling.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractor;
-import de.saar.coli.amrtagging.Parser;
+import de.saar.coli.amrtagging.AnnotatedSupertag;
+import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.experimental.astar.TypeInterner.AMAlgebraTypeInterner;
+import de.saar.coli.irtg.experimental.astar.TypeInterner.AMAlgebraTypeInterner;
 import de.up.ling.irtg.siblingfinder.SiblingFinder;
 import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.ArrayMap;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
+import de.up.ling.irtg.util.MutableInteger;
+import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.nio.file.Path;
+import java.io.Reader;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,10 +52,13 @@ import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import javax.swing.UnsupportedLookAndFeelException;
 import me.tongfei.progressbar.ProgressBar;
 
@@ -62,18 +71,19 @@ public class Astar {
     static final double FAKE_NEG_INFINITY = -1000000;
     private boolean declutterAgenda = false; // previously dequeued items will never be enqueued again
 
-    private final int N;
+    private int N;
     private final EdgeProbabilities edgep;
     private final SupertagProbabilities tagp;
     private final OutsideEstimator outside;
     private final Int2ObjectMap<Pair<SGraph, Type>> idToSupertag;
+    private final Interner<String> supertagLexicon;
     private final Interner<String> edgeLabelLexicon;
     private final AMAlgebraTypeInterner typeLexicon;
     private RuntimeStatistics runtimeStatistics = null;
     private final Int2IntMap supertagTypes;
     private Consumer<String> logger;
 
-    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon) {
+    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon) {
         logger = (s) -> System.err.println(s);  // by default, log to stderr
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         w.record();
@@ -82,6 +92,7 @@ public class Astar {
         this.tagp = tagp;
         this.idToSupertag = idToAsGraph;
         this.edgeLabelLexicon = edgeLabelLexicon;
+        this.supertagLexicon = supertagLexicon;
         this.N = tagp.getLength();              // sentence length
 
         // create type interner for the supertags in tagp
@@ -306,8 +317,9 @@ public class Astar {
         set.add(item);
     }
 
-    private Tree<String> decode(Item item, double logProbGoalItem) {
+    private Tree<String> decode(Item item, double logProbGoalItem, IntList leafOrderToStringOrder, MutableInteger nextLeafPosition) {
         double realOutside = logProbGoalItem - item.getLogProb();
+//        System.err.printf("item: %s\n", item);
 
 //        System.err.printf("%s -> logprob=%f, real_outside=%f, outside_estimate=%f\n", item.shortString(), item.getLogProb(), realOutside, item.getOutsideEstimate());
         if (realOutside > item.getOutsideEstimate() + EPS) {
@@ -316,40 +328,36 @@ public class Astar {
 
         if (item.getLeft() == null) {
             // leaf; decode op as supertag
+            String supertag = supertagLexicon.resolveId(item.getOperation());
+            leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart());
+            return Tree.create(supertag);
+
+            /*
             Pair<SGraph, Type> asGraph = idToSupertag.get(item.getOperation());
 
 //            System.err.printf("           @%d: supertag=%d %s\n", item.getStart(), item.getOperation(), asGraph.left.toString());
             String graphS = asGraph.left.toIsiAmrStringWithSources();
             graphS = graphS.replace(DependencyExtractor.LEX_MARKER, "\"" + Parser.LEXMARKER_OUT + item.getStart() + "\"");
+
+            leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart());
             return Tree.create(graphS + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + asGraph.right.toString());
+             */
         } else if (item.getRight() == null) {
             // skip
 //            System.err.printf("           @%d: NULL %s to %s, logp(skip)=%f\n", item.subtract(item.getLeft()).getStart(), item.getLeft().shortString(), item.shortString(), item.getLogProb() - item.getLeft().getLogProb());
 
-            return decode(item.getLeft(), logProbGoalItem);
+            return decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
         } else {
             // non-leaf; decode op as edge
 
 //            System.err.printf("           %s --%s--> %s\n", item.getLeft().shortString(), edgeLabelLexicon.resolveId(item.getOperation()), item.getRight().shortString());
-            Tree<String> left = decode(item.getLeft(), logProbGoalItem);
-            Tree<String> right = decode(item.getRight(), logProbGoalItem);
+            Tree<String> left = decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
+            Tree<String> right = decode(item.getRight(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
             return Tree.create(edgeLabelLexicon.resolveId(item.getOperation()), left, right);
         }
     }
 
-    /**
-     * Parses the given string and returns an AM term.
-     *
-     * @return
-     */
-    public Pair<Tree<String>, Double> parse() {
-        Item goalItem = process();
-
-        /*
-        for (int i = 0; i < 10; i++) {
-            process();
-        }
-         */
+    ParsingResult decode(Item goalItem) {
         if (goalItem == null) {
             return null;
         } else {
@@ -357,8 +365,36 @@ public class Astar {
 //            System.err.println("goal item outside estimate (for sanity): " + goalItem.getOutsideEstimate());
 
             double goalItemLogProb = goalItem.getLogProb();
-            return new Pair(decode(goalItem, goalItemLogProb), goalItemLogProb);
+            IntList leafOrderToStringOrder = new IntArrayList(N);
+            for (int i = 0; i < N; i++) {
+                leafOrderToStringOrder.add(0);
+            }
+
+            Tree<String> amTerm = decode(goalItem, goalItemLogProb, leafOrderToStringOrder, new MutableInteger(0));
+
+            return new ParsingResult(amTerm, goalItemLogProb, leafOrderToStringOrder);
         }
+    }
+
+    static class ParsingResult {
+
+        public Tree<String> amTerm;
+        public double logProb;
+        public IntList leafOrderToStringOrder;
+
+        public ParsingResult(Tree<String> amTerm, double logProb, IntList leafOrderToStringOrder) {
+            this.amTerm = amTerm;
+            this.logProb = logProb;
+            this.leafOrderToStringOrder = leafOrderToStringOrder;
+        }
+
+        @Override
+        public String toString() {
+            return "ParsingResult{" + "amTerm=" + amTerm + ", logProb=" + logProb + ", leafOrderToStringOrder=" + leafOrderToStringOrder + '}';
+        }
+
+        
+        
     }
 
     // check whether the item is a goal item
@@ -467,80 +503,79 @@ public class Astar {
         @Parameter(names = "--sort", description = "Sort corpus by sentence length.")
         private boolean sort = false;
 
-        @Parameter(names = "--no-file-suffix", description = "With this flag, no date/time suffixes are appended to output files")
-        private boolean noFileSuffix = false;
-        
-        @Parameter(names = "--typelex", description = "Save/load the type lexicon to this file (relative to given path).")
+        @Parameter(names = "--typecache", description = "Save/load the type lexicon to this file.")
         private String typeInternerFilename = null;
-        
+
+        @Parameter(names = {"--scores", "-s"}, description = "File with supertag and edge scores.", required = true)
+        private String probsFilename;
+
+        @Parameter(names = {"--outdir", "-o"}, description = "Directory to which outputs are written.")
+        private String outFilename = "";
+
         @Parameter(names = "--help", help = true)
         private boolean help = false;
 
-        @Override
-        public String toString() {
-            StringBuilder buf = new StringBuilder();
-            String filename = getPath() == null ? "--" : getPath().toFile().getAbsolutePath();
-            buf.append("Input path: " + filename + "\n");
-
-            if (typeInternerFilename != null) {
-                buf.append("Save/load interner from/to file: " + getTypeInternerFilename().getAbsolutePath() + "\n");
-            }
-
-            if (Math.abs(bias) > EPS) {
-                buf.append("Bias: " + bias + "\n");
-            }
-
-            if (declutter) {
-                buf.append("Declutter: true\n");
-            }
-
-            if (sort) {
-                buf.append("Sort: true\n");
-            }
-
-            if (parseOnly != null) {
-                buf.append("Parse only: " + parseOnly + "\n");
-            }
-
-            return buf.toString();
-        }
-
-        public Path getPath() {
-            if (arguments == null) {
+        private File resolveFilename(String filename) {
+            if (filename == null) {
                 return null;
             } else {
-                return Paths.get(arguments.get(0));
+                return Paths.get(filename).toFile();
             }
         }
 
-        public File getTypeInternerFilename() {
-            if (typeInternerFilename == null) {
+        private File resolveOutputFilename(String filename) {
+            if (filename == null) {
                 return null;
             } else {
-                return getPath().resolve(typeInternerFilename).toFile();
+                return Paths.get(outFilename).resolve(filename).toFile();
             }
         }
 
+        public File getTypeInternerFile() {
+            return resolveFilename(typeInternerFilename);
+        }
+
+        public File getScoreFile() {
+            return resolveFilename(probsFilename);
+        }
+
+        public File getOutFile() {
+            return resolveOutputFilename("results_" + timestamp + ".amconll");
+        }
+
+        public File getLogFile() {
+            return resolveOutputFilename("log_" + timestamp + ".txt");
+        }
+
+        private String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date());
     }
 
-    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException, InterruptedException {
+    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException, InterruptedException, ParseException {
         Args arguments = new Args();
         JCommander jc = JCommander.newBuilder().addObject(arguments).build();
-        jc.parse(args);
-        jc.setProgramName("Astar");
-        
-        if( arguments.help || arguments.getPath() == null ) {
+        jc.setProgramName("java -cp am-tools-all.jar de.saar.coli.irtg.experimental.astar.Astar");
+
+        try {
+            jc.parse(args);
+        } catch (ParameterException e) {
+            System.err.println(e.getMessage());
+            System.err.println();
+            jc.usage();
+            System.exit(1);
+        }
+
+        if (arguments.help) {
             jc.usage();
             System.exit(0);
         }
 
-        System.err.print(arguments.toString());
-
-        Path path = arguments.getPath();
-
         // read supertags
+        ZipFile probsZipFile = new ZipFile(arguments.getScoreFile());
+        ZipEntry supertagsZipEntry = probsZipFile.getEntry("tagProbs.txt");
+        Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
+
         int nullSupertagId = -1;
-        List<List<List<Pair<String, Double>>>> supertags = Util.readProbs(path.resolve("tagProbs.txt").toFile().getAbsolutePath(), true);
+        List<List<List<AnnotatedSupertag>>> supertags = Util.readSupertagProbs(supertagsReader, true);
         Interner<String> supertagLexicon = new Interner<>();
         Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
@@ -548,8 +583,8 @@ public class Astar {
         Set<Type> types = new HashSet<>();
 
         // calculate supertag lexicon
-        for (List<List<Pair<String, Double>>> sentence : supertags) {
-            for (List<Pair<String, Double>> token : sentence) {
+        for (List<List<AnnotatedSupertag>> sentence : supertags) {
+            for (List<AnnotatedSupertag> token : sentence) {
                 // check same #supertags for each token
                 if (numSupertagsPerToken == 0) {
                     numSupertagsPerToken = token.size();
@@ -557,15 +592,22 @@ public class Astar {
                     assert numSupertagsPerToken == token.size();
                 }
 
-                for (Pair<String, Double> st : token) {
-                    String supertag = st.left;
+                for (AnnotatedSupertag st : token) {
+                    String supertag = st.graph;
 
                     if (!supertagLexicon.isKnownObject(supertag)) {
                         int id = supertagLexicon.addObject(supertag);
                         Pair<SGraph, Type> gAndT = alg.parseString(supertag);
+                        
+                        if( st.type != null ) {
+                            // if supertag had an explicit type annotation in the file,
+                            // use that one
+                            gAndT.right = new Type(st.type);
+                        }
+                        
                         idToSupertag.put(id, gAndT);
-                        types.add(gAndT.right); // XXX
-
+                        types.add(gAndT.right);
+                        
                         if ("NULL".equals(supertag)) {
                             nullSupertagId = id;
                         }
@@ -581,15 +623,15 @@ public class Astar {
 
         // build supertag array
         List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
-        for (List<List<Pair<String, Double>>> sentence : supertags) {
+        for (List<List<AnnotatedSupertag>> sentence : supertags) {
             SupertagProbabilities tagpHere = new SupertagProbabilities(FAKE_NEG_INFINITY, nullSupertagId);
             for (int tokenPos = 0; tokenPos < sentence.size(); tokenPos++) {
-                List<Pair<String, Double>> token = sentence.get(tokenPos);
+                List<AnnotatedSupertag> token = sentence.get(tokenPos);
                 for (int stPos = 0; stPos < numSupertagsPerToken; stPos++) {
-                    Pair<String, Double> st = token.get(stPos);
-                    String supertag = st.left;
+                    AnnotatedSupertag st = token.get(stPos);
+                    String supertag = st.graph;
                     int supertagId = supertagLexicon.resolveObject(supertag);
-                    tagpHere.put(tokenPos, supertagId, Math.log(st.right)); // wasteful: first exp in Util.readProbs, then log again here
+                    tagpHere.put(tokenPos, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
                 }
             }
 
@@ -597,7 +639,9 @@ public class Astar {
         }
 
         // calculate edge-label lexicon
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(path.resolve("opProbs.txt").toFile().getAbsolutePath(), true, 0.01, 5, true);  // TODO make these configurable
+        ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
+        Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.01, 5, true);  // TODO make these configurable
         Interner<String> edgeLabelLexicon = new Interner<>();
 
         for (List<List<Pair<String, Double>>> sentence : edges) {
@@ -632,49 +676,50 @@ public class Astar {
 
         // precalculate type interner for the supertags in tagp;
         // this can take a few minutes
-        AMAlgebraTypeInterner typelex = null;
+        AMAlgebraTypeInterner typecache = null;
 
         if (arguments.typeInternerFilename != null) {
-            if (arguments.getTypeInternerFilename().exists()) {
-                try (InputStream is = new GZIPInputStream(new FileInputStream(arguments.getTypeInternerFilename()))) {
-                    System.err.printf("\nLoad type interner from file %s ...\n", arguments.getTypeInternerFilename());
-                    typelex = AMAlgebraTypeInterner.read(is);
+            if (arguments.getTypeInternerFile().exists()) {
+                try (InputStream is = new GZIPInputStream(new FileInputStream(arguments.getTypeInternerFile()))) {
+                    System.err.printf("\nLoad type interner from file %s ...\n", arguments.getTypeInternerFile());
+                    typecache = AMAlgebraTypeInterner.read(is);
                     System.err.println("Done.");
                 }
             }
         }
 
-        if (typelex == null) {
+        if (typecache == null) {
             System.err.printf("\nBuild type interner from %d types ...\n", types.size());
             CpuTimeStopwatch typew = new CpuTimeStopwatch();
             typew.record();
-            typelex = new AMAlgebraTypeInterner(types, edgeLabelLexicon);
+            typecache = new AMAlgebraTypeInterner(types, edgeLabelLexicon);
             typew.record();
             System.err.printf("Done, %.1f ms\n", typew.getMillisecondsBefore(1));
 
             if (arguments.typeInternerFilename != null) {
-                try (OutputStream os = new GZIPOutputStream(new FileOutputStream(arguments.getTypeInternerFilename()))) {
-                    System.err.printf("Write type interner to file %s ...\n", arguments.getTypeInternerFilename());
-                    typelex.save(os);
+                try (OutputStream os = new GZIPOutputStream(new FileOutputStream(arguments.getTypeInternerFile()))) {
+                    System.err.printf("Write type interner to file %s ...\n", arguments.getTypeInternerFile());
+                    typecache.save(os);
                     os.flush();
                     System.err.println("Done.");
                 }
             }
         }
 
-        final AMAlgebraTypeInterner typeLexicon = typelex;
+        final AMAlgebraTypeInterner typeLexicon = typecache;
+
+        // load input amconll file
+        ZipEntry inputEntry = probsZipFile.getEntry("corpus.amconll");
+        final List<ConllSentence> corpus = ConllSentence.read(new InputStreamReader(probsZipFile.getInputStream(inputEntry)));
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);
 
-        // TODO better file name generation using Path
-        String suffix = arguments.noFileSuffix ? ".txt" : "_" + new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date()) + ".txt";
-        File resultFile = path.resolve("results" + suffix).toFile();
-        PrintWriter resultW = new PrintWriter(new FileWriter(resultFile));
-        PrintWriter idW = new PrintWriter(new FileWriter(path.resolve("indices" + suffix).toFile()));
-        PrintWriter logW = new PrintWriter(new FileWriter(path.resolve("log" + suffix).toFile()));
+        File logfile = arguments.getLogFile();
+        File outfile = arguments.getOutFile();
+        PrintWriter logW = new PrintWriter(new FileWriter(logfile));
 
-        System.err.printf("\nWriting graphs to %s.\n\n", resultFile.getAbsolutePath());
+        System.err.printf("\nWriting graphs to %s.\n\n", outfile.getAbsolutePath());
 
         List<Integer> sentenceIndices = IntStream.rangeClosed(0, tagp.size() - 1).boxed().collect(Collectors.toList());
         if (arguments.sort) {
@@ -691,14 +736,14 @@ public class Astar {
 //                edgep.get(ii).prettyprint(edgeLabelLexicon, System.err);
                 forkJoinPool.execute(() -> {
                     Astar astar = null;
-                    Pair<Tree<String>, Double> term = null;
+                    ParsingResult parsingResult = null;
                     String result = "(u / unparseable)";
                     CpuTimeStopwatch w = new CpuTimeStopwatch();
 
                     try {
                         w.record();
 
-                        astar = new Astar(edgep.get(ii), tagp.get(ii), idToSupertag, edgeLabelLexicon, typeLexicon);
+                        astar = new Astar(edgep.get(ii), tagp.get(ii), idToSupertag, supertagLexicon, edgeLabelLexicon, typeLexicon);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
                         astar.setLogger((s) -> {
@@ -709,7 +754,15 @@ public class Astar {
 
                         w.record();
 
-                        term = astar.parse();
+                        Item goalItem = astar.process();
+//                        System.err.println("goal item:");
+//                        System.err.println(goalItem);
+                        
+                        parsingResult = astar.decode(goalItem);
+                        
+//                        System.err.println("parsing result:");
+//                        System.err.println(parsingResult);
+                        
                         w.record();
                     } catch (Throwable e) {
                         synchronized (logW) {
@@ -717,24 +770,22 @@ public class Astar {
                             e.printStackTrace(logW);
                         }
                     } finally {
-                        if (term != null) {
+                        ConllSentence sent = corpus.get(ii);
+
+                        if (parsingResult != null) {
                             // TODO find out how this can happen - this doesn't look like a normal
                             // "no parse" case.
-                            result = new ApplyModifyGraphAlgebra().evaluate(term.left).left.toIsiAmrStringWithSources();
+                            // TODO what did I mean with that??
+
+                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder, astar.getSupertagToTypeFunction());
                         }
 
                         w.record();
-                        String reportString = (astar == null || astar.getRuntimeStatistics() == null) ?
-                                String.format("[%04d] no runtime statistics available", ii) :
-                                String.format("[%04d] %s", ii, astar.getRuntimeStatistics().toString());
+                        String reportString = (astar == null || astar.getRuntimeStatistics() == null)
+                                ? String.format("[%04d] no runtime statistics available", ii)
+                                : String.format("[%04d] %s %s", ii, sent.getId(), astar.getRuntimeStatistics().toString());
 
                         synchronized (logW) {
-                            resultW.println(result);
-                            resultW.flush();
-
-                            idW.println(ii);
-                            idW.flush();
-
                             logW.println(reportString);
                             logW.printf("[%04d] init %.1f ms; parse %.1f ms; evaluate %.1f ms\n", ii,
                                     w.getMillisecondsBefore(1),
@@ -756,9 +807,26 @@ public class Astar {
         forkJoinPool.awaitTermination(1000, TimeUnit.MINUTES);
 
         pb.close();
-
-        resultW.close();
-        idW.close();
         logW.close();
+
+        // write parsed corpus to output file
+        ConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);
+    }
+
+    /**
+     * For testing only.
+     *
+     * @param n
+     */
+    void setN(int n) {
+        N = n;
+    }
+    
+    public Function<String,Type> getSupertagToTypeFunction() {
+        return (supertag) -> {
+            int supertagId = supertagLexicon.resolveObject(supertag);
+            int typeId = supertagTypes.get(supertagId);
+            return typeLexicon.resolveID(typeId);
+        };
     }
 }

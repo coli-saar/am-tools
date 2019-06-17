@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.up.ling.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar;
 
 import de.saar.basic.Pair;
-import de.up.ling.irtg.experimental.astar.EdgeProbabilities.Edge;
+import de.saar.coli.irtg.experimental.astar.EdgeProbabilities.Edge;
 import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 

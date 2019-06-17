@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
@@ -35,6 +36,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -48,7 +50,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Decoder and command line interface for the JAMR style baseline; call with --help to see options.
+ * Decoder and command line interface for the JAMR style baseline; call with
+ * --help to see options.
+ *
  * @author JG
  */
 public class BaselineParser2ExtFormat {
@@ -130,13 +134,16 @@ public class BaselineParser2ExtFormat {
 
         Corpus corpus = Corpus.readCorpus(new FileReader(p2ext.corpusPath), dummyIrtg);
 
-        List<List<List<Pair<String, Double>>>> tagProbs = Util.readProbs(p2ext.path + "tagProbs.txt", true);
+        Reader r = new FileReader(p2ext.path + "tagProbs.txt");
+        List<List<List<AnnotatedSupertag>>> tagProbs = Util.readSupertagProbs(r, true);
 
         //read edge
-        List<List<List<Pair<String, Double>>>> edgesProbs = Util.readEdgeProbs(p2ext.path + "opProbs.txt", true,
-                0.0, p2ext.edgeLabelK, p2ext.shift);
         List<Map<String, Int2ObjectMap<Int2DoubleMap>>> edgeLabel2pos2pos2prob = new ArrayList<>();
-        if (edgesProbs != null) {
+
+        if (new File(p2ext.path + "opProbs.txt").exists()) {
+            r = new FileReader(p2ext.path + "opProbs.txt");
+            List<List<List<Pair<String, Double>>>> edgesProbs = Util.readEdgeProbs(r, true, 0.0, p2ext.edgeLabelK, p2ext.shift);
+
             for (List<List<Pair<String, Double>>> edgesInSentence : edgesProbs) {
                 Map<String, Int2ObjectMap<Int2DoubleMap>> mapHere = new HashMap<>();
                 edgeLabel2pos2pos2prob.add(mapHere);
@@ -162,7 +169,7 @@ public class BaselineParser2ExtFormat {
             }
         }
 
-        Iterator<List<List<Pair<String, Double>>>> tagProbsIt = tagProbs.iterator();
+        Iterator<List<List<AnnotatedSupertag>>> tagProbsIt = tagProbs.iterator();
         //List<String> nextTaggedSent = Arrays.asList(taggedSentsIt.next());
 
         String suffix = "" + p2ext.k;
@@ -172,17 +179,21 @@ public class BaselineParser2ExtFormat {
         if (p2ext.addEdges) {
             suffix += "AddEdges";
         }
-        if (p2ext.edgeExponent != 1.0) {
+        if (p2ext.edgeExponent
+                != 1.0) {
             suffix += "E" + p2ext.edgeExponent;
         }
-        if (p2ext.edgeFactor != 1.0) {
+        if (p2ext.edgeFactor
+                != 1.0) {
             suffix += "EF" + p2ext.edgeFactor;
         }
         suffix += "T" + p2ext.threshold;
-        if (p2ext.edgeLabelK != 5) {
+        if (p2ext.edgeLabelK
+                != 5) {
             suffix += "ELK" + p2ext.edgeLabelK;
         }
-        if (p2ext.tagExponent != 1.0) {
+        if (p2ext.tagExponent
+                != 1.0) {
             suffix += "T" + p2ext.tagExponent;
         }
         if (p2ext.useSpanPairs) {
@@ -212,7 +223,7 @@ public class BaselineParser2ExtFormat {
             //System.err.println("sent: " + sent);
             SGraph gold = (SGraph) inst.getInputObjects().get(graphInterp);
             //System.err.println("gold: " + gold);
-            List<List<Pair<String, Double>>> tagProb = tagProbsIt.next();
+            List<List<AnnotatedSupertag>> tagProb = tagProbsIt.next();
 
             //now parse and write result
             forkJoinPool.execute(() -> {
@@ -253,19 +264,27 @@ public class BaselineParser2ExtFormat {
         }
 
         forkJoinPool.shutdown();
+
         forkJoinPool.awaitTermination(p2ext.hours, TimeUnit.HOURS);
 
         allW.close();
+
         succW.close();
+
         allWGold.close();
+
         succWGold.close();
+
         idW.close();
+
         succIDW.close();
+
         allUnlabeledW.close();
+
         succUnlabeledW.close();
     }
 
-    //please check the code below
+//please check the code below
     private static class JAMRParser {
 
         private final double threshold; //always add edges with scores above this. in Paper: 0.55
@@ -278,7 +297,7 @@ public class BaselineParser2ExtFormat {
         private final Int2ObjectMap<Set<Integer>> id2component;
 
         // for one sentence
-        public JAMRParser(Map<String, Int2ObjectMap<Int2DoubleMap>> edgeProbsHere, List<List<Pair<String, Double>>> tagProb, double threshold) {
+        public JAMRParser(Map<String, Int2ObjectMap<Int2DoubleMap>> edgeProbsHere, List<List<AnnotatedSupertag>> tagProb, double threshold) {
 
             int sentLength = tagProb.size();
             int labelCount = edgeProbsHere.keySet().size();
@@ -289,14 +308,14 @@ public class BaselineParser2ExtFormat {
             id2component = new Int2ObjectOpenHashMap<>();
             int pos = 0;
             // the lists of (tag, prob) pairs for this each word in the sentence
-            for (List<Pair<String, Double>> tp : tagProb) {
+            for (List<AnnotatedSupertag> tp : tagProb) {
                 // for this word...
                 // sort tags by probability
 
-                tp.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -Double.compare(o1.right, o2.right));
+                tp.sort((AnnotatedSupertag o1, AnnotatedSupertag o2) -> -Double.compare(o1.probability, o2.probability));
                 // treat predictions of graphs differently from predictions of NULL
-                if (!tp.get(0).left.equals("NULL")) {
-                    String tagString = tp.get(0).left; // get the best one
+                if (!tp.get(0).graph.equals("NULL")) {
+                    String tagString = tp.get(0).graph; // get the best one
                     if (tagString.equals("UNK")) {
                         unkCount++;
                         tagString = "(l <root> / \"--LEX--\")";
@@ -364,7 +383,6 @@ public class BaselineParser2ExtFormat {
 //                }
 //                System.err.println("\n");
 //            }
-
             // now that we have all the tags stored, initialise the threshold
             this.threshold = threshold;
             // and normalise the scores in the matrix

@@ -20,15 +20,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utility functions, mostly data reading.
@@ -57,91 +59,121 @@ public class Util {
         return ret;    
     }
     
+    private static Pattern typePattern = Pattern.compile("(.*?)--TYPE--(.*)");
+    
     /**
-     * Reads supertag probabilities from a file.
-     * Result dimensions are [sentences][words in the sentence][available choices for the word]
+     * Reads supertag probabilities from a file.<p>
+     * 
+     * Result dimensions are [sentences][words in the sentence][available choices for the word].
      * Text file is expected to be one sentence per line, words separated by tabs
      * and choices per word separated by single spaces. Generally reads string-probability
-     * pairs in the format s|p (with no whitespace allowed in s).
-     * Applies raw2readable on all strings (replacing whitespacemarker)
-     * @param path path to the text file
+     * pairs in the format s|p (with no whitespace allowed in s).<p>
+     * 
+     * Applies raw2readable on all strings (replacing whitespace marker by whitespace).<p>
+     * 
+     * Update June 2019, AK: This method no longer silently returns null if the
+     * input file does not exist. 
+     * 
+     * @param reader Reader from which to read
      * @param areLogs whether probabilities are logs or not.
      * @return
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    public static List<List<List<Pair<String, Double>>>> readProbs(String path, boolean areLogs) throws FileNotFoundException, IOException {
+    public static List<List<List<AnnotatedSupertag>>> readSupertagProbs(Reader reader, boolean areLogs) throws FileNotFoundException, IOException {
+        /*
         if (!new File(path).exists()) {
             System.err.println("Info: file '"+path+"' does not exist, trying to proceed without it. (This is ok for the edges file)");
             return null;
         }
-        BufferedReader br = new BufferedReader(new FileReader(path));
-        List<List<List<Pair<String, Double>>>> ret = new ArrayList<>();
+        */
+        
+        BufferedReader br = new BufferedReader(reader);
+        List<List<List<AnnotatedSupertag>>> ret = new ArrayList<>();
         int l = 0;
+        
         while (br.ready()) {
             String line = br.readLine();
             String[] parts = split(line, "\t");//one part per word
-            List<List<Pair<String, Double>>> sentList = new ArrayList<>();
+            List<List<AnnotatedSupertag>> sentList = new ArrayList<>();
+            
             for (String part : parts) {
-                List<Pair<String, Double>> wordList = new ArrayList<>();
-                sentList.add(wordList);
+                List<AnnotatedSupertag> wordList = new ArrayList<>();
                 String[] tAndPs = split(part, " ");//the possibilities for this word (each: token with prob)
+
+                sentList.add(wordList);
+
                 for (String tAndP : tAndPs) {
                     int sepInd = tAndP.lastIndexOf("|");
                     if (sepInd >= 0) {
                         String t = raw2readable(tAndP.substring(0, sepInd));
+                        
+                        Matcher m = typePattern.matcher(t);
+                        AnnotatedSupertag st = m.matches() ? new AnnotatedSupertag(m.group(1), m.group(2), 0) : new AnnotatedSupertag(t, null, 0);
+                        
                         Double p = Double.valueOf(tAndP.substring(sepInd+1));
+
                         if (areLogs) {
                             p = Math.exp(p);
                         }
-                        wordList.add(new Pair(t, p));
+
+                        st.probability = p;
+                        wordList.add(st);
                     } else {
                         System.err.println("***WARNING*** could not read probability for token "+org.apache.commons.lang3.StringEscapeUtils.escapeJava(tAndP));
                         System.err.println(l);
                         System.err.println(Arrays.toString(tAndPs));
                         System.err.println(org.apache.commons.lang3.StringEscapeUtils.escapeJava(line));
+                        System.exit(2);
                     }
                 }
             }
+
             ret.add(sentList);
             l++;
         }
+
         return ret;    
     }
+    
     
     /**
      * expects tagProbs to have probabilities, not logs.
      * @param tagProbs
      * @return 
      */
-    public static List<List<List<Pair<String, Double>>>> groupTagsByType(List<List<List<Pair<String, Double>>>> tagProbs) {
+    public static List<List<List<AnnotatedSupertag>>> groupTagsByType(List<List<List<AnnotatedSupertag>>> tagProbs) {
         //System.err.println("All graph types found:");
-        List<List<List<Pair<String, Double>>>> ret = new ArrayList<>();
-        for (List<List<Pair<String, Double>>> sentence : tagProbs) {
-            List<List<Pair<String, Double>>> newSent = new ArrayList<>();
+        List<List<List<AnnotatedSupertag>>> ret = new ArrayList<>();
+        for (List<List<AnnotatedSupertag>> sentence : tagProbs) {
+            List<List<AnnotatedSupertag>> newSent = new ArrayList<>();
             StringJoiner sj = new StringJoiner("  |||  ");
-            for (List<Pair<String, Double>> word : sentence) {
-                List<Pair<String, Double>> newWord = new ArrayList<>();
+            for (List<AnnotatedSupertag> word : sentence) {
+                List<AnnotatedSupertag> newWord = new ArrayList<>();
                 Object2DoubleMap<String> type2total = new Object2DoubleOpenHashMap<>();
                 Object2DoubleMap<String> type2bestScore = new Object2DoubleOpenHashMap<>();
                 Map<String, String> type2bestTag = new HashMap<>();
-                for (Pair<String, Double> tAndP : word) {
+                
+                for (AnnotatedSupertag tAndP : word) {
                     String type;
-                    if (tAndP.left.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
-                        type = tAndP.left.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1];
+                    if (tAndP.graph.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
+                        type = tAndP.graph.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1];
                     } else {
                         type = "NULL";
                     }
-                    type2total.put(type, type2total.getDouble(type)+tAndP.right);
-                    if (tAndP.right > type2bestScore.getDouble(type)) {
-                        type2bestTag.put(type, tAndP.left);
-                        type2bestScore.put(type, tAndP.right.doubleValue());
+                    type2total.put(type, type2total.getDouble(type)+tAndP.probability);
+                    if (tAndP.probability > type2bestScore.getDouble(type)) {
+                        type2bestTag.put(type, tAndP.graph);
+                        type2bestScore.put(type, tAndP.probability);
                     }
                 }
+                
                 for (String type : type2bestTag.keySet()) {
-                    newWord.add(new Pair(type2bestTag.get(type), type2total.getDouble(type)));
+                    AnnotatedSupertag st = new AnnotatedSupertag(type2bestTag.get(type), type, type2total.getDouble(type));
+                    newWord.add(st);
+//                    newWord.add(new Pair(type2bestTag.get(type), type2total.getDouble(type)));
                 }
-                newWord.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -Double.compare(o1.right, o2.right)); //sort in descending order
+                newWord.sort((AnnotatedSupertag o1, AnnotatedSupertag o2) -> -Double.compare(o1.probability, o2.probability)); //sort in descending order
                 newSent.add(newWord);
                 sj.add(type2bestTag.keySet().toString());
             }
@@ -154,10 +186,15 @@ public class Util {
     
     /**
      * Reads edge probabilities from a text file. Dimensions of the result are
-     * [sentences][1][edges for the sentence] (the 1 is a historical remnant).
+     * [sentences][1][edges for the sentence] (the 1 is a historical remnant).<p>
+     * 
      * Edges with label o from i to j with probability p are expected to be in the
-     * format o[i,j]|p , with one sentence per line and edges per sentence separated by tabs.
-     * @param path path to text file
+     * format o[i,j]|p , with one sentence per line and edges per sentence separated by tabs.<p>
+     * 
+     * Update June 2019, AK: This method no longer silently returns null if the
+     * input file does not exist. 
+     * 
+     * @param reader Reader from which to read
      * @param areLogs log probabilities or not
      * @param threshold threshold where to cut off probabilities for edges (non-log values).
      * Edges with scores below this threshold are not added to the resulting list. Try something like 0.01.
@@ -170,14 +207,16 @@ public class Util {
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    public static List<List<List<Pair<String, Double>>>> readEdgeProbs(String path, boolean areLogs,
+    public static List<List<List<Pair<String, Double>>>> readEdgeProbs(Reader reader, boolean areLogs,
             double threshold, int maxLabels, boolean shift) throws FileNotFoundException, IOException {
+        /*
         if (!new File(path).exists()) {
             System.err.println("Info: file '"+path+"' does not exist, trying to proceed without it. (This is ok for the edges file)");
             return null;
         }
+        */
         
-        BufferedReader br = new BufferedReader(new FileReader(path));
+        BufferedReader br = new BufferedReader(reader);
         List<List<List<Pair<String, Double>>>> ret = new ArrayList<>();
         
         sentenceLoop:
@@ -259,7 +298,7 @@ public class Util {
     }
     
     /**
-     * Call on strings from {@link #readProbs(java.lang.String, boolean) } to
+     * Call on strings from {@link #readSupertagProbs(java.lang.String, boolean) } to
      * remove whitespace markers.
      * 
      * @param raw

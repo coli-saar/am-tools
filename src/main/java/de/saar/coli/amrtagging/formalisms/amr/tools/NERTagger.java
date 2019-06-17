@@ -83,7 +83,7 @@ public class NERTagger {
             sent.addNEs(ners);
         }
         
-        ConllSentence.writeFile(cli.outPath+cli.prefix+".amconll", sents);
+        ConllSentence.writeToFile(cli.outPath+cli.prefix+".amconll", sents);
         
     }
         

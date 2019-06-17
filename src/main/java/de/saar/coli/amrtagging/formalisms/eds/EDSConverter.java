@@ -136,7 +136,7 @@ public class EDSConverter {
     
     
     /**
-     * Copies and s-graph and renames nodes that start with _ to $EXPL_ followed by what they were named. 
+     * Copies s-graph and renames nodes that start with _ to $EXPL_ followed by what they were named. 
      * This function is useful because the variable names of nodes that start with _ will not be printed by the AMR-ISI codec but we need that (they are represented as strings in the decomp automaton)
      * @param eds
      * @return 

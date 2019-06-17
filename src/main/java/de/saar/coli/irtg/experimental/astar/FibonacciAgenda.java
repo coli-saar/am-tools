@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.up.ling.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar;
 
-import de.up.ling.irtg.experimental.astar.FibonacciHeap.Entry;
-import de.up.ling.irtg.experimental.astar.PriorityQueueAgenda.ItemCache;
+import de.saar.coli.irtg.experimental.astar.FibonacciHeap.Entry;
+import de.saar.coli.irtg.experimental.astar.PriorityQueueAgenda.ItemCache;
 import de.up.ling.irtg.util.NumbersCombine;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;

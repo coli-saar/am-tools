@@ -26,7 +26,7 @@ import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 
 
-import java.util.ArrayList;
+import java.util.List;
 import se.liu.ida.nlp.sdp.toolkit.io.Constants;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphWriter2015;
 
@@ -43,7 +43,7 @@ public class ToSDPCorpus {
     private String outPath = "/tmp/dm/";
     
     @Parameter(names={"--gold","-g"}, description = "Path to gold corpus. Make sure it contains exactly the same instances, in the same order.")//, required=true)
-    private String goldCorpus = "/home/matthias/uni/multi-amparser/data/SemEval/2015/DM/dev/dev.sdp";
+    private String goldCorpus = null; //"/home/matthias/uni/multi-amparser/data/SemEval/2015/DM/dev/dev.sdp";
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -68,7 +68,7 @@ public class ToSDPCorpus {
             return;
         }
         
-        ArrayList<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
         GraphReader2015 goldReader = null;
         if (cli.goldCorpus != null){
             goldReader = new GraphReader2015(cli.goldCorpus);
@@ -77,10 +77,13 @@ public class ToSDPCorpus {
         if (cli.outPath != null){
             grW = new GraphWriter2015(cli.outPath+".sdp");
         }
+        
         Scorer scorer = new Scorer();
+        
         for (ConllSentence s : sents){
-            //prepare raw output without edges
-            Graph sdpSent = new Graph("#NO-ID");
+            // prepare raw output without edges
+            String id = s.getAttr("id") != null ? s.getAttr("id") : "#NO-ID";
+            Graph sdpSent = new Graph(id);
             sdpSent.addNode(Constants.WALL_FORM, Constants.WALL_LEMMA, Constants.WALL_POS, false, false, Constants.WALL_SENSE); //some weird dummy node.
 
             for (ConllEntry word : s){ //build a SDP Graph with only the words copied from the input.
@@ -88,29 +91,35 @@ public class ToSDPCorpus {
                     sdpSent.addNode(word.getForm(), word.getLemma(), word.getPos(), false, false, "_");
                 }
             }
+            
             boolean read = false;
+            
             try {
                 AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluate(true);
-
                 Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
+                
                 if (goldReader != null){
                     read = true;
                     Graph goldGraph = goldReader.readGraph();
                     scorer.update(goldGraph, outputSent);
                 }
+                
                 if (grW != null){
                     grW.writeGraph(outputSent);
                 }
             } catch (Exception ex){
-                System.err.println("In line "+s.getLineNr());
-                //AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
-                //SGraph evaluatedGraph = amdep.evaluate(true);
-                //SGraphDrawer.draw(evaluatedGraph, "");
-                System.err.println("Ignoring exception:");
+                System.err.printf("In line %d, id=%s: ignoring exception.\n", s.getLineNr(), id);
+                
+//                AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
+//                SGraph evaluatedGraph = amdep.evaluate(true);
+//                SGraphDrawer.draw(evaluatedGraph, "");
+                
                 ex.printStackTrace();
-                System.err.println("Writing graph without edges instead");
+                System.err.println("Writing graph without edges instead.\n");
+                
                 grW.writeGraph(sdpSent);
+                
                 if (!read && goldReader != null){
                     Graph goldGraph = goldReader.readGraph();
                     scorer.update(goldGraph, sdpSent);

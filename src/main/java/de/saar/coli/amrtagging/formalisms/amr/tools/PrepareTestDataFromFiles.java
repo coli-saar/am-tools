@@ -104,7 +104,7 @@ public class PrepareTestDataFromFiles {
             
         }
         
-        ConllSentence.writeFile(cli.outPath+"/"+cli.prefix+".amconll", output);
+        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", output);
         
         
     }

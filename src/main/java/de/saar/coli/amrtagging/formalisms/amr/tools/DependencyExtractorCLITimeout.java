@@ -194,12 +194,12 @@ public class DependencyExtractorCLITimeout {
                     executor.shutdownNow();
                     if (i % 10 == 0){
                         System.err.println(i);
-                        ConllSentence.writeFile(cli.outPath+"/corpus.amconll", outCorpus);
+                        ConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
                         dictionary.writeToFile(cli.outPath+"/supertags.txt");
                     }
         }
         
-        ConllSentence.writeFile(cli.outPath+"/corpus.amconll", outCorpus);
+        ConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
         dictionary.writeToFile(cli.outPath+"/supertags.txt");
         
         
