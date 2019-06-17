@@ -11,9 +11,9 @@ import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 
 /**
- * An outside estimator that sums up the best supertag scores and the
- * best scores for incoming edges over all tokens outside of the item.
- * 
+ * An outside estimator that sums up the best supertag scores and the best
+ * scores for incoming edges over all tokens outside of the item.
+ *
  * @author koller
  */
 public class StaticOutsideEstimator implements OutsideEstimator {
@@ -28,22 +28,20 @@ public class StaticOutsideEstimator implements OutsideEstimator {
     private final int N;
     private final EdgeProbabilities edgep;
     private final SupertagProbabilities tagp;
-    
+
     private double bias = 0;
 
     /**
-     * Adds a bias to the heuristic. This makes the heuristic inadmissible,
-     * but may speed up the A* parser. Note: This bias is currently NOT
-     * just added to each estimate, but to the contribution to the estimate
-     * for each token in the left and right context.
-     * 
-     * @param bias 
+     * Adds a bias to the heuristic. This makes the heuristic inadmissible, but
+     * may speed up the A* parser. Note: This bias is currently NOT just added
+     * to each estimate, but to the contribution to the estimate for each token
+     * in the left and right context.
+     *
+     * @param bias
      */
     public void setBias(double bias) {
         this.bias = bias;
     }
-    
-    
 
     private double left(int i) {
         return outsideLeft[i];
@@ -79,12 +77,12 @@ public class StaticOutsideEstimator implements OutsideEstimator {
      * range [start,end). This score is stored in onesidedOutsides[k]. Also
      * discovers the worst-scored among these best incoming edges, and stores
      * its score in onesidedWorstIncoming[k].
-     * 
+     *
      * @param k
      * @param start
      * @param end
      * @param onesidedOutsides
-     * @param onesidedWorstIncoming 
+     * @param onesidedWorstIncoming
      */
     private void sumContext(int k, int start, int end, double[] onesidedOutsides, double[] onesidedWorstIncoming) {
         double sum = 0;
@@ -93,14 +91,12 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         for (int i = start; i < end; i++) {
             double scoreWithInEdge = bestTagp[i] + bestEdgep[i];
             double scoreWithIgnore = tagp.get(i, tagp.getNullSupertagId()); // NULL score
-            
+
             System.err.printf("[%d] bestTagp=%f, bestEdgep=%f, NULL=%f\n", i, bestTagp[i], bestEdgep[i], scoreWithIgnore);
-            
+
             // AKAKAK should scoreWithIgnore also contain cost of IGNORE in-edge?
-            
             // #951: Token 4 doesn't have an in-edge or a NULL supertag, therefore both scores are -INF
-            
-//            assert Math.max(scoreWithInEdge, scoreWithIgnore) >  Astar.FAKE_NEG_INFINITY / 2 : String.format("No good supertag or in-edge for pos %d (while computing context scores for pos %d): withInEdge=%f, withIgnore=%f\n", i, k, scoreWithInEdge, scoreWithIgnore);
+            assert Math.max(scoreWithInEdge, scoreWithIgnore) > Astar.FAKE_NEG_INFINITY / 2 : String.format("No good supertag or in-edge for pos %d (while computing context scores for pos %d): withInEdge=%f, withIgnore=%f\n", i, k, scoreWithInEdge, scoreWithIgnore);
 
             if (scoreWithInEdge > scoreWithIgnore) {
                 sum += scoreWithInEdge;
@@ -156,7 +152,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
 
     // for debugging:
     // explain why the outside estimate for "it" is as it is
-    public void analyze(Item it, Interner<String> edgeLabelLexicon) {
+    public void analyze(Item it, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon) {
         assert edgeLabelLexicon != null;
 
         double sumSupertags = 0;
@@ -170,9 +166,9 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             String edgeLabel = edgeLabelLexicon.resolveId(edge.left.getLabelId());
             assert edgeLabel != null;
 
-            System.err.printf("[%2d] tag: %d %f, edge: %s from %d %f\n",
+            System.err.printf("[%2d] best supertag: %d %s (%f) // best in-edge: %s from %d (%f)\n",
                     i,
-                    tag.left, tag.right,
+                    tag.left, supertagLexicon.resolveId(tag.left), tag.right,
                     edgeLabel, edge.left.getFrom(), edge.right);
 
             sumSupertags += tag.right;
@@ -185,15 +181,21 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             Pair<Integer, Double> tag = tagp.getBestSupertag(i);
             Pair<Edge, Double> edge = edgep.getBestIncomingEdge(i);
 
-            System.err.printf("[%2d] tag: %d %f, edge: %s from %d %f\n",
-                    i,
-                    tag.left, tag.right,
-                    edgeLabelLexicon.resolveId(edge.left.getLabelId()), edge.left.getFrom(), edge.right);
+            if (edge == null || edge.left == null) {
+                System.err.printf("[%2d] best supertag: %d %s (%f) // no in-edge\n",
+                        i,
+                        tag.left, supertagLexicon.resolveId(tag.left), tag.right);
+            } else {
+                System.err.printf("[%2d] best supertag: %d %s (%f) // best in-edge: %s from %d (%f)\n",
+                        i,
+                        tag.left, supertagLexicon.resolveId(tag.left), tag.right,
+                        edgeLabelLexicon.resolveId(edge.left.getLabelId()), edge.left.getFrom(), edge.right);
+            }
 
             sumSupertags += tag.right;
             sumBestEdges += edge.right;
         }
 
-        System.err.printf("\nSum outside tag scores=%f, edge scores=%f\n", sumSupertags, sumBestEdges);
+        System.err.printf("\nSum outside tag scores=%f, edge scores=%f, total=%f\n", sumSupertags, sumBestEdges, evaluate(it));
     }
 }

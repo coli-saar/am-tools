@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import de.saar.basic.Pair;
+import de.saar.basic.StringTools;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
@@ -41,6 +42,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -217,7 +219,7 @@ public class Astar {
 
             numDequeuedItems++;
 
-            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it);
+            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it.toString(typeLexicon));
             // return first found goal item
             if (isGoal(it)) {
                 w.record(); // agenda looping time
@@ -265,14 +267,22 @@ public class Astar {
                     // items with matching types on the right     ** SCHLECHT
                     for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineLeft(op, partner, it);
-                        assert result.getScore() <= it.getScore() + EPS : "[1R] Generated " + result + " from " + it;
+                        double logEdgeProbability = edgep.get(partner.getRoot(), it.getRoot(), op); // AKAKAK
+                        
+                        System.err.println("analysis for it:");
+                        ((StaticOutsideEstimator) outside).analyze(it, supertagLexicon, edgeLabelLexicon);
+                        
+                        System.err.println("analysis for result:");
+                        ((StaticOutsideEstimator) outside).analyze(result, supertagLexicon, edgeLabelLexicon);
+                        
+                        assert result.getScore() <= it.getScore() + EPS : String.format("[1R] Generated %s from it: %s <--[%s:%f]-- partner: %s", result.toString(typeLexicon), it.toString(typeLexicon), edgeLabelLexicon.resolveId(op), logEdgeProbability, partner.toString(typeLexicon));
                         agenda.enqueue(result);
                     }
 
                     // items with matching types on the left
                     for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineRight(op, partner, it);
-                        assert result.getScore() <= it.getScore() + EPS : "[1L] Generated " + result + " from " + it;
+                        assert result.getScore() <= it.getScore() + EPS : "[1L] Generated " + result.toString(typeLexicon) + " from " + it.toString(typeLexicon);
                         agenda.enqueue(result);
                     }
                 }
@@ -516,6 +526,9 @@ public class Astar {
         @Parameter(names = {"--outdir", "-o"}, description = "Directory to which outputs are written.")
         private String outFilename = "";
 
+        @Parameter(names = "--log-to-stderr", description = "Write log messages to stderr instead of logfile")
+        private boolean logToStderr = false;
+
         @Parameter(names = "--help", help = true)
         private boolean help = false;
 
@@ -583,7 +596,7 @@ public class Astar {
         Interner<String> supertagLexicon = new Interner<>();
         Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
-        int numSupertagsPerToken = 0;
+//        int numSupertagsPerToken = 0;
         Set<Type> types = new HashSet<>();
 
         // calculate supertag lexicon
@@ -591,13 +604,11 @@ public class Astar {
             for (List<AnnotatedSupertag> token : sentence) {
                 // check same #supertags for each token
                 // -> in latest version, some tokens get 15 supertags, some 16.
-                
-                // calculate min #supertags per token
-                if( numSupertagsPerToken == 0 || token.size() < numSupertagsPerToken ) {
-                    numSupertagsPerToken = token.size();
-                }
-                
 
+                // calculate min #supertags per token
+//                if( numSupertagsPerToken == 0 || token.size() < numSupertagsPerToken ) {
+//                    numSupertagsPerToken = token.size();
+//                }
 //                System.err.printf("%d supertags/token\n", token.size());
 //                if (numSupertagsPerToken == 0) {
 //                    numSupertagsPerToken = token.size();
@@ -632,9 +643,8 @@ public class Astar {
             System.err.println("Did not find an entry for the NULL supertag - exiting.");
             System.exit(1);
         }
-        
-        System.err.printf("found %d supertags per token\n", numSupertagsPerToken);
 
+//        System.err.printf("found %d supertags per token\n", numSupertagsPerToken);
         // build supertag array
         List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
         int x = 0; // AKAKAK
@@ -644,14 +654,14 @@ public class Astar {
             for (int tokenPos = 0; tokenPos < sentence.size(); tokenPos++) {
                 List<AnnotatedSupertag> token = sentence.get(tokenPos);
 
-                for (int stPos = 0; stPos < numSupertagsPerToken; stPos++) {
+                for (int stPos = 0; stPos < token.size(); stPos++) {
                     AnnotatedSupertag st = token.get(stPos);
                     String supertag = st.graph;
                     int supertagId = supertagLexicon.resolveObject(supertag);
                     tagpHere.put(tokenPos, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
                 }
             }
-            
+
             if (arguments.parseOnly == null || x++ == arguments.parseOnly) {
                 System.err.printf("sentence length: %d\n", tagpHere.getLength());
                 tagpHere.prettyprint(idToSupertag, System.err);
@@ -754,7 +764,7 @@ public class Astar {
         for (int i : sentenceIndices) { // loop over corpus
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
                 final int ii = i;
-                
+
                 System.err.printf("*** parse it %d ***\n", ii);
 
 //                System.err.printf("\n[%02d] EDGES:\n", ii);
@@ -764,7 +774,7 @@ public class Astar {
                     ParsingResult parsingResult = null;
 //                    String result = "(u / unparseable)";
                     CpuTimeStopwatch w = new CpuTimeStopwatch();
-                    
+
                     System.err.println("aa");
 
                     try {
@@ -773,12 +783,15 @@ public class Astar {
                         astar = new Astar(edgep.get(ii), tagp.get(ii), idToSupertag, supertagLexicon, edgeLabelLexicon, typeLexicon);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
-                        astar.setLogger((s) -> {
-                            synchronized (logW) {
-                                logW.println(s);
-                            }
-                        });
-                        
+
+                        if (!arguments.logToStderr) {
+                            astar.setLogger((s) -> {
+                                synchronized (logW) {
+                                    logW.println(s);
+                                }
+                            });
+                        }
+
                         System.err.println("bb");
 
                         w.record();
@@ -794,10 +807,10 @@ public class Astar {
 
                         w.record();
                     } catch (Throwable e) {
-                        synchronized (logW) {
-                            logW.printf("Exception (sentence id=%d):\n", ii);
-                            e.printStackTrace(logW);
-                        }
+                        astar.logger.accept(String.format("Exception (sentence id=%d):\n", ii));
+                        StringWriter ww = new StringWriter();
+                        e.printStackTrace(new PrintWriter(ww));
+                        astar.logger.accept(ww.toString());
                     } finally {
                         ConllSentence sent = corpus.get(ii);
 
