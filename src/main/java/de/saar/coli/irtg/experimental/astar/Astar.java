@@ -172,7 +172,7 @@ public class Astar {
     }
 
     private Item process() {
-        edgep.prettyprint(edgeLabelLexicon, System.err);
+//        edgep.prettyprint(edgeLabelLexicon, System.err);
 
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
@@ -222,7 +222,7 @@ public class Astar {
 
             numDequeuedItems++;
 
-            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it.toString(typeLexicon));
+//            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it.toString(typeLexicon));
 
             // return first found goal item
             if (isGoal(it)) {
@@ -315,9 +315,9 @@ public class Astar {
             
             // add ROOT edge from 0
             if( isAlmostGoal(it) ) {
-                System.err.println(" --> almost goal");
+//                System.err.println(" --> almost goal");
                 Item goalItem = makeGoalItem(it);
-                System.err.println(" --> goal: " + goalItem);
+//                System.err.println(" --> goal: " + goalItem);
                 agenda.enqueue(goalItem);
             }
         }
