@@ -166,11 +166,16 @@ public class CreateCorpus {
                     if (cli.debug){
                         //check if we can get a graph constant for every alignment
                         //if we cannot get at least one graph constant for any blob, the decomposition has no choice but fail.
+                        // Addition by JG: also, the constants can reaveal other causes for a failed decomposition, such as 
                         for (Alignment al : inst.getAlignments()){
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
                         System.err.println(GraphvizUtils.simpleAlignViz(inst));
+
+                        //add the next lines to get the graph printed / drawn
+                        //System.err.println(inst.getGraph().toIsiAmrStringWithSources());
+                        //SGraphDrawer.draw(inst.getGraph(), "");
                     }
                     
                     if (problems > 1){ //ignore the first problems
