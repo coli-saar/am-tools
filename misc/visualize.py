@@ -38,29 +38,25 @@ def eprint(*args, **kwargs):
 def string_to_list(line: str) -> list:
     """
     converts string with list of tokens in it to list of tokens
-    :param line: string like "not decomposable [Token1, Token2, Token3]
+    :param line: string like 'not decomposable [Token1, Token2, Token3]'
     :return: list of tokens
     >>> string_to_list("not decomposable [Not, this, year, .]")
     ['Not', 'this', 'year', '.']
+    >>> string_to_list("not decomposable [Hello, New York, !]")
+    ['Hello', 'New York', '!']
     >>> string_to_list("not decomposable [a, b, c, d]")
     ['a', 'b', 'c', 'd']
     >>> string_to_list("not decomposable [ a, b , c, d ]")
-    ['', 'a', 'b', '', 'c', 'd', '']
+    [' a', 'b ', 'c', 'd ']
     >>> string_to_list("not decomposable [a, ,, b, c, d]")
     ['a', ',', 'b', 'c', 'd']
     """
-    # todo: this is a really bad code
-    def delcomma(s: str) -> str:  # delete comma separator
-        if s.endswith(","):  # and len(s) != 1:
-            return s[:-1]
-        else:
-            return s
     line = line.rstrip("\n")
     line = line.replace("not decomposable ", "")
-    line = line.lstrip("[")
-    line = line.rstrip("]")
-    toks = line.split(" ")
-    toks = [delcomma(s=t) for t in toks]  # remove trailing comma separator
+    # todo: convert assertion to if-statement (raise Exception or log warning?)
+    assert(len(line) > 2 and line[0] == "[" and line[-1] == "]")
+    line = line[1:-1]  # remove '[' and ']'
+    toks = line.split(", ")
     return toks
 
 
