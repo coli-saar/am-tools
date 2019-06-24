@@ -180,6 +180,7 @@ public class CreateCorpus {
             } catch (Exception ex){
                 System.err.println("Ignoring an exception:");
                 System.err.println("id "+ids.get(counter));
+                System.err.println(inst.getSentence());
                 ex.printStackTrace();
                 problems++;
                 if (cli.debug){
