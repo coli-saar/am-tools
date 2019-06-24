@@ -123,9 +123,8 @@ public class CreateCorpus {
             
             totalCounter ++;
             MRInstance inst = EDSConverter.toSGraph(allGraphs.get(counter), allSents.get(counter));
-            
+            ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
             try {
-                ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
                 //AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(inst,sigBuilder, false);
                 auto.processAllRulesBottomUp(null);
@@ -166,6 +165,7 @@ public class CreateCorpus {
                     //amdep.getTree().draw();
                 } else {
                     problems ++;
+                    System.err.println("id "+ids.get(counter));
                     System.err.println(inst.getGraph());
                     System.err.println("not decomposable " + inst.getSentence());
                     if (cli.debug){
@@ -173,13 +173,29 @@ public class CreateCorpus {
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
-                        System.err.println(GraphvizUtils.simpleAlignViz(inst));
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
                     }
+                    System.err.println("=====end not decomposable=====");
                 }
             } catch (Exception ex){
                 System.err.println("Ignoring an exception:");
+                System.err.println("id "+ids.get(counter));
                 ex.printStackTrace();
                 problems++;
+                if (cli.debug){
+                        for (Alignment al : inst.getAlignments()){
+                            System.err.println(inst.getSentence().get(al.span.start));
+                            try {
+                                System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
+                            } catch (IllegalArgumentException ex2){
+                                System.err.println("[]"); //print empty list
+                            }
+                            
+                        }
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
+                        System.err.println("=====end not decomposable=====");
+                }
+                
                 if (ex.getMessage().contains("More than one node with edges from outside")){
                     moreIncoming++;
                     Pattern p = Pattern.compile("\\|\\|([0-9]+)-([0-9]+)\\|\\|1,0");
@@ -201,7 +217,7 @@ public class CreateCorpus {
                             }
                             try {
                             multipleRootFragments.getRepr(errGraph); //count this graph pattern
-                             System.err.println(errGraph);
+                             //System.err.println(errGraph);
                             } catch (UnsupportedOperationException e){
                                 
                             }

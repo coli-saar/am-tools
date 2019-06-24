@@ -23,6 +23,7 @@ dependencies {
     
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'
+    implementation 'edu.stanford.nlp:stanford-corenlp:3.8.0' //need this as well - ML
     implementation 'edu.stanford.nlp:stanford-corenlp:3.8.0:models' // the ":models" ensures that the trained models are downloaded too
 
     testCompile 'org.hamcrest:hamcrest-all:1.3'
