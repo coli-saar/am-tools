@@ -9,8 +9,8 @@ package de.saar.coli.amrtagging.mrp.sdp
 import static org.junit.Assert.*
 import de.saar.coli.amrtagging.mrp.MRPInputCodec
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph
-import de.saar.coli.amrtagging.mrp.sdp.dm.DM
-import de.saar.coli.amrtagging.mrp.sdp.psd.PSD
+import de.saar.coli.amrtagging.mrp.sdp.DM
+import de.saar.coli.amrtagging.mrp.sdp.PSD
 import org.junit.*
 /**
  *
