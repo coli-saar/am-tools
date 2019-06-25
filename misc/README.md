@@ -15,7 +15,9 @@ Moreover, this script prints out the concrete sentences belonging to the
 non-decomposable graphs as well as the number of tokens 
 (useful to search for minimal not-working examples).  
 *Version 2*: Added extraction and print out of the predicted constants of 
-non-decomposable graphs.
+non-decomposable graphs.  
+*Version 3*: Adapted to new input format which also provides EDS id. This id is
+also extracted.  
 
 Note: If the above `createCorpus` command results in a java `OutOfMemoryError`
 you might want to allow java to occupy more memory.  If you add the option 
@@ -54,25 +56,26 @@ File with all error messages (everything that was redirected from stderr to
 ### Output
 - a `sentlength.log` file in tab separated format:  
   for each non-decomposable graph prints one line:  
-  `INFO<TAB>not decomposable<TAB>SENTNO<TAB>SENTLENGTH<TAB>LINENUMBER<TAB>SENTENCE`  
-  e.g. `INFO  not decomposable  004  4  659  Not this year .`  
-  (4th non decomposable graph, four tokens, found at line number 659 of the 
-  input file, then all tokens separated by whitespace)
+  `INFO<TAB>not decomposable<TAB>EDSID<TAB>SENTNO<TAB>SENTLENGTH<TAB>LINENUMBER<TAB>SENTENCE`  
+  e.g. `INFO  not decomposable  id 20010002  004  4  826  Not this year .`  
+  (4th error-causing graph was non decomposable (004), eds id is 20010002, four 
+  tokens (4), found at line number 659 of the input file, then all tokens 
+  separated by whitespace)
 - under the specified `OUTPUTDIR` two folders are created: 
     - a `dot` folder  containing the graphs extracted form the input file and
     - a `pdf` (or `png` or whatever format corresponding to the 
     specified `outformat`) folder containing the output of graphviz dot
     - Note: I've added a caption (namely the whitespace separated tokens of the 
-    sentence) to the dot output.
+    sentence) to the dot output for the full graph.
     - for each non decomposable graph the corresponding files start with the 
     respective `SENTNO` (e.g. `004`)
     - Note for version 2: added extraction and dot printing of constants for 
-    non-decomposable graphs (format: `SENTID_const_TokennumberTokenGraphnr.pdf`
-    e.g. `001_const_13under2.pdf` is the second graph constant predicted in 
+    non-decomposable graphs 
+    (format: `SENTID_const_Tokennumber_Token_Graphnr.pdf`
+    e.g. `001_const_13_under_2.pdf` is the second graph constant predicted in 
     sentence 001 for the 13th token present in the error message for this 
-    sentence (the 13th token is 'under')
-    - **TODO**: adapt to new input format (original ID), extract other error 
-    info (error for multiple root), errors like
+    sentence (token is 'under'))
+    - **TODO**: extract other error messages, errors like
     ```
     Ignoring an exception:
     java.lang.IllegalArgumentException: Cannot create a constant for this alignment (explicitanon_u_371|e52|explicitanon_u_356|e4!||15-16||1,0): More than one node with edges from outside, but we can only have one root.
@@ -94,6 +97,8 @@ File with all error messages (everything that was redirected from stderr to
         at de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton.create(ConcreteAlignmentTrackingAutomaton.java:109)
         at de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus.main(CreateCorpus.java:129)
     ```
+    or maybe
+    `***WARNING*** more than one edge at node null`
 
 
 ## Author

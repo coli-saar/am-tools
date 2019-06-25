@@ -226,11 +226,14 @@ def main():
             os.mkdir(dotdir)
     
     starttime = dtimer()
+    inside_nondecomp = False
+    # todo: adapt: also other graphs now id!
     with open(file=inputfile, mode="r") as infile:
         lines_for_curr_graph = list()
         state = 0  # 0: not inside graph, 1: non-dec, 2: const, 3: digraph
         sent_file_name_infix = None
         current_sentence = list()
+        current_id = None
         lastword = None
         lastwordcnt = 0
         sent_lengths = list()
@@ -239,7 +242,12 @@ def main():
             if linenumber % 10000 == 0:  # show progress
                 sys.stdout.write(".")
                 sys.stdout.flush()
+            if line.startswith("id "):
+                current_id = line.rstrip("\n")
+                continue
             if line.startswith("not decomposable"):  # new graph found!
+                assert(not inside_nondecomp)
+                inside_nondecomp = True
                 assert(state == 0)
                 # line is like:   not decomposable [Token1, token2, token3]
                 current_sentence = string_to_list(line)
@@ -249,6 +257,10 @@ def main():
                 state = 2  # expect constants next
                 lastword = None
                 lastwordcnt = 0
+                continue
+            if line.startswith("=====end not decomposable====") and inside_nondecomp:
+                inside_nondecomp = False
+            if not inside_nondecomp:
                 continue
             newgraph_begins = line.startswith("digraph")
             oldgraph_ends = (line.strip() == "}")  # last line of graph
@@ -299,7 +311,7 @@ def main():
                 sent = " ".join(current_sentence)
                 sentence_length = len(current_sentence)
                 # todo: evtl log name and path of dot outfile?
-                logging.info("\t".join(["not decomposable",
+                logging.info("\t".join(["not decomposable", current_id,
                                         sent_file_name_infix,
                                         str(sentence_length),
                                         str(linenumber),
