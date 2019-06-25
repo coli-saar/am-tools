@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.amrtagging.mrp.utils;
+package de.saar.coli.amrtagging;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -22,7 +22,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- *
+ * A conllu sentence.
+ * See https://universaldependencies.org/format.html
  * @author matthias
  */
 public class ConlluSentence implements Iterable<ConlluEntry> {
@@ -87,6 +88,22 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
         ArrayList<String> r = new ArrayList<>();
         for (ConlluEntry e : entries) {
             r.add(e.getLemma());
+        }
+        return r;
+    }
+    
+    public List<String> pos() {
+        ArrayList<String> r = new ArrayList<>();
+        for (ConlluEntry e : entries) {
+            r.add(e.getPos());
+        }
+        return r;
+    }
+    
+   public List<TokenRange> ranges() {
+        ArrayList<TokenRange> r = new ArrayList<>();
+        for (ConlluEntry e : entries) {
+            r.add(e.getTokenRange());
         }
         return r;
     }
@@ -277,7 +294,6 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
      /**
      * Returns the token index (0-based) that (sort of) fits the given TokenRange.
      * @param anchor
-     * @param sent
      * @return 
      */
     public int getCorrespondingIndex(TokenRange anchor){
@@ -290,8 +306,17 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
         }
         return index;
     }
+    
+    public int getExactIndex(TokenRange anchor){
+        int from = anchor.getFrom();
+        int index = 0;
+        for (ConlluEntry entry : this){
+            TokenRange range = entry.getTokenRange();
+            if (range.equals(anchor)) return index;
+            index++;
+        }
+        throw new IllegalArgumentException("Could not find the exact token for the range "+anchor);
+    }
 
     
-
-
 }

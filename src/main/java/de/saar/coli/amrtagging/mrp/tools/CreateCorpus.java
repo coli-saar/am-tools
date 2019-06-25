@@ -8,31 +8,33 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.owlike.genson.Genson;
+import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
-import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
-import de.saar.coli.amrtagging.mrp.sdp.dm.DM;
-import de.saar.coli.amrtagging.mrp.utils.ConlluSentence;
+import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
+import de.saar.coli.amrtagging.mrp.sdp.DM;
+import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.mrp.Formalism;
+import de.saar.coli.amrtagging.mrp.MRPInputCodec;
+import de.saar.coli.amrtagging.mrp.sdp.PSD;
+import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import edu.stanford.nlp.simple.Sentence;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import nl.uu.smotterl.PrologOp;
 
 /**
  * Creates amconll corpus from MRP data.
@@ -41,7 +43,7 @@ import java.util.List;
  */
 public class CreateCorpus {
     @Parameter(names = {"--mrp"}, description = "Path to the input corpus  or subset thereof")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/dm/wsj.mrp";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/dm/40.mrp";
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
@@ -85,17 +87,17 @@ public class CreateCorpus {
         int problems = 0;
         ArrayList<ConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
-        SGraphConverter.READABLE_NODE_LABELS = false; //if false -> node names are senses, if true -> nodenames also contain word forms
         
         if (cli.vocab != null){
             supertagDictionary.readFromFile(cli.vocab);
         }
-        BufferedReader graphReader = new BufferedReader(new FileReader(cli.corpusPath));
-        List<ConlluSentence> conlluSents = ConlluSentence.readFromFile(cli.companion);
+        Reader fr = new FileReader(cli.corpusPath);
+        Reader sentReader = new FileReader(cli.companion);
+        List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
 
-        String line;
-        Genson genson = new Genson();
-        while ((line = graphReader.readLine()) != null){
+        for (Pair<MRPGraph, ConlluSentence> pair : pairs){
+            MRPGraph mrpGraph = pair.getLeft();
+            ConlluSentence usentence = pair.getRight();
             if (counter % 10 == 0 && counter>0){
                 System.err.println(counter);
                 System.err.println("decomposable so far " + 100*(1.0 - (problems / (float) counter))+ "%");
@@ -104,58 +106,58 @@ public class CreateCorpus {
                 cli.write(outCorpus, supertagDictionary);
             }
             counter ++;
-            MRPGraph mrpGraph = genson.deserialize(line, MRPGraph.class);
             Formalism formalism;
             if (mrpGraph.getFramework().equals("dm")){
                 formalism = new DM();
+            } else if (mrpGraph.getFramework().equals("psd")){
+                formalism = new PSD();
             } else {
                 throw new IllegalArgumentException("Formalism/Framework "+mrpGraph.getFramework()+" not supported yet.");
             }
 
-            String id = mrpGraph.getId();
+            MRPGraph preprocessed = formalism.preprocess(mrpGraph);
+            MRInstance instance = formalism.toMRInstance(usentence, preprocessed);
+            AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
             try {
-                //AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(inst,sigBuilder, false);
-                //auto.processAllRulesBottomUp(null);
-                //Tree<String> t = auto.viterbi();
+                AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(instance,sigBuilder, false);
+                auto.processAllRulesBottomUp(null);
+                Tree<String> t = auto.viterbi();
 
-                //if (t != null){
+                if (t != null){
                     //SGraphDrawer.draw(inst.getGraph(), "");
-                    //ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
-                    //sent.setAttr("id", sdpGraph.id);
-                    //Sentence stanfAn = new Sentence(inst.getSentence().subList(0, inst.getSentence().size()-1)); //remove artifical root "word"
+                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, instance, supertagDictionary);
+                    sent.addRanges(usentence.ranges());
+                    sent.setAttr("id", preprocessed.getId());
+                    sent.setAttr("framework", preprocessed.getFramework());
+                    sent.setAttr("raw",preprocessed.getInput());
+                    sent.setAttr("version", preprocessed.getVersion());
+                    sent.setAttr("time", preprocessed.getTime());
 
-                    //List<String> posTags = SGraphConverter.extractPOS(sdpGraph);
-                    //posTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-                    //sent.addPos(posTags);
+                    List<String> posTags = usentence.pos();
+                    sent.addPos(posTags);
 
-                    //List<String> neTags = new ArrayList<>(stanfAn.nerTags());
-                    //neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-                    //sent.addNEs(neTags);
 
-                    //List<String> lemmata = SGraphConverter.extractLemmas(sdpGraph);
-                    //lemmata.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-                    //sent.addLemmas(lemmata);
+                    //TODO: NER
 
-                    //outCorpus.add(sent);
+                    List<String> lemmata = usentence.lemmas();
+                    sent.addLemmas(lemmata);
+
+                    outCorpus.add(sent);
                     //AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
 
                     //SGraph alignedGraph = amdep.evaluate(true);
-                //} else {
-                 //   problems ++;
-                    //System.err.println("not decomposable " + inst.getSentence());
+                } else {
+                    problems ++;
+                    System.err.println("not decomposable " + mrpGraph.getId());
                     //if (cli.debug){
                     //    for (Alignment al : inst.getAlignments()){
                     //        System.err.println(inst.getSentence().get(al.span.start));
                     //        System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                     //    }
                     //}
-                    if (problems > 1){ //ignore the first problems
-                        //SGraphDrawer.draw(inst.getGraph(), "");
-                        //break;
-                    }
-                //}
+                }
             } catch (Exception ex){
                 System.err.println("Ignoring an exception:");
                 ex.printStackTrace();

@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.mrp.utils;
 
+import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.mrp.MRPInputCodec;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;

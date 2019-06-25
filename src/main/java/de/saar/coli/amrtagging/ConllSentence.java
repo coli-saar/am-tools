@@ -45,7 +45,10 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         attributes.put(key, val);
     }
 
-    public String getAttr(String key) {
+    public String getAttr(String key) throws IndexOutOfBoundsException{
+        if (! attributes.containsKey(key)){
+            throw new IndexOutOfBoundsException("ConllSentence with id "+this.getId()+" in line "+lineNr+" doesn't have attribute \""+key+"\"");
+        }
         return attributes.get(key);
     }
 
@@ -189,6 +192,21 @@ public class ConllSentence extends ArrayList<ConllEntry> {
             this.get(i).setNe(nes.get(i));
         }
     }
+    
+    /**
+     * Sets token ranges.
+     * @param ranges 
+     */
+    public void addRanges(List<TokenRange> ranges) {
+        if (ranges.size() != this.size()) {
+            throw new IllegalArgumentException("Size of TokenRange list must be equal to sentence length");
+        }
+        for (int i = 0; i < ranges.size(); i++) {
+            this.get(i).setRange(ranges.get(i));
+        }
+    }
+    
+    
 
     /**
      * Writes a list of ConllSentences to a file.
@@ -267,6 +285,9 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 c.setHead(Integer.parseInt(attr[9]));
                 c.setEdgeLabel(attr[10]);
                 c.setAligned(Boolean.valueOf(attr[11]));
+                if (attr.length > 12){
+                    c.setRange(TokenRange.fromString(attr[12]));
+                }
 
                 //System.out.println(c);
                 sent.add(c);

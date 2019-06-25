@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.amrtagging.mrp.utils;
+package de.saar.coli.amrtagging;
 
 import java.util.HashMap;
 import java.util.Map;

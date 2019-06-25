@@ -12,7 +12,7 @@ package de.saar.coli.amrtagging.mrp.graphs;
  * @author matthias
  */
 import com.owlike.genson.Genson;
-import de.saar.coli.amrtagging.mrp.utils.TokenRange;
+import de.saar.coli.amrtagging.TokenRange;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
@@ -30,13 +29,13 @@ import org.jgrapht.graph.DefaultEdge;
 public class MRPGraph {
     
     private String id;
-    private String flavor;
+    private int flavor;
     private String framework;
     private String version;
     private String time;
     private String input;
     private Set<Integer> tops;
-    private Set<MRPNode> nodes;
+    private List<MRPNode> nodes;
     private Set<MRPEdge> edges;
     
     /**
@@ -48,7 +47,7 @@ public class MRPGraph {
             tops = new HashSet<>();
         }
         if (nodes == null){
-            nodes = new HashSet<>();
+            nodes = new ArrayList<>();
         }
         if (edges == null){
             edges = new HashSet<>();
@@ -152,14 +151,14 @@ public class MRPGraph {
     /**
      * @return the flavor
      */
-    public String getFlavor() {
+    public int getFlavor() {
         return flavor;
     }
 
     /**
      * @param flavor the flavor to set
      */
-    public void setFlavor(String flavor) {
+    public void setFlavor(int flavor) {
         this.flavor = flavor;
     }
 
@@ -236,14 +235,14 @@ public class MRPGraph {
     /**
      * @return the nodes
      */
-    public Set<MRPNode> getNodes() {
+    public List<MRPNode> getNodes() {
         return nodes;
     }
 
     /**
      * @param nodes the nodes to set
      */
-    public void setNodes(Set<MRPNode> nodes) {
+    public void setNodes(List<MRPNode> nodes) {
         this.nodes = nodes;
     }
 
@@ -306,6 +305,10 @@ public class MRPGraph {
         if (!Objects.equals(this.tops, other.tops)) {
             return false;
         }
+        /**
+         * TODO: here resides a strange bug, Objects.equals(this.nodes, other.nodes) is not necessarily the same
+         * as Objects.equals(other.nodes, this.nodes)
+         */
         if (!Objects.equals(this.nodes, other.nodes)) {
             return false;
         }

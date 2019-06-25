@@ -5,7 +5,7 @@
  */
 package de.saar.coli.amrtagging.mrp.graphs;
 
-import de.saar.coli.amrtagging.mrp.utils.TokenRange;
+import de.saar.coli.amrtagging.TokenRange;
 
 /**
  *
@@ -30,9 +30,9 @@ public class MRPAnchor {
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 97 * hash + this.from;
-        hash = 97 * hash + this.to;
+        int hash = 7;
+        hash = 71 * hash + this.from;
+        hash = 71 * hash + this.to;
         return hash;
     }
 
@@ -56,6 +56,8 @@ public class MRPAnchor {
         }
         return true;
     }
+    
+    
     
      
     

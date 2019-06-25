@@ -357,7 +357,11 @@ public class Util {
      * @return 
      */
        public static String fixPunct(String s) {
-        return s.replaceAll("’","'").replaceAll("–","-").replaceAll("…","...").replaceAll("“", "''").replaceAll("”", "''"); 
+        return s.replaceAll("’","'").replaceAll("–","-").replaceAll("…","...").replaceAll("“", "66''").replaceAll("”", "''99"); 
   }
+       
+      public static String unfixPunct(String s){
+          return s.replaceAll("66''","“").replaceAll("''99","”").replaceAll("'","’").replaceAll("-","–").replaceAll("\\.\\.\\.","…"); 
+      }
     
 }

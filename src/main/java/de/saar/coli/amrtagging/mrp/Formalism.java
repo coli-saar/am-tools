@@ -5,10 +5,10 @@
  */
 package de.saar.coli.amrtagging.mrp;
 
+import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
-import de.saar.coli.amrtagging.mrp.utils.ConlluSentence;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.up.ling.irtg.algebra.graph.SGraph;
 
@@ -40,30 +40,14 @@ public interface Formalism {
      * @param mrpgraph
      * @return 
      */
-    public MRPGraph preprocessMRP(MRPGraph mrpgraph);
+    public MRPGraph preprocess(MRPGraph mrpgraph);
     
     /**
      * Reverts the MRP specific preprocessing step, should be the inverse of preprocess.
      * @param mrpgraph
      * @return 
      */
-    public MRPGraph postprocessMRP(MRPGraph mrpgraph);
-    
-    
-    /**
-     * A preprocessing step with more contentful purpose, e.g. coordination in PSD.
-     * @param inst
-     * @return 
-     */
-    public MRInstance preprocess(MRInstance inst);
-    
-    
-    /**
-     * Inverse of preprocess on the MRInstance.
-     * @param sgraph
-     * @return 
-     */
-    public SGraph postprocess(SGraph sgraph);
+    public MRPGraph postprocess(MRPGraph mrpgraph);
     
     /**
      * Takes the sentence with refined tokenization and the preprocessed MRP graph and returns

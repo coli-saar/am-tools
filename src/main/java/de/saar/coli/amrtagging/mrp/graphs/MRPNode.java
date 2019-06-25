@@ -104,11 +104,11 @@ public class MRPNode {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 53 * hash + this.id;
-        hash = 53 * hash + Objects.hashCode(this.label);
-        hash = 53 * hash + Objects.hashCode(this.properties);
-        hash = 53 * hash + Objects.hashCode(this.values);
-        hash = 53 * hash + Objects.hashCode(this.anchors);
+        hash = 43 * hash + this.id;
+        hash = 43 * hash + Objects.hashCode(this.label);
+        hash = 43 * hash + Objects.hashCode(this.properties);
+        hash = 43 * hash + Objects.hashCode(this.values);
+        hash = 43 * hash + Objects.hashCode(this.anchors);
         return hash;
     }
 
@@ -140,8 +140,6 @@ public class MRPNode {
             return false;
         }
         return true;
-    }
-    
-    
-    
+    }  
+       
 }

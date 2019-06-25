@@ -5,6 +5,9 @@
  */
 package de.saar.coli.amrtagging.mrp.utils;
 
+import de.saar.coli.amrtagging.TokenRange;
+import de.saar.coli.amrtagging.ConlluEntry;
+import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.mrp.graphs.MRPEdge;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.MRPAnchor;
@@ -29,42 +32,79 @@ public class MRPUtils {
     
     public static final String ART_ROOT = "ART-ROOT";
     public static final String ROOT_EDGE_LABEL = "art-snt";
+    public static final String NODE_PREFIX = "n";
     
     
-    /**
-     * Returns alignment between graph and sentence assuming that every TokenRange in the graph
-     * comes from some TokenRange in the string. Assumes a single MRPAnchor for every node.
-     * @param sent
-     * @param mrpGraph
-     * @return 
-     */
-//    public static TODO extractPerfectAlignment(ConlluSentence sent, MRPGraph mrpGraph){
-//        
-//    }
+    public static MRPGraph getDummy(String framework, String id, String sentence) throws IllegalArgumentException{
+        MRPGraph g = new MRPGraph();
+        g.setFramework(framework);
+        if (framework.equals("amr")){
+            g.setFlavor(2);
+        } else if (framework.equals("dm") || framework.equals("psd")){
+            g.setFlavor(0);
+        } else if (framework.equals("eds") || framework.equals("ucca")){
+            g.setFlavor(1);
+        } else {
+            throw new IllegalArgumentException("Unknown framework \""+framework+"\"");
+        }
+        g.setId(id);
+        g.setInput(sentence);
+        g.sanitize();
+        return g;
+    }
+    
+    
+    public static final String mrpIdToSGraphId(int id){
+        return NODE_PREFIX+id;
+    }
     
     /**
      * Converts an MRPGraph with single top node to an SGraph, not taking any anchoring into account.
+     * Node ids in MRPGraphs are numbers and are changed to Strings with a preceding NODE_PREFIX (="n").
      * @param mrpGraph
      * @return 
      */
     public static SGraph toSGraphWoAnchoring(MRPGraph mrpGraph){
         SGraph g = new SGraph();
         for (MRPNode n : mrpGraph.getNodes()){
-            g.addNode("n"+n.getId(), n.getLabel());
-        }
-        if (mrpGraph.getTops().size() != 1){
-            throw new IllegalArgumentException("Graph "+mrpGraph.getId()+" of framework "+mrpGraph.getFramework()+" doesn't have single top node");
-        }
-        int top = mrpGraph.getTops().stream().findFirst().get();
-        g.addSource("root", "n"+top);
-        
-        for (MRPNode n : mrpGraph.getNodes()){
             if (!n.getProperties().isEmpty()){
                 throw new IllegalArgumentException("MRP graph cannot be converted to s-graph, the MRP graph still contains node properties");
             }
         }
         
+        for (MRPNode n : mrpGraph.getNodes()){
+            g.addNode(mrpIdToSGraphId(n.getId()), n.getLabel());
+        }
+        if (mrpGraph.getTops().size() != 1){
+            throw new IllegalArgumentException("Graph "+mrpGraph.getId()+" of framework "+mrpGraph.getFramework()+" doesn't have single top node");
+        }
+        int top = mrpGraph.getTops().stream().findFirst().get();
+        g.addSource("root", mrpIdToSGraphId(top));
+        
+        for (MRPEdge e : mrpGraph.getEdges()){
+            g.addEdge(g.getNode(mrpIdToSGraphId(e.source)), g.getNode(mrpIdToSGraphId(e.target)), e.label);
+        }
+
+        
         return g;
+    }
+    
+    public static String addArtificialRootToSent(String sent){
+        return sent+" "+ART_ROOT;
+    }
+    
+    public static void addArtificialRootToSent(ConlluSentence sent){
+        ConlluEntry artRoot = new ConlluEntry(sent.size()+1,ART_ROOT);
+        artRoot.setLemma(ART_ROOT);
+        artRoot.setPos(ART_ROOT);
+        artRoot.setUPos(ART_ROOT);
+        artRoot.setHead(ConlluEntry.NOID);
+        TokenRange lastTokenRange = (TokenRange) sent.get(sent.size()-1).getTokenRange();
+        int start = lastTokenRange.getFrom()+1+1;
+        int end = start + ART_ROOT.length();
+        artRoot.setTokenRange(new TokenRange(start, end));
+        
+        sent.add(artRoot);
     }
     
     /**
@@ -79,18 +119,8 @@ public class MRPUtils {
         // if there is no top node, we read of the head of the span the component comprises from the companion data
         // and draw the edge into the corresponding node
         
-        // Create ART-ROOT conllu entry
-        ConlluEntry artRoot = new ConlluEntry(sent.size()+1,ART_ROOT);
-        artRoot.setLemma(ART_ROOT);
-        artRoot.setPos(ART_ROOT);
-        artRoot.setUPos(ART_ROOT);
-        artRoot.setHead(ConlluEntry.NOID);
-        TokenRange lastTokenRange = (TokenRange) sent.get(sent.size()-1).getTokenRange();
-        int start = lastTokenRange.getFrom()+1;
-        int end = start + ART_ROOT.length();
-        artRoot.setTokenRange(new TokenRange(start, end));
-        
-        sent.add(artRoot);
+        MRPUtils.addArtificialRootToSent(sent);
+
         //mrpgraph.getTops()
         //Identify unconnected components in MRP graph
         MRPGraph copy = mrpGraph.deepCopy();
@@ -101,11 +131,11 @@ public class MRPUtils {
         Set<Integer> tops = copy.getTops();
         int artRootId = mrpGraph.obtainAvailableId();
         List<MRPAnchor> rootAnchors = new ArrayList<>();
-        rootAnchors.add(new MRPAnchor(start, end));
+        rootAnchors.add(MRPAnchor.fromTokenRange(sent.get(sent.size()-1).getTokenRange())); //last entry is the artificial root.
         MRPNode artRootNode = new MRPNode(artRootId,ART_ROOT,new ArrayList<>(),new ArrayList<>(),rootAnchors);
         mrpGraph.getNodes().add(artRootNode);
         
-        mrpGraph.setInput(mrpGraph.getInput()+" "+ART_ROOT);
+        mrpGraph.setInput(addArtificialRootToSent(mrpGraph.getInput()));
         Set<Integer> newTop = new HashSet<>();
         newTop.add(artRootId);
         mrpGraph.setTops(newTop);
@@ -194,14 +224,13 @@ public class MRPUtils {
         }
         MRPGraph copy = mrpGraph.deepCopy();
         int rootId = copy.getTops().stream().findFirst().get();
-        
+        copy.setTops(new HashSet<>());
         for (MRPEdge outg : copy.outgoingEdges(rootId)){
             copy.getEdges().remove(outg); //remove art-snt* edge.
             copy.getTops().add(outg.target); //add a new top node.
         }
         //finally, remove ART-ROOT node:
         copy.getNodes().remove(copy.getNode(rootId));
-        copy.getTops().removeIf(topNode -> topNode == rootId);
         copy.setInput(copy.getInput().substring(0, copy.getInput().length() - ART_ROOT.length() -1 )); //-1 for space before ART_ROOT
         return copy;
         
