@@ -219,12 +219,19 @@ public class MRPUtils {
      * @return 
      */
     public static MRPGraph removeArtificalRoot(MRPGraph mrpGraph){
-        if (mrpGraph.getTops().size() != 1){
-            throw new IllegalArgumentException("Can only remove artificial root if it's there.");
-        }
         MRPGraph copy = mrpGraph.deepCopy();
+        if (mrpGraph.getTops().size() != 1){
+            return copy; //no artificial root
+        }
+        
         int rootId = copy.getTops().stream().findFirst().get();
+        
+        if (!copy.getNode(rootId).getLabel().equals(ART_ROOT)){
+            return copy; //no artificial root
+        }
+        
         copy.setTops(new HashSet<>());
+        
         for (MRPEdge outg : copy.outgoingEdges(rootId)){
             copy.getEdges().remove(outg); //remove art-snt* edge.
             copy.getTops().add(outg.target); //add a new top node.

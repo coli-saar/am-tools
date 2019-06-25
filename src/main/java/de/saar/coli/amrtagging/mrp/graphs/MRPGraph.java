@@ -306,7 +306,7 @@ public class MRPGraph {
             return false;
         }
         /**
-         * TODO: here resides a strange bug, Objects.equals(this.nodes, other.nodes) is not necessarily the same
+         * TODO: if "nodes" is a set rather than a list, a strange bug seems to arise: Objects.equals(this.nodes, other.nodes) is not necessarily the same
          * as Objects.equals(other.nodes, this.nodes)
          */
         if (!Objects.equals(this.nodes, other.nodes)) {
