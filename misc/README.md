@@ -8,12 +8,14 @@ output contains error messages if a graph was not decomposable.
 mkdir eds
 java -cp build/libs/am-tools-all.jar de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus -c <eds_train.amr.txt> -o ./eds/ 2> errorfile.txt
 ```
-This output to stderr contains the graphs is dot format that were not 
-decomposable. The `visualize.py`script extracts those dot formatted graphs and 
+This output to stderr contains the graphs in dot format that were not 
+decomposable. The `visualize.py` script extracts those dot formatted graphs and 
 actually uses dot to convert them into more readable pdfs (or pngs if you like).
-Moreover, this script prints out the concrete sentences 
-belonging to the non-decomposable graphs as well as 
-the number of tokens (useful to search for minimal not-working examples).
+Moreover, this script prints out the concrete sentences belonging to the 
+non-decomposable graphs as well as the number of tokens 
+(useful to search for minimal not-working examples).  
+*Version 2*: Added extraction and print out of the predicted constants of 
+non-decomposable graphs.
 
 Note: If the above `createCorpus` command results in a java `OutOfMemoryError`
 you might want to allow java to occupy more memory.  If you add the option 
@@ -21,10 +23,17 @@ you might want to allow java to occupy more memory.  If you add the option
 
 
 ## How to run
+- **only tested with EDS so far** (see `CreateCorpus.java` of EDS for how error
+ file, i.e. input of this script, needs to be formatted)
 - This script was developed using Python 3.7
 - `graphviz` needs to be installed, since the `dot` executable is called 
-from the python script. You can download graphviz from 
+from the python script. 
 [http://graphviz.org/download/](http://graphviz.org/download/)
+- in order to extract the constants in penman format we need the Penman package
+  `pip install Penman`  
+  [https://pypi.org/project/Penman/](https://pypi.org/project/Penman/) or 
+  [https://github.com/goodmami/penman](https://github.com/goodmami/penman)
+  (I've tested it with  Penman-0.6.2 )
 
 General usage:  
 `python3 visualize.py --input INPUTFILE --outputdir OUTPUTDIR`
@@ -45,8 +54,8 @@ File with all error messages (everything that was redirected from stderr to
 ### Output
 - a `sentlength.log` file in tab separated format:  
   for each non-decomposable graph prints one line:  
-  `INFO<TAB>SENTNO<TAB>SENTLENGTH<TAB>LINENUMBER<TAB>SENTENCE`  
-  e.g. `INFO<TAB>004<TAB>4<TAB>659<TAB>Not this year .`  
+  `INFO<TAB>not decomposable<TAB>SENTNO<TAB>SENTLENGTH<TAB>LINENUMBER<TAB>SENTENCE`  
+  e.g. `INFO  not decomposable  004  4  659  Not this year .`  
   (4th non decomposable graph, four tokens, found at line number 659 of the 
   input file, then all tokens separated by whitespace)
 - under the specified `OUTPUTDIR` two folders are created: 
@@ -55,10 +64,37 @@ File with all error messages (everything that was redirected from stderr to
     specified `outformat`) folder containing the output of graphviz dot
     - Note: I've added a caption (namely the whitespace separated tokens of the 
     sentence) to the dot output.
-    - for each nondecomposable graph the corresponding files start with the 
+    - for each non decomposable graph the corresponding files start with the 
     respective `SENTNO` (e.g. `004`)
+    - Note for version 2: added extraction and dot printing of constants for 
+    non-decomposable graphs (format: `SENTID_const_TokennumberTokenGraphnr.pdf`
+    e.g. `001_const_13under2.pdf` is the second graph constant predicted in 
+    sentence 001 for the 13th token present in the error message for this 
+    sentence (the 13th token is 'under')
+    - **TODO**: adapt to new input format (original ID), extract other error 
+    info (error for multiple root), errors like
+    ```
+    Ignoring an exception:
+    java.lang.IllegalArgumentException: Cannot create a constant for this alignment (explicitanon_u_371|e52|explicitanon_u_356|e4!||15-16||1,0): More than one node with edges from outside, but we can only have one root.
+        at de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder.getConstantsForAlignment(ConcreteAlignmentSignatureBuilder.java:292)
+        at de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton.create(ConcreteAlignmentTrackingAutomaton.java:133)
+        at de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton.create(ConcreteAlignmentTrackingAutomaton.java:109)
+        at de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus.main(CreateCorpus.java:129)
+    ```
+    or 
+    ```
+    Ignoring an exception:
+    java.lang.UnsupportedOperationException: Graph cannot be represented as AMR: unvisited nodes.
+        at de.up.ling.irtg.codec.SgraphAmrOutputCodec.write(SgraphAmrOutputCodec.java:63)
+        at de.up.ling.irtg.codec.SgraphAmrOutputCodec.write(SgraphAmrOutputCodec.java:40)
+        at de.up.ling.irtg.codec.OutputCodec.asString(OutputCodec.java:97)
+        at de.up.ling.irtg.algebra.graph.SGraph.toIsiAmrStringWithSources(SGraph.java:626)
+        at de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder.getConstantsForAlignment(ConcreteAlignmentSignatureBuilder.java:366)
+        at de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton.create(ConcreteAlignmentTrackingAutomaton.java:133)
+        at de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton.create(ConcreteAlignmentTrackingAutomaton.java:109)
+        at de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus.main(CreateCorpus.java:129)
+    ```
 
-Note: Currently, ignores the rest of the error messages (alignments)
 
 ## Author
 Pia Weißenhorn
