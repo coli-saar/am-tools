@@ -38,8 +38,6 @@ dependencies {
     implementation 'net.sf.jgrapht:jgrapht:0.8.3'
     implementation 'edu.mit:jwi:2.2.3'
     
-    // if you want to have core-nlp models
-    //compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.8.0', classifier: 'models'
     
     implementation 'com.owlike:genson:1.5'
 
