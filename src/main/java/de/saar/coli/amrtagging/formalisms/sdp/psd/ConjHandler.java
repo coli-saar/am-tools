@@ -26,6 +26,12 @@ public class ConjHandler {
     
     public static final HashSet<String> CONJ_EDGES = new HashSet<>(Arrays.asList("CONJ.member"));
     
+    /**
+     * Approximate inverse of conjunction handling.
+     * @param g
+     * @param blobUtils
+     * @return 
+     */
     public static SGraph restoreConj(SGraph g, PSDBlobUtils blobUtils){
         SGraph before = g;
         before.setEqualsMeansIsomorphy(true);
@@ -70,6 +76,13 @@ public class ConjHandler {
         return output;
     }
     
+    /**
+     * Transform coordination structures to be manageable for the AM algebra, see ACL 2019 paper.
+     * @param g
+     * @param blobUtils
+     * @return
+     * @throws IllegalArgumentException 
+     */
     public static SGraph handleConj(SGraph g, PSDBlobUtils blobUtils) throws IllegalArgumentException{
         SGraph before = g;
         before.setEqualsMeansIsomorphy(true);

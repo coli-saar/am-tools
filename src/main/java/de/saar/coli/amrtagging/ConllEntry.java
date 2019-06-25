@@ -40,6 +40,8 @@ public class ConllEntry {
     private String edgeLabel = DEFAULT_NULL;
     private boolean aligned;
     
+    private TokenRange range = null;
+    
     
     
     
@@ -94,11 +96,14 @@ public class ConllEntry {
         }
         return supertag;
     }
-    
-    
-    
-    
-    
+
+    public TokenRange getRange() {
+        return range;
+    }
+
+    public void setRange(TokenRange range) {
+        this.range = range;
+    }
     
     
     
@@ -212,11 +217,9 @@ public class ConllEntry {
         this.lexLabel = lexLabel;
         if (!lemma.equals(DEFAULT_NULL) && lexLabel.contains(this.lemma)){
             this.lexLabel = this.lexLabel.replace(this.lemma, "$LEMMA$");
-        }
-        if (!form.equals(DEFAULT_NULL)  && lexLabel.contains(this.form)){
+        } else if (!form.equals(DEFAULT_NULL)  && lexLabel.contains(this.form)){
             this.lexLabel = this.lexLabel.replace(this.form, "$FORM$");
-        }
-        if (!replacement.equals(DEFAULT_NULL)  && lexLabel.contains(this.replacement)){
+        } else if (!replacement.equals(DEFAULT_NULL)  && lexLabel.contains(this.replacement)){
             this.lexLabel = this.lexLabel.replace(this.replacement, "$REPL$");
         }
     }
@@ -314,6 +317,10 @@ public class ConllEntry {
         b.append(this.getEdgeLabel());
         b.append("\t");
         b.append(this.isAligned());
+        if (this.range != null){
+            b.append("\t");
+            b.append(range.toString());
+        }
         return b.toString();
         
     }
