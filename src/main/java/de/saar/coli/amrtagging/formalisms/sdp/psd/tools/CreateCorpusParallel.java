@@ -192,7 +192,7 @@ public class CreateCorpusParallel {
                             if (i % 100 == 0){
                                 System.err.println(i);
                             }
-                            if (i % 10 == 0){
+                            if (i % 1000 == 0){
                                 synchronized(supertagDictionary){
                                     cli.write(outCorpus, supertagDictionary);
                                 }
