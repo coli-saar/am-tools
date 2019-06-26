@@ -233,8 +233,13 @@ public class MRPUtils {
         copy.setTops(new HashSet<>());
         
         for (MRPEdge outg : copy.outgoingEdges(rootId)){
-            copy.getEdges().remove(outg); //remove art-snt* edge.
-            copy.getTops().add(outg.target); //add a new top node.
+            if (outg.label.contains(ROOT_EDGE_LABEL)){
+                copy.getTops().add(outg.target); //add a new top node.
+            }
+        }
+        //remove all edges attached to ART-ROOT:
+        for (MRPEdge e : copy.edgesOf(rootId)){
+            copy.getEdges().remove(e);
         }
         //finally, remove ART-ROOT node:
         copy.getNodes().remove(copy.getNode(rootId));

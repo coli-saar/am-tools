@@ -45,6 +45,13 @@ import java.util.stream.Collectors;
 public class PSD extends SDPs {
     
     /**
+     * TODO: PSD lemmatization refinements:
+     * fractions (7/8)
+     * comparatives (strong, small)
+     * compounds with hyphens: inflation-adjusted --> inflation_adjusted (but see 21556026)
+     */
+    
+    /**
      * Takes the sentence with refined tokenization and the preprocessed MRP graph and returns
      * an s-graph, the tokens and the alignment bundled into an MRInstance
      * @param sentence

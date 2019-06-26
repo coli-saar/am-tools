@@ -318,6 +318,14 @@ public class MRPGraph {
         return true;
     }
     
+    /**
+     * Returns the set of adjacent edges.
+     * @param id
+     * @return 
+     */
+    public Set<MRPEdge> edgesOf(int id){
+        return edges.stream().filter(edg -> edg.source == id || edg.target == id).collect(Collectors.toSet());
+    }
     
     /**
      * Returns the outgoing edges of a specific node.

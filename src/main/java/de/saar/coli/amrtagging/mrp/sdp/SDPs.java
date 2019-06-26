@@ -113,7 +113,6 @@ public abstract class SDPs implements Formalism {
             for (String node : evaluatedGraph.getAllNodeNames()){
                 Pair<Integer,Pair<String,String>> triple = AMDependencyTree.decodeNode(evaluatedGraph.getNode(node));
                 int position = triple.left-1; //position we get from triple is 1-based (ConllEntry)
-                String label = triple.right.right;
                 id2node.put(position,node);
                 node2id.put(node,position);
             }

@@ -7,7 +7,6 @@ package de.saar.coli.amrtagging.mrp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.owlike.genson.Genson;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
@@ -20,7 +19,6 @@ import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
-import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPInputCodec;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
