@@ -7,37 +7,26 @@ package de.saar.coli.amrtagging.mrp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.owlike.genson.Genson;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.ConlluEntry;
-import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
-import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
-import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.mrp.Formalism;
-import de.saar.coli.amrtagging.mrp.MRPInputCodec;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
-import de.up.ling.tree.Tree;
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import nl.uu.smotterl.PrologOp;
 
 /**
  * Creates amconll corpus from MRP data.
@@ -94,7 +83,14 @@ public class PrepareDevData {
             ConlluSentence usentence = pair.getRight();
             counter ++;
             String input = mrpGraph.getInput();
-            if (mrpGraph.getFramework().equals("dm") || mrpGraph.getFramework().equals("psd")){
+            if (mrpGraph.getFramework().equals("dm")){
+                DM dm = new DM();
+                usentence = dm.refine(usentence);
+                MRPUtils.addArtificialRootToSent(usentence);
+                input = MRPUtils.addArtificialRootToSent(input);
+            } else if (mrpGraph.getFramework().equals("psd")){
+                PSD psd = new PSD();
+                usentence = psd.refine(usentence);
                 MRPUtils.addArtificialRootToSent(usentence);
                 input = MRPUtils.addArtificialRootToSent(input);
             } else {

@@ -10,7 +10,6 @@ import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
-import de.up.ling.irtg.algebra.graph.SGraph;
 
 /**
  *
@@ -27,11 +26,11 @@ public interface Formalism {
     
     
     /**
-     * Returns a graphbank specific refinement of the tokenization from the companion data.
+     * Returns a graphbank specific refinement of tokenization, lemmas etc of the companion data.
      * @param sentence
      * @return 
      */
-    public ConlluSentence refineTokenization(ConlluSentence sentence);
+    public ConlluSentence refine(ConlluSentence sentence);
     
     
     /**

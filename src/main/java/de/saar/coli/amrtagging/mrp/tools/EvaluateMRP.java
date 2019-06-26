@@ -31,10 +31,10 @@ import java.util.List;
  */
 public class EvaluateMRP {
     @Parameter(names = {"--corpus"}, description = "Path to the input corpus")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/DM/bla.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/PSD/bla.amconll";
     
     @Parameter(names = {"--out", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/DM/bla.mrp";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/PSD/bla.mrp";
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;

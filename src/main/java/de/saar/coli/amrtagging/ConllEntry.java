@@ -222,6 +222,10 @@ public class ConllEntry {
         } else if (!replacement.equals(DEFAULT_NULL)  && lexLabel.contains(this.replacement)){
             this.lexLabel = this.lexLabel.replace(this.replacement, "$REPL$");
         }
+        
+        if (!pos.equals(DEFAULT_NULL) && lexLabel.contains(pos)){
+            this.lexLabel = this.lexLabel.replace(pos, "$POS$");
+        }
     }
     
      /**
@@ -239,6 +243,9 @@ public class ConllEntry {
         }
         if (!replacement.equals(DEFAULT_NULL)  && label.contains("$REPL$")){
             label = label.replace("$REPL$", this.replacement);
+        }
+        if (!pos.equals(DEFAULT_NULL)  && label.contains("$POS$")){
+            label = label.replace("$POS$", this.pos);
         }
         
         return label;

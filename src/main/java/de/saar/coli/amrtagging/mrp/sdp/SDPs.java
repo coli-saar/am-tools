@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging.mrp.sdp;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.ConlluEntry;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
@@ -37,8 +38,15 @@ public abstract class SDPs implements Formalism {
     public static final String EQUALS = "=";
 
     @Override
-    public ConlluSentence refineTokenization(ConlluSentence sentence) {
-        return sentence;
+    public ConlluSentence refine(ConlluSentence sentence) {
+        // tokenization is OK but we have to lower case lemmata
+        ConlluSentence copy = new ConlluSentence();
+        copy.setLineNr(sentence.getLineNr());
+        for (ConlluEntry e : sentence){
+            e.setLemma(fixPunct(e.getLemma().toLowerCase()));
+            copy.add(e);
+        }
+        return copy;
     }
     
 

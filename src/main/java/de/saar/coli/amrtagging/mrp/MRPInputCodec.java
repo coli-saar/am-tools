@@ -7,11 +7,14 @@ package de.saar.coli.amrtagging.mrp;
 
 import com.owlike.genson.Genson;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
+import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
 import de.up.ling.irtg.codec.CodecMetadata;
 import de.up.ling.irtg.codec.CodecParseException;
 import de.up.ling.irtg.codec.InputCodec;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 
 /**
@@ -27,6 +30,9 @@ public class MRPInputCodec extends InputCodec<MRPGraph>{
     public MRPGraph read(InputStream in) throws CodecParseException, IOException {
         MRPGraph g = genson.deserialize(in, MRPGraph.class);
         g.sanitize();
+        for (MRPNode n : g.getNodes()){
+            n.setLabel(n.getLabel().toLowerCase());
+        }
         return g;
     }
     

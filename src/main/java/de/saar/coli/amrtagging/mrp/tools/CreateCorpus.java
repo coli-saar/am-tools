@@ -10,6 +10,7 @@ import com.beust.jcommander.Parameter;
 import com.owlike.genson.Genson;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
@@ -17,6 +18,7 @@ import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.ConlluSentence;
+import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.mrp.Formalism;
@@ -43,13 +45,13 @@ import nl.uu.smotterl.PrologOp;
  */
 public class CreateCorpus {
     @Parameter(names = {"--mrp"}, description = "Path to the input corpus  or subset thereof")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/dm/40.mrp";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/psd/40.mrp";
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/DM/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/PSD/";
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "bla";
@@ -58,7 +60,7 @@ public class CreateCorpus {
     private String vocab = null;
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
-    private boolean debug=false;
+    private boolean debug=true;
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -116,6 +118,7 @@ public class CreateCorpus {
             }
 
             MRPGraph preprocessed = formalism.preprocess(mrpGraph);
+            usentence = formalism.refine(usentence);
             MRInstance instance = formalism.toMRInstance(usentence, preprocessed);
             AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
             try {
@@ -150,17 +153,39 @@ public class CreateCorpus {
                     //SGraph alignedGraph = amdep.evaluate(true);
                 } else {
                     problems ++;
-                    System.err.println("not decomposable " + mrpGraph.getId());
-                    //if (cli.debug){
-                    //    for (Alignment al : inst.getAlignments()){
-                    //        System.err.println(inst.getSentence().get(al.span.start));
-                    //        System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
-                    //    }
-                    //}
+                    if (cli.debug){
+                        System.err.println("id "+mrpGraph.getId());
+                        System.err.println(instance.getGraph());
+                        System.err.println("not decomposable " + instance.getSentence());
+                        for (Alignment al : instance.getAlignments()){
+                            System.err.println(instance.getSentence().get(al.span.start));
+                            System.err.println(sigBuilder.getConstantsForAlignment(al, instance.getGraph(), false));
+                        }
+                        System.err.println(GraphvizUtils.simpleAlignViz(instance, true));
+                        System.err.println("=====end not decomposable=====");
+                    } else {
+                        System.err.println("not decomposable "+mrpGraph.getId());
+                    }
                 }
             } catch (Exception ex){
-                System.err.println("Ignoring an exception:");
-                ex.printStackTrace();
+               System.err.println("Ignoring an exception:");
+               System.err.println("id "+mrpGraph.getId());
+               System.err.println(instance.getSentence());
+               ex.printStackTrace();
+               problems++;
+               if (cli.debug){
+                       for (Alignment al : instance.getAlignments()){
+                           System.err.println(instance.getSentence().get(al.span.start));
+                           try {
+                               System.err.println(sigBuilder.getConstantsForAlignment(al, instance.getGraph(), false));
+                           } catch (IllegalArgumentException ex2){
+                               System.err.println("[]"); //print empty list
+                           }
+
+                       }
+                       System.err.println(GraphvizUtils.simpleAlignViz(instance, true));
+                       System.err.println("=====end not decomposable=====");
+               }
             }
         }
         System.err.println("ok: "+(counter-problems));

@@ -65,7 +65,7 @@ public class PSD extends SDPs {
             als.add(al);
         }
         
-        ConjHandler.handleConj(sg, new PSDBlobUtils());
+        sg = ConjHandler.handleConj(sg, new PSDBlobUtils());
         
         return new MRInstance(sentence.words(),sg, als);
     }
