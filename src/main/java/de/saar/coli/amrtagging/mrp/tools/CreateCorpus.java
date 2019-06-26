@@ -36,7 +36,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import nl.uu.smotterl.PrologOp;
 
 /**
  * Creates amconll corpus from MRP data.

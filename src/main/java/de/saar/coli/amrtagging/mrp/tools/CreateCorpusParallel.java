@@ -118,7 +118,6 @@ public class CreateCorpusParallel {
             final int i = nextInstanceID.incValue();
             final MRPGraph graphi = pair.getLeft();
             final String id = graphi.getId();
-            final ConlluSentence usentence = pair.getRight();
             forkJoinPool.execute(() -> {
                 try {
                      Formalism formalism;
@@ -130,6 +129,7 @@ public class CreateCorpusParallel {
                         throw new IllegalArgumentException("Formalism/Framework "+graphi.getFramework()+" not supported yet.");
                     }
                 final MRPGraph preprocessed = formalism.preprocess(graphi);
+                final ConlluSentence usentence = formalism.refine(pair.getRight());
                 MRInstance instance = formalism.toMRInstance(usentence, preprocessed);
                 AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
                 AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(instance,sigBuilder, false);
