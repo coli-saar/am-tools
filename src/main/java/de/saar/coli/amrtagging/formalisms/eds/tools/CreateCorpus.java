@@ -63,7 +63,7 @@ public class CreateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException,ParserException{      
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 
@@ -190,6 +190,8 @@ public class CreateCorpus {
                                 System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                             } catch (IllegalArgumentException ex2){
                                 System.err.println("[]"); //print empty list
+                            } catch (Exception e){
+                                System.err.println(e.getMessage());
                             }
                             
                         }

@@ -63,7 +63,7 @@ public class CreateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException{      
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 
@@ -116,7 +116,15 @@ public class CreateCorpus {
 
             MRPGraph preprocessed = formalism.preprocess(mrpGraph);
             usentence = formalism.refine(usentence);
-            MRInstance instance = formalism.toMRInstance(usentence, preprocessed);
+            MRInstance instance;
+            try {
+                instance = formalism.toMRInstance(usentence, preprocessed);
+            } catch (Exception e){
+                System.err.println("Could not create MRInstance for "+mrpGraph.getId());
+                e.printStackTrace();
+                continue;
+            }
+            
             AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
             try {
                 AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(instance,sigBuilder, false);
@@ -177,7 +185,9 @@ public class CreateCorpus {
                                System.err.println(sigBuilder.getConstantsForAlignment(al, instance.getGraph(), false));
                            } catch (IllegalArgumentException ex2){
                                System.err.println("[]"); //print empty list
-                           }
+                           } catch (Exception e){
+                                System.err.println(e.getMessage());
+                            }
 
                        }
                        System.err.println(GraphvizUtils.simpleAlignViz(instance, true));
