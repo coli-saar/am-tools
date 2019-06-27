@@ -206,7 +206,7 @@ public class CreateCorpus {
                         System.err.println("=====end not decomposable=====");
                 }
                 
-                if (ex.getMessage().contains("More than one node with edges from outside")){
+                if (ex.getMessage() != null && ex.getMessage().contains("More than one node with edges from outside")){
                     moreIncoming++;
                     Pattern p = Pattern.compile("\\|\\|([0-9]+)-([0-9]+)\\|\\|1,0");
                     Matcher m = p.matcher(ex.getMessage());
