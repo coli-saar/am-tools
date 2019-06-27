@@ -123,7 +123,14 @@ public class CreateCorpus {
             
             totalCounter ++;
             MRInstance inst = EDSConverter.toSGraph(allGraphs.get(counter), allSents.get(counter));
-            ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
+            ConcreteAlignmentSignatureBuilder sigBuilder;
+            try {
+                 sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
+            } catch (Exception ex){
+                System.err.println("Couldn't create concrete alignment signature builder for "+counter);
+                continue;
+            }
+            
             try {
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
                 //AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(inst,sigBuilder, false);
