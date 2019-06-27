@@ -194,7 +194,11 @@ public class CreateCorpusParallel {
         System.err.println("interrupted: "+interruptedGraphs.getValue());
         System.err.println("total: "+counter);
         System.err.println("i.e. " + 100*(1.0 - (problems.getValue() / (float) counter))+ "%");
-        cli.write(outCorpus,supertagDictionary);
+        synchronized (outCorpus) {
+            synchronized(supertagDictionary){
+                 cli.write(outCorpus,supertagDictionary);
+            }
+        }
         
     }
     
