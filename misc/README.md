@@ -1,32 +1,30 @@
 # README 
 
 ## What is `visualize.py` for?
-The `de.saar.coli.amrtagging.formalisms.*.tools.CreateCorpus`  
-(see also `am-parser.wiki/Converting-individual-formalisms-to-AM-CoNLL.md`)
+The `de.saar.coli.amrtagging.formalisms.*.tools.CreateCorpus` or `de.saar.coli.amrtagging.mrp.tools.CreateCorpus`  
+(see also [https://github.com/coli-saar/am-parser/wiki/Converting-individual-formalisms-to-AM-CoNLL](am-parser/wiki/Converting-individual-formalisms-to-AM-CoNLL.md))
 output contains error messages if a graph was not decomposable.
+```bash
+java -Xmx300g -cp am-tools/build/libs/am-tools-all.jar de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus -c /proj/irtg/amrtagging/SDP/EDS/raw_data/real_train.amr.txt -o ./eds_output --debug > ./eds_output/LOG_DATEI_eds2.log 2> ./eds_output/errfile_eds2.txt
 ```
-mkdir eds
-java -cp build/libs/am-tools-all.jar de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus -c <eds_train.amr.txt> -o ./eds/ 2> errorfile.txt
-```
+*Note* in the future paths may change to `de.saar.coli.amrtagging.mrp.tools.CreateCorpus`.  
 This output to stderr contains the graphs in dot format that were not 
 decomposable. The `visualize.py` script extracts those dot formatted graphs and 
 actually uses dot to convert them into more readable pdfs (or pngs if you like).
-Moreover, this script prints out the concrete sentences belonging to the 
+Moreover, this script logs the concrete sentences belonging to the 
 non-decomposable graphs as well as the number of tokens 
 (useful to search for minimal not-working examples).  
 *Version 2*: Added extraction and print out of the predicted constants of 
 non-decomposable graphs.  
 *Version 3*: Adapted to new input format which also provides EDS id. This id is
 also extracted.  
-
-Note: If the above `createCorpus` command results in a java `OutOfMemoryError`
-you might want to allow java to occupy more memory.  If you add the option 
-`-Xmx3g`, java can use up to `3g`(i.e. 3GB) of memory.
+*Version 4*: added command line options `maxsentsize`, `minsentsize`, 
+`showconsts`, code cleanup  
 
 
 ## How to run
-- **only tested with EDS so far** (see `CreateCorpus.java` of EDS for how error
- file, i.e. input of this script, needs to be formatted)
+- **only tested with EDS/DM so far** (see `CreateCorpus.java` of EDS for how 
+error file, i.e. input of this script, needs to be formatted)
 - This script was developed using Python 3.7
 - `graphviz` needs to be installed, since the `dot` executable is called 
 from the python script. 
@@ -38,26 +36,93 @@ from the python script.
   (I've tested it with  Penman-0.6.2 )
 
 General usage:  
-`python3 visualize.py --input INPUTFILE --outputdir OUTPUTDIR`
-or if you would like another output format than PDF use  
-`python3 visualize.py --input INPUTFILE --outputdir OUTPUTDIR --outformat OUTFORMAT`
+```
+usage: visualize.py [-h] [--outformat {pdf,png,jpg,eps,svg,bmp}]
+                    [--showconsts] [--minsentsize MINSENTSIZE]
+                    [--maxsentsize MAXSENTSIZE]
+                    inputfile outputdir
+
+extract non-decomposable graphs and visualize them
+
+positional arguments:
+  inputfile             Path to input file (errors of CreateCorpus)
+  outputdir             Path to output directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --outformat {pdf,png,jpg,eps,svg,bmp}
+                        Outputformat of dot (default: pdf)
+  --showconsts          Ignore constants (default: True)
+  --minsentsize MINSENTSIZE
+                        Minimum sentence size (default: 0)
+  --maxsentsize MAXSENTSIZE
+                        Maximum sentence size (default: -1) int < 0 converted
+                        to +infinity
+```
+
+If you supply just the two required input arguments (inputfile and outputdir),
+the script will extract all non-decomposable graphs but not the predicted 
+constants. The non-decomposable graphs are printed to PDF.  
+If you would like to print the graphs to PNG files instead of PDF, add 
+`--outformat png`.  
+If you would like to also extract constants, add `--showconsts`.  
+If you would like to extract only those sentences with minimum sentence length
+ of 10, add `--minsentsize 10`.  
+If you would like to extract only those sentences with maximum sentence length
+ of 20, add `--maxsentsize 20`.  
+Of course you can also combine the aforementioned options.
 
 
 ### Example usages
 (requires specific directory structure)  
-`python3 visualize.py --input ../visualizer_data/input/eds/errfile.txt --outdir ../visualizer_data/output/eds --outformat pdf`
-`python3 visualize.py --input ../visualizer_data/input/eds/errfile.txt --outdir ../visualizer_data/output/eds --outformat png`
+`python3 visualize.py ../visualizer_data/input/eds/errfile_eds.txt ../visualizer_data/output/eds --outformat pdf`  
+`python3 visualize.py ../visualizer_data/input/eds/errfile_eds.txt ../visualizer_data/output/eds --outformat png`  
+`python3 visualize.py ../visualizer_data/input/eds/errfile_eds.txt ../visualizer_data/output/eds --showconsts --maxsentsize 15`  
 
 
 ### Input
-File with all error messages (everything that was redirected from stderr to
- a file) from the `CreateCorpus` call.
+File with all error messages (everything that was redirected from stderr to 
+a file) from the `CreateCorpus` call.
+In the java code something like ...
+```java
+} else {
+        problems ++;
+        System.err.println("id "+ids.get(counter));
+        System.err.println(inst.getGraph());
+        System.err.println("not decomposable " + inst.getSentence());
+        if (cli.debug){
+                for (Alignment al : inst.getAlignments()){
+                        System.err.println(inst.getSentence().get(al.span.start));
+                        System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
+                }
+                System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
+        }
+        System.err.println("=====end not decomposable=====");
+}
+```
+in errfile:
+```text
+id NUMBER
+SOMETHING
+not decomposable [tok1, ..., tokn]
+word1
+graph constants of word1
+word2
+graph constants of word2
+...MORECONSTANTS...
+wordn
+graph constants of wordn
+digraph {
+  ...SOMETHING...
+}
+=====end not decomposable=====
+```
 
 ### Output
 - a `sentlength.log` file in tab separated format:  
   for each non-decomposable graph prints one line:  
-  `INFO<TAB>not decomposable<TAB>EDSID<TAB>SENTNO<TAB>SENTLENGTH<TAB>LINENUMBER<TAB>SENTENCE`  
-  e.g. `INFO  not decomposable  id 20010002  004  4  826  Not this year .`  
+  `INFO<TAB>not decomposable<TAB>ID<TAB>SENTNO<TAB>SENTLENGTH<TAB>LINENUMBER<TAB>SENTENCE`  
+  e.g. `INFO  not decomposable  20010002  004  4  826  Not this year .`  
   (4th error-causing graph was non decomposable (004), eds id is 20010002, four 
   tokens (4), found at line number 659 of the input file, then all tokens 
   separated by whitespace)
