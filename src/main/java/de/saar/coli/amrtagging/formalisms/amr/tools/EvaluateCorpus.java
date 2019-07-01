@@ -73,7 +73,7 @@ public class EvaluateCorpus {
                 AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluateWithoutRelex(true);
                 //rename nodes names from 1@@m@@--LEX-- to LEX@0
-                ArrayList<String> labels = s.lemmas();
+                List<String> labels = s.lemmas();
                 for (String n : evaluatedGraph.getAllNodeNames()){
                     if (evaluatedGraph.getNode(n).getLabel().contains("LEX")){
                         Pair<Integer,Pair<String,String>> info = AMDependencyTree.decodeNode(evaluatedGraph.getNode(n));

@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging.formalisms.eds.tools;
 import de.saar.coli.amrtagging.formalisms.sdp.tools.*;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
@@ -65,7 +66,7 @@ public class PrepareTestData {
             return;
         }
         
-        List<SGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
+        List<AnchoredSGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
         BufferedReader br = new BufferedReader(new FileReader(cli.corpusPath));
         String line;
         List<String> allSents = new ArrayList<>(); 
@@ -111,8 +112,7 @@ public class PrepareTestData {
             goldEDM.println(EDSConverter.toEDM(allGraphs.get(i)));
             
             //in AMR notation: make sure that node names are displayed correctly
-            SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(i)));
-            amr = EDSUtils.stripLnks(amr); //remove pseudo lnks
+            SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(i))).stripLnks();  //remove pseudo lnks
             goldAMR.println(amr.toIsiAmrString());
             goldAMR.println();
             

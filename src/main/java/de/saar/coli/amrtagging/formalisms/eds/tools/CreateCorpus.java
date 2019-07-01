@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.GraphvizUtils;
@@ -82,7 +83,7 @@ public class CreateCorpus {
         }
         
         
-        List<SGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
+        List<AnchoredSGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
         BufferedReader br = new BufferedReader(new FileReader(cli.corpusPath));
         String line;
         List<String> allSents = new ArrayList<>();
@@ -158,8 +159,7 @@ public class CreateCorpus {
                     outCorpus.add(sent);
                     goldEDM.println(EDSConverter.toEDM(allGraphs.get(counter)));
                     //in AMR notation: make sure that node names are displayed correctly
-                    SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(counter)));
-                    amr = EDSUtils.stripLnks(amr);
+                    SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(counter))).stripLnks();
                     goldAMR.println(amr.toIsiAmrString());
                     goldAMR.println();
                     AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);

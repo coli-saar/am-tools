@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This file contains utilities that handle subtleties in predicting the lexical label for EDS. In order to make this prediction as easy as possible, we would like to represent many lexical labels by their lemma.
@@ -25,7 +27,7 @@ import java.util.List;
  * @author matthias
  */
 public class PostprocessLemmatize {
-        public static final HashMap<String,String> lemmatize = new HashMap<String,String>() {{
+        public static final HashMap<String,String> LEMMATIZE = new HashMap<String,String>() {{
             put("Corp.","corporation");
             put("U.S.","US");
             put("U.K.","UK");
@@ -62,7 +64,7 @@ public class PostprocessLemmatize {
             put("five","5");
             put("six","6");
             put("seven","7");
-            put("eight","9");
+            put("eight","8");
             put("nine","9");
             put("ten","10");
             put("eleven","11");
@@ -73,8 +75,10 @@ public class PostprocessLemmatize {
             put("billion","1000000000");
             put("trillion","1000000000000");
     }};
+    public static final Map<String,String> LOWER_LEMMATIZE = LEMMATIZE.entrySet().stream()
+            .collect(Collectors.toMap((Map.Entry<String,String> e) -> e.getKey().toLowerCase(), (Map.Entry<String,String> e) -> e.getValue()));
     
-    public static final HashSet<String> lyExceptions = new HashSet<String>() {{
+    public static final HashSet<String> LYEXCEPTIONS = new HashSet<String>() {{
         add("daily");
         add("directly");
         add("drastically");
@@ -120,17 +124,18 @@ public class PostprocessLemmatize {
      /**
      * Adds words to the replacement column of the ConllSentence. These make it easier to predict the lexical label.
      * @param sent
-     * @return 
      */
     public static void edsLemmaPostProcessing(ConllSentence sent){
         ArrayList<String> r = new ArrayList<>();
         for (int i = 0; i < sent.size(); i++){
             String lemma = sent.get(i).getLemma();
-            if (lemmatize.containsKey(lemma)){
-               sent.get(i).setReplacement(lemmatize.get(lemma));
-            } else if (lemmatize.containsKey(lemma.toLowerCase())) {
-                sent.get(i).setReplacement(lemmatize.get(lemma.toLowerCase()));
-            }else if(sent.get(i).getPos().equals("RB") && lemma.endsWith("ly") && ! lyExceptions.contains(lemma) ) { //Adverbs that end with -ly but are not in the list of exceptions
+            if (LEMMATIZE.containsKey(lemma)){
+               sent.get(i).setReplacement(LEMMATIZE.get(lemma));
+            } else if (LEMMATIZE.containsKey(lemma.toLowerCase())) {
+                sent.get(i).setReplacement(LEMMATIZE.get(lemma.toLowerCase()));
+            } else if (LOWER_LEMMATIZE.containsKey(lemma.toLowerCase())){
+                sent.get(i).setReplacement(LOWER_LEMMATIZE.get(lemma.toLowerCase()));
+            }else if(sent.get(i).getPos().equals("RB") && lemma.endsWith("ly") && ! LYEXCEPTIONS.contains(lemma) ) { //Adverbs that end with -ly but are not in the list of exceptions
                  String minusLy = lemma.replaceAll("ly$", "").replaceAll("i$", "y");
                  sent.get(i).setReplacement(minusLy);
             } else if (sent.get(i).getPos().equals("JJR") && lemma.endsWith("er")){ //longer, stronger, ...

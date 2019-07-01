@@ -14,15 +14,10 @@ import java.io.IOException;
 import org.junit.*;
 
 /**
- *
+ * Beware, equality doesn't work perfectly.
  * @author matthias
  */
 public class MRPEquality {
-    /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
     
     final String strG = "{\"id\": \"20041037\", \"flavor\": 0, \"framework\": \"dm\", \"version\": 0.9, \"time\": \"2019-04-10 (20:16)\", \"input\": \"Virginia:\", \"tops\": [0], \"nodes\": [{\"id\": 0, \"label\": \"Virginia\", \"properties\": [\"pos\"], \"values\": [\"NNP\"], \"anchors\": [{\"from\": 0, \"to\": 8}]}], \"edges\": []}";
     MRPInputCodec codec = new MRPInputCodec();

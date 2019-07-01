@@ -305,6 +305,9 @@ public class MRPGraph {
         if (!Objects.equals(this.tops, other.tops)) {
             return false;
         }
+        if (!Objects.equals(this.edges, other.edges)) {
+            return false;
+        }
         /**
          * TODO: if "nodes" is a set rather than a list, a strange bug seems to arise: Objects.equals(this.nodes, other.nodes) is not necessarily the same
          * as Objects.equals(other.nodes, this.nodes)
@@ -312,9 +315,7 @@ public class MRPGraph {
         if (!Objects.equals(this.nodes, other.nodes)) {
             return false;
         }
-        if (!Objects.equals(this.edges, other.edges)) {
-            return false;
-        }
+
         return true;
     }
     

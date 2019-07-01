@@ -150,6 +150,26 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
         }
     }
     
+    public ConlluSentence copy(){
+        ConlluSentence s = new ConlluSentence();
+        s.id = this.id;
+        s.lineNr = this.lineNr;
+        for (ConlluEntry e : this){
+            s.add(e.copy());
+        }
+        return s;
+    }
+    
+    /**
+     * Creates an empty ConlluSentence that contains the same metadata (id, line nr).
+     * @return 
+     */
+    public ConlluSentence withSameMetaData(){
+        ConlluSentence r = new ConlluSentence();
+        r.id = id;
+        r.lineNr = lineNr;
+        return r;
+    }
     
     /**
      * Returns the index (0-based) of the head of a given span.
@@ -289,6 +309,27 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
     public Iterator<ConlluEntry> iterator() {
         return entries.iterator();
     }
+
+    /**
+     * Removes ConlluEntry (0-based) and updates ids.
+     * @param i
+     * @return 
+     */
+    public ConlluEntry remove(int i) throws IllegalArgumentException{
+        ConlluEntry e = entries.get(i);
+        
+        for (ConlluEntry x : this){
+            if (x.getId() != e.getHead() && x.getHead() == e.getId()) throw new IllegalArgumentException("Cannot delete ConlluEntry "+i+" because it has children, e.g. "+x.getId());
+        }
+        
+        for (int j = i+1; j < entries.size();j++) {
+            entries.get(j).setId(entries.get(j).getId()-1);
+        }
+        
+        entries.remove(i);
+        return e;
+    }
+    
     
     
      /**

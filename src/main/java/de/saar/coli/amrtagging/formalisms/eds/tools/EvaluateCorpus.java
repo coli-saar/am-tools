@@ -9,6 +9,7 @@ import de.saar.coli.amrtagging.formalisms.sdp.dm.tools.*;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
@@ -79,9 +80,9 @@ public class EvaluateCorpus {
             //prepare raw output without edges
             try {
                 
-                SGraph evaluated = EDSConverter.ensureRootIsWritable(EDSConverter.evaluateDependencyTree(s));
+                AnchoredSGraph evaluated = EDSConverter.ensureRootIsWritable(EDSConverter.evaluateDependencyTree(s));
                 try {
-                    SGraph str = EDSUtils.stripLnks(evaluated);
+                    SGraph str = evaluated.stripLnks();
                     ConnectivityInspector<GraphNode,GraphEdge> con = new ConnectivityInspector(str.getGraph());
                     if (con.isGraphConnected()){
                         amr.println(str.toIsiAmrString());

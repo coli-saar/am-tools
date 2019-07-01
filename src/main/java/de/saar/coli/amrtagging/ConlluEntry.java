@@ -27,8 +27,7 @@ public class ConlluEntry {
     private int head;
     private String edgeLabel = DEFAULT_NULL;
     private String deps = DEFAULT_NULL;
-    private String misc = DEFAULT_NULL;
-    private Map<String,String> miscMap;
+    private Map<String,String> miscMap = new HashMap<>();
     
     private TokenRange tokenRange;
     
@@ -38,14 +37,21 @@ public class ConlluEntry {
     public ConlluEntry(int id, String form){
         this.id = id;
         this.form = form;
-        miscMap = new HashMap<>();
     }
     
-    public ConlluEntry(int id, String form, String lemma, String upos,
+    public ConlluEntry(int id, String form, String lemma, String upos, String pos,
             String feats, int head, String edgeLabel, String deps,
-            String misc, Map<String,Object> miscMap){
+            String misc, TokenRange range){
         this.id = id;
         this.form = form;
+        this.lemma = lemma;
+        this.upos = upos;
+        this.pos = pos;
+        this.feats = feats;
+        this.head = head;
+        this.edgeLabel = edgeLabel;
+        this.deps = deps;
+        this.tokenRange = range;
         setMisc(misc);
     }
 
@@ -103,6 +109,10 @@ public class ConlluEntry {
         this.head = head;
     }
     
+    
+    public ConlluEntry copy(){
+        return new ConlluEntry(id, form, lemma, upos,pos, feats, head, edgeLabel, deps, getMisc(), tokenRange);
+    }
 
     /**
      * @return the edgeLabel
@@ -169,7 +179,16 @@ public class ConlluEntry {
      * @return the misc
      */
     public String getMisc() {
-        return misc;
+        String r = "";
+        int i = 0;
+        for (String key : miscMap.keySet()){
+            r += key+"="+miscMap.get(key);
+            if (i < miscMap.size()-1){
+                r += "|";
+            }
+            i++;
+        }
+        return r;
     }
     
     public Map<String,String> getMiscMap(){
@@ -182,13 +201,13 @@ public class ConlluEntry {
     
     public void setTokenRange(TokenRange tr){
         tokenRange = tr;
+        this.miscMap.put("TokenRange",tr.toString());
     }
 
     /**
      * @param misc the misc to set
      */
     public void setMisc(String misc) {
-        this.misc = misc;
         for (String keyValPair : misc.split("\\|")){
             String[] keyVal = keyValPair.split("=");
             if (keyVal.length != 2){

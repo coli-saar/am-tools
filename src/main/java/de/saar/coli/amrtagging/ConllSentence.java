@@ -60,7 +60,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         lineNr = n;
     }
 
-    public ArrayList<String> words() {
+    public List<String> words() {
         ArrayList<String> r = new ArrayList<>();
         for (ConllEntry e : this) {
             r.add(e.getForm());
@@ -68,10 +68,18 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         return r;
     }
 
-    public ArrayList<String> lemmas() {
+    public List<String> lemmas() {
         ArrayList<String> r = new ArrayList<>();
         for (ConllEntry e : this) {
             r.add(e.getLemma());
+        }
+        return r;
+    }
+    
+   public List<TokenRange> ranges() {
+        ArrayList<TokenRange> r = new ArrayList<>();
+        for (ConllEntry e : this) {
+            r.add(e.getRange());
         }
         return r;
     }

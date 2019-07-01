@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.GraphStats;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
@@ -32,7 +33,7 @@ public class CheckPreprocessing {
         String path = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/meine_Daten/EDS-toy/test.amr.txt";
         PrintWriter w = new PrintWriter("g.txt");
         PrintWriter edm = new PrintWriter("g.edm");
-        List<SGraph> allGraphs = ReadRawCorpus.readGraphs(path);
+        List<AnchoredSGraph> allGraphs = ReadRawCorpus.readGraphs(path);
         BufferedReader br = new BufferedReader(new FileReader(path));
         String line;
         List<String> allSents = new ArrayList<>(); 
@@ -50,7 +51,7 @@ public class CheckPreprocessing {
             //System.err.println(Aligner.simpleAlignViz(inst));
             //SGraph recon = EDSConverter.restoreComplexSpans(inst.getGraph());
             //boolean reconstructionWorked = recon.isIsomorphicAlsoEdges(allGraphs.get(i));
-            SGraph out = EDSConverter.undoExplicitAnon(inst.getGraph());
+            SGraph out = EDSConverter.undoExplicitAnon(AnchoredSGraph.fromSGraph(inst.getGraph()));
             w.println(out.toIsiAmrString());
             w.println();
             edm.println(EDSConverter.toEDM(allGraphs.get(i)));

@@ -64,4 +64,21 @@ public class TokenRange {
         return to;
     }
     
+    
+        /**
+     * check if s1 is a subspan of s2
+     * @param s1
+     * @param s2
+     * @return 
+     */
+    public static boolean isSubSpan(TokenRange s1, TokenRange s2){
+        return s1.getFrom() >= s2.getFrom() && s1.getTo() <= s2.getTo();
+    }
+    
+    public int length(){
+        return to - from;
+    }
+    
+    
+    
 }

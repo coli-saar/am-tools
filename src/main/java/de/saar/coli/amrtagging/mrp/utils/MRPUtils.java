@@ -5,20 +5,33 @@
  */
 package de.saar.coli.amrtagging.mrp.utils;
 
+import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.TokenRange;
 import de.saar.coli.amrtagging.ConlluEntry;
 import de.saar.coli.amrtagging.ConlluSentence;
+import de.saar.coli.amrtagging.Util;
+import static de.saar.coli.amrtagging.Util.fixPunct;
+import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.mrp.graphs.MRPEdge;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.MRPAnchor;
 import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
@@ -30,10 +43,17 @@ import org.jgrapht.graph.DefaultEdge;
  */
 public class MRPUtils {
     
-    public static final String ART_ROOT = "ART-ROOT";
-    public static final String ROOT_EDGE_LABEL = "art-snt";
+    public static final String ART_ROOT = SGraphConverter.ARTIFICAL_ROOT_LABEL;
+    public static final String ROOT_EDGE_LABEL = SGraphConverter.ROOT_EDGE_LABEL;
     public static final String NODE_PREFIX = "n";
+    public static final String ANCHOR_PREFIX = "a";
+    public static final String LNK_PATTERN ="<([0-9]+):([0-9]+)>";
     
+    public static final String SEPARATOR ="__"; //separator between node label and features
+    public static final String EQUALS = "="; //separator between feature name and value
+    
+    
+
     
     public static MRPGraph getDummy(String framework, String id, String sentence) throws IllegalArgumentException{
         MRPGraph g = new MRPGraph();
@@ -57,6 +77,138 @@ public class MRPUtils {
     public static final String mrpIdToSGraphId(int id){
         return NODE_PREFIX+id;
     }
+    
+    
+     /**
+     * Converts back to MRPGraph
+     * @param sg
+     * @param flavor
+     * @param framework
+     * @param graphId
+     * @param raw
+     * @param version
+     * @param time
+     * @return 
+     */
+    public static MRPGraph fromAnchoredSGraph(AnchoredSGraph sg, int flavor, String framework, String graphId, String raw, String version, String time){
+        MRPGraph output = new MRPGraph();
+        output.sanitize();
+        output.setId(graphId);
+        output.setFramework(framework);
+        output.setFlavor(flavor);
+        output.setInput(raw);
+        output.setVersion(version);
+        output.setTime(time);
+        
+        Map<Integer,String> id2node = new HashMap<>();
+        Map<String,Integer> node2id = new HashMap<>();
+        Map<String, TokenRange> node2range = new HashMap<>();
+        List<TokenRange> rangesSorted = new ArrayList<>(sg.getAllSpans());
+        rangesSorted.sort((TokenRange r1, TokenRange r2) -> Integer.compare(r1.getFrom(), r2.getFrom()));
+        
+        // give nodes id based on their position in the string
+        int index = 0;
+        for (TokenRange r : rangesSorted){
+            Set<String> aligned = sg.findAligned(r);
+            for (String nodeName : aligned){
+                id2node.put(index, nodeName);
+                node2id.put(nodeName, index);
+                node2range.put(nodeName, r);
+                index++;
+            }
+        }
+        //Now give unaligned nodes ids:
+        for (String node : sg.getAllNodeNames()){
+            if (node2id.containsKey(node) || AnchoredSGraph.isLnkNode(sg.getNode(node))) continue;
+            node2id.put(node, index);
+            id2node.put(index, node);
+            index++;
+        }
+        
+        for (int id : id2node.keySet().stream().sorted().collect(Collectors.toList())){
+            GraphNode gN = sg.getNode(id2node.get(id));
+            List<MRPAnchor> anchors = new ArrayList<>();
+            //GraphNode lnkNode = sg.lnkDaughter(gN.getName()).get(); //does NOT DO WHAT IT SHOULD, SUPER ANNOYING BUG!
+            Optional<GraphNode> lnkNode = sg.lnkDaughter(gN.getName());
+            if (lnkNode.isPresent()){
+                anchors.add(MRPAnchor.fromTokenRange(AnchoredSGraph.getRangeOfLnkNode(sg.getNode(lnkNode.get().getName()))));
+            }
+            output.getNodes().add(new MRPNode(id,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),anchors));
+        }
+        
+        //add properties
+        for (GraphNode n : sg.getUnachored()){
+            Set<GraphNode> parents = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getSource()).collect(Collectors.toSet());
+            Set<String> incomingLabels = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getLabel()).collect(Collectors.toSet());
+            if (parents.size() != 1){
+                System.err.println("[AncoredSGraph -> MRPGraph] WARNING: unaligned node "+n.getName()+" should have exactly one parent but has "+parents.size());
+            } else {
+                GraphNode parent = parents.stream().findAny().get();
+                String propertyName = incomingLabels.stream().findAny().get(); //there must be exactly one edge label in this set
+                output.getNode(node2id.get(parent.getName())).getProperties().add(propertyName);
+                output.getNode(node2id.get(parent.getName())).getValues().add(n.getLabel());
+            }
+        }
+
+        //add top node (ART-ROOT will be done later)
+        Set<Integer> tops = new HashSet<>();
+        String rootName = sg.getNodeForSource("root");
+        tops.add(node2id.get(rootName));
+        output.setTops(tops);
+
+        //add edges
+        for (GraphEdge e : sg.getGraph().edgeSet() ){
+            if (! AnchoredSGraph.isLnkEdge(e)){
+                output.getEdges().add(new MRPEdge(node2id.get(e.getSource().getName()), node2id.get(e.getTarget().getName()),e.getLabel()));
+            }
+        }
+        
+        
+        return output;
+    }
+
+    
+     /**
+     * Converts an MRPGraph with single top node to an SGraph, 
+     * making the anchoring explicit in nodes with labels of the form <from:to>. These nodes have an incoming "lnk" edge.
+     * Node ids in MRPGraphs are numbers and are changed to Strings with a preceding NODE_PREFIX (="n").
+     * @param mrpGraph
+     * @return 
+     */
+    public static AnchoredSGraph toSGraphWithAnchoring(MRPGraph mrpGraph){
+        AnchoredSGraph g = new AnchoredSGraph();
+        for (MRPNode n : mrpGraph.getNodes()){
+            if (n.getProperties() != null && !n.getProperties().isEmpty()){
+                throw new IllegalArgumentException("MRP graph cannot be converted to s-graph, the MRP graph still contains node properties");
+            }
+        }
+        
+        for (MRPNode n : mrpGraph.getNodes()){
+            g.addNode(mrpIdToSGraphId(n.getId()), n.getLabel());
+            if (n.getAnchors() != null && !n.getAnchors().isEmpty()){
+                int numAnchor = 0;
+                for (MRPAnchor a : n.getAnchors()){ //convert anchors to lnk edges.
+                    String nodeName = ANCHOR_PREFIX + mrpIdToSGraphId(n.getId());
+                    g.addNode(nodeName, "<"+a.from+":"+a.to+">");
+                    g.addEdge(g.getNode(mrpIdToSGraphId(n.getId())), g.getNode(nodeName), "lnk");
+                    numAnchor++;
+                }
+            }
+        }
+        if (mrpGraph.getTops().size() != 1){
+            throw new IllegalArgumentException("Graph "+mrpGraph.getId()+" of framework "+mrpGraph.getFramework()+" doesn't have single top node");
+        }
+        int top = mrpGraph.getTops().stream().findFirst().get();
+        g.addSource("root", mrpIdToSGraphId(top));
+        
+        for (MRPEdge e : mrpGraph.getEdges()){
+            g.addEdge(g.getNode(mrpIdToSGraphId(e.source)), g.getNode(mrpIdToSGraphId(e.target)), e.label);
+        }
+
+        
+        return g;
+    }
+    
     
     /**
      * Converts an MRPGraph with single top node to an SGraph, not taking any anchoring into account.
@@ -164,12 +316,12 @@ public class MRPUtils {
                     if (copy.tokenRanges().contains(headRange)){
                         Set<MRPNode> topNodes = mrpGraph.getNodesForAnchor(MRPAnchor.fromTokenRange(headRange));
                         if (topNodes.size() != 1){
-                            System.err.println("WARNING: Expected to find one node with anchor "+headRange+ " but found "+topNodes.size()+" in "+mrpGraph.getId());
+                            System.err.println("[ADD ART-ROOT] WARNING: Expected to find one node with anchor "+headRange+ " but found "+topNodes.size()+" in "+mrpGraph.getId());
                         }
                         MRPNode topNode = topNodes.stream().findAny().get();
                         mrpGraph.getEdges().add(new MRPEdge(artRootId,topNode.getId(),ROOT_EDGE_LABEL+sntCounter));
                     } else {
-                       System.err.println("WARNING: TokenRange of head ("+headRange.toString()+") not present in graph "+mrpGraph.getId()+" -- take arbitrary root for component");
+                       System.err.println("[ADD ART-ROOT] WARNING: TokenRange of head ("+headRange.toString()+") not present in graph "+mrpGraph.getId()+" -- take arbitrary root for component");
                        MRPNode someNode = connectedSet.stream().findAny().get();
                        mrpGraph.getEdges().add(new MRPEdge(artRootId, someNode.getId(), ROOT_EDGE_LABEL+sntCounter));
                     }
@@ -246,6 +398,45 @@ public class MRPUtils {
         copy.setInput(copy.getInput().substring(0, copy.getInput().length() - ART_ROOT.length() -1 )); //-1 for space before ART_ROOT
         return copy;
         
+    }
+    
+    
+    /**
+     * Encodes the properties (and their values) of nodes into the label.
+     * @param g 
+     */
+    public static void encodePropertiesInLabels(MRPGraph g){
+        for (MRPNode n : g.getNodes()){
+            if (n.getProperties() == null) continue;
+            for (int i = 0; i < n.getProperties().size();i++){
+                n.setLabel(fixPunct(n.getLabel())+SEPARATOR+n.getProperties().get(i)+EQUALS+n.getValues().get(i));
+            }
+            n.setProperties(new ArrayList<>());
+            n.setValues(new ArrayList<>());
+        }
+    }
+    
+    /**
+     * Reverses the encoding of properties into labels.
+     * @param g 
+     */
+    
+    public static void decodePropertiesInLabels(MRPGraph g){
+        for (MRPNode n : g.getNodes()){
+            String[] parts = n.getLabel().split(MRPUtils.SEPARATOR);
+            n.setLabel(Util.unfixPunct(parts[0])); //original label
+            for (int i = 1; i < parts.length;i++){
+                String[] keyVal = parts[i].split(MRPUtils.EQUALS);
+                if (n.getProperties() == null){
+                    n.setProperties(new ArrayList<>());
+                }
+                n.getProperties().add(keyVal[0]);
+                if (n.getValues() == null){
+                    n.setValues(new ArrayList<>());
+                }
+                n.getValues().add(keyVal[1]);
+            }
+        }
     }
     
 }

@@ -11,6 +11,7 @@ import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
@@ -86,7 +87,7 @@ public class CreateCorpusParallel {
             return;
         }
 
-        List<SGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
+        List<AnchoredSGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
         BufferedReader br = new BufferedReader(new FileReader(cli.corpusPath));
         String line;
         List<String> allSents = new ArrayList<>(); 
@@ -140,8 +141,8 @@ public class CreateCorpusParallel {
                     PostprocessLemmatize.edsLemmaPostProcessing(sent);
                     
                     String edm = EDSConverter.toEDM(allGraphs.get(lineIndex));
-                    SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(lineIndex)));
-                    String amrStr = EDSUtils.stripLnks(amr).toIsiAmrString();
+                    SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(lineIndex))).stripLnks();
+                    String amrStr = amr.toIsiAmrString();
                     synchronized(outCorpus){
                         synchronized(amrCorpus){
                             synchronized(edmCorpus){

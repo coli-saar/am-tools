@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.GraphStats;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
@@ -32,12 +33,12 @@ public class IdentifyPseudoNodes {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         
         String path = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/meine_Daten/EDS-toy/train.amr.txt";
-        List<SGraph> allGraphs = ReadRawCorpus.readGraphs(path);
+        List<AnchoredSGraph> allGraphs = ReadRawCorpus.readGraphs(path);
         HashMap<String,Integer> pseudoNodeOcc = new HashMap<String,Integer>();
         HashMap<String,Integer> nonPseudoNodeOcc = new HashMap<String,Integer>();
         for (SGraph g : allGraphs){
             for (GraphNode n : g.getGraph().vertexSet()){
-                long odeg = g.getGraph().outgoingEdgesOf(n).stream().filter(e -> ! e.getLabel().equals("lnk")).count();
+                long odeg = g.getGraph().outgoingEdgesOf(n).stream().filter(e -> ! e.getLabel().equals(AnchoredSGraph.LNK_LABEL)).count();
                 if (odeg == 2 && g.getGraph().inDegreeOf(n) == 0){
                     pseudoNodeOcc.put(n.getLabel(), 1+pseudoNodeOcc.getOrDefault(n.getLabel(), 0));
                 } else {

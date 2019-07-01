@@ -8,7 +8,9 @@ package de.saar.coli.amrtagging.formalisms.eds;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.Alignment.Span;
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.MRInstance;
+import de.saar.coli.amrtagging.TokenRange;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -35,21 +37,23 @@ import java.util.stream.Stream;
  */
 public class Aligner {
     
-    public static final Pattern lnk = Pattern.compile("<([0-9]+):([0-9]+)>");
+    
     public static final String[] ADDITIONAL_LEXICAL_NODES = {"pron","_dollar_n_1","_percent_n_of"}; //lexical nodes that are not easy to guess with lemmatization
 
     
     /**
-     * Creates an MRInstance from an EDS graph. Returns a pair of SGraph, Complex spans. The complex spans 
+     * Creates an MRInstance from an EDS graph.Returns a pair of SGraph, Complex spans.The complex spans 
      * @param eds
-     * @param sent
+     * @param tokenizedString Pair of TokenRanges and the corresponding tokens, 
+     * hyphenated compounds need to be split but their TokenRanges should be the same. Use EDSUtils.edsTokenizeString(sent,false)
+     * @param lemmas list of same length as tokens providing the lemmas.
      * @return 
      */
-    public static MRInstance extractAlignment(SGraph eds, String sent){
+    public static MRInstance extractAlignment(AnchoredSGraph eds, Pair< List<TokenRange> , List<String> > tokenizedString, List<String> lemmas){
         
         /*
         Steps:
-        0.) Preprocessing of hyphens:  Identify hyphenated spans and replace them by 
+        0.) Preprocessing of hyphens:  Identify hyphenated spans and replace them by (moved!)
         1.) Tokenize string
         2.) map EDS spans to EDS nodes
         3.) filter our complex EDS spans and assign their nodes N to a simple span, whose nodes are incident to N
@@ -58,23 +62,21 @@ public class Aligner {
         6.) identify lexical nodes.
         7.) Postprocessing, which changes the alignment of certain nodes (nodes with label "unknown" get attached to implicit_conj if that's present)
         */
-        preprocessHyphens(eds, sent);
-        List<Pair<Integer,Integer>> stanfSpans ;
+        List<TokenRange> stanfSpans ;
         List<String> words ;
-        Pair< List<Pair<Integer,Integer>> , List<String> > p = EDSUtils.edsTokenizeString(sent,false);
-        stanfSpans = p.left;
-        words = p.right;
+        stanfSpans = tokenizedString.left;
+        words = tokenizedString.right;
         
-        HashMap<Pair<Integer,Integer>,Set<String>> spanToNodes = EDSUtils.spanToNodes(eds);
-        HashMap<String,Pair<Integer,Integer>> nodeToSpan = EDSUtils.nodeToSpan(eds);
+        HashMap<TokenRange,Set<String>> spanToNodes = EDSUtils.spanToNodes(eds);
+        HashMap<String,TokenRange> nodeToSpan = EDSUtils.nodeToSpan(eds);
         
-        Set<Pair<Integer,Integer>> complexSpans = EDSUtils.getComplexSpans(eds);
-        Set<Pair<Integer,Integer>> minimalSpans = EDSUtils.getMinimalSpans(eds);
+        Set<TokenRange> complexSpans = eds.getComplexSpans();
+        Set<TokenRange> minimalSpans = eds.getMinimalSpans();
         
-        List<Pair<Integer,Integer>> complexSpansSmallToLarge = new ArrayList<>(complexSpans);
-        complexSpansSmallToLarge.sort((p1,p2) -> Integer.compare(p1.right - p1.left, p2.right - p2.left)); 
-        List<Pair<Integer,Integer>> minimalSpansLeftToRight = new ArrayList<>(minimalSpans);
-        minimalSpansLeftToRight.sort((p1,p2) -> Integer.compare(p1.left, p2.left)); 
+        List<TokenRange> complexSpansSmallToLarge = new ArrayList<>(complexSpans);
+        complexSpansSmallToLarge.sort((p1,p2) -> Integer.compare(p1.length(), p2.length())); 
+        List<TokenRange> minimalSpansLeftToRight = new ArrayList<>(minimalSpans);
+        minimalSpansLeftToRight.sort((p1,p2) -> Integer.compare(p1.getFrom(), p2.getFrom())); 
         
         //go over complex spans and heuristically align the nodes to one of its simple subspans
         //this won't reassign all complex spans but its a start
@@ -103,7 +105,7 @@ public class Aligner {
         //go from left to right over the string and try to expand what is aligned to the simple span as much as possible when you encounter nodes of a complex span 
         Set<String> nodesOfComplexSpans = new HashSet<>(); //contains all nodenames that belong to a complex span
         complexSpans.forEach(span -> nodesOfComplexSpans.addAll(spanToNodes.get(span)));
-        for (Pair<Integer,Integer> span : minimalSpansLeftToRight){
+        for (TokenRange span : minimalSpansLeftToRight){
             Stack<String> agenda = new Stack<>(); //init agenda
             agenda.addAll(spanToNodes.get(span));
             HashSet<String> visited = new HashSet<>();
@@ -114,7 +116,7 @@ public class Aligner {
                 if (spanToNodes.get(nodeToSpan.get(currentNode)) != null){
                     tentativeNodes.addAll(spanToNodes.get(nodeToSpan.get(currentNode)));
                 }
-                if ( nodesOfComplexSpans.contains(currentNode) && EDSUtils.isSubSpan(span,nodeToSpan.get(currentNode)) && EDSUtils.rootsRequired(eds,tentativeNodes) <= 1){
+                if ( nodesOfComplexSpans.contains(currentNode) && TokenRange.isSubSpan(span,nodeToSpan.get(currentNode)) && EDSUtils.rootsRequired(eds,tentativeNodes) <= 1){
                     spanToNodes.get(span).add(currentNode); //add this node to the minimal span
                     nodesOfComplexSpans.remove(currentNode);
                     spanToNodes.remove(nodeToSpan.get(currentNode)); //remove this node from the complex span
@@ -138,11 +140,11 @@ public class Aligner {
         }
 
         //now translate the stanford spans to spans in the graph. Some stanford spans may be unaligned.
-        HashMap<Pair<Integer,Integer>,Pair<Integer,Integer>> stanfSpanToGraphSpan = new HashMap<>();
-        for (Pair<Integer,Integer> graphSpan: minimalSpans  ){
-            Pair<Integer,Integer> associatedSpan = null;
-            for (Pair<Integer,Integer> stanfSpan : stanfSpans){
-                if (EDSUtils.isSubSpan(stanfSpan,graphSpan) && (associatedSpan == null || EDSUtils.spanLength(stanfSpan) > EDSUtils.spanLength(associatedSpan)) ){ 
+        HashMap<TokenRange,TokenRange> stanfSpanToGraphSpan = new HashMap<>();
+        for (TokenRange graphSpan: minimalSpans  ){
+            TokenRange associatedSpan = null;
+            for (TokenRange stanfSpan : stanfSpans){
+                if (TokenRange.isSubSpan(stanfSpan,graphSpan) && (associatedSpan == null || stanfSpan.length() > associatedSpan.length()) ){ 
                     associatedSpan = stanfSpan;
                 }
             }
@@ -158,12 +160,12 @@ public class Aligner {
         //now we have a mapping from Stanford Spans to EDS spans and a mapping from EDS spans to nodes so we can compose those mappings.
        
        List<Alignment> alignments = new ArrayList<>();
-       Sentence stanfSent = new Sentence(words);
-       for (Pair<Integer,Integer> span : stanfSpanToGraphSpan.keySet()){
+       //Sentence stanfSent = new Sentence(words);
+       for (TokenRange span : stanfSpanToGraphSpan.keySet()){
            if (spanToNodes.containsKey(stanfSpanToGraphSpan.get(span))){
-               Pair<Integer,Integer> correspondingGraphSpan = stanfSpanToGraphSpan.get(span);
+               TokenRange correspondingGraphSpan = stanfSpanToGraphSpan.get(span);
                int wordPosition = stanfSpans.indexOf(span);
-               String lemma = stanfSent.lemma(wordPosition);
+               String lemma = lemmas.get(wordPosition); //stanfSent.lemma(wordPosition);
                Set<String> lexicalNodes = EDSUtils.findLexialNodes(eds, spanToNodes.get(correspondingGraphSpan), words.get(wordPosition),lemma);
 
                alignments.add(new Alignment(spanToNodes.get(correspondingGraphSpan), new Span(wordPosition,wordPosition+1), lexicalNodes, 0));
@@ -176,20 +178,16 @@ public class Aligner {
     }
     
     /**
-     * This function modifies an EDS graph in such a way that hyphenated compounds (asbestos-related) are treated as two distinct words.
-     * To achieve that, we identify hyphenated words and their corresponding nodes in the graph and change the lnk nodes to point to the two distinct words.
+     * This function modifies an EDS graph in such a way that hyphenated compounds (asbestos-related) are treated as two distinct words.To achieve that, we identify hyphenated words and their corresponding nodes in the graph and change the lnk nodes to point to the two distinct words.
      * @param eds
-     * @param sent 
+     * @param tokSameForHyphens  tokenization where asbestos-related will count as two words which have the same character span
+     * @param tokDifferentForHyphens tokenization where asbestos-related will count as two words which have DIFFERENT characters spans
      */
-    public static void preprocessHyphens(SGraph eds, String sent){
-        List<Pair<Integer,Integer>> stanfSpans ;
-        List<String> words ;
-        Pair< List<Pair<Integer,Integer>> , List<String> > tokSameForHyphens = EDSUtils.edsTokenizeString(sent,true); // asbestos-related will count as two words which have the same character span
-        Pair< List<Pair<Integer,Integer>> , List<String> > tokDifferentForHyphens = EDSUtils.edsTokenizeString(sent,false); // asbestos-related will count as two words which have DIFFERENT characters spans
+    public static void preprocessHyphens(AnchoredSGraph eds, Pair< List<TokenRange> , List<String> > tokSameForHyphens, Pair< List<TokenRange> , List<String> > tokDifferentForHyphens){
         
         assert(tokSameForHyphens.left.size() == tokDifferentForHyphens.left.size());
         
-        HashMap<Pair<Integer,Integer>,Set<String>> spanToNodes = EDSUtils.spanToNodes(eds);
+        HashMap<TokenRange,Set<String>> spanToNodes = EDSUtils.spanToNodes(eds);
         
         
         for (int i = 0; i < tokSameForHyphens.left.size();i++){ //go over all spans
@@ -200,7 +198,7 @@ public class Aligner {
                     String closestNode = null;
                     int minDistance = Integer.MAX_VALUE;
                     for (String nodeName : spanToNodes.get(tokSameForHyphens.left.get(i))){
-                        int dist =StringUtils.levenshteinDistance(word, eds.getNode(nodeName).getLabel());
+                        int dist = StringUtils.levenshteinDistance(word, eds.getNode(nodeName).getLabel());
                         if (dist < minDistance){
                             minDistance = dist;
                             closestNode = nodeName;
@@ -208,18 +206,18 @@ public class Aligner {
                     }
                     //now let's take that node that probably belongs to word and change its lnk daughter to point to the adjusted span (treating the hyphenated word as several words)
                     if (closestNode != null){
-                        Optional<GraphEdge> lnkNode = eds.getGraph().outgoingEdgesOf(eds.getNode(closestNode)).stream().filter(edge -> edge.getLabel().equals("lnk")).findFirst();
+                        Optional<GraphNode> lnkNode = eds.lnkDaughter(closestNode);
                         if (lnkNode.isPresent()){
-                            Pair<Integer,Integer> newSpan = tokDifferentForHyphens.left.get(i);
-                            lnkNode.get().getTarget().setLabel("<"+newSpan.left+":"+newSpan.right+">");
+                            TokenRange newSpan = tokDifferentForHyphens.left.get(i);
+                            lnkNode.get().setLabel("<"+newSpan.getFrom()+":"+newSpan.getTo()+">");
                         } else {
                             //we might be at a carg node, which doesn't have a lnk node but its parent probably has, so let's try this:
                             Optional<GraphEdge> parent = eds.getGraph().incomingEdgesOf(eds.getNode(closestNode)).stream().findFirst();
                             if (parent.isPresent()){
-                                lnkNode = eds.getGraph().outgoingEdgesOf(parent.get().getSource()).stream().filter(edge -> edge.getLabel().equals("lnk")).findFirst();
+                                lnkNode = eds.lnkDaughter(parent.get().getSource().getName());
                                 if (lnkNode.isPresent()){
-                                    Pair<Integer,Integer> newSpan = tokDifferentForHyphens.left.get(i);
-                                    lnkNode.get().getTarget().setLabel("<"+newSpan.left+":"+newSpan.right+">");
+                                    TokenRange newSpan = tokDifferentForHyphens.left.get(i);
+                                    lnkNode.get().setLabel("<"+newSpan.getFrom()+":"+newSpan.getTo()+">");
                                 }
                             }
                            
@@ -250,7 +248,7 @@ public class Aligner {
                         nodesToBeReassigned.add(unk.get().getTarget().getName());
                         //also add its lnk node the collection of nodes that we want to reassign.
                         for (GraphEdge lnk : inst.getGraph().getGraph().outgoingEdgesOf(unk.get().getTarget())){
-                            if (lnk.getLabel().equals("lnk")){
+                            if (AnchoredSGraph.isLnkEdge(lnk)){
                                 nodesToBeReassigned.add(lnk.getTarget().getName());
                             }
                         }

@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools;
 
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.Util;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -23,9 +24,9 @@ import java.util.List;
  */
 public class ReadRawCorpus {
     
-    public static List<SGraph> readGraphs(String corpusPath) throws FileNotFoundException, IOException {
+    public static List<AnchoredSGraph> readGraphs(String corpusPath) throws FileNotFoundException, IOException {
         BufferedReader br = new BufferedReader(new FileReader(corpusPath));
-        List<SGraph> ret = new ArrayList<>();
+        List<AnchoredSGraph> ret = new ArrayList<>();
         IsiAmrInputCodec codec = new IsiAmrInputCodec();
         String graphSoFar = "";
         while (br.ready()) {
@@ -38,7 +39,7 @@ public class ReadRawCorpus {
                         graphSoFar = graphSoFar.replaceFirst("/", "<root> /");
                         //System.err.println(graphSoFar);
                         graphSoFar = Util.fixPunct(graphSoFar);
-                        ret.add(codec.read(graphSoFar));
+                        ret.add(AnchoredSGraph.fromSGraph(codec.read(graphSoFar)));
                     } catch (java.lang.Exception | java.lang.Error ex ) {
                         System.err.println("Error reading graph: "+graphSoFar);
                         System.err.println(ex.toString());

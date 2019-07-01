@@ -71,10 +71,10 @@ public class PrepareFinalTestData {
                 e.setPos(fields[3]);
                 currentSent.add(e);
             }
-            ArrayList<String> words = currentSent.words();
+            List<String> words = currentSent.words();
             Sentence stanfordSent = new Sentence(words);
             
-            ArrayList<String> neTags = new ArrayList<>(stanfordSent.nerTags());
+            List<String> neTags = new ArrayList<>(stanfordSent.nerTags());
             neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             
             ConllEntry artRoot = new ConllEntry(para.size()+1,SGraphConverter.ARTIFICAL_ROOT_LABEL);

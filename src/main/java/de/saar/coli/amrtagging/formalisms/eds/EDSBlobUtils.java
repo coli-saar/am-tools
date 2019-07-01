@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.eds;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -60,6 +61,8 @@ public class EDSBlobUtils extends AMRBlobUtils{
             default:
                 if (edge.getLabel().startsWith("ARG")) {
                     return OBJ;  
+               } else if (edge.getLabel().startsWith(SGraphConverter.ROOT_EDGE_LABEL)) {
+                    return edge.getLabel();
                 } else {
                     return MOD;
                 }

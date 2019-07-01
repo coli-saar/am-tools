@@ -14,6 +14,7 @@ import edu.stanford.nlp.simple.Sentence;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.graph.Node;
 
@@ -70,10 +71,10 @@ public class PrepareDevData {
                     currentSent.add(e);
                 }
             }
-            ArrayList<String> words = currentSent.words();
+            List<String> words = currentSent.words();
             Sentence stanfordSent = new Sentence(words);
             
-            ArrayList<String> neTags = new ArrayList<>(stanfordSent.nerTags());
+            List<String> neTags = new ArrayList<>(stanfordSent.nerTags());
             neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             
             ConllEntry artRoot = new ConllEntry(sdpGraph.getNNodes(),SGraphConverter.ARTIFICAL_ROOT_LABEL);
