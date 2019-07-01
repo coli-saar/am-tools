@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.mrp.sdp;
 
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
+import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
@@ -64,11 +65,15 @@ public class DM extends SDPs {
     }
 
 
-    @Override
     public AMSignatureBuilder getSignatureBuilder(MRInstance instance) {
         AMRSignatureBuilder sigBuilder = new AMRSignatureBuilder();
         sigBuilder.blobUtils = new DMBlobUtils();
         return sigBuilder;
+    }
+
+    @Override
+    public AlignmentTrackingAutomaton getAlignmentTrackingAutomaton(MRInstance instance) throws ParseException {
+        return AlignmentTrackingAutomaton.create(instance,getSignatureBuilder(instance), false);
     }
     
 }

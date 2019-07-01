@@ -13,6 +13,7 @@ import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
+import de.saar.coli.amrtagging.mrp.sdp.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
@@ -22,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,10 +33,10 @@ import java.util.List;
  */
 public class EvaluateMRP {
     @Parameter(names = {"--corpus"}, description = "Path to the input corpus")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/PSD/bla.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/bla.amconll";
     
     @Parameter(names = {"--out", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/PSD/bla.mrp";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/bla.mrp";
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
@@ -72,6 +74,8 @@ public class EvaluateMRP {
                 formalism = new DM();
             } else if (framework.equals("psd")){
                 formalism = new PSD();
+            } else if (framework.equals("eds")){
+                formalism = new EDS(new ArrayList<>()); //don't need tagging here
             } else {
                 throw new IllegalArgumentException("Formalism/Framework "+framework+" not supported yet.");
             }
@@ -81,7 +85,7 @@ public class EvaluateMRP {
                  evaluatedGraph = formalism.postprocess(evaluatedGraph);
             } catch (IllegalArgumentException ex){
                 System.err.println("Error in line "+sentence.getLineNr()+" with id "+sentence.getId());
-                System.err.println(ex.toString());
+                ex.printStackTrace();
                 System.err.println("Writing empty MRP graph instead");
                 evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),sentence.getAttr("raw"));
             }

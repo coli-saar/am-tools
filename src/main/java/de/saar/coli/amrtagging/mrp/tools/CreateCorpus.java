@@ -21,6 +21,7 @@ import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPInputCodec;
+import de.saar.coli.amrtagging.mrp.sdp.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.up.ling.irtg.algebra.ParserException;
@@ -34,6 +35,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Creates amconll corpus from MRP data.
@@ -42,13 +44,16 @@ import java.util.List;
  */
 public class CreateCorpus {
     @Parameter(names = {"--mrp"}, description = "Path to the input corpus  or subset thereof")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/psd/40.mrp";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/eds/40.mrp";
     
-    @Parameter(names = {"--companion", "-c"}, description = "Path to companion data")//, required = true)
+    @Parameter(names = {"--companion", "-c"}, description = "Path to companion data.")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
+    
+    @Parameter(names = {"--train-companion", "-tc"}, description = "Path to companion data that doesn't contain the test set but the training set")//, required = true)
+    private String full_companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/PSD/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/";
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "bla";
@@ -93,6 +98,8 @@ public class CreateCorpus {
         Reader fr = new FileReader(cli.corpusPath);
         Reader sentReader = new FileReader(cli.companion);
         List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
+        // EDS needs to invoke a POS tagger, here we collect training data for that.
+        List<ConlluSentence> trainingDataForTagger = ConlluSentence.readFromFile(cli.full_companion);
 
         for (Pair<MRPGraph, ConlluSentence> pair : pairs){
             MRPGraph mrpGraph = pair.getLeft();
@@ -110,6 +117,8 @@ public class CreateCorpus {
                 formalism = new DM();
             } else if (mrpGraph.getFramework().equals("psd")){
                 formalism = new PSD();
+            } else if (mrpGraph.getFramework().equals("eds")){
+                formalism = new EDS(trainingDataForTagger);
             } else {
                 throw new IllegalArgumentException("Formalism/Framework "+mrpGraph.getFramework()+" not supported yet.");
             }
@@ -121,13 +130,21 @@ public class CreateCorpus {
                 instance = formalism.toMRInstance(usentence, preprocessed);
             } catch (Exception e){
                 System.err.println("Could not create MRInstance for "+mrpGraph.getId());
+                problems++;
                 e.printStackTrace();
                 continue;
             }
-            
+            //System.out.println(GraphvizUtils.simpleAlignViz(instance, true));
+            try {
+                instance.checkEverythingAligned();
+            } catch (Exception e){
+                e.printStackTrace();
+                problems++;
+                continue;
+            }
             AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
             try {
-                AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(instance,sigBuilder, false);
+                AlignmentTrackingAutomaton auto = formalism.getAlignmentTrackingAutomaton(instance);
                 auto.processAllRulesBottomUp(null);
                 Tree<String> t = auto.viterbi();
 
@@ -149,7 +166,7 @@ public class CreateCorpus {
 
                     List<String> lemmata = usentence.lemmas();
                     sent.addLemmas(lemmata);
-
+                    formalism.refineDelex(sent);
                     outCorpus.add(sent);
                     //AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();

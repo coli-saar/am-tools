@@ -8,6 +8,8 @@ package de.saar.coli.amrtagging.mrp.sdp;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
+import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
+import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
@@ -21,22 +23,13 @@ import de.saar.coli.amrtagging.mrp.sdp.SDPs;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.saar.coli.amrtagging.TokenRange;
-import de.saar.coli.amrtagging.mrp.graphs.MRPAnchor;
-import de.saar.coli.amrtagging.mrp.graphs.MRPEdge;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.GraphEdge;
-import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -103,9 +96,13 @@ public class PSD extends SDPs {
      * @param instance
      * @return 
      */
-    @Override
     public AMSignatureBuilder getSignatureBuilder (MRInstance instance){
         return new PSDConcreteSignatureBuilder(instance.getGraph(), instance.getAlignments(), new PSDBlobUtils());
+    }
+
+    @Override
+    public AlignmentTrackingAutomaton getAlignmentTrackingAutomaton(MRInstance instance) throws ParseException {
+        return ConcreteAlignmentTrackingAutomaton.create(instance,getSignatureBuilder(instance), false);
     }
     
 }

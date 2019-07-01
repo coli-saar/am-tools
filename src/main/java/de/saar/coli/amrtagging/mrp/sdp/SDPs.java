@@ -34,15 +34,12 @@ import java.util.stream.Collectors;
  */
 public abstract class SDPs implements Formalism {
     
-    public static final String SEPARATOR ="__";
-    public static final String EQUALS = "=";
 
     @Override
     public ConlluSentence refine(ConlluSentence sentence) {
         // tokenization is OK but we have to lower case lemmata
-        ConlluSentence copy = new ConlluSentence();
-        copy.setLineNr(sentence.getLineNr());
-        for (ConlluEntry e : sentence){
+        ConlluSentence copy = sentence.withSameMetaData();
+        for (ConlluEntry e : sentence.copy()){
             e.setLemma(fixPunct(e.getLemma().toLowerCase()));
             copy.add(e);
         }
@@ -57,13 +54,7 @@ public abstract class SDPs implements Formalism {
         
         MRPGraph copy = mrpgraph.deepCopy();
         
-        for (MRPNode n : copy.getNodes()){
-            for (int i = 0; i < n.getProperties().size();i++){
-                n.setLabel(fixPunct(n.getLabel())+SEPARATOR+n.getProperties().get(i)+EQUALS+n.getValues().get(i));
-            }
-            n.setProperties(new ArrayList<>());
-            n.setValues(new ArrayList<>());
-        }
+        MRPUtils.encodePropertiesInLabels(copy);
         
         return copy;
     }
@@ -72,28 +63,15 @@ public abstract class SDPs implements Formalism {
     public MRPGraph postprocess(MRPGraph mrpgraph) {
         MRPGraph copy = mrpgraph.deepCopy();
         
-        for (MRPNode n : copy.getNodes()){
-            String[] parts = n.getLabel().split(SEPARATOR);
-            n.setLabel(Util.unfixPunct(parts[0])); //original label
-            for (int i = 1; i < parts.length;i++){
-                String[] keyVal = parts[i].split(EQUALS);
-                if (n.getProperties() == null){
-                    n.setProperties(new ArrayList<>());
-                }
-                n.getProperties().add(keyVal[0]);
-                if (n.getValues() == null){
-                    n.setValues(new ArrayList<>());
-                }
-                n.getValues().add(keyVal[1]);
-            }
-        }
+        MRPUtils.decodePropertiesInLabels(copy);
+        
         //SDP also adds artifical root, so remove it here
         return MRPUtils.removeArtificalRoot(copy);
     }
     
     
     /**
-     * Converts an SGraph coming from SDP into an MRP graph.
+     * Converts an SGraph coming from a SDP corpus into an MRP graph.
      * @param evaluatedGraph
      * @param s
      * @return 
@@ -137,6 +115,12 @@ public abstract class SDPs implements Formalism {
             }
             
             return output;
+    }
+    
+    
+    @Override
+    public void refineDelex(ConllSentence sentence){
+        return; // we don't need this possibility
     }
     
 }

@@ -5,11 +5,14 @@
  */
 package de.saar.coli.amrtagging.mrp;
 
+import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
+import de.up.ling.tree.ParseException;
+
 
 /**
  *
@@ -23,7 +26,7 @@ import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
  */
 public interface Formalism {
     
-    
+
     
     /**
      * Returns a graphbank specific refinement of tokenization, lemmas etc of the companion data.
@@ -65,12 +68,29 @@ public interface Formalism {
      */
     public MRPGraph evaluate(ConllSentence amconll);
     
-    /**
+    
+     /**
      * Returns the signature builder for this instance with formalism
      * specific behaviour and blob utils.
      * @param instance
      * @return 
      */
     public AMSignatureBuilder getSignatureBuilder (MRInstance instance);
+    
+    /**
+     * Returns the alignment tracking automaton for this instance with the specific formalism
+     * specific behaviour and blob utils.
+     * @param instance
+     * @return 
+     */
+    public AlignmentTrackingAutomaton getAlignmentTrackingAutomaton (MRInstance instance) throws ParseException;
+    
+    
+    /**
+     * Allows final changes to be made that ease the delexicalization. BEWARE: you cannot assume that the sentence
+     * actually contains an AM dependency tree (this function is also used for preparing the test data!).
+     * @param sentence
+     */
+    public void refineDelex(ConllSentence sentence);
     
 }

@@ -15,7 +15,9 @@ import de.saar.coli.amrtagging.ConlluEntry;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.ConlluSentence;
+import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
+import de.saar.coli.amrtagging.mrp.sdp.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
@@ -39,6 +41,9 @@ public class PrepareDevData {
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
+    
+    @Parameter(names = {"--train-companion", "-tc"}, description = "Path to companion data that doesn't contain the test set but the training set")//, required = true)
+    private String full_companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
     private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/DM/";
@@ -77,20 +82,30 @@ public class PrepareDevData {
         Reader fr = new FileReader(cli.corpusPath);
         Reader sentReader = new FileReader(cli.companion);
         List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
+        List<ConlluSentence> trainingDataForTagger = ConlluSentence.readFromFile(cli.full_companion);
 
         for (Pair<MRPGraph, ConlluSentence> pair : pairs){
             MRPGraph mrpGraph = pair.getLeft();
             ConlluSentence usentence = pair.getRight();
             counter ++;
             String input = mrpGraph.getInput();
+            Formalism formalism;
             if (mrpGraph.getFramework().equals("dm")){
                 DM dm = new DM();
+                formalism = dm;
                 usentence = dm.refine(usentence);
                 MRPUtils.addArtificialRootToSent(usentence);
                 input = MRPUtils.addArtificialRootToSent(input);
             } else if (mrpGraph.getFramework().equals("psd")){
                 PSD psd = new PSD();
+                formalism = psd;
                 usentence = psd.refine(usentence);
+                MRPUtils.addArtificialRootToSent(usentence);
+                input = MRPUtils.addArtificialRootToSent(input);
+            } else if (mrpGraph.getFramework().equals("eds")){
+                EDS eds = new EDS(trainingDataForTagger);
+                formalism = eds;
+                usentence = eds.refine(usentence);
                 MRPUtils.addArtificialRootToSent(usentence);
                 input = MRPUtils.addArtificialRootToSent(input);
             } else {
@@ -118,7 +133,7 @@ public class PrepareDevData {
             //TODO: NER
             List<String> lemmata = usentence.lemmas();
             sent.addLemmas(lemmata);
-
+            formalism.refineDelex(sent);
             outCorpus.add(sent);
 
         }
