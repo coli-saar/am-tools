@@ -21,7 +21,7 @@ import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPInputCodec;
-import de.saar.coli.amrtagging.mrp.sdp.EDS;
+import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.up.ling.irtg.algebra.ParserException;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  */
 public class CreateCorpus {
     @Parameter(names = {"--mrp"}, description = "Path to the input corpus  or subset thereof")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/eds/40.mrp";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/eds/interesting.mrp";
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data.")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
@@ -142,6 +142,7 @@ public class CreateCorpus {
                 problems++;
                 continue;
             }
+            System.out.println(mrpGraph.getId());
             AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
             try {
                 AlignmentTrackingAutomaton auto = formalism.getAlignmentTrackingAutomaton(instance);
