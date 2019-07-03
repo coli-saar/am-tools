@@ -43,7 +43,7 @@ public class ToSDPCorpus {
     private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/meine_Daten/PSD-toy/bla";
     
     @Parameter(names={"--gold","-g"}, description = "Path to gold corpus. Make sure it contains exactly the same instances, in the same order.")//, required=true)
-    private String goldCorpus = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/meine_Daten/PSD-toy/toy.sdp";
+    private String goldCorpus = null;
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
