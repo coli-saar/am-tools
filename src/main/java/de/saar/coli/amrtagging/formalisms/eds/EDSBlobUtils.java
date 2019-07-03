@@ -14,6 +14,7 @@ import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -83,7 +84,7 @@ public class EDSBlobUtils extends AMRBlobUtils{
             }
             if (s.equals(SUBJ)) {
                 GraphNode n = graph.getNode(graph.getNodeForSource(s));
-                Set<GraphEdge> edges = graph.getGraph().edgesOf(n);
+                Set<GraphEdge> edges = graph.getGraph().edgesOf(n).stream().filter(edge -> !edge.getLabel().equals("BV")).collect(Collectors.toSet());
                 if (!edges.isEmpty()) {
                     if (edges.size() > 1) {
                         System.err.println("***WARNING*** more than one edge at node "+n);

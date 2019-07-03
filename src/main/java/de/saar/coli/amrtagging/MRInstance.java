@@ -53,12 +53,11 @@ public class MRInstance {
     
     
     /**
-     * Returns true iff every node is aligned to exactly one token.
-     * @throws de.saar.coli.amrtagging.MRInstance.UnalignedNode
-     * @throws de.saar.coli.amrtagging.MRInstance.MultipleAlignments
+     * Gives for every node the number of alignments it participates in.
+     * @return 
      */
-    public void checkEverythingAligned() throws UnalignedNode, MultipleAlignments{
-        Map<String,Integer> counter = new HashMap<>();
+    public Map<String,Integer> getAlignmentCounter(){
+       Map<String,Integer> counter = new HashMap<>();
         for (String node : graph.getAllNodeNames()){
             counter.put(node, 0);
         }
@@ -68,6 +67,17 @@ public class MRInstance {
                 counter.put(node, counter.get(node)+1);
             }
         }
+        return counter;
+    }
+    
+    /**
+     * Returns true iff every node is aligned to exactly one token.
+     * @throws de.saar.coli.amrtagging.MRInstance.UnalignedNode
+     * @throws de.saar.coli.amrtagging.MRInstance.MultipleAlignments
+     */
+    public void checkEverythingAligned() throws UnalignedNode, MultipleAlignments{
+        
+        Map<String,Integer> counter = getAlignmentCounter();
         
         for (String node : graph.getAllNodeNames()){
             if (counter.get(node) == 0){

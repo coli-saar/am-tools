@@ -144,7 +144,7 @@ public class CreateCorpusParallel {
                  try {
                         auto.processAllRulesBottomUp(null, cli.threadTimeout*1000);
                 } catch (InterruptedException ex) {
-                    System.err.println("Decomposition of graph "+i+" interrupted after "+cli.threadTimeout+" seconds. Will be excluded in output.");
+                    System.err.println("Decomposition of graph "+graphi.getId()+" interrupted after "+cli.threadTimeout+" seconds. Will be excluded in output.");
                     interruptedGraphs.incValue();
                 }
                  Tree<String> t = auto.viterbi();

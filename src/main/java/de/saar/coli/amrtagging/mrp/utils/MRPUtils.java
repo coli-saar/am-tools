@@ -55,7 +55,7 @@ public class MRPUtils {
     
 
     
-    public static MRPGraph getDummy(String framework, String id, String sentence) throws IllegalArgumentException{
+    public static MRPGraph getDummy(String framework, String id, String sentence, String time, String version) throws IllegalArgumentException{
         MRPGraph g = new MRPGraph();
         g.setFramework(framework);
         if (framework.equals("amr")){
@@ -69,6 +69,8 @@ public class MRPUtils {
         }
         g.setId(id);
         g.setInput(sentence);
+        g.setTime(time);
+        g.setVersion(version);
         g.sanitize();
         return g;
     }

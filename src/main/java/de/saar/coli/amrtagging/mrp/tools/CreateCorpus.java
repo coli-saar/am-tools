@@ -100,7 +100,7 @@ public class CreateCorpus {
         List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
         // EDS needs to invoke a POS tagger, here we collect training data for that.
         List<ConlluSentence> trainingDataForTagger = ConlluSentence.readFromFile(cli.full_companion);
-
+        
         for (Pair<MRPGraph, ConlluSentence> pair : pairs){
             MRPGraph mrpGraph = pair.getLeft();
             ConlluSentence usentence = pair.getRight();

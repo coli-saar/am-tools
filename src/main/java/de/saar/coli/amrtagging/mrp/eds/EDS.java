@@ -199,7 +199,7 @@ public class EDS implements Formalism{
         
         MRInstance inst = Aligner.extractAlignment(asg, tokDifferentForHyphens, sentence.lemmas());
         //AlignerFixes.fixSingleEdgeUnaligned(inst);
-       
+
         inst.setGraph(encodeLnks((AnchoredSGraph) inst.getGraph()));
         return inst;
     }

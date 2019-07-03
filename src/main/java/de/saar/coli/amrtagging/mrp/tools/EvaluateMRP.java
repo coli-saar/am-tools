@@ -87,7 +87,7 @@ public class EvaluateMRP {
                 System.err.println("Error in line "+sentence.getLineNr()+" with id "+sentence.getId());
                 ex.printStackTrace();
                 System.err.println("Writing empty MRP graph instead");
-                evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),sentence.getAttr("raw"));
+                evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),sentence.getAttr("raw"),sentence.getAttr("time"), sentence.getAttr("version"));
             }
             
             outputCodec.write(evaluatedGraph, output);
