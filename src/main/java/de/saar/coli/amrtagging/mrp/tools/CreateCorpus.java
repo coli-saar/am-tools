@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  */
 public class CreateCorpus {
     @Parameter(names = {"--mrp"}, description = "Path to the input corpus  or subset thereof")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/eds/interesting.mrp";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/eds/40.mrp";
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data.")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
@@ -61,6 +61,9 @@ public class CreateCorpus {
     @Parameter(names = {"--vocab", "-v"}, description = "vocab file containing supertags (e.g. points to training vocab when doing dev/test files)")
     private String vocab = null;
     
+    @Parameter(names = {"--timeout"}, description = "maximum runtime of the tree-automaton step per thread, in seconds. Default = 120 (=2 mins)")
+    private int timeout = 120;
+        
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=true;
     
@@ -146,7 +149,11 @@ public class CreateCorpus {
             AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
             try {
                 AlignmentTrackingAutomaton auto = formalism.getAlignmentTrackingAutomaton(instance);
-                auto.processAllRulesBottomUp(null);
+                try {
+                    auto.processAllRulesBottomUp(null, cli.timeout*1000);
+                } catch (InterruptedException ex) {
+                    System.err.println("Decomposition of graph "+mrpGraph.getId()+" interrupted after "+cli.timeout+" seconds. Will be excluded in output.");
+                }
                 Tree<String> t = auto.viterbi();
 
                 if (t != null){
