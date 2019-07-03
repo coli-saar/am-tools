@@ -46,9 +46,6 @@ public class ConllSentence extends ArrayList<ConllEntry> {
     }
 
     public String getAttr(String key) throws IndexOutOfBoundsException{
-        if (! attributes.containsKey(key)){
-            throw new IndexOutOfBoundsException("ConllSentence with id "+this.getId()+" in line "+lineNr+" doesn't have attribute \""+key+"\"");
-        }
         return attributes.get(key);
     }
 
