@@ -155,7 +155,16 @@ public class CreateCorpus {
             System.out.println(mrpGraph.getId());
             AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
             try {
-                AlignmentTrackingAutomaton auto = formalism.getAlignmentTrackingAutomaton(instance);
+                AlignmentTrackingAutomaton auto;
+                try {
+                     auto = formalism.getAlignmentTrackingAutomaton(instance);
+                } catch (Exception ex){
+                    System.err.println("Ignoring:");
+                    ex.printStackTrace();
+                    problems++;
+                    continue;
+                }
+                
                 try {
                     auto.processAllRulesBottomUp(null, cli.timeout*1000);
                 } catch (InterruptedException ex) {

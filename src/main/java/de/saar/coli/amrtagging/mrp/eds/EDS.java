@@ -16,6 +16,7 @@ import de.saar.coli.amrtagging.ConlluEntry;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.TokenRange;
+import de.saar.coli.amrtagging.Util;
 import static de.saar.coli.amrtagging.Util.fixPunct;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
@@ -141,6 +142,10 @@ public class EDS implements Formalism{
         //put attributes into node labels
         MRPUtils.encodePropertiesInLabels(copy);
         
+        for (MRPNode n : copy.getNodes()){
+            n.setLabel(Util.fixPunct(n.getLabel()));
+        }
+        
         return copy;
     }
     
@@ -148,6 +153,9 @@ public class EDS implements Formalism{
     @Override
     public MRPGraph postprocess(MRPGraph mrpgraph) {
         MRPGraph copy = mrpgraph.deepCopy();
+        for (MRPNode n : copy.getNodes()){
+            n.setLabel(Util.unfixPunct(n.getLabel()));
+        }
         MRPUtils.decodePropertiesInLabels(copy);
         return MRPUtils.removeArtificalRoot(copy);
     }
