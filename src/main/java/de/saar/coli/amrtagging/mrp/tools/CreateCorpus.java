@@ -63,6 +63,9 @@ public class CreateCorpus {
     
     @Parameter(names = {"--timeout"}, description = "maximum runtime of the tree-automaton step per thread, in seconds. Default = 120 (=2 mins)")
     private int timeout = 120;
+    
+    @Parameter(names = {"--sort"}, description = "Sort sentences by length")
+    private boolean sort=false;
         
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=true;
@@ -101,6 +104,10 @@ public class CreateCorpus {
         Reader fr = new FileReader(cli.corpusPath);
         Reader sentReader = new FileReader(cli.companion);
         List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
+        
+        if (cli.sort){
+            pairs.sort((g1,g2) -> Integer.compare(g1.right.size(), g2.right.size()));
+        }
         // EDS needs to invoke a POS tagger, here we collect training data for that.
         List<ConlluSentence> trainingDataForTagger = ConlluSentence.readFromFile(cli.full_companion);
         
