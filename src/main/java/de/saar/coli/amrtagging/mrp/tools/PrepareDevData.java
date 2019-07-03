@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class PrepareDevData {
     @Parameter(names = {"--mrp"}, description = "Path to the input corpus  or subset thereof")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/dm/40.mrp";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/dm/wsj.mrp";
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
@@ -77,13 +77,12 @@ public class PrepareDevData {
         int counter = 0;
         int problems = 0;
         ArrayList<ConllSentence> outCorpus = new ArrayList<>();
-        SupertagDictionary supertagDictionary = new SupertagDictionary();
         
         Reader fr = new FileReader(cli.corpusPath);
         Reader sentReader = new FileReader(cli.companion);
         List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
         List<ConlluSentence> trainingDataForTagger = ConlluSentence.readFromFile(cli.full_companion);
-
+        EDS eds = new EDS(trainingDataForTagger);
         for (Pair<MRPGraph, ConlluSentence> pair : pairs){
             MRPGraph mrpGraph = pair.getLeft();
             ConlluSentence usentence = pair.getRight();
@@ -103,7 +102,6 @@ public class PrepareDevData {
                 MRPUtils.addArtificialRootToSent(usentence);
                 input = MRPUtils.addArtificialRootToSent(input);
             } else if (mrpGraph.getFramework().equals("eds")){
-                EDS eds = new EDS(trainingDataForTagger);
                 formalism = eds;
                 usentence = eds.refine(usentence);
                 MRPUtils.addArtificialRootToSent(usentence);
