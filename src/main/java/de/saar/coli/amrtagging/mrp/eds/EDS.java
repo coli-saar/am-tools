@@ -39,7 +39,9 @@ import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -60,8 +62,10 @@ public class EDS implements Formalism{
         // Tokenization
         sentence = sentence.copy();
         ConlluSentence copy = sentence.withSameMetaData();
-        int idx = 1;
+        //int idx = 1;
         int addedSoFar = 0;
+        Map<Integer,Integer> indexTranslation = new HashMap<>();
+        indexTranslation.put(0,0); //root stays root.
         for (ConlluEntry e : sentence){
             e.setLemma(fixPunct(e.getLemma().toLowerCase()));
             
@@ -76,9 +80,9 @@ public class EDS implements Formalism{
                 
                 TokenRange r = e.getTokenRange();
                 for (int tokenPart = 0; tokenPart < parts.length;tokenPart++){
-                    ConlluEntry newE = new ConlluEntry(idx, parts[tokenPart]);
+                    ConlluEntry newE = new ConlluEntry(-1, parts[tokenPart]);
                     newE.setLemma(lemmaParts[tokenPart]);
-                    newE.setHead(e.getHead()+addedSoFar);
+                    newE.setHead(e.getHead());
                     if (tokenPart == parts.length -1) { //last part, probably the head in English
                         newE.setPos(e.getPos());
                         newE.setUPos(e.getUPos());
@@ -90,16 +94,22 @@ public class EDS implements Formalism{
                     newE.setTokenRange(r);
                     newE.setEdgeLabel(e.getEdgeLabel());
                     copy.add(newE);
-                    idx++;
+                    //idx++;
                 }
+                indexTranslation.put(e.getId(), e.getId()+addedSoFar);
                 addedSoFar += parts.length -1 ; //-1 because we would have added one token anyway
             
             } else {
-                e.setId(idx);
-                e.setHead(e.getHead()+addedSoFar);
+                indexTranslation.put(e.getId(), e.getId()+addedSoFar);
                 copy.add(e);
-                idx++;
+                //idx++;
             }
+        }
+        int idx = 1;
+        for (ConlluEntry e : copy){
+            e.setId(idx);
+            e.setHead(indexTranslation.get(e.getHead()));
+            idx++;
         }
         
         //EDS tokenization attaches the very first and the very last punctuation in the sentence to its respective word, so we will extend the span
