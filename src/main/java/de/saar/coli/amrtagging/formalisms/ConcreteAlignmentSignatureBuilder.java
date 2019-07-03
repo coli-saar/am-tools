@@ -294,11 +294,8 @@ public class ConcreteAlignmentSignatureBuilder implements AMSignatureBuilder {
         GraphNode root;
         if (inNodes.isEmpty()) {
             //for now take arbirary root here, preferring lexicalized nodes for consistency. TODO: is this a problem? can we do better?
-            if (!al.lexNodes.isEmpty()) {
-                root = graph.getNode(al.lexNodes.iterator().next());
-            } else {
-                root = graph.getNode(al.nodes.iterator().next());
-            }
+            root = getPreferredRoot(graph, inNodes, al);
+
         } else {
             root = inNodes.iterator().next();//this is unique
         }
@@ -829,6 +826,22 @@ public class ConcreteAlignmentSignatureBuilder implements AMSignatureBuilder {
 //                System.err.println(node.toString()+": "+sb.getSourceAssignments(sb.blobUtils.getBlobEdges(graph, node), graph));
 //            }
             System.err.println();
+        }
+    }
+    
+    /**
+     * Here we need to choose the root in a constant but the choice is not unique. Which graph node shall it be?
+     * This might differ for different formalisms.
+     * @param graph
+     * @param inNodes
+     * @param al
+     * @return 
+     */
+    protected GraphNode getPreferredRoot(SGraph graph, Set<GraphNode> inNodes, Alignment al) {
+         if (!al.lexNodes.isEmpty()) {
+                return graph.getNode(al.lexNodes.iterator().next());
+        } else {
+            return graph.getNode(al.nodes.iterator().next());
         }
     }
 }

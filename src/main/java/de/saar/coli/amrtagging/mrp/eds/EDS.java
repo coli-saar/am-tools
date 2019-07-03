@@ -253,7 +253,7 @@ public class EDS implements Formalism{
     
     @Override
     public AMSignatureBuilder getSignatureBuilder(MRInstance inst) {
-         return new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
+         return new EDSAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
     }
     
     @Override

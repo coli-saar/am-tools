@@ -38,7 +38,8 @@ import java.util.stream.Stream;
 public class Aligner {
     
     
-    public static final String[] ADDITIONAL_LEXICAL_NODES = {"pron","_dollar_n_1","_percent_n_of"}; //lexical nodes that are not easy to guess with lemmatization
+    public static final String[] ADDITIONAL_LEXICAL_NODES = {"pron","_dollar_n_1","_percent_n_of",
+        "udef_q", "ellipsis_ref","abstr_deg","which_q","much-many_a", "comp", "superl","comp_equal", "person"}; //lexical nodes that are not easy to guess with lemmatization
 
     
     /**
