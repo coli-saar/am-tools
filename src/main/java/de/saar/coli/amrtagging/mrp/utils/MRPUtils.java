@@ -398,6 +398,20 @@ public class MRPUtils {
         //finally, remove ART-ROOT node:
         copy.getNodes().remove(copy.getNode(rootId));
         copy.setInput(copy.getInput().substring(0, copy.getInput().length() - ART_ROOT.length() -1 )); //-1 for space before ART_ROOT
+        
+        //If the parser didn't produce perfect results, some anchors might refer to the artificial root:
+        int maxAnchor = copy.getInput().length();
+        for (MRPNode n : copy.getNodes()){
+            for (MRPAnchor a: n.getAnchors()){
+                if (a.from > maxAnchor){
+                    a.from = maxAnchor;
+                }
+                if (a.to > maxAnchor){
+                    a.to = maxAnchor;
+                }
+            }
+        }
+        
         return copy;
         
     }
