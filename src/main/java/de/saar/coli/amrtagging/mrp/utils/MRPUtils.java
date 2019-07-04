@@ -132,7 +132,7 @@ public class MRPUtils {
             List<MRPAnchor> anchors = new ArrayList<>();
             //GraphNode lnkNode = sg.lnkDaughter(gN.getName()).get(); //does NOT DO WHAT IT SHOULD, SUPER ANNOYING BUG!
             Optional<GraphNode> lnkNode = sg.lnkDaughter(gN.getName());
-            if (lnkNode.isPresent()){
+            if (lnkNode.isPresent() && AnchoredSGraph.isLnkNode(lnkNode.get())){
                 anchors.add(MRPAnchor.fromTokenRange(AnchoredSGraph.getRangeOfLnkNode(sg.getNode(lnkNode.get().getName()))));
             }
             output.getNodes().add(new MRPNode(id,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),anchors));
