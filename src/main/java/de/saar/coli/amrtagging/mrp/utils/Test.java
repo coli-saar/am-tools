@@ -8,9 +8,11 @@ package de.saar.coli.amrtagging.mrp.utils;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.ConlluSentence;
+import de.saar.coli.amrtagging.GraphvizUtils;
+import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
-import de.saar.coli.amrtagging.mrp.sdp.EDS;
+import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.up.ling.irtg.codec.OutputCodec;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -19,6 +21,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -37,20 +41,31 @@ public class Test {
         }
         EDS eds = new EDS(training);
         OutputCodec codec = new MRPOutputCodec();
-        FileOutputStream g = new FileOutputStream("/tmp/eds/gold.mrp");
-        FileOutputStream sys = new FileOutputStream("/tmp/eds/system.mrp");
+        FileOutputStream g = new FileOutputStream("/tmp/interesting.mrp");
         
         for (Pair<MRPGraph, ConlluSentence> p : pairs){
             System.err.println(eds.refine(p.right));
-//            MRPGraph orig = p.left;
-//            MRPGraph prepro = eds.preprocess(orig);
-//            AnchoredSGraph asg = MRPUtils.toSGraphWithAnchoring(prepro);
-//            MRPGraph b = MRPUtils.fromAnchoredSGraph(asg, orig.getFlavor(), orig.getFramework(), orig.getId(), orig.getInput(), orig.getVersion(), orig.getTime());
-//            codec.write(orig, g);
-//            codec.write(eds.postprocess(b),sys);
+            MRInstance instance;
+            try {
+                instance = eds.toMRInstance(eds.refine(p.right), eds.preprocess(p.left));
+            } catch (IllegalArgumentException ex){
+                ex.printStackTrace();
+                continue;
+            }
+            
+            try {
+                instance.checkEverythingAligned();
+            } catch (MRInstance.UnalignedNode ex) {
+                if (p.right.size() < 10)
+                codec.write(p.left, g);
+                ex.printStackTrace();
+                System.err.println(GraphvizUtils.simpleAlignViz(instance));
+            } catch (MRInstance.MultipleAlignments ex) {
+                if (p.right.size() < 10) codec.write(p.left, g);
+                ex.printStackTrace();
+            }
         }
         g.close();
-        sys.close();
         
         
         
