@@ -84,6 +84,7 @@ public class MRPUtils {
      /**
      * Converts back to MRPGraph
      * @param sg
+     * @param restoreProperties whether properties and values are encoded as nodes being attached to the node they are a property of.
      * @param flavor
      * @param framework
      * @param graphId
@@ -92,7 +93,7 @@ public class MRPUtils {
      * @param time
      * @return 
      */
-    public static MRPGraph fromAnchoredSGraph(AnchoredSGraph sg, int flavor, String framework, String graphId, String raw, String version, String time){
+    public static MRPGraph fromAnchoredSGraph(AnchoredSGraph sg, boolean restoreProperties, int flavor, String framework, String graphId, String raw, String version, String time){
         MRPGraph output = new MRPGraph();
         output.sanitize();
         output.setId(graphId);
@@ -130,7 +131,6 @@ public class MRPUtils {
         for (int id : id2node.keySet().stream().sorted().collect(Collectors.toList())){
             GraphNode gN = sg.getNode(id2node.get(id));
             List<MRPAnchor> anchors = new ArrayList<>();
-            //GraphNode lnkNode = sg.lnkDaughter(gN.getName()).get(); //does NOT DO WHAT IT SHOULD, SUPER ANNOYING BUG!
             Optional<GraphNode> lnkNode = sg.lnkDaughter(gN.getName());
             if (lnkNode.isPresent() && AnchoredSGraph.isLnkNode(lnkNode.get())){
                 anchors.add(MRPAnchor.fromTokenRange(AnchoredSGraph.getRangeOfLnkNode(sg.getNode(lnkNode.get().getName()))));
@@ -138,19 +138,22 @@ public class MRPUtils {
             output.getNodes().add(new MRPNode(id,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),anchors));
         }
         
-        //add properties
-        for (GraphNode n : sg.getUnachored()){
-            Set<GraphNode> parents = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getSource()).collect(Collectors.toSet());
-            Set<String> incomingLabels = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getLabel()).collect(Collectors.toSet());
-            if (parents.size() != 1){
-                System.err.println("[AncoredSGraph -> MRPGraph] WARNING: unaligned node "+n.getName()+" should have exactly one parent but has "+parents.size());
-            } else {
-                GraphNode parent = parents.stream().findAny().get();
-                String propertyName = incomingLabels.stream().findAny().get(); //there must be exactly one edge label in this set
-                output.getNode(node2id.get(parent.getName())).getProperties().add(propertyName);
-                output.getNode(node2id.get(parent.getName())).getValues().add(n.getLabel());
+        if (restoreProperties){
+           //add properties
+            for (GraphNode n : sg.getUnachored()){
+                Set<GraphNode> parents = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getSource()).collect(Collectors.toSet());
+                Set<String> incomingLabels = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getLabel()).collect(Collectors.toSet());
+                if (parents.size() != 1){
+                    System.err.println("[AncoredSGraph -> MRPGraph] WARNING: unaligned node "+n.getName()+" should have exactly one parent but has "+parents.size());
+                } else {
+                    GraphNode parent = parents.stream().findAny().get();
+                    String propertyName = incomingLabels.stream().findAny().get(); //there must be exactly one edge label in this set
+                    output.getNode(node2id.get(parent.getName())).getProperties().add(propertyName);
+                    output.getNode(node2id.get(parent.getName())).getValues().add(n.getLabel());
+                }
             }
         }
+
 
         //add top node (ART-ROOT will be done later)
         Set<Integer> tops = new HashSet<>();

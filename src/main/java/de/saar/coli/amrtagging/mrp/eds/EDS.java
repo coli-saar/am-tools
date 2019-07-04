@@ -241,7 +241,7 @@ public class EDS implements Formalism{
             //SGraphDrawer.draw(evaluatedGraph, "mhm");
             //System.err.println(amconll.getId()+"\t"+evaluatedGraph.toString());
 
-            MRPGraph mrpGraph = MRPUtils.fromAnchoredSGraph(evaluatedGraph, 1, "eds",
+            MRPGraph mrpGraph = MRPUtils.fromAnchoredSGraph(evaluatedGraph, false, 1, "eds",
                     amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
             return MRPUtils.removeArtificalRoot(mrpGraph);
             
