@@ -55,10 +55,10 @@ public class EDSBlobUtils extends AMRBlobUtils{
             case "ARG1": return SUBJ;
             case "ARG2": return OBJ;
             case "BV": return DET;
-            case "R-INDEX": return COORD+"1";
-            case "L-INDEX": return COORD+"2";
-            case "R-HNDL": return COORD+"1";
-            case "L-HNDL": return COORD+"2";
+            case "R-INDEX": return COORD+"2";
+            case "L-INDEX": return COORD+"1";
+            case "R-HNDL": return COORD+"2";
+            case "L-HNDL": return COORD+"1";
             default:
                 if (edge.getLabel().startsWith("ARG")) {
                     return OBJ;  
