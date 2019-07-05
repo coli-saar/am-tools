@@ -19,17 +19,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
-import edu.stanford.nlp.simple.Sentence;
 import edu.stanford.nlp.util.StringUtils;
 
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Stack;
-import java.util.stream.Stream;
 
 /**
  * Extracts the alignments from an EDS graph and the corresponding untokenized string with the tokenization options of Buys and Blunsom.
@@ -42,7 +38,7 @@ public class Aligner {
         "udef_q", "ellipsis_ref","abstr_deg","which_q","much-many_a", "comp", "superl","comp_equal", "person"}; //lexical nodes that are not easy to guess with lemmatization
 
     
-    /**
+        /**
      * Creates an MRInstance from an EDS graph.Returns a pair of SGraph, Complex spans.The complex spans 
      * @param eds
      * @param tokenizedString Pair of TokenRanges and the corresponding tokens, 
@@ -51,6 +47,19 @@ public class Aligner {
      * @return 
      */
     public static MRInstance extractAlignment(AnchoredSGraph eds, Pair< List<TokenRange> , List<String> > tokenizedString, List<String> lemmas){
+        return extractAlignment(eds, tokenizedString, lemmas, new ArrayList<>());
+    }
+    
+    /**
+     * Creates an MRInstance from an EDS graph.Returns a pair of SGraph, Complex spans.The complex spans 
+     * @param eds
+     * @param tokenizedString Pair of TokenRanges and the corresponding tokens, 
+     * hyphenated compounds need to be split but their TokenRanges should be the same. Use EDSUtils.edsTokenizeString(sent,false)
+     * @param lemmas list of same length as tokens providing the lemmas.
+     * @param alreadyAligned starts with these alignments and doesn't align nodes that are contained already
+     * @return 
+     */
+    public static MRInstance extractAlignment(AnchoredSGraph eds, Pair< List<TokenRange> , List<String> > tokenizedString, List<String> lemmas, List<Alignment> alreadyAligned){
         
         /*
         Steps:
@@ -160,16 +169,24 @@ public class Aligner {
         
         //now we have a mapping from Stanford Spans to EDS spans and a mapping from EDS spans to nodes so we can compose those mappings.
        
-       List<Alignment> alignments = new ArrayList<>();
+       Set<String> dontAlign = new HashSet<>();
+       alreadyAligned.stream().map((Alignment al) -> al.nodes).forEach( nodes -> dontAlign.addAll(nodes));
+       Set<Integer> wordsThatAreAlreadyAligned = alreadyAligned.stream().map((Alignment al) -> al.span.start).collect(Collectors.toSet());
+       List<Alignment> alignments = new ArrayList<>(alreadyAligned);
        //Sentence stanfSent = new Sentence(words);
        for (TokenRange span : stanfSpanToGraphSpan.keySet()){
            if (spanToNodes.containsKey(stanfSpanToGraphSpan.get(span))){
                TokenRange correspondingGraphSpan = stanfSpanToGraphSpan.get(span);
                int wordPosition = stanfSpans.indexOf(span);
-               String lemma = lemmas.get(wordPosition); //stanfSent.lemma(wordPosition);
-               Set<String> lexicalNodes = EDSUtils.findLexialNodes(eds, spanToNodes.get(correspondingGraphSpan), words.get(wordPosition),lemma);
-
-               alignments.add(new Alignment(spanToNodes.get(correspondingGraphSpan), new Span(wordPosition,wordPosition+1), lexicalNodes, 0));
+               if (!wordsThatAreAlreadyAligned.contains(wordPosition)) {
+                    String lemma = lemmas.get(wordPosition); //stanfSent.lemma(wordPosition);
+                    Set<String> lexicalNodes = EDSUtils.findLexialNodes(eds, spanToNodes.get(correspondingGraphSpan), words.get(wordPosition),lemma);
+                    Set<String> alignedNodes = spanToNodes.get(correspondingGraphSpan);
+                    alignedNodes.removeAll(dontAlign);
+                    if (alignedNodes.size() > 0){
+                        alignments.add(new Alignment(alignedNodes, new Span(wordPosition,wordPosition+1), lexicalNodes, 0));
+                    } 
+               }
            }
        }
        MRInstance ret = new MRInstance(words, eds, alignments); 

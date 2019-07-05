@@ -29,19 +29,30 @@ import static de.saar.coli.amrtagging.formalisms.eds.EDSUtils.END_PNCT;
 import static de.saar.coli.amrtagging.formalisms.eds.EDSUtils.START_PNCT;
 import de.saar.coli.amrtagging.formalisms.eds.PostprocessLemmatize;
 import de.saar.coli.amrtagging.mrp.Formalism;
+import de.saar.coli.amrtagging.mrp.graphs.MRPAnchor;
 import de.saar.coli.amrtagging.mrp.graphs.MRPEdge;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
+import static de.saar.coli.amrtagging.mrp.utils.MRPUtils.ART_ROOT;
+import static de.saar.coli.amrtagging.mrp.utils.MRPUtils.ROOT_EDGE_LABEL;
+import static de.saar.coli.amrtagging.mrp.utils.MRPUtils.addArtificialRootToSent;
 import de.saar.coli.amrtagging.mrp.utils.StupidPOSTagger;
 import de.up.ling.irtg.algebra.ParserException;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import org.jgrapht.alg.ConnectivityInspector;
 
 /**
  *
@@ -199,7 +210,7 @@ public class EDS implements Formalism{
     @Override
     public MRInstance toMRInstance(ConlluSentence sentence, MRPGraph mrpgraph) {
         //add ART-ROOT
-        MRPUtils.addArtificalRoot(sentence, mrpgraph);
+        //MRPUtils.addArtificalRoot(sentence, mrpgraph);
         AnchoredSGraph asg = MRPUtils.toSGraphWithAnchoring(mrpgraph);
         //EDSConverter.makeNodeNamesExplicit(asg);
         List<String> words = sentence.words();
@@ -214,10 +225,23 @@ public class EDS implements Formalism{
        
         Aligner.preprocessHyphens(asg, tokSameForHyphens, tokDifferentForHyphens);
         
+        //first align implicit conjunctions
+        List<Alignment> alreadyAligned = AlignerFixes.alignImplicitConj(asg,sentence);
         
-        MRInstance inst = Aligner.extractAlignment(asg, tokDifferentForHyphens, sentence.lemmas());
-        //AlignerFixes.fixSingleEdgeUnaligned(inst);
-
+        MRInstance inst = Aligner.extractAlignment(asg, tokDifferentForHyphens, sentence.lemmas(), alreadyAligned);
+        boolean fixedSomething = true;
+        while(fixedSomething){ //fix multiple times, fixing something might enable us to fix more.
+            fixedSomething = AlignerFixes.fixSingleEdgeUnaligned(inst);
+            fixedSomething = fixedSomething | AlignerFixes.fixComparatives(inst);
+            fixedSomething = fixedSomething | AlignerFixes.inventAlignment(inst, 5, 0.3);
+        }
+        try {
+            addArtificalRoot(sentence, inst);
+            mrpgraph.setInput(addArtificialRootToSent(mrpgraph.getInput()));
+        } catch (ParserException | ParseException ex){
+            return null;
+        }
+        
         inst.setGraph(encodeLnks((AnchoredSGraph) inst.getGraph()));
         return inst;
     }
@@ -243,7 +267,7 @@ public class EDS implements Formalism{
 
             MRPGraph mrpGraph = MRPUtils.fromAnchoredSGraph(evaluatedGraph, false, 1, "eds",
                     amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
-            return MRPUtils.removeArtificalRoot(mrpGraph);
+            return removeArtificalRoot(mrpGraph);
             
         } catch (ParseException | ParserException | AMDependencyTree.ConllParserException e){
              throw new IllegalArgumentException(e);
@@ -266,6 +290,173 @@ public class EDS implements Formalism{
     public void refineDelex(ConllSentence sentence) {
         PostprocessLemmatize.edsLemmaPostProcessing(sentence);
     }
+    
+    
+
+    /**
+     * Adds an additional token (ART-ROOT) that unifies all top nodes and makes the graph connected.This version differs in several aspects from the generic version in the MRPUtils:
+   - it takes an MRInstance 
+   - art-snt1 always points to the actual (unique) top node
+   - it uses the signature builder to identify the root of a disconnected component
+     * @param sent
+     * @param inst
+     * @throws de.up.ling.tree.ParseException
+     * @throws de.up.ling.irtg.algebra.ParserException
+     */
+    public void addArtificalRoot(ConlluSentence sent, MRInstance inst) throws ParseException, ParserException{
+        // How does it work?
+        // we add an additional node to the graph
+        // we go over all connected components and draw an edge to the top node
+        // if there is no top node, we read of the head of the span the component comprises from the companion data
+        // and draw the edge into the corresponding node
+        
+        MRPUtils.addArtificialRootToSent(sent);
+        
+        AMSignatureBuilder sigBuilder = getSignatureBuilder(inst);
+        ApplyModifyGraphAlgebra am =  new ApplyModifyGraphAlgebra();
+        AnchoredSGraph asg = (AnchoredSGraph) inst.getGraph();
+        
+        String artRootName = "artroot";
+        GraphNode artRootNode = asg.addNode(artRootName, MRPUtils.ART_ROOT);
+        GraphNode lnkArtRoot = asg.addNode(artRootName+"lnk",EDSConverter.SIMPLE_SPAN); //we add SIMPLE already here! (rest of graph contains correct references)
+        
+        asg.addEdge(artRootNode, lnkArtRoot, AnchoredSGraph.LNK_LABEL);
+        inst.getSentence().add(MRPUtils.ART_ROOT);
+        Set<String> nodes = new HashSet<>();
+        nodes.add(artRootName);
+        Set<String> lexNodes = new HashSet<>(nodes);
+        nodes.add(lnkArtRoot.getName());
+        
+        inst.getAlignments().add(new Alignment(nodes, new Alignment.Span(inst.getSentence().size()-1, inst.getSentence().size()), lexNodes, 0)); //aligned to last word
+        
+        
+        ConnectivityInspector<GraphNode, GraphEdge> inspector =  new ConnectivityInspector(asg.getGraph());
+        
+        int sntCounter = 1;
+        String oldRoot = asg.getNodeForSource("root");
+        GraphNode oldRootNode = asg.getNode(oldRoot);
+        Set<String> sources = asg.getAllSources();
+        sources.remove("root");
+        asg.forgetSourcesExcept(sources);
+        asg.addSource("root", artRootName);
+        asg.addEdge(artRootNode, asg.getNode(oldRoot), ROOT_EDGE_LABEL+sntCounter);
+        sntCounter++;
+        for (Set<GraphNode> connectedSet : inspector.connectedSets()){
+            // find the head of the span (companion data) of this component
+            // (assumes this component of the graph forms a contiguous span)
+            // and make it the root of this subgraph
+            // the head word of the span may align to multiple words 
+            if (connectedSet.contains(oldRootNode)) continue;
+            TokenRange firstPos = minAnchorStart(connectedSet);
+            TokenRange lastPos = maxAnchorEnd(connectedSet);
+
+            int head = sent.headOfSpan(sent.getCorrespondingIndex(firstPos),
+                        sent.getCorrespondingIndex(lastPos));
+            Alignment headAlignment = null;
+            for (Alignment al : inst.getAlignments()){
+                if (al.span.start == head){
+                    headAlignment = al;
+                    break;
+                }
+            }
+            if ( headAlignment != null){
+                SGraph headFragment = am.parseString(sigBuilder.getConstantsForAlignment(headAlignment, asg, false).iterator().next()).left;
+                String headRoot = headFragment.getNodeForSource("root");
+                asg.addEdge(artRootNode, asg.getNode(headRoot), ROOT_EDGE_LABEL+sntCounter);
+            } else {
+               System.err.println("[ADD ART-ROOT] WARNING: -- taking arbitrary root for component");
+               asg.addEdge(artRootNode,connectedSet.iterator().next(), ROOT_EDGE_LABEL+sntCounter);
+            }
+        sntCounter++;
+        }
+    }
+    
+    
+        /**
+     * Removes the artificial root.
+     * @param mrpGraph
+     * @return 
+     */
+    public static MRPGraph removeArtificalRoot(MRPGraph mrpGraph){
+        MRPGraph copy = mrpGraph.deepCopy();
+        if (mrpGraph.getTops().size() != 1){
+            return copy; //no artificial root
+        }
+        
+        int rootId = copy.getTops().iterator().next();
+        
+        if (!copy.getNode(rootId).getLabel().equals(ART_ROOT)){
+            return copy; //no artificial root
+        }
+        copy.setTops(new HashSet<>());
+        
+        for (MRPEdge outg : copy.outgoingEdges(rootId)){
+            if (outg.label.equals(ROOT_EDGE_LABEL+"1")){
+                copy.getTops().add(outg.target); //add a new top node.
+                break;
+            }
+        }
+        //remove all edges attached to ART-ROOT:
+        for (MRPEdge e : copy.edgesOf(rootId)){
+            copy.getEdges().remove(e);
+        }
+        //finally, remove ART-ROOT node:
+        copy.getNodes().remove(copy.getNode(rootId));
+        copy.setInput(copy.getInput().substring(0, copy.getInput().length() - ART_ROOT.length() -1 )); //-1 for space before ART_ROOT
+        
+        //If the parser didn't produce perfect results, some anchors might refer to the artificial root:
+        int maxAnchor = copy.getInput().length();
+        for (MRPNode n : copy.getNodes()){
+            for (MRPAnchor a: n.getAnchors()){
+                if (a.from > maxAnchor){
+                    a.from = maxAnchor;
+                }
+                if (a.to > maxAnchor){
+                    a.to = maxAnchor;
+                }
+            }
+        }
+        
+        return copy;
+        
+    }
+    
+    
+     /**
+     * Returns the position of the first character described by the anchoring of any node in the list.
+     * @param nodes
+     * @return 
+     */
+    private static TokenRange minAnchorStart(Collection<GraphNode> nodes){
+        int m = Integer.MAX_VALUE;
+        TokenRange anchor = null;
+        for (GraphNode n : nodes){
+            if (AnchoredSGraph.isLnkNode(n)){
+                TokenRange r = AnchoredSGraph.getRangeOfLnkNode(n);
+                if (r.getFrom() < m) {
+                    m = r.getFrom();
+                    anchor = r;
+                }
+            }
+        }
+        return anchor;
+    }
+    
+    private static TokenRange maxAnchorEnd(Collection<GraphNode> nodes){
+        int m = Integer.MIN_VALUE;
+        TokenRange anchor = null;
+        for (GraphNode n : nodes){
+            if (AnchoredSGraph.isLnkNode(n)){
+                TokenRange r = AnchoredSGraph.getRangeOfLnkNode(n);
+                if (r.getTo() > m) {
+                    m = r.getTo();
+                    anchor = r;
+                }
+            }
+        }
+        return anchor;
+    }
+    
     
         
 

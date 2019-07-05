@@ -228,13 +228,14 @@ public class EDSUtils {
             }
         }
        if (lexicalNodes.isEmpty()){
+           done:
             for (String nodeName : nodeNames){ //thid highest priority: additional tokens in the list
                 if (eds.getGraph().incomingEdgesOf(eds.getNode(nodeName)).stream().anyMatch(edg -> edg.getLabel().equals(AnchoredSGraph.LNK_LABEL)) ) continue; //lnk nodes cannot be lexical nodes.
                  String label = eds.getNode(nodeName).getLabel();
                  for (String nodeLabel : ADDITIONAL_LEXICAL_NODES) {
                      if (label.equals(nodeLabel)){ 
                         lexicalNodes.add(nodeName);
-                        break;
+                        break done;
                     }
                  }
 

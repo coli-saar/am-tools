@@ -19,6 +19,7 @@ public class GraphvizUtils {
     }
     
     public static String simpleAlignViz(MRInstance instance, boolean drawEdgeLabels){
+        if (instance == null) return "";
         StringBuilder b = new StringBuilder("digraph {   bgcolor=\"transparent\" ; rankdir = \"TD\"");
         int i = 0;
         for (Alignment al : instance.getAlignments()){
