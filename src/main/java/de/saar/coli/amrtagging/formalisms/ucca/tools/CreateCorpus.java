@@ -22,6 +22,7 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.corpus.Corpus;
 import de.up.ling.irtg.corpus.CorpusReadingException;
@@ -37,6 +38,7 @@ import java.io.IOException;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -45,10 +47,10 @@ import java.util.List;
  */
 public class CreateCorpus {
      @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus ")//, required = true)
-    private String corpusPath = "examples/irtg_corpus_astar.txt";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/test_decomposition.irtg";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "temp/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/";
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "train";
@@ -83,6 +85,7 @@ public class CreateCorpus {
         
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton());
         Signature dummySig = new Signature();
+        loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
@@ -110,7 +113,7 @@ public class CreateCorpus {
             counter ++;
             //read graph, string and alignment from corpus
             SGraph graph = (SGraph)corpusInstance.getInputObjects().get("graph");
-            List<String> sentence = (List)corpusInstance.getInputObjects().get("string");
+            List<String> sentence = (List) corpusInstance.getInputObjects().get("string");
             List<String>  als =(List)corpusInstance.getInputObjects().get("alignment");
             if (als.size() == 1 && als.get(0).equals("")) {
                 //System.err.println("Repaired empty alignment!");
@@ -124,14 +127,14 @@ public class CreateCorpus {
             }
             //create MRInstance object that bundles the three:
             MRInstance inst = new MRInstance(sentence,graph,alignments);
-            //System.out.println(simpleAlignViz(inst)); //this generates a string that you can compile with graphviz dot to get a visualization of what the grouping induced by the alignment looks like.
+            System.out.println(GraphvizUtils.simpleAlignViz(inst,true)); //this generates a string that you can compile with graphviz dot to get a visualization of what the grouping induced by the alignment looks like.
             //System.out.println(inst.getSentence());
             //System.out.println(inst.getAlignments());
             //System.out.println(inst.getGraph().);
             //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
             //break;
+            ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
             try {
-                ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
                 auto.processAllRulesBottomUp(null);
                 Tree<String> t = auto.viterbi();
@@ -153,7 +156,7 @@ public class CreateCorpus {
                     AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
                     //use one of these to get visualizations
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
-                    //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
+                    //amdep.getTree().map(ent -> ent.getForm() +" "+ent.getEdgeLabel()).draw();
 
                     //this is how we can get back the graph (with alignment to positions where the individual parts came from):
                     //SGraph alignedGraph = amdep.evaluate(true);
@@ -187,6 +190,10 @@ public class CreateCorpus {
                 problems++;
                 System.err.println("Ignoring an exception:");
                 ex.printStackTrace();
+                for (Alignment al : inst.getAlignments()){
+                    System.err.println(inst.getSentence().get(al.span.start));
+                    System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
+                  }
             }
         }
         System.err.println("ok: "+(counter-problems));
