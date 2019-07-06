@@ -83,7 +83,7 @@ public class EvaluateMRP {
             try {
                  evaluatedGraph = formalism.evaluate(sentence);
                  evaluatedGraph = formalism.postprocess(evaluatedGraph);
-            } catch (IllegalArgumentException ex){
+            } catch (Exception ex){
                 System.err.println("Error in line "+sentence.getLineNr()+" with id "+sentence.getId());
                 ex.printStackTrace();
                 System.err.println("Writing empty MRP graph instead");
