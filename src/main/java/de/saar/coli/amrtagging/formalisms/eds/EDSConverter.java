@@ -394,14 +394,14 @@ public class EDSConverter {
         for (GraphNode node : topo){
             if (!g.incomingEdgesOf(node).stream().anyMatch(e -> e.getLabel().equals("carg"))) { //carg nodes don't get spans
                 if (g.outDegreeOf(node) > 0) {
-                    GraphEdge outgoingLnkEdge = g.outgoingEdgesOf(node).stream().filter(e -> AnchoredSGraph.isLnkEdge(e)).findFirst().get();
-                    if (g.outgoingEdgesOf(node).stream().anyMatch(e -> e.getTarget().getLabel().equals(COMPLEX_SPAN))) {
+                    Optional<GraphEdge> outgoingLnkEdgeOptional = g.outgoingEdgesOf(node).stream().filter(e -> AnchoredSGraph.isLnkEdge(e)).findFirst();
+                    if (outgoingLnkEdgeOptional.isPresent() && g.outgoingEdgesOf(node).stream().anyMatch(e -> e.getTarget().getLabel().equals(COMPLEX_SPAN))) {
                         //this node has a complex span at its lnk edge
                         int min;
                         int max;
                         if (g.outDegreeOf(node) < 2 || g.outgoingEdgesOf(node).stream().filter(e -> !e.getLabel().equals(AnchoredSGraph.LNK_LABEL)).anyMatch(e -> !node2span.containsKey(e.getTarget().getName()))) { 
                             //we can't because this node has no real children or there is a child which doesn't have a span yet (this kind of modelling failed!)
-                            copy.removeNode(outgoingLnkEdge.getTarget().getName());
+                            copy.removeNode(outgoingLnkEdgeOptional.get().getTarget().getName());
                             continue;
                             
                         } else {
@@ -412,7 +412,7 @@ public class EDSConverter {
                         }
                         node2span.put(node.getName(), new TokenRange(min,max));
 
-                        copy.setLnk(copy.getNode(outgoingLnkEdge.getTarget().getName()), new TokenRange(min,max)); //.outgoingLnkEdge.getTarget().setLabel("<"+min+":"+max+">");
+                        copy.setLnk(copy.getNode(outgoingLnkEdgeOptional.get().getTarget().getName()), new TokenRange(min,max)); //.outgoingLnkEdge.getTarget().setLabel("<"+min+":"+max+">");
                     }
             }
             }
