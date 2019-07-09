@@ -80,6 +80,14 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         }
         return r;
     }
+   
+   public <T> List<T> getFields(Function <ConllEntry, T> f) {
+        ArrayList<T> r = new ArrayList<>();
+        for (ConllEntry e : this) {
+            r.add(f.apply(e));
+        }
+        return r;
+    }
 
     @Override
     public String toString() {

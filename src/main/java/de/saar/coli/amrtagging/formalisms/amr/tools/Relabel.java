@@ -167,7 +167,7 @@ public class Relabel {
     private final int lookupThreshold;
     
     
-    private Relabel(String wordnetPath, String mapsPath, int nnThreshold, int lookupThreshold)
+    public Relabel(String wordnetPath, String mapsPath, int nnThreshold, int lookupThreshold)
             throws IOException, MalformedURLException, InterruptedException {
         
         URL url = new URL("file", null, wordnetPath);
@@ -188,7 +188,7 @@ public class Relabel {
     }
     
     
-    private void fixGraph(SGraph graph, List<String> sent, List<String> lit, List<String> nnLabels) {
+    public void fixGraph(SGraph graph, List<String> sent, List<String> lit, List<String> nnLabels) {
         
         for (GraphNode node : new HashSet<>(graph.getGraph().vertexSet())) {
             if (node.getLabel().matches(LEXMARKER+"[0-9]+")) {

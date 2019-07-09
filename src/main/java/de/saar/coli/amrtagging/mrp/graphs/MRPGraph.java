@@ -61,6 +61,7 @@ public class MRPGraph {
                 e.label = lbl;
                 e.source = target;
                 e.target = source;
+                e.normal = null;
             }
         }
         
