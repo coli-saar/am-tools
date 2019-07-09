@@ -84,7 +84,7 @@ public class EvaluateCorpus {
                         evaluatedGraph.getNode(n).setLabel(info.right.right);
                     }
                 }
-                l.println(labels.stream().collect(Collectors.joining(" ")));
+                l.println(labels.stream().map(lbl -> lbl.equals("_") ? "NULL" : lbl).collect(Collectors.joining(" ")));
                 o.println(evaluatedGraph.toIsiAmrString());
             } catch (Exception ex){
                 System.err.println("In line "+s.getLineNr());
