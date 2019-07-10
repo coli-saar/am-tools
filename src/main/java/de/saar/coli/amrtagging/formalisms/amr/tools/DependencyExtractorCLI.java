@@ -35,16 +35,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import edu.stanford.nlp.ling.TaggedWord;
-import edu.stanford.nlp.ling.Word;
 import edu.stanford.nlp.simple.Sentence;
-import edu.stanford.nlp.tagger.maxent.MaxentTagger;
-import java.io.FileWriter;
 import java.util.stream.Collectors;
 
 /**

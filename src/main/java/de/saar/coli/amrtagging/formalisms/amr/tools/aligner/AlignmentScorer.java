@@ -10,7 +10,6 @@ import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.Alignment.Span;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -37,7 +36,7 @@ public class AlignmentScorer {
     private final Map<Integer, Set<Alignment>> index2als;
     private final Map<Integer, Set<Alignment>> fixedIndex2als;
     private final Map<Integer, Set<Alignment>> discardedIndex2als;
-    private final WordnetEnumerator we;
+    private final IWordnet we;
     private final Aligner aligner;
     private final Object2DoubleMap<Alignment> scoreBuffer;
     private final Set<Set<String>> coordinationTuples;
@@ -82,7 +81,7 @@ public class AlignmentScorer {
      * @param aligner 
      */
     AlignmentScorer(Set<Alignment> candidates, Set<Alignment> fixed, Set<Alignment> discarded,
-            List<String> sent, SGraph graph, WordnetEnumerator we, Set<Set<String>> coordinationTuples, Aligner aligner) {
+            List<String> sent, SGraph graph, IWordnet we, Set<Set<String>> coordinationTuples, Aligner aligner) {
         this.scoreBuffer = new Object2DoubleOpenHashMap<>();
         this.sent = sent;
         this.graph = graph;
@@ -243,7 +242,7 @@ public class AlignmentScorer {
     
     static double extendingNeighborScoreForProb(GraphNode node, Span span, SGraph graph,
             List<TaggedWord> tags, Map<String, Alignment> nn2fixedAlign,
-            Map<String, Set<Pair<Span, Double>>> nn2scoredCandidates, WordnetEnumerator we) {
+            Map<String, Set<Pair<Span, Double>>> nn2scoredCandidates, IWordnet we) {
         Object2DoubleMap<GraphNode> extensionScores = new Object2DoubleOpenHashMap<>();
         for (GraphEdge edge : graph.getGraph().edgesOf(node)) {
             GraphNode other = GeneralBlobUtils.otherNode(node, edge);
@@ -294,7 +293,7 @@ public class AlignmentScorer {
         return ret;
     }
         
-    static double basicScoreProb(WordnetEnumerator we, String word, String label) {
+    static double basicScoreProb(IWordnet we, String word, String label) {
         Set<String> wnLemmas = we.getWNCandidates(word);
         Set<String> closeLabels = FixedNodeToWordRules.getDirectWords(label);
         if (closeLabels.contains(word)) {

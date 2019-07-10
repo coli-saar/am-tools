@@ -24,7 +24,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,51 +32,42 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Enumerates words that are closely connected in WordNet for a given word, given some conditions.
+ * Enumerates words that are closely connected in WordNet for a given word,
+ * given some conditions.
+ *
  * @author Jonas
  */
-public class WordnetEnumerator {
-    
+public class WordnetEnumerator implements IWordnet {
+
 //    public static final Pointer[] ALLOWED_WORD_RELATIONS = new Pointer[]{Pointer.PERTAINYM, Pointer.PARTICIPLE
 //            , Pointer.DERIVATIONALLY_RELATED, Pointer.DERIVED_FROM_ADJ};
 //    public static final Pointer[] ALLOWED_SYNSET_RELATIONS = new Pointer[]{Pointer.SIMILAR_TO, Pointer.ATTRIBUTE};//Pointer.HYPERNYM};
-    
-    public static final Set<Pointer> GOOD_POINTERS = new HashSet<>(Arrays.asList(new Pointer[]{Pointer.PERTAINYM, Pointer.PARTICIPLE
-            , Pointer.DERIVATIONALLY_RELATED, Pointer.DERIVED_FROM_ADJ, Pointer.SIMILAR_TO, Pointer.ATTRIBUTE}));
-    
+    private static final Set<Pointer> GOOD_POINTERS = new HashSet<>(Arrays.asList(new Pointer[]{Pointer.PERTAINYM, Pointer.PARTICIPLE,
+        Pointer.DERIVATIONALLY_RELATED, Pointer.DERIVED_FROM_ADJ, Pointer.SIMILAR_TO, Pointer.ATTRIBUTE}));
+
     private final WordnetStemmer stemmer;
     private final RAMDictionary dict;
     private final Map<String, Object2DoubleMap<String>> wordPairScores;
-    
-    WordnetEnumerator(String dictPath) throws MalformedURLException, IOException, InterruptedException {
+
+    public WordnetEnumerator(String dictPath) throws MalformedURLException, IOException, InterruptedException {
         this.wordPairScores = new HashMap<>();
         URL url = new URL("file", null, dictPath);
-        
+
         dict = new RAMDictionary(url, ILoadPolicy.BACKGROUND_LOAD);
         dict.open();
         //dict.load(true);//do this when aligning full corpus
-        
+
         stemmer = new WordnetStemmer(dict);
     }
-    
-    
+
     private final static int SEARCH_DEPTH = 3;
     private final static double BAD_COST = 1.2;
     private final static double GOOD_COST = 0.2;
     private final static double COST_THRESHOLD = 1.8;//with current SEARCH_DEPTH, worst score with only one BAD_COST is 1.6, so use this to test for more than 1 BAD_COST.
+
     
-    Set<String> getStems(String word) {
-        Set<String> ret = new HashSet<>();
-        for (POS pos : POS.values()) {
-            for (String stem : stemmer.findStems(word, pos)) {
-                ret.add(stem);
-            }
-        }
-        return ret;
-    }
-    
-    
-    Set<String> getWNCandidates(String word) {
+    @Override
+    public Set<String> getWNCandidates(String word) {
         if (wordPairScores.containsKey(word)) {
             return wordPairScores.get(word).keySet();
         }
@@ -90,7 +80,7 @@ public class WordnetEnumerator {
             String noCommas = word.replaceAll("[.,]", "");
             while (noCommas.endsWith("0")) {
                 ret.add(noCommas);
-                noCommas = noCommas.substring(0, noCommas.length()-1);
+                noCommas = noCommas.substring(0, noCommas.length() - 1);
             }
             if (noCommas.length() > 0) {
                 ret.add(noCommas);
@@ -118,8 +108,8 @@ public class WordnetEnumerator {
                 foundCosts.put(iW, 0);
             }
             Set<IWord> explored = new HashSet<>();
-            for (int k = 0; k<SEARCH_DEPTH; k++) {
-                for (IWord iW : new HashSet<>(Sets.difference(foundCosts.keySet(), explored ))) {
+            for (int k = 0; k < SEARCH_DEPTH; k++) {
+                for (IWord iW : new HashSet<>(Sets.difference(foundCosts.keySet(), explored))) {
                     explored.add(iW);
                     double costIW = foundCosts.getDouble(iW);
                     for (Pointer p : Pointer.values()) {
@@ -159,32 +149,37 @@ public class WordnetEnumerator {
         lemma2score.put(word.toLowerCase(), 0);
         return ret;
     }
-    
+
     /**
-     * returns the score of the path from a word (as occuring in the sentence) to
-     * a related lemma. If no relation is found, -1000 is returned. (large enough
-     * to make score really bad, but safely away from overflow). Returns a negative value,
-     * lower is worse. Current range is from 0 to -1.4
+     * returns the score of the path from a word (as occuring in the sentence)
+     * to a related lemma. If no relation is found, -1000 is returned. (large
+     * enough to make score really bad, but safely away from overflow). Returns
+     * a negative value, lower is worse. Current range is from 0 to -1.4
+     *
      * @param word
      * @param lemma2check
-     * @return 
+     * @return
      */
-    double scoreRel(String word, String lemma2check) {
+    @Override
+    public double scoreRel(String word, String lemma2check) {
         if (!wordPairScores.containsKey(word)) {
             getWNCandidates(word);//this will fill add an entry for word to the wordPairScores, and set its default return value.
         }
         return wordPairScores.get(word).getDouble(lemma2check);
     }
-    
+
     /**
-     * For testing, first argument is the path to wordnet 3.0 (the dict folder), second a word, and optionally
-     * third a second word. Prints near neighbors of the first word and, if applicable, shortest paths to the second word.
+     * For testing, first argument is the path to wordnet 3.0 (the dict folder),
+     * second a word, and optionally third a second word. Prints near neighbors
+     * of the first word and, if applicable, shortest paths to the second word.
+     *
      * @param args
      * @throws IOException
      * @throws CorpusReadingException
      * @throws MalformedURLException
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
+    /*
     public static void main(String[] args) throws IOException, CorpusReadingException, MalformedURLException, InterruptedException {
         
         
@@ -275,7 +270,8 @@ public class WordnetEnumerator {
         
         
     }
-    
+     */
+ /*
     private static void addPath(IWord iW, List<String> path, Map<IWord, Set<List<String>>> found) {
         Set<List<String>> foundHere = found.get(iW);
         if (foundHere == null) {
@@ -292,10 +288,11 @@ public class WordnetEnumerator {
             }
         }
     }
-    
+     */
     private final Map<String, Set<String>> word2Hypers = new HashMap<>();
-    
-    Set<String> getAllNounHypernyms(String word) {
+
+    @Override
+    public Set<String> getAllNounHypernyms(String word) {
         if (word2Hypers.containsKey(word)) {
             return word2Hypers.get(word);
         }
@@ -316,11 +313,10 @@ public class WordnetEnumerator {
                     }
                 }
             }
-        }  
+        }
         return ret;
     }
-    
-    
+
 //    public Set<String> getWNCandidates(String word) {
 //        Set<IWord> wordS = new HashSet<>();
 //        for (POS pos : POS.values()) {
@@ -384,4 +380,95 @@ public class WordnetEnumerator {
 //        ret.add(word.toLowerCase());
 //        return ret;
 //    }
+    @Override
+    public String findVerbStem(String word) {
+        try {
+            List<String> verbStems = stemmer.findStems(word, POS.VERB);
+            if (!verbStems.isEmpty()) {
+                try {
+                    IIndexWord idxWord = dict.getIndexWord(verbStems.iterator().next(), POS.VERB);
+                    return dict.getWord(idxWord.getWordIDs().iterator().next()).getLemma();
+                } catch (Exception e) {
+
+                }
+            }
+
+            return null;
+        } catch (IllegalArgumentException ex) {
+            System.err.printf("** Illegal argument exception during Wordnet lookup: '%s'\n", word);
+            return null;
+        }
+    }
+
+    @Override
+    public String findRelatedVerbStem(String word) {
+        try {
+            //find related verbs
+            Set<IWord> iWords = new HashSet<>();
+
+            for (POS pos : POS.values()) {
+                try {
+                    for (String stem : stemmer.findStems(word, pos)) {
+                        IIndexWord idxWord = dict.getIndexWord(stem, pos);
+                        if (idxWord != null) {
+                            for (IWordID wordID : idxWord.getWordIDs()) {
+                                iWords.add(dict.getWord(wordID));
+                            }
+                        }
+                    }
+                } catch (java.lang.IllegalArgumentException ex) {
+                    System.err.println("*** WARNING *** "
+                            + de.up.ling.irtg.util.Util.getStackTrace(ex));
+                }
+            }
+
+            Set<IWord> seen = new HashSet<>(iWords);
+            boolean changed = true;
+
+            while (changed) {
+                changed = false;
+                for (IWord iW : new HashSet<>(seen)) {
+                    List<IWord> newHere = iW.getRelatedWords(Pointer.DERIVATIONALLY_RELATED).stream().map(id -> dict.getWord(id)).collect(Collectors.toList());
+                    for (IWord newIW : newHere) {
+                        if (!seen.contains(newIW)) {
+                            changed = true;
+                            seen.add(newIW);
+                        }
+                    }
+                }
+            }
+
+            seen.removeIf(iW -> !iW.getPOS().equals(POS.VERB));
+
+            if (!seen.isEmpty()) {
+                return seen.iterator().next().getLemma();
+            } else {
+                return null;
+            }
+        } catch (IllegalArgumentException ex) {
+            System.err.printf("** Illegal argument exception during Wordnet lookup: '%s'\n", word);
+            return null;
+        }
+    }
+
+    @Override
+    public String findNounStem(String word) {
+        try {
+            List<String> nounStems = stemmer.findStems(word, POS.NOUN);
+
+            if (!nounStems.isEmpty()) {
+                IIndexWord idxWord = dict.getIndexWord(nounStems.iterator().next(), POS.NOUN);
+                try {
+                    return dict.getWord(idxWord.getWordIDs().iterator().next()).getLemma();
+                } catch (java.lang.Exception ex) {
+                    //ex.printStackTrace();
+                }
+            }
+
+            return null;
+        } catch (IllegalArgumentException ex) {
+            System.err.printf("** Illegal argument exception during Wordnet lookup: '%s'\n", word);
+            return null;
+        }
+    }
 }
