@@ -1,12 +1,14 @@
 package net.intertextueel.conceptnet;
 
+import java.io.BufferedReader;
 import java.util.Optional;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.linear.RealVector;
@@ -170,9 +173,19 @@ public class ConceptNet {
         }
         load_datasources = new HashMap<String, DataSources>();
         /* parse ConceptNet CSV file */
+        // AK, July 2019: read from gzipped file directly
         try {
-            Files.lines(new File(config_conceptnet_csv).toPath())
-                 .forEach(s -> processCSVLine(s));
+            Reader r = new InputStreamReader(new GZIPInputStream(new FileInputStream(config_conceptnet_csv)));
+            BufferedReader br = new BufferedReader(r);
+            String line = null;
+            
+            while( (line = br.readLine()) != null ) {
+                processCSVLine(line);
+            }
+            
+//            
+//            Files.lines(new File(config_conceptnet_csv).toPath())
+//                 .forEach(s -> processCSVLine(s));
         } catch (IOException e) {
             if (verbose) {
                 System.err.println("Error. General I/O exception: " + e.getMessage());
