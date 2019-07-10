@@ -6,22 +6,15 @@
 package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
+import de.saar.coli.amrtagging.formalisms.amr.tools.aligner.IWordnet;
+import de.saar.coli.amrtagging.formalisms.amr.tools.aligner.WordnetEnumerator;
 import de.up.ling.irtg.algebra.StringAlgebra;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.irtg.util.Util;
-import edu.mit.jwi.RAMDictionary;
-import edu.mit.jwi.data.ILoadPolicy;
-import edu.mit.jwi.item.IIndexWord;
-import edu.mit.jwi.item.IWord;
-import edu.mit.jwi.item.IWordID;
-import edu.mit.jwi.item.POS;
-import edu.mit.jwi.item.Pointer;
-import edu.mit.jwi.morph.WordnetStemmer;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.io.BufferedReader;
@@ -29,12 +22,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -155,8 +146,7 @@ public class Relabel {
     }
     
     
-    private final RAMDictionary dict;
-    private final WordnetStemmer stemmer;
+    private final IWordnet wordnet;
     
     private final Map<String, String> lit2name;
     private final Map<String, String> lit2wiki;
@@ -170,13 +160,8 @@ public class Relabel {
     private Relabel(String wordnetPath, String mapsPath, int nnThreshold, int lookupThreshold)
             throws IOException, MalformedURLException, InterruptedException {
         
-        URL url = new URL("file", null, wordnetPath);
-        
-        dict = new RAMDictionary(url, ILoadPolicy.BACKGROUND_LOAD);
-        dict.open();
-        //dict.load(true);//do this when aligning full corpus
-        
-        stemmer = new WordnetStemmer(dict);
+        wordnet = new WordnetEnumerator(wordnetPath);
+                
         
         lit2name = readMap(mapsPath+"nameLookup.txt");
         lit2wiki = readMap(mapsPath+"wikiLookup.txt");
@@ -329,85 +314,23 @@ public class Relabel {
                 }
                 
                 if (hasArgs) {
-                    boolean foundWithStemming = false;
-                    try {
-                        List<String> verbStems = stemmer.findStems(word, POS.VERB);
-                        if (!verbStems.isEmpty()) {
-                            IIndexWord idxWord = dict.getIndexWord(verbStems.iterator().next(), POS.VERB);
-                            try {
-                                lexNode.setLabel(dict.getWord(idxWord.getWordIDs().iterator().next()).getLemma()+"-01");
-                                foundWithStemming = true;
-                            } catch (java.lang.Exception ex) {
-                                //ex.printStackTrace();
-                            }
-                        }
-                    } catch (IllegalArgumentException ex) {
-                        System.err.println(word);
-//                        ex.printStackTrace();
-                    }
-                        
-                    if (!foundWithStemming) {
+                    String verbStem = wordnet.findVerbStem(word);
                     
-                        //find related verbs
-                        Set<IWord> iWords = new HashSet<>();
-                        for (POS pos : POS.values()) {
-                            try {
-                                for (String stem : stemmer.findStems(word, pos)) {
-                                    IIndexWord idxWord = dict.getIndexWord(stem, pos);
-                                    if (idxWord != null) {
-                                        for (IWordID wordID : idxWord.getWordIDs()) {
-                                            iWords.add(dict.getWord(wordID));
-                                        }
-                                    }
-                                }
-                            } catch (java.lang.IllegalArgumentException ex) {
-                                System.err.println("*** WARNING *** "
-                                        + de.up.ling.irtg.util.Util.getStackTrace(ex));
-                            }
-                        }
-                        Set<IWord> seen = new HashSet<>(iWords);
-                        boolean changed = true;
-                        while (changed) {
-                            changed = false;
-                            for (IWord iW : new HashSet<>(seen)) {
-                                List<IWord> newHere = iW.getRelatedWords(Pointer.DERIVATIONALLY_RELATED)
-                                        .stream().map(id -> dict.getWord(id)).collect(Collectors.toList());
-                                for (IWord newIW : newHere) {
-                                    if (!seen.contains(newIW)) {
-                                        changed = true;
-                                        seen.add(newIW);
-                                    }
-                                }
-                            }
-                        }
-                        seen.removeIf(iW -> !iW.getPOS().equals(POS.VERB));
-                        if (!seen.isEmpty()) {
-                            lexNode.setLabel(seen.iterator().next().getLemma()+"-01");
+                    if( verbStem != null ) {
+                        lexNode.setLabel(verbStem + "-01");
+                    } else {
+                        String relatedVerbStem = wordnet.findRelatedVerbStem(word);
+                        
+                        if( relatedVerbStem != null ) {
+                            lexNode.setLabel(relatedVerbStem + "-01");
                         } else {
-                            lexNode.setLabel(word+"-01");
-                        }
+                            lexNode.setLabel(word + "-01");
+                        }                        
                     }
                     
                 } else {
-                    boolean foundWithStemming = false;
-                    try {
-                        List<String> nounStems = stemmer.findStems(word, POS.NOUN);
-                        if (!nounStems.isEmpty()) {
-                            IIndexWord idxWord = dict.getIndexWord(nounStems.iterator().next(), POS.NOUN);
-                            try {
-                                lexNode.setLabel(dict.getWord(idxWord.getWordIDs().iterator().next()).getLemma());
-                                foundWithStemming = true;
-                            } catch (java.lang.Exception ex) {
-                                //ex.printStackTrace();
-                            }
-                        }
-                    } catch (IllegalArgumentException ex) {
-//                        ex.printStackTrace();
-                    }
-                    
-                    if (!foundWithStemming) {
-                        lexNode.setLabel(word);
-                    }
+                    String nounStem = wordnet.findNounStem(word);                    
+                    lexNode.setLabel(nounStem != null ? nounStem : word);
                 }
             }
 

@@ -7,7 +7,6 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
@@ -46,7 +45,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -142,7 +140,7 @@ public class Aligner {
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         Corpus corpus = Corpus.readCorpus(new FileReader(aligner.corpusPath), loaderIRTG);
         
-        WordnetEnumerator we = new WordnetEnumerator(aligner.wordnetPath);
+        IWordnet we = new WordnetEnumerator(aligner.wordnetPath);
         MaxentTagger tagger = new MaxentTagger(aligner.posModelPath);
         
         Writer alignmentWriter = new FileWriter(aligner.alignmentPath);
@@ -198,7 +196,7 @@ public class Aligner {
      * @throws IOException 
      */
     private String probabilityAlign(SGraph graph, List<String> sent, int instanceIndex,
-            WordnetEnumerator we, MaxentTagger tagger) throws IOException {
+            IWordnet we, MaxentTagger tagger) throws IOException {
         
         List<TaggedWord> tags = tagger.apply(sent.stream().map(word -> new Word(word)).collect(Collectors.toList()));
         Writer verboseWriter = null;
@@ -475,7 +473,7 @@ public class Aligner {
      * @throws IOException 
      */
     private String allProbableAlign(SGraph graph, List<String> sent, int instanceIndex,
-            WordnetEnumerator we, MaxentTagger tagger) throws IOException {
+            IWordnet we, MaxentTagger tagger) throws IOException {
         
         
         List<TaggedWord> tags = tagger.apply(sent.stream().map(word -> new Word(word)).collect(Collectors.toList()));

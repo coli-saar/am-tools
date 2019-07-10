@@ -43,7 +43,7 @@ public class CandidateMatcher {
      * @return 
      */
     static Pair<Map<String, Set<Alignment>>, Set<Alignment>> findCandidatesForProb(SGraph graph,
-            List<String> sent, List<TaggedWord> tags, WordnetEnumerator we) {
+            List<String> sent, List<TaggedWord> tags, IWordnet we) {
         Set<Alignment> ret = new HashSet<>();
         Map<String, Set<Alignment>> nn2als = new HashMap<>();
         Map<String, List<String>> nn2words = new HashMap<>();

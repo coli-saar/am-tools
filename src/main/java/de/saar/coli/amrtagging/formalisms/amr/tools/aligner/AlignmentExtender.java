@@ -43,8 +43,7 @@ public class AlignmentExtender {
      * @param we
      * @return how badly we want to extend the alignment from "from" to "to"
      */
-    static double scoreExtension(GraphNode from, GraphEdge edge, GraphNode to, Set<Pair<TaggedWord, Double>> wordsAndProbs, SGraph graph,
-            WordnetEnumerator we) {
+    static double scoreExtension(GraphNode from, GraphEdge edge, GraphNode to, Set<Pair<TaggedWord, Double>> wordsAndProbs, SGraph graph, IWordnet we) {
         if (edge.getLabel().equals("name") && edge.getTarget().equals(from)) {
             return AlignmentScorer.SCP_EXTENSION;//name to named entity
         } else if (!Util.isNamed(to, graph)) {
