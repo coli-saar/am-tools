@@ -175,7 +175,12 @@ public class RareWordsAnnotator {
             List<String> origSent = (List)inst.getInputObjects().get("string");
             List<String> repSent = new ArrayList(origSent);
             Tree<String> origTree = (Tree)inst.getInputObjects().get("tree");
-            Tree<String> repTree = (Tree)origTree.clone();
+             // we don't always have a tree in the IRTG
+            Tree<String> repTree;
+            if (origTree != null) {
+                newI.getInputObjects().put("tree", origTree);
+                repTree = (Tree)origTree.clone();
+            } else repTree = null;
             
             String alString = alBr.readLine();
             newI.getInputObjects().put("alignment", parsingAlg.parseString(alString));
@@ -313,8 +318,13 @@ public class RareWordsAnnotator {
             
             // now simply replace ALL numbers in the string and tree      
             //this also replaces some dates, but they will be later re-replaced with the DATE_TOKEN
-            List<String> paths2leaves = (List)repTree.getAllPathsToLeavesWithSeparator(SEP); //note that in this Tree class,
+            List<String> paths2leaves;
+            if (repTree != null) {
+                  paths2leaves  = (List)repTree.getAllPathsToLeavesWithSeparator(SEP); //note that in this Tree class,
                 //this indeed returns a list with the leaves in proper order.
+            } else {
+                paths2leaves = new ArrayList<String>();
+            }
             for (int k = 0; k<repSent.size(); k++) {
                 if (repSent.get(k).matches(NUMBER_REGEX)) {
                     repSent.set(k, NUMBER_TOKEN);
@@ -535,8 +545,11 @@ public class RareWordsAnnotator {
                 repGraph = new IsiAmrInputCodec().read("(d<root> / disconnected)");
             }
             newI.getInputObjects().put("repgraph", repGraph);
-            newI.getInputObjects().put("reptree", repTree);
-            newI.getInputObjects().put("repstring", repSent);
+            // sometimes there's no tree
+            if (repTree != null) {
+                newI.getInputObjects().put("reptree", repTree);
+            }
+             newI.getInputObjects().put("repstring", repSent);
             
             outC.addInstance(newI);
             
