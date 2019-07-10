@@ -40,6 +40,8 @@ dependencies {
     
     
     implementation 'com.owlike:genson:1.5'
+    
+    implementation 'de.ruedigermoeller:fst:2.56' // faster serialization
 
 }
 

@@ -1,5 +1,6 @@
 package net.intertextueel.conceptnet;
 
+import java.io.Serializable;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -12,7 +13,7 @@ import java.util.regex.Matcher;
  *
  * An empty or missing value for a specific filter field will result in all possible values being loaded.
  */
-public class ConceptNetFilter {
+public class ConceptNetFilter implements Serializable {
 
     protected boolean load_meta;
     protected boolean load_datasources;

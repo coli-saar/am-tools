@@ -1,5 +1,6 @@
 package net.intertextueel.conceptnet;
 
+import java.io.Serializable;
 import java.util.Optional;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -18,7 +19,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * An assertion is an immutable object; once created, it cannot be modified.
  */
-public class Assertion {
+public class Assertion implements Serializable {
     /* We assume source and targets are concepts, because ConceptNet does not allow assertions about assertions about assertions */
     protected final Concept source;
     protected final Concept target;

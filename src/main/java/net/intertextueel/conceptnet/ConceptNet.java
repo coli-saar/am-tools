@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.Serializable;
 import java.nio.file.Files;
 
 import java.util.stream.Stream;
@@ -56,7 +57,7 @@ import org.apache.commons.math3.linear.ArrayRealVector;
  * </code>
  * </pre>
  */
-public class ConceptNet {
+public class ConceptNet implements Serializable {
 
     protected final boolean verbose;
     protected final String config_conceptnet_csv;
@@ -1045,7 +1046,7 @@ public class ConceptNet {
         return Collections.unmodifiableList(successful_paths);
     }
 
-    protected class ConceptNetRelations {
+    protected class ConceptNetRelations implements Serializable {
 
         public Object key;                             /* this stores the associated key during construction of the object */
         public List<ConceptNetRelation> relations;

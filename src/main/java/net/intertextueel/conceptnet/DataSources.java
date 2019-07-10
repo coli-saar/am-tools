@@ -1,5 +1,6 @@
 package net.intertextueel.conceptnet;
 
+import java.io.Serializable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -11,7 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
  *
  * A DataSources object is an immutable object; once created, it cannot be modified.
  */
-public class DataSources {
+public class DataSources implements Serializable {
 
     protected final String dataset;
     protected final String license;

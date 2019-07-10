@@ -1,5 +1,6 @@
 package net.intertextueel.conceptnet;
 
+import java.io.Serializable;
 import java.util.Optional;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -14,7 +15,7 @@ import org.apache.commons.math3.linear.RealVector;
  *
  * A concept is an immutable object; once created, it cannot be modified.
  */
-public class Concept {
+public class Concept implements Serializable {
     protected final String language;
     protected final String wordphrase;
     protected final Pos pos;

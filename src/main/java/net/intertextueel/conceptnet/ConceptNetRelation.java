@@ -1,5 +1,6 @@
 package net.intertextueel.conceptnet;
 
+import java.io.Serializable;
 import org.apache.commons.lang3.ArrayUtils;
 
 /**
@@ -17,7 +18,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * lookup the relation. The path finding methods from the ConceptNet class return a List of
  * ConceptNetRelation objects as steps in the path from the input Concept to the final destination.
  */
-public class ConceptNetRelation {
+public class ConceptNetRelation implements Serializable {
 
     /*
      * Future considerations (for developers):
