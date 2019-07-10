@@ -121,7 +121,7 @@ public class MRPUtils {
                         break;
                     }
                 }
-                if (! isPropertyEdge) {
+                if (! isPropertyEdge || sg.getSourcesAtNode(node).size() > 0) {
                     output.getNodes().add(new MRPNode(index,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),null));
                     index++;
                 }
@@ -145,14 +145,15 @@ public class MRPUtils {
                 Matcher m = propertyName.matcher(e.getLabel());
                 if (m.matches() && sg.getGraph().edgesOf(e.getTarget()).size() == 1){
                     isPropertyEdge = true;
-                    output.getNode(node2id.get(e.getSource().getName())).getProperties().add(e.getLabel());
-                    output.getNode(node2id.get(e.getSource().getName())).getValues().add(e.getTarget().getLabel());
+                    break;
                 }
             }
             
-
-            if (! isPropertyEdge) {
+            if (! isPropertyEdge || sg.getSourcesAtNode(e.getTarget().getName()).size() > 0) {
                 output.getEdges().add(new MRPEdge(node2id.get(e.getSource().getName()), node2id.get(e.getTarget().getName()),e.getLabel()));
+            } else {
+                output.getNode(node2id.get(e.getSource().getName())).getProperties().add(e.getLabel());
+                output.getNode(node2id.get(e.getSource().getName())).getValues().add(e.getTarget().getLabel());
             }
         }
         
