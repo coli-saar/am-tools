@@ -51,8 +51,8 @@ public class AMR implements Formalism{
     
     
     
-    public AMR(String wordnetPath, String mapsPath, int nnThreshold) throws IOException, MalformedURLException, InterruptedException{
-        relabeler = new Relabel(wordnetPath, mapsPath, nnThreshold, 0);
+    public AMR(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold) throws IOException, MalformedURLException, InterruptedException{
+        relabeler = new Relabel(wordnetPath, conceptnetPath, mapsPath, nnThreshold, 0);
     }
     
     

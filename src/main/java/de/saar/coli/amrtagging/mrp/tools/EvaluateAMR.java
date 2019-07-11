@@ -40,6 +40,9 @@ public class EvaluateAMR {
     @Parameter(names = {"--wn"}, description = "Path to WordNet")//, required = true)
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
     
+    @Parameter(names = {"--conceptnet"}, description = "Path to ConceptNet (.csv.gz file)")//, required = true)
+    private String conceptnet = null;
+    
     @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
     private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/MRP_first_run/";
     
@@ -74,7 +77,7 @@ public class EvaluateAMR {
         List<ConllSentence> parsed = ConllSentence.readFromFile(cli.corpusPath);
         OutputStream output = new FileOutputStream(cli.outPath);
         MRPOutputCodec outputCodec = new MRPOutputCodec();
-        Formalism formalism = new AMR(cli.wordnet, cli.lookup, 10);
+        Formalism formalism = new AMR(cli.wordnet, cli.conceptnet, cli.lookup, 10);
         
         for (ConllSentence sentence : parsed){
             String framework = sentence.getAttr("framework");
