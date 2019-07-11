@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +43,10 @@ public class Relabel {
     public static int seenNameCount = 0;
     public static Counter<String> seenNETypeCounter = new Counter<>();
     public static Counter<String> unseenNETypeCounter = new Counter<>();
+    
+    private Pattern MMddYY = Pattern.compile("([0-9]+)/([0-9]+)/([0-9]+)");
+    private Pattern MMdd = Pattern.compile("([0-9]+)/([0-9]+)");
+    
     
     /**
      * Takes the graphs created by de.saar.coli.amrtaggin.Parser
@@ -239,20 +245,39 @@ public class Relabel {
             
             lexNode.setLabel("date-entity");
             
-            Integer year;
-            Integer month;
-            Integer day;
-            
+            Integer year = 0;
+            Integer month = 0;
+            Integer day = 0;
+            Matcher m; 
             if (lit.contains("-")) {
                 //yyyy-MM-dd
                 year = Integer.parseInt(lit.substring(0, 4));
                 month = Integer.parseInt(lit.substring(5, 7));
                 day = Integer.parseInt(lit.substring(8, 10));
             } else if (lit.contains("/")) {
-                //MM/dd/yy
-                year = fixYear(Integer.parseInt(lit.substring(6, 8)));
-                month = Integer.parseInt(lit.substring(0, 2));
-                day = Integer.parseInt(lit.substring(3, 5));
+                m = MMddYY.matcher(lit);
+                boolean foundSomething = false;
+                if (m.matches()){
+                    //MM/dd/yy
+                    year = fixYear(Integer.parseInt(m.group(3)));
+                    month = Integer.parseInt(m.group(1));
+                    day = Integer.parseInt(m.group(2));
+                    foundSomething = true;
+                } 
+                m = MMdd.matcher(lit);
+                if (m.matches()){
+                    //MM/dd
+                    month = Integer.parseInt(m.group(1));
+                    day = Integer.parseInt(m.group(2));
+                    foundSomething = true;
+                }
+                if (! foundSomething){
+                    System.err.println("[Relabeler] Couldn't parse this date expression "+lit);
+                    year = 0;
+                    month = 0;
+                    day = 0;
+                }
+                
             } else {
                 //yyMMdd
                 year = fixYear(Integer.parseInt(lit.substring(0, 2)));
