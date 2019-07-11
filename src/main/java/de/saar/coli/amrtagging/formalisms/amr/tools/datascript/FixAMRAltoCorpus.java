@@ -61,13 +61,15 @@ public class FixAMRAltoCorpus {
             STRING_LINE = 0;
             TREE_LINE = 1;
             GRAPH_LINE = 2;
-            TOTAL_LINES = 3;
+            ID_LINE = 3;
+            TOTAL_LINES = 4;
         } else {
             START_LINE = 7;
             STRING_LINE = 0;
             TREE_LINE = -1;
             GRAPH_LINE = 1;
-            TOTAL_LINES = 2;
+            ID_LINE = 2;
+            TOTAL_LINES = 3;
         }
     }
     
@@ -75,6 +77,7 @@ public class FixAMRAltoCorpus {
     final int STRING_LINE;
     final int TREE_LINE;
     final int GRAPH_LINE;
+    final int ID_LINE;
     final int TOTAL_LINES;
 
     public static final String SINGLEQUOTE_REPLACEMENT = "AsinglequoteA";
@@ -95,11 +98,13 @@ public class FixAMRAltoCorpus {
         int actualLineCounter = 0;
         while ((line = corpusReader.readLine()) != null) {
             if (i>= START_LINE) {
-                if (actualLineCounter%TOTAL_LINES == STRING_LINE) {
+                // if we're on a string or line we just copy it to the new corpus
+                if (actualLineCounter%TOTAL_LINES == STRING_LINE || 
+                        actualLineCounter%TOTAL_LINES == ID_LINE) { 
                     writer.write(line+"\n");
-                } else if (actualLineCounter%TOTAL_LINES == GRAPH_LINE) {
+                } else if (actualLineCounter%TOTAL_LINES == GRAPH_LINE) { // we're on a graph line
                     writer.write(line.replaceAll("\'", SINGLEQUOTE_REPLACEMENT)+"\n");
-                } else if (actualLineCounter%TOTAL_LINES == TREE_LINE) {
+                } else if (actualLineCounter%TOTAL_LINES == TREE_LINE) { // we're on a tree line
                     StringBuilder sb = new StringBuilder();
                     boolean inDoubleQuotes = false;
                     for (int j = 0; j<line.length(); j++) {
@@ -371,8 +376,8 @@ public class FixAMRAltoCorpus {
      */
     private void tokenizeTree(String path) throws IOException, ParseException {
         
-        String corpusPath = path+"RefOrderFixed.corpus";//"C:/Users/Jonas/Documents/Work/experimentData/Corpora/semeval2017Stripped/train20.corpus";//BitBuckets/alto-experimental/corpus100Dev3.txt";//args[0];
-        String targetPath = path+"tokenizedTrees.corpus";//"C:/Users/Jonas/Documents/Work/experimentData/Corpora/semeval2017Stripped/train20Rooted.corpus";//BitBuckets/alto-experimental/corpus100DevRooted.txt";//args[1];
+        String corpusPath = path+"RefOrderFixed.corpus";
+        String targetPath = path+"tokenizedTrees.corpus";
         
         
         BufferedReader corpusReader = new BufferedReader(new FileReader(corpusPath));

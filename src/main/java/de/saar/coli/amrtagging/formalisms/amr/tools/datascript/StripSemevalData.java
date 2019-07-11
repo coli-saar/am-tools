@@ -22,7 +22,7 @@ public class StripSemevalData {
 
     static final String SNT_PREF = "# ::snt ";
     static final String COMMENT_PREF = "#";
-    static final String GRAPH_ID_PREF = "# ::id";
+    static final String GRAPH_ID_PREF = "# ::id ";
 
     
     /**
@@ -75,7 +75,7 @@ public class StripSemevalData {
                         ENwr.write(line.substring(SNT_PREF.length()));
                         i++;
                     } else if (line.startsWith(GRAPH_ID_PREF)) {
-                        graphIDWriter.write(line.substring(GRAPH_ID_PREF.length()));
+                        graphIDWriter.write(line.substring(GRAPH_ID_PREF.length())+"\n");
                         i++;
                     } else if (!line.startsWith(COMMENT_PREF)) {
                         line = line.trim();
