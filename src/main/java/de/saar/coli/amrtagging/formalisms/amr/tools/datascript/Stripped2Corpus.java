@@ -109,7 +109,7 @@ public class Stripped2Corpus {
             String amr = amrRD.readLine();
             resWR.write("[graph] "+amr+"\n\n");
             i++;
-            if (i%200 == 0) {
+            if (i%1000 == 0) {
                 System.err.println(i);
             }
         }

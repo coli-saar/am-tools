@@ -30,7 +30,7 @@ public class RawAMRCorpus2TrainingData {
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder", required=true)
     private String outputPath;
     
-    @Parameter(names = {"--grammarFile", "-g"}, description = "Path to Stanford grammar file englishPCFG.txt. If none is provided, no trees are produced in the corpus", required = true)
+    @Parameter(names = {"--grammarFile", "-g"}, description = "Path to Stanford grammar file englishPCFG.txt. If none is provided, no trees are produced in the corpus", required = false)
     private String grammarFile;
     
     @Parameter(names = {"--corefSplit"}, description = "Removes reentrant edges that the AM algebra can't handle.")
@@ -53,6 +53,9 @@ public class RawAMRCorpus2TrainingData {
     
     @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model", required=true)
     private String posModelPath;
+    
+    @Parameter(names = {"--trees", "-trees"}, description = "Boolean flag saying whether we're using syntactic parse trees", required=false)
+    private boolean useTrees;
     
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
@@ -94,6 +97,11 @@ public class RawAMRCorpus2TrainingData {
         }
         new File(path).mkdirs();
         
+        String treeString = "";
+        if (r2t.useTrees) {
+            treeString = " --trees";
+        }        
+        
         
         //Step 0: Convert raw AMR corpus into a corpus in Alto format
         if (r2t.step <= 0) {
@@ -105,7 +113,7 @@ public class RawAMRCorpus2TrainingData {
         String corpusFileName = "finalAlto";
         if (r2t.corefSplit) {
             if (r2t.step <= 1) {
-                System.err.println("Running coref split");
+                System.err.println("\nRunning coref split");
                 SplitCoref.splitCoref(r2t.outputPath+"finalAlto.corpus", r2t.outputPath+"raw.amr", r2t.outputPath+"corefSplit.corpus", r2t.threads, r2t.minutes);
             }
             corpusFileName = "corefSplit";
@@ -114,26 +122,26 @@ public class RawAMRCorpus2TrainingData {
         
         //Step 2: Alignments
         if (r2t.step <= 2) {
-            System.err.println("Running aligner (basic)");
+            System.err.println("\nRunning aligner (basic)");
             String alignerArgs = "-c "+path+corpusFileName+".corpus -o "+path+corpusFileName+".align -w "+r2t.wordnetPath+" -pos "+r2t.posModelPath+" -m p";
             Aligner.main(alignerArgs.split(" "));
-            System.err.println("Running aligner (all probabilities)");
+            System.err.println("\nRunning aligner (all probabilities)");
             String pAlignerArgs = "-c "+path+corpusFileName+".corpus -o "+path+corpusFileName+".palign -w "+r2t.wordnetPath+" -pos "+r2t.posModelPath+" -m ap";
             Aligner.main(pAlignerArgs.split(" "));
         }
         
         //Step 3: Replacing names, dates and numbers
         if (r2t.step <= 3) {
-            System.err.println("Running RareWordsAnnotator");
+            System.err.println("\nRunning RareWordsAnnotator");
             String rareWordsArgs = "-c "+path+corpusFileName+".corpus -o "+path+"namesDatesNumbers.corpus -a "
-                    +path+corpusFileName+".align -pa "+path+corpusFileName+".palign -t 0";
+                    +path+corpusFileName+".align -pa "+path+corpusFileName+".palign -t 0"+treeString;
             RareWordsAnnotator.main(rareWordsArgs.split(" "));
             MakeNETypeLookup.main(new String[]{path+"namesDatesNumbers.corpus",path+"nameTypeLookup.txt"});
         }
         
         //Step 4: fix alignments
         if (r2t.step <= 4) {
-            System.err.println("Fixing unaligned words");
+            System.err.println("\nFixing unaligned words");
             FixUnalignedNodes.fixUnalignedNodes(path+"namesDatesNumbers.corpus", 5);
         }
         

@@ -24,9 +24,17 @@ public class FullProcess {
      * @throws de.up.ling.tree.ParseException 
      */
     public static void main(String[] args) throws IOException, ParseException {
-        String[] onlyOutput = new String[]{args[1], args[2]};
+        // String[] onlyOutput = new String[]{args[1], args[2]};
         
-        fullProcess(args[0], args[1], args[2]);
+        // the third argument is the PCFG, which is not always given
+        if (args.length > 2) {
+            fullProcess(args[0], args[1], args[2]);
+        } else if (args.length == 2) {
+            fullProcess(args[0], args[1], null);
+        } else {
+            System.err.println("FullProcess error: 2 or 3 arguments needed"
+                    + ", 0 or 1 given");
+        }
     }
     
     /**
@@ -41,13 +49,15 @@ public class FullProcess {
      * @throws de.up.ling.tree.ParseException 
      */
     public static void fullProcess(String inputPath, String outputPath, String grammarFile) throws IOException, ParseException {
-        System.err.println("Joining data...");
+        Boolean trees = grammarFile != null;
+        
+        System.err.println("\nJoining data...");
         StripSemevalData.stripSemevalData(inputPath, outputPath);
-        System.err.println("Building raw corpus...");
+        System.err.println("\nBuilding raw corpus...");
         Stripped2Corpus.stripped2Corpus(outputPath, grammarFile);
-        System.err.println("Fixing corpus...");
-        FixAMRAltoCorpus.fixAMRCorpus(outputPath, true);
-        System.err.println("Done!");
+        System.err.println("\nFixing corpus...");
+        FixAMRAltoCorpus.fixAMRCorpus(outputPath, trees);
+        System.err.println("\nDone corpus preprocessing\n\n");
     }
     
 }

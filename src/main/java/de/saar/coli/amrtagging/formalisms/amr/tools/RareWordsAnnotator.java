@@ -72,6 +72,8 @@ public class RareWordsAnnotator {
     @Parameter(names = {"--outfile", "-o"}, description = "Path to output corpus ", required=true)
     private String outPath;
     
+    @Parameter(names = {"--trees", "-trees"}, description = "Whether we're using syntax trees ", required=false)
+    private boolean useTrees = false;
     
     @Parameter(names = {"--comment", "-cmt"}, description = "Comment to be printed in the file.")
     private String comment = "";
@@ -124,7 +126,9 @@ public class RareWordsAnnotator {
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
-        loaderIRTG.addInterpretation("tree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySig, dummySig)));
+        if (annotator.useTrees) {
+            loaderIRTG.addInterpretation("tree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySig, dummySig)));
+        }
         Corpus corpus = Corpus.readCorpus(new FileReader(annotator.corpusPath), loaderIRTG);
         
         BufferedReader alBr = new BufferedReader(new FileReader(annotator.alignmentPath));
@@ -174,13 +178,15 @@ public class RareWordsAnnotator {
             
             List<String> origSent = (List)inst.getInputObjects().get("string");
             List<String> repSent = new ArrayList(origSent);
-            Tree<String> origTree = (Tree)inst.getInputObjects().get("tree");
-             // we don't always have a tree in the IRTG
-            Tree<String> repTree;
-            if (origTree != null) {
+            
+            // we don't always have a tree in the IRTG
+            Tree<String> repTree = null;
+            Tree<String> origTree = null;
+            if (annotator.useTrees) {
+                origTree = (Tree)inst.getInputObjects().get("tree");                           
                 newI.getInputObjects().put("tree", origTree);
                 repTree = (Tree)origTree.clone();
-            } else repTree = null;
+            } 
             
             String alString = alBr.readLine();
             newI.getInputObjects().put("alignment", parsingAlg.parseString(alString));
@@ -319,7 +325,7 @@ public class RareWordsAnnotator {
             // now simply replace ALL numbers in the string and tree      
             //this also replaces some dates, but they will be later re-replaced with the DATE_TOKEN
             List<String> paths2leaves;
-            if (repTree != null) {
+            if (annotator.useTrees) {
                   paths2leaves  = (List)repTree.getAllPathsToLeavesWithSeparator(SEP); //note that in this Tree class,
                 //this indeed returns a list with the leaves in proper order.
             } else {
@@ -328,7 +334,9 @@ public class RareWordsAnnotator {
             for (int k = 0; k<repSent.size(); k++) {
                 if (repSent.get(k).matches(NUMBER_REGEX)) {
                     repSent.set(k, NUMBER_TOKEN);
-                    repTree.selectWithSeparators(paths2leaves.get(k), 0, SEP).setLabel(NUMBER_TOKEN);
+                    if (annotator.useTrees) {
+                        repTree.selectWithSeparators(paths2leaves.get(k), 0, SEP).setLabel(NUMBER_TOKEN);
+                    }
                 }
             }
             
@@ -372,24 +380,26 @@ public class RareWordsAnnotator {
                 repSent.set(span.start, replacement);
 
                 //replace in tree
-                if (!origTree.getChildren().isEmpty()) {
-                    //i.e. if we have a non-trivial tree
-                    
-                    for (int k = span.end-1; k>span.start; k--) {
-                        if (k >= paths2leaves.size()) {
-                            System.err.println("***WARNING*** Node not found in tree!");
-                            System.err.println(als);
-                            System.err.println(origSent);
-                            System.err.println(repSent);
-                            System.err.println(origTree);
-                            System.err.println(repTree);
-                            System.err.println(graph.toString());
-                            System.err.println(repGraph.toString());
-                            System.err.println(repGraph.toIsiAmrString());
+                if (annotator.useTrees) {
+                    if (!origTree.getChildren().isEmpty()) {
+                        //i.e. if we have a non-trivial tree
+
+                        for (int k = span.end-1; k>span.start; k--) {
+                            if (k >= paths2leaves.size()) {
+                                System.err.println("***WARNING*** Node not found in tree!");
+                                System.err.println(als);
+                                System.err.println(origSent);
+                                System.err.println(repSent);
+                                System.err.println(origTree);
+                                System.err.println(repTree);
+                                System.err.println(graph.toString());
+                                System.err.println(repGraph.toString());
+                                System.err.println(repGraph.toIsiAmrString());
+                            }
+                            removeNodeAndEmptyParents(repTree, paths2leaves.get(k));
                         }
-                        removeNodeAndEmptyParents(repTree, paths2leaves.get(k));
+                        repTree.selectWithSeparators(paths2leaves.get(span.start), 0, SEP).setLabel(replacement);
                     }
-                    repTree.selectWithSeparators(paths2leaves.get(span.start), 0, SEP).setLabel(replacement);
                 }
 
             }
@@ -489,7 +499,7 @@ public class RareWordsAnnotator {
                 String word = repSent.get(k);
                 if (!word.equals(NAME_TOKEN) && !word.equals(DATE_TOKEN) && !word.equals(NUMBER_TOKEN)
                         && wordCounts.get(word.toLowerCase()) <= annotator.threshold) {
-                    boolean treeNontrivial = (!origTree.getChildren().isEmpty());
+                    boolean treeNontrivial = (annotator.useTrees && !origTree.getChildren().isEmpty());
                     String posTag;
                     if (treeNontrivial) {
                         String path2leaf = paths2leaves.get(k);
@@ -546,7 +556,7 @@ public class RareWordsAnnotator {
             }
             newI.getInputObjects().put("repgraph", repGraph);
             // sometimes there's no tree
-            if (repTree != null) {
+            if (annotator.useTrees) {
                 newI.getInputObjects().put("reptree", repTree);
             }
              newI.getInputObjects().put("repstring", repSent);
@@ -560,10 +570,14 @@ public class RareWordsAnnotator {
         InterpretedTreeAutomaton writerIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
         writerIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         writerIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
-        writerIRTG.addInterpretation("tree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySig, dummySig)));
+        if (annotator.useTrees) {
+            writerIRTG.addInterpretation("tree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySig, dummySig)));
+        }
         writerIRTG.addInterpretation("repgraph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         writerIRTG.addInterpretation("repstring", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
-        writerIRTG.addInterpretation("reptree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySig, dummySig)));
+        if (annotator.useTrees) {
+            writerIRTG.addInterpretation("reptree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySig, dummySig)));
+        }
         writerIRTG.addInterpretation("spanmap", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         writerIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         writerIRTG.addInterpretation("repalignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));

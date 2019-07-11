@@ -340,7 +340,12 @@ public class FixAMRAltoCorpus {
             if (i>= START_LINE) {
                 if (actualLineCounter%TOTAL_LINES == GRAPH_LINE) {
                     int index = line.indexOf("/");
-                    writer.write(line.substring(0, index)+"<root> "+line.substring(index)+"\n");
+                    if (index > -1) { // it's -1 if / isn't found
+                        writer.write(line.substring(0, index)+"<root> "+line.substring(index)+"\n");
+                    } else {
+                        System.out.println("addRootSources error: I didn't find a graph where I should have");
+                        System.out.println("Line: " + line);
+                    }
                 } else {
                     writer.write(line+"\n");
                 }
