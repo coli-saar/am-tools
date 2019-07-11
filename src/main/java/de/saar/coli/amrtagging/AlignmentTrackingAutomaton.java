@@ -256,7 +256,8 @@ public class AlignmentTrackingAutomaton extends TreeAutomaton<Pair<Pair<Boundary
     
     /**
      * Creates a new AlignmentTrackingAutomaton, also building the signature for decomposing it,
-     * using the given sigBuilder and its getConstantsForAlignment method.This function is similar to de.up.ling.irtg.algebra.graph.AMSignatureBuilder.makeDecompositionSignatureWithAlignments.
+     * using the given sigBuilder and its getConstantsForAlignment method.
+     * This function is similar to de.up.ling.irtg.algebra.graph.AMSignatureBuilder.makeDecompositionSignatureWithAlignments.
      * @param inst the Instance (graph, sentence and alignments) to be decomposed
      * @param sigBuilder builder for signature, i.e. class for finding the constants (for instance AMRSignatureBuilder) and invokes getConstantsForAlignment
      * @param coref whether to use coref sources (set to false in the ACL 2018 experiments)
@@ -303,5 +304,5 @@ public class AlignmentTrackingAutomaton extends TreeAutomaton<Pair<Pair<Boundary
         return new AlignmentTrackingAutomaton(new ApplyModifyGraphAlgebra(plainSig), sig, inst.getGraph(), index2nns, scoreConst);
     }
     
-    
+ 
 }
