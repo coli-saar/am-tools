@@ -9,8 +9,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
-import de.up.ling.irtg.corpus.CorpusReadingException;
-import de.up.ling.tree.ParseException;
 import edu.stanford.nlp.simple.Sentence;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
