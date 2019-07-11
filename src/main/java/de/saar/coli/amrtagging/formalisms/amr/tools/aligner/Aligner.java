@@ -138,6 +138,7 @@ public class Aligner {
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         Corpus corpus = Corpus.readCorpus(new FileReader(aligner.corpusPath), loaderIRTG);
         
         IWordnet we = new WordnetEnumerator(aligner.wordnetPath);

@@ -57,10 +57,12 @@ public class StripSemevalData {
             StringJoiner graphBuilder = new StringJoiner(" ");
             int i = 0;
             for (File file : folder.listFiles((File pathname) -> !pathname.isDirectory())) {
+                if (file.getName().endsWith("~")) {
+                    continue;
+                }
                 BufferedReader rd = new BufferedReader(new FileReader(file));
-                while (rd.ready()) {
-                    String line = rd.readLine(); 
-                    System.out.println("Reading in " + line);
+                String line;
+                while ((line = rd.readLine()) != null) {
                     if (line.startsWith(SNT_PREF)) {
                         //idea of this: whenever we hit a sentence, we write that sentence, and the *previous* graph
                         //don't write a graph when we hit the first sentence, and write the last graph all the way at the end
@@ -69,16 +71,13 @@ public class StripSemevalData {
                             if (i != 1) {
                                 AMRwr.write("\n");//line break after last entry
                             }
-                            System.out.println("Writing graph "+ graphBuilder.toString());
                             AMRwr.write(graphBuilder.toString());//write down the last graph we had gathered.
                             graphBuilder = new StringJoiner(" ");
                             ENwr.write("\n");//line break after last entry
                         }
                         ENwr.write(line.substring(SNT_PREF.length()));
-                        System.out.println("printing sentence to raw.en: "+ line);
                         i++;
                     } else if (line.startsWith(GRAPH_ID_PREF)) {
-                        System.out.println("writing graph id "+ line);
                         graphIDWriter.write(line.substring(GRAPH_ID_PREF.length())+"\n");
                         
                     } else if (!line.startsWith(COMMENT_PREF)) {
@@ -91,7 +90,6 @@ public class StripSemevalData {
                 
                 rd.close();
             }   
-            System.out.println("Writing last graph");
             AMRwr.write("\n"+graphBuilder.toString());//don't forget to write the last graph
             AMRwr.close();
             graphIDWriter.close();

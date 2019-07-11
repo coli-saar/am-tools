@@ -126,6 +126,7 @@ public class RareWordsAnnotator {
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         if (annotator.useTrees) {
             loaderIRTG.addInterpretation("tree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySig, dummySig)));
         }
@@ -175,6 +176,8 @@ public class RareWordsAnnotator {
             SGraph graph = (SGraph)inst.getInputObjects().get("graph");
             graph.setWriteAsAMR(true);
             newI.getInputObjects().put("graph", graph);
+            newI.getInputObjects().put("id", inst.getInputObjects().get("id"));
+
             
             List<String> origSent = (List)inst.getInputObjects().get("string");
             List<String> repSent = new ArrayList(origSent);
@@ -585,6 +588,8 @@ public class RareWordsAnnotator {
             writerIRTG.addInterpretation("alignmentp", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
             writerIRTG.addInterpretation("repalignmentp", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         }
+        writerIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+
         try (FileWriter w = new FileWriter(annotator.outPath)) {
             new CorpusWriter(writerIRTG, annotator.comment + " Replaced all words with frequency <= "+annotator.threshold, "///###", w).writeCorpus(outC);
         }

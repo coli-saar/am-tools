@@ -57,14 +57,14 @@ public class FixAMRAltoCorpus {
     
     private FixAMRAltoCorpus(boolean useTrees) {
         if (useTrees) {
-            START_LINE = 8;
+            START_LINE = 10;
             STRING_LINE = 0;
             TREE_LINE = 1;
             GRAPH_LINE = 2;
             ID_LINE = 3;
             TOTAL_LINES = 4;
         } else {
-            START_LINE = 7;
+            START_LINE = 9;
             STRING_LINE = 0;
             TREE_LINE = -1;
             GRAPH_LINE = 1;
@@ -171,7 +171,7 @@ public class FixAMRAltoCorpus {
                 //replace non-ascii characters
                 line = line.replaceAll("[^\\x00-\\x7F]", "_UNK_CHAR_");
             } else {
-                line = line.replaceAll("\\[(string|graph)\\] ", "");
+                line = line.replaceAll("\\[(string|graph|id)\\] ", "");
                 //normalize (separate accent from accented letter) and remove accents
                 line = Normalizer.normalize(line, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
                 //replace non-ascii characters

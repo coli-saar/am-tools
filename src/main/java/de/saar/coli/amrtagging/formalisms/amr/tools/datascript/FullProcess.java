@@ -42,6 +42,9 @@ public class FullProcess {
      * Takes three arguments: first folder that contains the original AMR corpus
      * files; Second the output folder; third the path to the stanford parser
      * grammar file englishPCFG.txt. 
+     * 
+     * Final output is called finalAlto.corpus
+     * 
      * @param inputPath
      * @param outputPath
      * @param grammarFile

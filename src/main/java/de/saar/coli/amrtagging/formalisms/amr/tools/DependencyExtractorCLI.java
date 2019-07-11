@@ -121,6 +121,8 @@ public class DependencyExtractorCLI {
         loaderIRTG.addInterpretation("repstring", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("spanmap", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+
 //        if (cli.joint) {
 //            loaderIRTG.addInterpretation("repalignmentp", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
 //        } else {
@@ -138,6 +140,7 @@ public class DependencyExtractorCLI {
         FileWriter posWriter = new FileWriter(cli.outPath+"pos.txt");
         Set<String> allPosTags = new HashSet<>();
         FileWriter literalWriter = new FileWriter(cli.outPath+"literal.txt");
+        FileWriter idWriter = new FileWriter(cli.outPath+"graphIDs.txt");
         
         MutableInteger nextInstanceID = new MutableInteger(0);
         ForkJoinPool forkJoinPool = new ForkJoinPool(cli.numThreads);
@@ -148,6 +151,9 @@ public class DependencyExtractorCLI {
             List<String> sent = (List)inst.getInputObjects().get("repstring");
             List<String> origSent = (List)inst.getInputObjects().get("string");
             List<String> spanmap = (List)inst.getInputObjects().get("spanmap");
+            List<String> ids = (List)inst.getInputObjects().get("id");
+            String id = ids.get(0);
+
 //            if (!alBr.ready()) {
 //                break;
 //            }
@@ -220,6 +226,7 @@ public class DependencyExtractorCLI {
                             extr.writeTrainingdataFromConstraints(constraints, sent);
                             posWriter.write(posTags.stream().collect(Collectors.joining(" "))+"\n");
                             literalWriter.write(literals.stream().collect(Collectors.joining(" "))+"\n");
+                            idWriter.write(id+"\n");
                         }
                     }
                     if ((i+1) % 500 == 0) {
@@ -251,6 +258,7 @@ public class DependencyExtractorCLI {
         
         posWriter.close();
         literalWriter.close();
+        idWriter.close();
         FileWriter posVocabW = new FileWriter(cli.outPath+"vocabPos.txt");
         for (String tag : allPosTags) {
             posVocabW.write(tag+"\n");

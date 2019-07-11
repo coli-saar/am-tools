@@ -24,17 +24,17 @@ import java.io.IOException;
  */
 public class RawAMRCorpus2TrainingData {
     
-    @Parameter(names = {"--inputPath", "-i"}, description = "Path to folder containing the original AMR files", required=true)
-    private String inputPath;
+    @Parameter(names = {"--inputPath", "-i"}, description = "Path to folder containing the original AMR files")
+    private String inputPath = "/home/mego/Documents/amr-dependency-july2019/mini/corpus/training/";
     
-    @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder", required=true)
-    private String outputPath;
+    @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder")
+    private String outputPath= "/home/mego/Documents/amr-dependency-july2019/mini/data/alto/train/";;
     
     @Parameter(names = {"--grammarFile", "-g"}, description = "Path to Stanford grammar file englishPCFG.txt. If none is provided, no trees are produced in the corpus", required = false)
     private String grammarFile;
     
     @Parameter(names = {"--corefSplit"}, description = "Removes reentrant edges that the AM algebra can't handle.")
-    private boolean corefSplit = false;
+    private boolean corefSplit = true;
     
     @Parameter(names = {"--maxNodes", "-m"}, description = "maximum number of nodes for instances to be kept in the final corpus")
     private int maxNodes = -1;
@@ -48,11 +48,11 @@ public class RawAMRCorpus2TrainingData {
     @Parameter(names = {"--step"}, description = "First step to be executed (default is from the start, step 0). Steps are: 0:altoFormat 1:corefSplit 2:align 3:namesAndDates 4:fixAlignments 5:sortAndFilter")
     private int step = 0;
     
-    @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')", required=true)
-    private String wordnetPath;
+    @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')")
+    private String wordnetPath=  "/home/mego/Documents/amr-dependency-july2019/data/wordnet/dict/";
     
-    @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model", required=true)
-    private String posModelPath;
+    @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model")
+    private String posModelPath=  "/home/mego/Documents/amr-dependency-july2019/data/english-bidirectional-distsim.tagger";
     
     @Parameter(names = {"--trees", "-trees"}, description = "Boolean flag saying whether we're using syntactic parse trees", required=false)
     private boolean useTrees;
@@ -114,7 +114,7 @@ public class RawAMRCorpus2TrainingData {
         if (r2t.corefSplit) {
             if (r2t.step <= 1) {
                 System.err.println("\nRunning coref split");
-                SplitCoref.splitCoref(r2t.outputPath+"finalAlto.corpus", r2t.outputPath+"raw.amr", r2t.outputPath+"corefSplit.corpus", r2t.threads, r2t.minutes);
+                SplitCoref.splitCoref(r2t.outputPath+corpusFileName+".corpus", r2t.outputPath+"raw.amr", r2t.outputPath+"corefSplit.corpus", r2t.threads, r2t.minutes);
             }
             corpusFileName = "corefSplit";
         }

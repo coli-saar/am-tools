@@ -82,7 +82,7 @@ public class Stripped2Corpus {
             "/// interpretation string: class de.up.ling.irtg.algebra.StringAlgebra\n" +
             treeHeaderLine +
             "/// interpretation graph: class de.up.ling.irtg.algebra.graph.GraphAlgebra\n" +
-            "/// interpretation ids: class de.up.ling.irtg.algebra.StringAlgebra\n" +
+            "/// interpretation id: class de.up.ling.irtg.algebra.StringAlgebra\n" +
             "\n\n");
         
         //iterate over instances
