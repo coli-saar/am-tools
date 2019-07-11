@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
 
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
 import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
@@ -296,11 +297,14 @@ public class AlignmentScorer {
     static double basicScoreProb(IWordnet we, String word, String label) {
         Set<String> wnLemmas = we.getWNCandidates(word);
         Set<String> closeLabels = FixedNodeToWordRules.getDirectWords(label);
+        
         if (closeLabels.contains(word)) {
             return SCP_PERFECT;
         }
+        
         Set<String> relLabels = FixedNodeToWordRules.getIndirectWords(label);
         Set<String> closeIntersection = Sets.intersection(wnLemmas, closeLabels);
+        
         if (!closeIntersection.isEmpty()) {
             return SCP_PERFECT + SCP_WE_MULT * closeIntersection.stream().map(lemma -> we.scoreRel(word, lemma))
                     .collect(Collectors.maxBy(Comparator.naturalOrder())).get();

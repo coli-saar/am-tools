@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
 
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;

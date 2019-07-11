@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
+package de.saar.coli.amrtagging.formalisms.amr.tools.wordnet;
 
 import java.util.Set;
 
@@ -21,11 +21,16 @@ public interface IWordnet {
     public Set<String> getAllNounHypernyms(String word);
     
     /**
-     * I don't quite understand what this method does. I think it
-     * tries to find lemmas in Wordnet that are semantically related
-     * to the given word form and stores them in a private dictionary.
-     * It also computes a score for the Wordnet path from the word
-     * to each of these lemmas, for later access with {@link #scoreRel(java.lang.String, java.lang.String) }.
+     * Returns a set of node-label candidates for the given inflected word.
+     * Candidates are lemmas, e.g. the uninflected words in Wordnet synsets.
+     * These candidates will be compared against node labels in the AMR graph,
+     * and if a candidate matches a node label exactly, that node becomes
+     * a good candidate for being aligned with the token in the sentence.<p>
+     * 
+     * The method also builds up a data structure which will support
+     * subsequent queries to the quality of a candidate, using
+     * {@link #scoreRel(java.lang.String, java.lang.String) }.
+     * 
      * @param word
      * @return 
      */

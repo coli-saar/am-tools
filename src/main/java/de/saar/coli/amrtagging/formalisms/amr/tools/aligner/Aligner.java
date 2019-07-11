@@ -5,11 +5,14 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
 
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.WordnetEnumerator;
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.ConceptnetEnumerator;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
@@ -31,6 +34,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -61,6 +65,9 @@ public class Aligner {
     
     @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')", required=true)
     private String wordnetPath;
+    
+    @Parameter(names = {"--conceptnet"}, description = "Path to ConceptNet csv.gz file", required=false)
+    private String conceptnetPath;
     
     @Parameter(names = {"--corpus", "-c"}, description = "Path to corpus", required=true)
     private String corpusPath;
@@ -140,7 +147,16 @@ public class Aligner {
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         Corpus corpus = Corpus.readCorpus(new FileReader(aligner.corpusPath), loaderIRTG);
         
-        IWordnet we = new WordnetEnumerator(aligner.wordnetPath);
+        IWordnet we = null;
+        
+        if( aligner.conceptnetPath != null ) {
+            System.err.println("Reading ConceptNet + Wordnet stemmer.");
+            we = new ConceptnetEnumerator(new File(aligner.conceptnetPath), aligner.wordnetPath);
+        } else {
+            System.err.println("Reading full Wordnet.");
+            we = new WordnetEnumerator(aligner.wordnetPath);
+        }
+        
         MaxentTagger tagger = new MaxentTagger(aligner.posModelPath);
         
         Writer alignmentWriter = new FileWriter(aligner.alignmentPath);

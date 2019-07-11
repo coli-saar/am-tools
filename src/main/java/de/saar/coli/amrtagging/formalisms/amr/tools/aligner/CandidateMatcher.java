@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
 
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
 import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
@@ -46,10 +47,11 @@ public class CandidateMatcher {
             List<String> sent, List<TaggedWord> tags, IWordnet we) {
         Set<Alignment> ret = new HashSet<>();
         Map<String, Set<Alignment>> nn2als = new HashMap<>();
-        Map<String, List<String>> nn2words = new HashMap<>();
-        Map<String, IntSet> nn2candidateIndices = new HashMap<>();
+        Map<String, List<String>> nn2words = new HashMap<>();       // node names -> set of words that might match the node label
+        Map<String, IntSet> nn2candidateIndices = new HashMap<>();  // node names -> set of positions in sentence to which node might be aligned
+        
         for (GraphNode node : graph.getGraph().vertexSet()) {
-            //look up handwritten rules (includes literal), to generate candidates
+            // look up handwritten rules (includes literal), to generate candidates
             List<String> wordsHere = new ArrayList<>();
             nn2words.put(node.getName(), wordsHere);
             wordsHere.addAll(FixedNodeToWordRules.getIndirectWords(node.getLabel()));
@@ -57,21 +59,24 @@ public class CandidateMatcher {
         }
         
         
-        //check wordnet list to generate matches; this includes exact matches of the fixed node to word rules
-        for (int j = 0; j<sent.size(); j++) {
+        // check wordnet list to generate matches; this includes exact matches of the fixed node to word rules
+        for (int j = 0; j < sent.size(); j++) {
             String word = sent.get(j);
             Set<String> candidates = we.getWNCandidates(word);
-            //collect all matches
+            
+            // collect all matches
             for (String nn : nn2words.keySet()) {
                 boolean isWiki = false;
+                
                 for (GraphEdge e : graph.getGraph().incomingEdgesOf(graph.getNode(nn))) {
                     if (e.getLabel().equals("wiki")) {
                         isWiki = true;
                     }
                 }
-                if (!isWiki) {//never align wiki nodes directly
+                
+                if (!isWiki) { // never align wiki nodes directly
                     for (String nnWord : nn2words.get(nn)) {
-                        //exact wordnet matches (also includes direct matches, since we.getWNCandidates(word)) always includes the word itself
+                        // exact wordnet matches (also includes direct matches, since we.getWNCandidates(word)) always includes the word itself
                         if (!nnWord.equals("name")) {
                             for (String c : candidates) {
                                 if (nnWord.equals(c)) {//TODO maybe allow loss at start, c.f. make sure -> ensure-0x
@@ -79,16 +84,16 @@ public class CandidateMatcher {
                                 }
                             }
                         }
-                        //non-exact direct matches
-                        if (!oneIsTooShort(nnWord, word) &&
-                                        containsLiteralMatchModSuffix(word, nnWord) || containsLiteralMatchModSuffix(nnWord, word)) {
+                        
+                        // non-exact direct matches
+                        if (!oneIsTooShort(nnWord, word) && containsLiteralMatchModSuffix(word, nnWord) || containsLiteralMatchModSuffix(nnWord, word)) {
                             nn2candidateIndices.get(nn).add(j);
                         }
-
                     }
                 }
             }
         }
+        
         Set<String> untouchedNns = new HashSet<>(graph.getGraph().vertexSet().stream().map(node -> node.getName()).collect(Collectors.toSet()));
         //get name and date spans and match multi-sentence if appropriate.
         for (GraphNode node : graph.getGraph().vertexSet()) {

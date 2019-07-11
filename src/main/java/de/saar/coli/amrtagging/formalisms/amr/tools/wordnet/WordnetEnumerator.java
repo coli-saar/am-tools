@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
+package de.saar.coli.amrtagging.formalisms.amr.tools.wordnet;
 
 import com.google.common.collect.Sets;
 import de.up.ling.irtg.corpus.CorpusReadingException;
@@ -71,22 +71,29 @@ public class WordnetEnumerator implements IWordnet {
         if (wordPairScores.containsKey(word)) {
             return wordPairScores.get(word).keySet();
         }
+        
         Set<String> ret;
         Object2DoubleMap lemma2score = new Object2DoubleOpenHashMap();
         lemma2score.defaultReturnValue(-1000);
         wordPairScores.put(word, lemma2score);
+        
         if (word.matches("[0-9,.]+")) {
             ret = new HashSet<>();
             String noCommas = word.replaceAll("[.,]", "");
+            
             while (noCommas.endsWith("0")) {
                 ret.add(noCommas);
                 noCommas = noCommas.substring(0, noCommas.length() - 1);
             }
+            
             if (noCommas.length() > 0) {
                 ret.add(noCommas);
             }
         } else {
-            Set<IWord> iWords = new HashSet<>();
+            // look up word IDs
+            
+            Set<IWord> iWords = new HashSet<>(); // Wordnet word IDs for all lemmas of the given word
+            
             for (POS pos : POS.values()) {
                 try {
                     for (String stem : stemmer.findStems(word, pos)) {
@@ -102,24 +109,35 @@ public class WordnetEnumerator implements IWordnet {
                             + de.up.ling.irtg.util.Util.getStackTrace(ex));
                 }
             }
+            
+            // initialize cost table
+            
             Object2DoubleMap<IWord> foundCosts = new Object2DoubleOpenHashMap<>();
-            foundCosts.defaultReturnValue(Double.MAX_VALUE);
+            foundCosts.defaultReturnValue(Double.MAX_VALUE);            
             for (IWord iW : iWords) {
                 foundCosts.put(iW, 0);
             }
+            
+            
             Set<IWord> explored = new HashSet<>();
             for (int k = 0; k < SEARCH_DEPTH; k++) {
                 for (IWord iW : new HashSet<>(Sets.difference(foundCosts.keySet(), explored))) {
                     explored.add(iW);
+                    
                     double costIW = foundCosts.getDouble(iW);
+                    
+                    // iterate over Wordnet relations
                     for (Pointer p : Pointer.values()) {
+                        // iterate over all Wordnet neighbours over this relation;
+                        // keep track of path cost (based on relation);
+                        // if cost threshold not exceeded, add target synset to foundCosts
                         iW.getRelatedWords(p).stream().map(id -> dict.getWord(id)).forEach(newIWord -> {
                             double newCost = costIW + (GOOD_POINTERS.contains(p) ? GOOD_COST : BAD_COST);
                             if (newCost < COST_THRESHOLD) {
                                 foundCosts.put(newIWord, Math.min(foundCosts.getDouble(newIWord), newCost));
                             }
-
                         });
+                        
                         iW.getSynset().getRelatedSynsets(p).stream().map(id -> dict.getSynset(id)).forEach(syn -> {
                             for (IWord synW : syn.getWords()) {
                                 double newCost = costIW + (GOOD_POINTERS.contains(p) ? GOOD_COST : BAD_COST);
@@ -129,6 +147,8 @@ public class WordnetEnumerator implements IWordnet {
                             }
                         });
                     }
+                    
+                    // other words in same synset count as related with BAD_COST
                     for (IWord synW : iW.getSynset().getWords()) {
                         if (!synW.equals(iW)) {
                             double newCost = costIW + BAD_COST;
@@ -139,9 +159,11 @@ public class WordnetEnumerator implements IWordnet {
                     }
                 }
             }
+            
             for (IWord iW : foundCosts.keySet()) {
                 lemma2score.put(iW.getLemma(), -foundCosts.getDouble(iW));
             }
+            
             ret = foundCosts.keySet().stream().map(iWord -> iWord.getLemma()).collect(Collectors.toSet());
         }
         //add the word itself//TODO think about whether we want that -- I think yes, to capture e.g. pronouns
@@ -471,4 +493,10 @@ public class WordnetEnumerator implements IWordnet {
             return null;
         }
     }
+
+    public List<String> findStems(String word, POS pos) {
+        return stemmer.findStems(word, pos);
+    }
+    
+    
 }
