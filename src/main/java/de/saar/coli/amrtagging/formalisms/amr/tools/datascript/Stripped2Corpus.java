@@ -70,6 +70,7 @@ public class Stripped2Corpus {
         //input and output files
         BufferedReader enRD = new BufferedReader(new FileReader(path+"raw.en"));
         BufferedReader amrRD = new BufferedReader(new FileReader(path+"raw.amr"));
+        BufferedReader idRD = new BufferedReader(new FileReader(path+"graphIDs.txt"));
         FileWriter resWR = new FileWriter(path+"raw.corpus");
         
         //corpus header
@@ -81,11 +82,12 @@ public class Stripped2Corpus {
             "/// interpretation string: class de.up.ling.irtg.algebra.StringAlgebra\n" +
             treeHeaderLine +
             "/// interpretation graph: class de.up.ling.irtg.algebra.graph.GraphAlgebra\n" +
+            "/// interpretation id: class de.up.ling.irtg.algebra.StringAlgebra\n" +
             "\n\n");
         
         //iterate over instances
         int i = 0;
-        while (enRD.ready() && amrRD.ready()) {
+        while (enRD.ready() && amrRD.ready() && idRD.ready()) {
             
             //sentence
             String line = enRD.readLine();
@@ -107,7 +109,13 @@ public class Stripped2Corpus {
             
             //amr
             String amr = amrRD.readLine();
-            resWR.write("[graph] "+amr+"\n\n");
+            resWR.write("[graph] "+amr+"\n");
+                       
+            // graph IDs
+            String id = idRD.readLine();
+            resWR.write("[id] " + id + "\n\n");
+            
+            // on to next item
             i++;
             if (i%1000 == 0) {
                 System.err.println(i);
@@ -116,6 +124,7 @@ public class Stripped2Corpus {
         
         enRD.close();
         amrRD.close();
+        idRD.close();
         resWR.close();
     }
     

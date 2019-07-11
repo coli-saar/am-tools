@@ -22,7 +22,7 @@ public class StripSemevalData {
 
     static final String SNT_PREF = "# ::snt ";
     static final String COMMENT_PREF = "#";
-    static final String GRAPH_ID_PREF = "# ::id";
+    static final String GRAPH_ID_PREF = "# ::id ";
 
     
     /**
@@ -57,9 +57,12 @@ public class StripSemevalData {
             StringJoiner graphBuilder = new StringJoiner(" ");
             int i = 0;
             for (File file : folder.listFiles((File pathname) -> !pathname.isDirectory())) {
+                if (file.getName().endsWith("~")) {
+                    continue;
+                }
                 BufferedReader rd = new BufferedReader(new FileReader(file));
-                while (rd.ready()) {
-                    String line = rd.readLine();
+                String line;
+                while ((line = rd.readLine()) != null) {
                     if (line.startsWith(SNT_PREF)) {
                         //idea of this: whenever we hit a sentence, we write that sentence, and the *previous* graph
                         //don't write a graph when we hit the first sentence, and write the last graph all the way at the end
@@ -75,8 +78,8 @@ public class StripSemevalData {
                         ENwr.write(line.substring(SNT_PREF.length()));
                         i++;
                     } else if (line.startsWith(GRAPH_ID_PREF)) {
-                        graphIDWriter.write(line.substring(GRAPH_ID_PREF.length()));
-                        i++;
+                        graphIDWriter.write(line.substring(GRAPH_ID_PREF.length())+"\n");
+                        
                     } else if (!line.startsWith(COMMENT_PREF)) {
                         line = line.trim();
                         if (!line.equals("")) {
@@ -86,11 +89,13 @@ public class StripSemevalData {
                 }
                 
                 rd.close();
-            }   AMRwr.write("\n"+graphBuilder.toString());//don't forget to write the last graph
+            }   
+            AMRwr.write("\n"+graphBuilder.toString());//don't forget to write the last graph
             AMRwr.close();
             graphIDWriter.close();
+            ENwr.close();
         }
-        ENwr.close();
+        
     }
     
 }
