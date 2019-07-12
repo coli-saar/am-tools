@@ -7,6 +7,8 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
 import de.saar.coli.amrtagging.formalisms.amr.tools.RareWordsAnnotator;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.datascript.TestNER.matchesDatePattern;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
@@ -19,12 +21,12 @@ import de.up.ling.irtg.corpus.CorpusWriter;
 import de.up.ling.irtg.corpus.Instance;
 import de.up.ling.irtg.hom.Homomorphism;
 import de.up.ling.irtg.signature.Signature;
+import de.up.ling.irtg.util.Util;
 import edu.stanford.nlp.ie.AbstractSequenceClassifier;
 import edu.stanford.nlp.ie.crf.CRFClassifier;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
-import edu.stanford.nlp.ling.Word;
-import edu.stanford.nlp.tagger.maxent.MaxentTagger;
+import edu.stanford.nlp.ling.TaggedWord;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -59,7 +61,7 @@ public class MakeDevData {
         String path = args[0];//path to folder containing the corpus
         String outPath = args[1];//path to output folder
         
-        MaxentTagger tagger = new MaxentTagger(args[2]);//args[2] must be path to stanford POS tagger model english-bidirectional-distsim.tagger
+//        MaxentTagger tagger = new MaxentTagger(args[2]);//args[2] must be path to stanford POS tagger model english-bidirectional-distsim.tagger
         AbstractSequenceClassifier<CoreLabel> classifier = CRFClassifier.getClassifier(args[3]);//args[3] must be path to stanford NER model english.conll.4class.distsim.crf.ser.gz
         
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
@@ -69,6 +71,11 @@ public class MakeDevData {
         Corpus corpus = Corpus.readCorpus(new FileReader(path+"finalAlto.corpus"), loaderIRTG);
         //BufferedReader graphBR = new BufferedReader(new FileReader(path+"raw.amr"));
         
+        PreprocessedData preprocData = new StanfordPreprocessedData(args[2]); //args[2] must be path to stanford POS tagger model english-bidirectional-distsim.tagger
+
+        // initialize Stanford version of preprocData - TODO #22: do this with companion data
+        ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus);
+        
         
         FileWriter sentenceW = new FileWriter(outPath+"sentences.txt");
         FileWriter posW = new FileWriter(outPath+"pos.txt");
@@ -76,10 +83,11 @@ public class MakeDevData {
         //FileWriter goldW = new FileWriter(path+"gold.txt");
         
         for (Instance inst : corpus) {
+            List<String> ids = (List)inst.getInputObjects().get("id");
+            String id = ids.get(0);
             
             List<String> sent = (List)inst.getInputObjects().get("string");
-            List<List<CoreLabel>> lcls = classifier.classify(sent.stream().collect(Collectors.joining(" "))
-                .replaceAll("[<>]", ""));
+            List<List<CoreLabel>> lcls = classifier.classify(sent.stream().collect(Collectors.joining(" ")).replaceAll("[<>]", ""));
             List<CoreLabel> lcl = new ArrayList<>();
             lcls.forEach(l -> lcl.addAll(l));
             
@@ -107,8 +115,11 @@ public class MakeDevData {
                 lcl.remove(lcl.size()-1);
             }
             
-            List<String> posTags = tagger.apply(sent.stream().map(word -> new Word(word)).collect(Collectors.toList()))
-                    .stream().map(tw -> tw.tag()).collect(Collectors.toList());
+            List<TaggedWord> posTaggedWords = preprocData.getPosTags(id);
+            List<String> posTags = Util.mapToList(posTaggedWords, tw -> tw.tag());
+            
+//            List<String> posTags = tagger.apply(sent.stream().map(word -> new Word(word)).collect(Collectors.toList()))
+//                    .stream().map(tw -> tw.tag()).collect(Collectors.toList());
         
 //            if (lcl.size() != sent.size()) {
 //                System.err.println(lcl);
