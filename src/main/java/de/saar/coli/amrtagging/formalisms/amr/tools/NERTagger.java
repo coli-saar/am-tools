@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Insert NER tags into an existing AMR amconll file. Guess why I wrote this :/
+ * Insert NER tags into an existing AMR amconll file. This class is useful if you are not satisfied with the existing named entity tags in an amconll file.
+ * It assumes the special AMR preprocessing (joining words, New York -> New_York).
  * @author matthias
  */
 public class NERTagger {
