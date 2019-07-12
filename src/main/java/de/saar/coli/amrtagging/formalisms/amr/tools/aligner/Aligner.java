@@ -101,11 +101,15 @@ public class Aligner {
     
     private final Counter<String> unalignedLabelCounter;
     
-    private Aligner() {
+    public Aligner() {
         unalignedLabelCounter = new Counter<>();
     }
     
-    private static boolean dual = true;
+//    private static boolean dual = true;
+    
+    private boolean isDual() {
+        return ! nodual;
+    }
     
     /**
      * Creates alignments for AMRs, as used in 'AMR Dependency Parsing with a Typed Semantic Algebra' (ACL 2018).
@@ -137,34 +141,34 @@ public class Aligner {
             return;
         }
         
-        if (aligner.nodual) {
-            dual = false;
-        }
-        
+        aligner.align();
+    }
+    
+    public void align() throws IOException, CorpusReadingException, MalformedURLException, InterruptedException {
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
-        Corpus corpus = Corpus.readCorpus(new FileReader(aligner.corpusPath), loaderIRTG);
+        Corpus corpus = Corpus.readCorpus(new FileReader(corpusPath), loaderIRTG);
         
         IWordnet we = null;
         
-        if( aligner.conceptnetPath != null ) {
+        if( conceptnetPath != null ) {
             System.err.println("Reading ConceptNet + Wordnet stemmer.");
-            we = new ConceptnetEnumerator(new File(aligner.conceptnetPath), aligner.wordnetPath);
+            we = new ConceptnetEnumerator(new File(conceptnetPath), wordnetPath);
         } else {
             System.err.println("Reading full Wordnet.");
-            we = new WordnetEnumerator(aligner.wordnetPath);
+            we = new WordnetEnumerator(wordnetPath);
         }
         
-        MaxentTagger tagger = new MaxentTagger(aligner.posModelPath);
+        MaxentTagger tagger = new MaxentTagger(posModelPath);
         
-        Writer alignmentWriter = new FileWriter(aligner.alignmentPath);
+        Writer alignmentWriter = new FileWriter(alignmentPath);
         
         int i = 0;
         for (Instance inst : corpus) {
-            if (i>=aligner.maxInstances && !(aligner.maxInstances < 0)) {
+            if (i >= maxInstances && !(maxInstances < 0)) {
                 break;
             }
             try {
@@ -177,12 +181,12 @@ public class Aligner {
                     Counter<String> nnCounter = new Counter<>();
                     Counter<Integer> wordCounter = new Counter<>();
                     Set<Alignment> alignments = null;
-                    switch (aligner.mode) {
+                    switch (mode) {
                         case "p":
-                            alignmentWriter.write(aligner.probabilityAlign(graph, sent, i, we, tagger)+"\n");
+                            alignmentWriter.write(probabilityAlign(graph, sent, i, we, tagger)+"\n");
                             break;
                         case "ap":
-                            alignmentWriter.write(aligner.allProbableAlign(graph, sent, i, we, tagger)+"\n");
+                            alignmentWriter.write(allProbableAlign(graph, sent, i, we, tagger)+"\n");
                             break;
                     }
 
@@ -195,7 +199,7 @@ public class Aligner {
             i++;
         }
         alignmentWriter.close();
-        aligner.unalignedLabelCounter.printAllSorted();
+        unalignedLabelCounter.printAllSorted();
     }
         
                  
@@ -270,7 +274,7 @@ public class Aligner {
                             objsAndScores.add(new Pair(new Pair(other.getName(), nn), score));
                         }
                     }
-                    if (dual) {
+                    if (isDual()) {
                         for (GraphNode dual : graph.getGraph().vertexSet()) {
                             if (Util.areCompatibleForDualAlignment(nn, dual.getName(), coordinationTuples)
                                     && !nnsAlignedBySpread.contains(dual.getName())) {
@@ -530,7 +534,7 @@ public class Aligner {
                         }
                     }
                     //collect coord duals candidates
-                    if (dual) {
+                    if (isDual()) {
                         Set<GraphNode> dualsHere = new HashSet<>();
                         for (GraphNode dual : graph.getGraph().vertexSet()) {
                             if (Util.areCompatibleForDualAlignment(nn, dual.getName(), coordinationTuples)) {
@@ -576,6 +580,31 @@ public class Aligner {
         }
         return sj.toString();
     }
+
+    public void setWordnetPath(String wordnetPath) {
+        this.wordnetPath = wordnetPath;
+    }
+
+    public void setConceptnetPath(String conceptnetPath) {
+        this.conceptnetPath = conceptnetPath;
+    }
+
+    public void setCorpusPath(String corpusPath) {
+        this.corpusPath = corpusPath;
+    }
+
+    public void setAlignmentPath(String alignmentPath) {
+        this.alignmentPath = alignmentPath;
+    }
+
+    public void setPosModelPath(String posModelPath) {
+        this.posModelPath = posModelPath;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+    
     
     
 }
