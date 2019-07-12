@@ -7,18 +7,17 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.Alignment.Span;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
-import de.up.ling.irtg.algebra.ParserException;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
@@ -32,7 +31,6 @@ import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.ling.TaggedWord;
-import edu.stanford.nlp.ling.Word;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -40,8 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import edu.stanford.nlp.simple.Sentence;
-import edu.stanford.nlp.tagger.maxent.MaxentTagger;
 import java.io.FileWriter;
 import java.util.HashSet;
 import java.util.Set;
@@ -131,9 +127,13 @@ public class DependencyExtractorCLI {
         
         Corpus corpus = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.corpusPath), loaderIRTG);
         
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+//        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
         
-        MaxentTagger tagger = new MaxentTagger(cli.posPath);
+        PreprocessedData preprocData = new StanfordPreprocessedData(cli.posPath);
+        
+        // initialize Stanford version of preprocData - TODO #22: do this with companion data
+        ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus);
+        
         
         DependencyExtractor extr = (cli.vocabPath == null) ? new DependencyExtractor(cli.outPath) 
                 : new DependencyExtractor(cli.outPath, cli.vocabPath);
@@ -145,6 +145,7 @@ public class DependencyExtractorCLI {
         MutableInteger nextInstanceID = new MutableInteger(0);
         ForkJoinPool forkJoinPool = new ForkJoinPool(cli.numThreads);
         MutableInteger success = new MutableInteger(0);
+        
         for (Instance inst : corpus) {
             final int i = nextInstanceID.incValue();//returns old value
             SGraph graph = (SGraph)inst.getInputObjects().get("repgraph");
@@ -205,11 +206,13 @@ public class DependencyExtractorCLI {
                             success.incValue();
                         }
                         
-                        //make POS and literal output, from original sentence, using span map
-                        List<TaggedWord> origPosTags = tagger.apply(origSent.stream().map(word -> new Word(word)).collect(Collectors.toList()));
+                        // make POS and literal output, from original sentence, using span map
+                        List<TaggedWord> origPosTags = preprocData.getPosTags(id);
                         origPosTags.stream().forEach(t -> allPosTags.add(t.tag()));
+                        
                         List<String> posTags = new ArrayList<>();
                         List<String> literals = new ArrayList<>();
+                        
                         for (String spanString : spanmap) {
                             Span span = new Span(spanString);
                             List<String> origWords = new ArrayList<>();
