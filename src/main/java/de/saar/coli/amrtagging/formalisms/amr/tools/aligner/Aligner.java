@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
 
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.WordnetEnumerator;
 import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
 import com.beust.jcommander.JCommander;
@@ -34,6 +35,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -93,6 +95,9 @@ public class Aligner {
     @Parameter(names = {"--max", "-max"}, description = "Maximum number of instances in the corpus considered (negative values = all instances; default=-1)")
     private int maxInstances = -1;
 
+    @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
+    private String companionDataFile = null;
+
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
@@ -104,7 +109,7 @@ public class Aligner {
         unalignedLabelCounter = new Counter<>();
     }
 
-//    private static boolean dual = true;
+    //    private static boolean dual = true;
     private boolean isDual() {
         return !nodual;
     }
@@ -161,8 +166,13 @@ public class Aligner {
             we = new WordnetEnumerator(wordnetPath);
         }
 
-        PreprocessedData preprocData = new StanfordPreprocessedData(posModelPath);
-        ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus); // #22 do this for companion data
+        PreprocessedData preprocData;
+        if (companionDataFile != null) {
+            preprocData = new MrpPreprocessedData(new File(companionDataFile));
+        } else {
+            preprocData = new StanfordPreprocessedData(posModelPath);
+            ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus);
+        }
 
         Writer alignmentWriter = new FileWriter(alignmentPath);
 
@@ -185,9 +195,9 @@ public class Aligner {
 //                    Counter<String> nnCounter = new Counter<>();
 //                    Counter<Integer> wordCounter = new Counter<>();
 //                    Set<Alignment> alignments = null;
-                    
+
                     List<TaggedWord> posTags = preprocData.getPosTags(id);
-                    
+
                     switch (mode) {
                         case "p":
                             alignmentWriter.write(probabilityAlign(graph, sent, i, we, posTags) + "\n");
@@ -220,7 +230,7 @@ public class Aligner {
      * @param sent
      * @param instanceIndex
      * @param we
-     * @param tagger
+     * @param posTags
      * @return
      * @throws IOException
      */
@@ -462,7 +472,7 @@ public class Aligner {
                         verboseWriter.write("Added alignment " + al.toString() + "; Score " + bestP.right + "\n");
                         verboseWriter.write("Base score: " + al.getWeight()
                                 + "; Neighbor score: " + AlignmentScorer.extendingNeighborScoreForProb(graph.getNode(nn), al.span, graph,
-                                        posTags, nn2fixedAlign, dummyNn2scoredCandidate, we) + "\n");
+                                posTags, nn2fixedAlign, dummyNn2scoredCandidate, we) + "\n");
                         verboseWriter.write("Round 1 Scores: " + nn2objsAndScores.get(nn) + "\n");
                         verboseWriter.write("Round 1 Probs: " + nn2objsAndProbs.get(nn) + "\n");
                         verboseWriter.write("Round 2 Scores: " + debug_nn2objsAndScores.get(nn) + "\n");
@@ -500,7 +510,7 @@ public class Aligner {
      * @throws IOException
      */
     private String allProbableAlign(SGraph graph, List<String> sent, int instanceIndex,
-            IWordnet we, List<TaggedWord> posTags) throws IOException {
+                                    IWordnet we, List<TaggedWord> posTags) throws IOException {
 
 //        List<TaggedWord> tags = tagger.apply(sent.stream().map(word -> new Word(word)).collect(Collectors.toList()));
         Set<Alignment> candidates = CandidateMatcher.findCandidatesForProb(graph, sent, posTags, we).right;
@@ -610,4 +620,7 @@ public class Aligner {
         this.mode = mode;
     }
 
+    public void setCompanionDataFile(String companionDataFile) {
+        this.companionDataFile = companionDataFile;
+    }
 }

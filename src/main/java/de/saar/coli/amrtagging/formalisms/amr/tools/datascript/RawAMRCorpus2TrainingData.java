@@ -62,6 +62,9 @@ public class RawAMRCorpus2TrainingData {
     @Parameter(names = {"--trees", "-trees"}, description = "Boolean flag saying whether we're using syntactic parse trees", required = false)
     private boolean useTrees;
 
+    @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
+    private String companionDataPath = null;
+
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
@@ -110,7 +113,12 @@ public class RawAMRCorpus2TrainingData {
 
         //Step 0: Convert raw AMR corpus into a corpus in Alto format
         if (r2t.step <= 0) {
-            FullProcess.fullProcess(r2t.inputPath, path, r2t.grammarFile);
+            FullProcess fp = new FullProcess();
+            fp.setAmrCorpusPath(r2t.inputPath);
+            fp.setOutputPath(path);
+            fp.setStanfordGrammarFile(r2t.grammarFile);
+            fp.setCompanionDataFile(r2t.companionDataPath);
+            fp.fullProcess();
         }
 
         //Optional Step 1: split coref
@@ -134,6 +142,7 @@ public class RawAMRCorpus2TrainingData {
             al.setWordnetPath(r2t.wordnetPath);
             al.setConceptnetPath(r2t.conceptnetPath);
             al.setPosModelPath(r2t.posModelPath);
+            al.setCompanionDataFile(r2t.companionDataPath);
             al.setMode("p");
             al.align();
 
@@ -146,6 +155,7 @@ public class RawAMRCorpus2TrainingData {
             al.setWordnetPath(r2t.wordnetPath);
             al.setConceptnetPath(r2t.conceptnetPath);
             al.setPosModelPath(r2t.posModelPath);
+            al.setCompanionDataFile(r2t.companionDataPath);
             al.setMode("ap");
             al.align();
         }

@@ -10,8 +10,8 @@ import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.Alignment.Span;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
@@ -31,14 +31,12 @@ import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.ling.TaggedWord;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.io.FileWriter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,7 +55,7 @@ public class DependencyExtractorCLI {
     @Parameter(names = {"--vocabPath", "-v"}, description = "Prefix for vocab files from a previous run that should be used here (e.g. to training vocab when doing dev/test files)")
     private String vocabPath = null;
     
-    @Parameter(names = {"--posPath", "-pos"}, description = "Path to the stanford POS tagger model file english-bidirectional-distsim.tagger", required = true)
+    @Parameter(names = {"--posPath", "-pos"}, description = "Path to the stanford POS tagger model file english-bidirectional-distsim.tagger", required = false)
     private String posPath;
     
     @Parameter(names = {"--threads", "-t"}, description = "Number of threads over which the instances should be parallelized")
@@ -68,6 +66,10 @@ public class DependencyExtractorCLI {
     
     @Parameter(names = {"--coref", "-cr"}, description = "Set this flag to allow coref sources")
     private boolean coref = false;
+
+    @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
+    private String companionDataFile = null;
+
     
 //    @Parameter(names = {"--joint"}, description = "Set this flag to track alignments jointly (using the alignmentp values)")
 //    private boolean joint = false;
@@ -129,12 +131,20 @@ public class DependencyExtractorCLI {
         
 //        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
         
-        PreprocessedData preprocData = new StanfordPreprocessedData(cli.posPath);
-        
-        // initialize Stanford version of preprocData - TODO #22: do this with companion data
-        ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus);
-        
-        
+        PreprocessedData _preprocData = null;
+
+        if( cli.companionDataFile != null ) {
+            _preprocData = new MrpPreprocessedData(new File(cli.companionDataFile));
+        } else if( cli.posPath != null ){
+            _preprocData = new StanfordPreprocessedData(cli.posPath);
+            ((StanfordPreprocessedData) _preprocData).readTokenizedFromCorpus(corpus);
+        } else {
+            System.err.println("You must specify either the MRP companion data or the Stanford POS tagging model.");
+            System.exit(1);
+        }
+
+        final PreprocessedData preprocData = _preprocData; // so it can be used from the lambda expr below
+
         DependencyExtractor extr = (cli.vocabPath == null) ? new DependencyExtractor(cli.outPath) 
                 : new DependencyExtractor(cli.outPath, cli.vocabPath);
         FileWriter posWriter = new FileWriter(cli.outPath+"pos.txt");

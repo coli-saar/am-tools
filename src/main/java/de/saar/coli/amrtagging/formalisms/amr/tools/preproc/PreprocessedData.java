@@ -10,7 +10,8 @@ import edu.stanford.nlp.ling.TaggedWord;
 import java.util.List;
 
 /**
- * Data which has optionally been tokenized and POS-tagged.
+ * Data which has been low-level preprocessed (tokenization,
+ * POS tagging, lemmatization).
  * Implementations of this class may choose to either compute
  * the tokens and POS tags themselves, or look them up in a file.<p>
  * 
@@ -30,15 +31,28 @@ public interface PreprocessedData {
     public List<TaggedWord> getPosTags(String instanceId);
     
     /**
-     * Returns the tokens of the sentence. Each token is
-     * guaranteed to contain at least the original word,
-     * which can be retrieved with {@link CoreLabel#word() }.
+     * Returns the tokens of the sentence.<p>
+     *
+     * Each token is a {@link CoreLabel} object containing
+     * at least the following information: (a) the original
+     * word (access with {@link CoreLabel#word()}; (b)
+     * the character-based begin and end position in the
+     * original string (access with {@link CoreLabel#beginPosition()}
+     * and {@link CoreLabel#endPosition()}).
      * 
      * @param instanceId
      * @return 
      */
     public List<CoreLabel> getTokens(String instanceId);
-    
+
+    /**
+     * Returns the lemmas of the sentence.
+     *
+     * @param instanceId
+     * @return
+     */
+    public List<String> getLemmas(String instanceId);
+
     /**
      * Sets the tokens for the sentence. Use this method if
      * a tokenization was already available, e.g. from a previous
@@ -59,4 +73,5 @@ public interface PreprocessedData {
      * @param sentence 
      */
     public void setUntokenizedSentence(String instanceId, String sentence);
+
 }
