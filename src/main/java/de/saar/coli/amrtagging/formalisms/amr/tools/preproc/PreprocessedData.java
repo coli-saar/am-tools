@@ -10,7 +10,8 @@ import edu.stanford.nlp.ling.TaggedWord;
 import java.util.List;
 
 /**
- * Data which has optionally been tokenized and POS-tagged.
+ * Data which has been low-level preprocessed (tokenization,
+ * POS tagging, lemmatization).
  * Implementations of this class may choose to either compute
  * the tokens and POS tags themselves, or look them up in a file.<p>
  * 
