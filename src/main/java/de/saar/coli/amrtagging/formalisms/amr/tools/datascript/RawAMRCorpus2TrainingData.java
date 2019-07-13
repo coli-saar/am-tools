@@ -62,6 +62,9 @@ public class RawAMRCorpus2TrainingData {
     @Parameter(names = {"--trees", "-trees"}, description = "Boolean flag saying whether we're using syntactic parse trees", required = false)
     private boolean useTrees;
 
+    @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
+    private String companionDataPath = null;
+
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
@@ -114,6 +117,7 @@ public class RawAMRCorpus2TrainingData {
             fp.setAmrCorpusPath(r2t.inputPath);
             fp.setOutputPath(path);
             fp.setStanfordGrammarFile(r2t.grammarFile);
+            fp.setCompanionDataFile(r2t.companionDataPath);
             fp.fullProcess();
         }
 

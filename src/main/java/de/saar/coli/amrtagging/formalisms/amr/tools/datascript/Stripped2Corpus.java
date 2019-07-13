@@ -6,16 +6,14 @@
 package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
 import de.saar.basic.StringTools;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
 import de.up.ling.irtg.util.Util;
 import edu.stanford.nlp.parser.lexparser.LexicalizedParser;
 import edu.stanford.nlp.ling.CoreLabel;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.List;
 
 /**
@@ -32,10 +30,15 @@ public class Stripped2Corpus {
      * containing files raw.en and raw.amr; second argument is path to stanford
      * grammar file enlishPCFG.txt
      *
+     * -- as of July 2019, this program is never called by itself, but only
+     * through {@link FullProcess}. Thus we only do the handling of CLI
+     * arguments there. AK
+     *
      * @param args
      * @throws FileNotFoundException
      * @throws IOException
      */
+    /*
     public static void main(String[] args) throws FileNotFoundException, IOException {
 
         String outputPath = args[0];
@@ -47,6 +50,7 @@ public class Stripped2Corpus {
         stripped2Corpus(outputPath, pFileName);
 
     }
+    */
 
     /**
      * Converts raw AMR and english sentences into an alto corpus; this corpus
@@ -59,8 +63,17 @@ public class Stripped2Corpus {
      * @param stanfordGrammarFile
      * @throws java.io.IOException
      */
-    public static void stripped2Corpus(String path, String stanfordGrammarFile) throws IOException {
-        PreprocessedData preprocData = new StanfordPreprocessedData(null);
+    public static void stripped2Corpus(String path, String stanfordGrammarFile, String companionDataFile) throws IOException {
+        PreprocessedData preprocData;
+
+        if (companionDataFile != null) {
+            System.err.printf("Reading MRP companion data from %s ...\n", companionDataFile);
+            preprocData = new MrpPreprocessedData(new File(companionDataFile));
+        } else {
+            System.err.println("Using Stanford CoreNLP for low-level preprocessing.");
+            preprocData = new StanfordPreprocessedData(null);
+        }
+
 
         //load grammar, if one is provided (only then trees are added to the corpus)
         boolean makeTrees = stanfordGrammarFile != null;
@@ -91,10 +104,10 @@ public class Stripped2Corpus {
 
             //sentence
             String line = enRD.readLine();
-            
+
             preprocData.setUntokenizedSentence(id, line);
             List<CoreLabel> tokens = preprocData.getTokens(id);
-            
+
             List<String> sTokens = Util.mapToList(tokens, coreLabel -> coreLabel.word());
             String concatTokens = StringTools.join(sTokens, " ");
             resWR.write("[string] " + concatTokens + "\n");

@@ -25,8 +25,8 @@ public class FullProcess {
     @Parameter(names = {"--grammar"}, description = "Path to Stanford parser grammar englishPCFG.txt", required = false)
     private String stanfordGrammarFile = null;
 
-    @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
-    private String companionDataPath = null;
+    @Parameter(names = {"--companion"}, description = "Path to MRP companion data file (will disable builtin tokenization and POS tagging", required = false)
+    private String companionDataFile = null;
 
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
@@ -62,22 +62,6 @@ public class FullProcess {
         }
 
         fp.fullProcess();
-
-
-
-/*
-        // String[] onlyOutput = new String[]{args[1], args[2]};
-        
-        // the third argument is the PCFG, which is not always given
-        if (args.length > 2) {
-            fullProcess(args[0], args[1], args[2]);
-        } else if (args.length == 2) {
-            fullProcess(args[0], args[1], null);
-        } else {
-            System.err.println("FullProcess error: 2 or 3 arguments needed"
-                    + ", 0 or 1 given");
-        }
-        */
     }
     
     /**
@@ -95,7 +79,7 @@ public class FullProcess {
         StripSemevalData.stripSemevalData(amrCorpusPath, outputPath);
 
         System.err.println("\nBuilding raw corpus...");
-        Stripped2Corpus.stripped2Corpus(outputPath, stanfordGrammarFile);
+        Stripped2Corpus.stripped2Corpus(outputPath, stanfordGrammarFile, companionDataFile);
 
         System.err.println("\nFixing corpus...");
         FixAMRAltoCorpus.fixAMRCorpus(outputPath, trees);
@@ -115,7 +99,7 @@ public class FullProcess {
         this.stanfordGrammarFile = stanfordGrammarFile;
     }
 
-    public void setCompanionDataPath(String companionDataPath) {
-        this.companionDataPath = companionDataPath;
+    public void setCompanionDataFile(String companionDataFile) {
+        this.companionDataFile = companionDataFile;
     }
 }
