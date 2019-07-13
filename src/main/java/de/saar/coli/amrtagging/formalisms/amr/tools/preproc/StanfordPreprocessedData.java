@@ -76,6 +76,11 @@ public class StanfordPreprocessedData implements PreprocessedData {
     }
 
     @Override
+    public List<String> getLemmas(String instanceId) {
+        throw new UnsupportedOperationException("Lemmatization is not yet supported in StanfordPreprocessedData.");
+    }
+
+    @Override
     public void setTokens(String instanceId, List<String> tokens) {
         List<CoreLabel> labeled = new ArrayList<>();
 

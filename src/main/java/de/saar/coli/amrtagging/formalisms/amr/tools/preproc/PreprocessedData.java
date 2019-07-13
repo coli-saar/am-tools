@@ -44,7 +44,15 @@ public interface PreprocessedData {
      * @return 
      */
     public List<CoreLabel> getTokens(String instanceId);
-    
+
+    /**
+     * Returns the lemmas of the sentence.
+     *
+     * @param instanceId
+     * @return
+     */
+    public List<String> getLemmas(String instanceId);
+
     /**
      * Sets the tokens for the sentence. Use this method if
      * a tokenization was already available, e.g. from a previous
@@ -65,4 +73,5 @@ public interface PreprocessedData {
      * @param sentence 
      */
     public void setUntokenizedSentence(String instanceId, String sentence);
+
 }

@@ -3,6 +3,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.preproc;
 import de.saar.coli.amrtagging.ConlluEntry;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.TokenRange;
+import de.up.ling.irtg.util.Util;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.TaggedWord;
 
@@ -66,6 +67,17 @@ public class MrpPreprocessedData implements PreprocessedData {
             }
 
             return ret;
+        }
+    }
+
+    @Override
+    public List<String> getLemmas(String instanceId) {
+        ConlluSentence sent = companionData.get(instanceId);
+
+        if( sent == null ) {
+            return null;
+        } else {
+            return Util.mapToList(sent, ConlluEntry::getLemma);
         }
     }
 
