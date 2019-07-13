@@ -6,6 +6,7 @@
 package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.ConceptnetEnumerator;
 import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
 import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.WordnetEnumerator;
@@ -221,7 +222,7 @@ public class Relabel {
                 seen = true;
                 ops = lookupName.split(":");
             } else {
-                ops = lit.split("_");
+                ops = lit.split(LITERAL_JOINER);
             }
             int i = 1;
             for (String op : ops) {

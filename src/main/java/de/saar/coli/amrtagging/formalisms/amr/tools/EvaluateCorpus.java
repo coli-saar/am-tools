@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 
 
@@ -84,7 +85,7 @@ public class EvaluateCorpus {
                         evaluatedGraph.getNode(n).setLabel(info.right.right);
                     }
                 }
-                l.println(labels.stream().map(lbl -> lbl.equals("_") ? "NULL" : lbl).collect(Collectors.joining(" ")));
+                l.println(labels.stream().map(lbl -> lbl.equals(ConllEntry.DEFAULT_NULL) ? "NULL" : lbl).collect(Collectors.joining(" ")));
                 o.println(evaluatedGraph.toIsiAmrString());
             } catch (Exception ex){
                 System.err.println("In line "+s.getLineNr());

@@ -15,6 +15,7 @@ import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.TreeWithAritiesAlgebra;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -284,7 +285,7 @@ public class RareWordsAnnotator {
                             GraphNode wikiNode = getWikiNodeForNameNode(nameNode, graph);
                             String name = encodeName(nameNode, graph);
                             String literalName = origSent.subList(al.span.start, al.span.end)
-                                    .stream().collect(Collectors.joining("_"));
+                                    .stream().collect(Collectors.joining(LITERAL_JOINER));
                             
                             count(lit2name, literalName, name);
                             if (wikiNode != null) {

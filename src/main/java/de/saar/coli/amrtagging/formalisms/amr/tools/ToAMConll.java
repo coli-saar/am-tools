@@ -10,6 +10,7 @@ import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 
 import static de.saar.coli.amrtagging.formalisms.amr.tools.PrepareTestDataFromFiles.readFile;
 
@@ -120,6 +121,7 @@ public class ToAMConll {
             o.setId(id);
             o.setAttr("framework", "amr");
             o.setAttr("flavor", "2");
+            //TODO: set input attribute
             List<String> expandedWords = new ArrayList<>();
             List<Integer> origPositions = new ArrayList<>();
             List<String> ners = new ArrayList<>();
@@ -150,7 +152,7 @@ public class ToAMConll {
                 o.add(e);
                 ners.add("O");
 
-                for (String w : literals.get(i).get(positionInSentence).split("_")) {
+                for (String w : literals.get(i).get(positionInSentence).split(LITERAL_JOINER)) {
                     expandedWords.add(w);
                     origPositions.add(positionInSentence);
                 }

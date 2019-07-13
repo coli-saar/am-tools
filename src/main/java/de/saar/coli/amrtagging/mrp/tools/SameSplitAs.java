@@ -121,15 +121,5 @@ public class SameSplitAs {
         
     }
     
-    public static List<String> getWords(ConllSentence sent){
-        List<String> words = new ArrayList<>();
-        for (int i = 0; i < sent.size(); i++){
-            String w = sent.get(i).getForm();
-            for (String part : w.split("_")){
-                words.add(part);
-            }
-        }
-        return words;
-    }
     
 }

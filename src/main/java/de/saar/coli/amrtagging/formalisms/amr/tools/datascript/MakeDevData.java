@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.saar.coli.amrtagging.formalisms.amr.tools.RareWordsAnnotator;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.datascript.TestNER.matchesDatePattern;
 
@@ -190,7 +191,7 @@ public class MakeDevData {
                             //if category switched, save previous span and start new.
                             // **WARNING** duplicated code below
                             literalOut.add(sent.subList(prevIndex, i).stream()
-                                    .collect(Collectors.joining("_")));
+                                    .collect(Collectors.joining(LITERAL_JOINER)));
                             sentOut.add(RareWordsAnnotator.NAME_TOKEN.toLowerCase());
                             posOut.add(posTags.get(prevIndex));
                             prevIndex = i;
@@ -202,7 +203,7 @@ public class MakeDevData {
                         //if we were working on a span before, save it and continue searching
                         // **WARNING** duplicated code above and below
                         literalOut.add(sent.subList(prevIndex, i).stream()
-                                    .collect(Collectors.joining("_")));
+                                    .collect(Collectors.joining(LITERAL_JOINER)));
                         sentOut.add(RareWordsAnnotator.NAME_TOKEN.toLowerCase());
                         posOut.add(posTags.get(prevIndex));
                         prevIndex = -1;
@@ -231,7 +232,7 @@ public class MakeDevData {
                 //if we were working on a span before, save it and continue searching
                 // **WARNING** duplicated code above
                 literalOut.add(sent.subList(prevIndex, sent.size()).stream()
-                            .collect(Collectors.joining("_")));
+                            .collect(Collectors.joining(LITERAL_JOINER)));
                 sentOut.add(RareWordsAnnotator.NAME_TOKEN.toLowerCase());
                 posOut.add(posTags.get(prevIndex));
             }

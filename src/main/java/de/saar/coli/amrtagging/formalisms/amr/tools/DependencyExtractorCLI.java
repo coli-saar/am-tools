@@ -46,6 +46,9 @@ import java.util.stream.Collectors;
  * @author jonas
  */
 public class DependencyExtractorCLI {
+    
+    public static final String LITERAL_JOINER = "_@_";
+    
     @Parameter(names = {"--corpusPath", "-c"}, description = "Path to the input corpus") //required = true)
     private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/AMR-toy/100.corpus";
 
@@ -229,7 +232,7 @@ public class DependencyExtractorCLI {
                             for (int l = span.start; l<span.end; l++) {
                                 origWords.add(origSent.get(l));
                             }
-                            literals.add(origWords.stream().collect(Collectors.joining("_")));
+                            literals.add(origWords.stream().collect(Collectors.joining(LITERAL_JOINER)));
                             posTags.add(origPosTags.get(span.start).tag());
                         }
                         

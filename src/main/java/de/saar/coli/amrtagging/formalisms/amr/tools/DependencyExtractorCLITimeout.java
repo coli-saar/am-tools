@@ -17,6 +17,7 @@ import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -161,7 +162,7 @@ public class DependencyExtractorCLITimeout {
                         for (int l = span.start; l<span.end; l++) {
                             origWords.add(origSent.get(l));
                         }
-                        literals.add(origWords.stream().collect(Collectors.joining("_")));
+                        literals.add(origWords.stream().collect(Collectors.joining(LITERAL_JOINER)));
                         posTags.add(origPosTags.get(span.start));
                         lemmas.add(origLemmas.get(span.start));
                         nerTags.add(origNE.get(span.start));

@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import edu.stanford.nlp.simple.Sentence;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -77,7 +78,7 @@ public class PrepareTestDataFromFiles {
                 ConllEntry e = new ConllEntry(id+1, literals.get(i).get(id));
                 o.add(e);
                 ners.add("O");
-                for (String w : literals.get(i).get(id).split("_")){
+                for (String w : literals.get(i).get(id).split(LITERAL_JOINER)){
                     expandedWords.add(w);
                     origPositions.add(id);
                 }

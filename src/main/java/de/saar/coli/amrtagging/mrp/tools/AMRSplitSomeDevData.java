@@ -10,6 +10,7 @@ import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.ConlluSentence;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
@@ -113,11 +114,11 @@ public class AMRSplitSomeDevData {
         
     }
     
-    public static List<String> getWords(ConllSentence sent){
+    private static List<String> getWords(ConllSentence sent){
         List<String> words = new ArrayList<>();
         for (int i = 0; i < sent.size(); i++){
             String w = sent.get(i).getForm();
-            for (String part : w.split("_")){
+            for (String part : w.split(LITERAL_JOINER)){
                 words.add(part);
             }
         }

@@ -10,6 +10,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.ConllSentence;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
@@ -69,7 +70,7 @@ public class NERTagger {
             List<Integer> origPositions = new ArrayList<>();
             int pos = 0;
             for (String word : words){
-                for (String w : word.split("_")){
+                for (String w : word.split(LITERAL_JOINER)){
                     expandedWords.add(w);
                     origPositions.add(pos);
                 }
