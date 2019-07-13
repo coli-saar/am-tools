@@ -109,7 +109,7 @@ public class AMRSplitSomeDevData {
         for (MRPGraph devGraph : devGraphs){
             outputCodec.write(devGraph, output);
         }
-        
+        output.close();
         
     }
     

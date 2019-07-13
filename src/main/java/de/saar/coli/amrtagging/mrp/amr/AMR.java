@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.mrp.amr;
 
+import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
@@ -15,21 +16,25 @@ import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.Relabel;
 import de.saar.coli.amrtagging.mrp.Formalism;
+import de.saar.coli.amrtagging.mrp.graphs.MRPEdge;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
+import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
-import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.tree.ParseException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -48,6 +53,14 @@ public class AMR implements Formalism{
         Pattern.compile("decade"), Pattern.compile("century"),
         Pattern.compile("timezone"), Pattern.compile("era"));
     
+    //node labels that make an edge definitely not a property
+    public static final Set<String> DEFINITELY_EDGE = Sets.newHashSet("and","or");
+    
+    //node labels that make an edge definitely a property
+    public static final Set<String> PROBABLY_PROPERTY = Sets.newHashSet("name","monetary-quantity","temporal-quantity","date-entity");
+    
+    //node labels (at the target) that are not properties
+    public static final Set<String> DEFINITELY_EDGE_BASED_ON_TARGET = Sets.newHashSet("amr-unknown");
     
     
     
@@ -114,7 +127,7 @@ public class AMR implements Formalism{
         }));
         removeWikiEdges(evaluatedGraph);
         
-        MRPGraph g = MRPUtils.fromSGraph(evaluatedGraph, PROPERTY_EDGES, 2, "amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
+        MRPGraph g = fromSGraph(evaluatedGraph, 2, "amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
         return g;
         
     }
@@ -147,5 +160,100 @@ public class AMR implements Formalism{
     public void refineDelex(ConllSentence sentence) {
         
     }
+    
+    
+    
+     /**
+     * Converts back to MRPGraph, no anchoring is used -- employs some AMR-specific hacks.
+     * @param sg
+     * @param propertyNames a list of regular expressions that match on edge labels which are actually properties (and the node label at the target is the value)
+     * @param flavor
+     * @param framework
+     * @param graphId
+     * @param raw
+     * @param version
+     * @param time
+     * @return 
+     */
+    private MRPGraph fromSGraph(SGraph sg, int flavor, String framework, String graphId, String raw, String version, String time){
+        MRPGraph output = new MRPGraph();
+        output.sanitize();
+        output.setId(graphId);
+        output.setFramework(framework);
+        output.setFlavor(flavor);
+        output.setInput(raw);
+        output.setVersion(version);
+        output.setTime(time);
+        
+        Map<Integer,String> id2node = new HashMap<>();
+        Map<String,Integer> node2id = new HashMap<>();
+        
+        int index = 0;
+        
+        for (String node: sg.getAllNodeNames()){
+            node2id.put(node, index);
+            id2node.put(index, node);
+            GraphNode gN = sg.getNode(node);
+            if (sg.getGraph().incomingEdgesOf(gN).size() == 1){
+                //only nodes with single incoming edges can be properties
+                GraphEdge e = sg.getGraph().incomingEdgesOf(gN).iterator().next();
+                if (! isPropertyEdge(e,sg)) {
+                    //nodes with sources cannot be properties
+                    output.getNodes().add(new MRPNode(index,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),null));
+                    index++;
+                }
+            } else {
+                output.getNodes().add(new MRPNode(index,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),null));
+                index++;
+            }
+            
+        }
+
+        //add top node
+        Set<Integer> tops = new HashSet<>();
+        String rootName = sg.getNodeForSource("root");
+        tops.add(node2id.get(rootName));
+        output.setTops(tops);
+
+        //add edges
+        for (GraphEdge e : sg.getGraph().edgeSet() ){
+            if (! isPropertyEdge(e,sg)) {
+                output.getEdges().add(new MRPEdge(node2id.get(e.getSource().getName()), node2id.get(e.getTarget().getName()),e.getLabel()));
+            } else {
+                output.getNode(node2id.get(e.getSource().getName())).getProperties().add(e.getLabel());
+                output.getNode(node2id.get(e.getSource().getName())).getValues().add(e.getTarget().getLabel());
+            }
+        }
+        
+        
+        return output;
+    }
+    
+    /**
+     * Tells if the specific edge actually is a property (true) or a normal edge (false).
+     * @param e
+     * @param sg
+     * @return 
+     */
+    private boolean isPropertyEdge(GraphEdge e, SGraph sg){
+        if (sg.getGraph().incomingEdgesOf(e.getTarget()).size() > 1) return false; //must have single incoming edge
+        if (sg.getSourcesAtNode(e.getTarget().getName()).size() > 0) return false; //must not have sources
+        
+        String label = e.getSource().getLabel();
+        
+        if (DEFINITELY_EDGE.contains(label)) return false;
+        if (DEFINITELY_EDGE_BASED_ON_TARGET.contains(e.getTarget().getLabel())) return false;
+        
+        if (e.getTarget().getName().startsWith("explicitanon")) return true;
+        
+        for (Pattern propertyName : PROPERTY_EDGES){
+            Matcher m = propertyName.matcher(e.getLabel());
+            if (m.matches() && sg.getGraph().edgesOf(e.getTarget()).size() == 1){
+                return true;
+            }
+        }
+        return PROBABLY_PROPERTY.contains(label) ;
+    }
+    
     
 }
