@@ -31,9 +31,14 @@ public interface PreprocessedData {
     public List<TaggedWord> getPosTags(String instanceId);
     
     /**
-     * Returns the tokens of the sentence. Each token is
-     * guaranteed to contain at least the original word,
-     * which can be retrieved with {@link CoreLabel#word() }.
+     * Returns the tokens of the sentence.<p>
+     *
+     * Each token is a {@link CoreLabel} object containing
+     * at least the following information: (a) the original
+     * word (access with {@link CoreLabel#word()}; (b)
+     * the character-based begin and end position in the
+     * original string (access with {@link CoreLabel#beginPosition()}
+     * and {@link CoreLabel#endPosition()}).
      * 
      * @param instanceId
      * @return 

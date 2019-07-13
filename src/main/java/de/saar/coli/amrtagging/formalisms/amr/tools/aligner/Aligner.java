@@ -230,7 +230,7 @@ public class Aligner {
      * @param sent
      * @param instanceIndex
      * @param we
-     * @param tagger
+     * @param posTags
      * @return
      * @throws IOException
      */
@@ -620,4 +620,7 @@ public class Aligner {
         this.mode = mode;
     }
 
+    public void setCompanionDataFile(String companionDataFile) {
+        this.companionDataFile = companionDataFile;
+    }
 }

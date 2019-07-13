@@ -55,7 +55,7 @@ public class DependencyExtractorCLI {
     @Parameter(names = {"--vocabPath", "-v"}, description = "Prefix for vocab files from a previous run that should be used here (e.g. to training vocab when doing dev/test files)")
     private String vocabPath = null;
     
-    @Parameter(names = {"--posPath", "-pos"}, description = "Path to the stanford POS tagger model file english-bidirectional-distsim.tagger", required = true)
+    @Parameter(names = {"--posPath", "-pos"}, description = "Path to the stanford POS tagger model file english-bidirectional-distsim.tagger", required = false)
     private String posPath;
     
     @Parameter(names = {"--threads", "-t"}, description = "Number of threads over which the instances should be parallelized")
@@ -131,14 +131,19 @@ public class DependencyExtractorCLI {
         
 //        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
         
-        PreprocessedData preprocData;
+        PreprocessedData _preprocData = null;
 
         if( cli.companionDataFile != null ) {
-            preprocData = new MrpPreprocessedData(new File(cli.companionDataFile));
+            _preprocData = new MrpPreprocessedData(new File(cli.companionDataFile));
+        } else if( cli.posPath != null ){
+            _preprocData = new StanfordPreprocessedData(cli.posPath);
+            ((StanfordPreprocessedData) _preprocData).readTokenizedFromCorpus(corpus);
         } else {
-            preprocData = new StanfordPreprocessedData(cli.posPath);
-            ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus);
+            System.err.println("You must specify either the MRP companion data or the Stanford POS tagging model.");
+            System.exit(1);
         }
+
+        final PreprocessedData preprocData = _preprocData; // so it can be used from the lambda expr below
 
         DependencyExtractor extr = (cli.vocabPath == null) ? new DependencyExtractor(cli.outPath) 
                 : new DependencyExtractor(cli.outPath, cli.vocabPath);

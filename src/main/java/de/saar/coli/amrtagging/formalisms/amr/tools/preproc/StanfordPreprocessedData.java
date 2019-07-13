@@ -71,8 +71,6 @@ public class StanfordPreprocessedData implements PreprocessedData {
                 ret = tok.tokenize();
             }
         }
-        
-//        System.err.println("tokens: " + ret);
 
         return ret;
     }

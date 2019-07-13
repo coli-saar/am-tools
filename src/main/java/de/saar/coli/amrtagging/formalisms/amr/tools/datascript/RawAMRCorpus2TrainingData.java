@@ -142,6 +142,7 @@ public class RawAMRCorpus2TrainingData {
             al.setWordnetPath(r2t.wordnetPath);
             al.setConceptnetPath(r2t.conceptnetPath);
             al.setPosModelPath(r2t.posModelPath);
+            al.setCompanionDataFile(r2t.companionDataPath);
             al.setMode("p");
             al.align();
 
@@ -154,6 +155,7 @@ public class RawAMRCorpus2TrainingData {
             al.setWordnetPath(r2t.wordnetPath);
             al.setConceptnetPath(r2t.conceptnetPath);
             al.setPosModelPath(r2t.posModelPath);
+            al.setCompanionDataFile(r2t.companionDataPath);
             al.setMode("ap");
             al.align();
         }

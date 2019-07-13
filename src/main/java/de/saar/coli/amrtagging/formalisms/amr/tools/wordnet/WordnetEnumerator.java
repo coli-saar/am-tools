@@ -105,8 +105,7 @@ public class WordnetEnumerator implements IWordnet {
                         }
                     }
                 } catch (java.lang.IllegalArgumentException ex) {
-                    System.err.println("*** WARNING *** "
-                            + de.up.ling.irtg.util.Util.getStackTrace(ex));
+                    System.err.println("*** WARNING *** " + de.up.ling.irtg.util.Util.getStackTrace(ex));
                 }
             }
             
@@ -494,7 +493,7 @@ public class WordnetEnumerator implements IWordnet {
         }
     }
 
-    public List<String> findStems(String word, POS pos) {
+    public List<String> findStems(String word, POS pos) throws IllegalArgumentException {
         return stemmer.findStems(word, pos);
     }
     

@@ -189,8 +189,8 @@ public class ConceptnetEnumerator implements IWordnet {
                             concepts.add(c);
                         }
                     }
-                } catch (java.lang.IllegalArgumentException ex) {
-                    System.err.println("*** WARNING *** " + de.up.ling.irtg.util.Util.getStackTrace(ex));
+                } catch (IllegalArgumentException ex) {
+                    System.err.printf("** IllegalArgumentException for word '%s' in ConceptEnumerator#getWNCandidates (you can ignore this).\n", word);
                 }
             }
 

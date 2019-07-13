@@ -5,8 +5,12 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.formalisms.amr.tools.RareWordsAnnotator;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.datascript.TestNER.matchesDatePattern;
+
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
 import de.up.ling.irtg.Interpretation;
@@ -27,10 +31,8 @@ import edu.stanford.nlp.ie.crf.CRFClassifier;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.TaggedWord;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,14 +43,31 @@ import java.util.stream.Collectors;
  * @author Jonas
  */
 public class MakeDevData {
-    
+    @Parameter(names = {"--corpusPath", "-c"}, description = "Path to the input corpus", required = true)
+    private String corpusPath = null;
+
+    @Parameter(names = {"--outPath", "-o"}, description = "Prefix for output files", required = true)
+    private String outPath = null;
+
+    @Parameter(names = {"--tagger-model"}, description = "Filename of Stanford POS tagger model english-bidirectional-distsim.tagger", required = false)
+    private String stanfordTaggerFilename;
+
+    @Parameter(names = {"--ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz", required = true)
+    private String stanfordNerFilename;
+
+    @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
+    private String companionDataFile = null;
+
+    @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
+    private boolean help = false;
+
     /**
      * Makes the input data for the evaluation step, i.e.~ runs preprocessing on
      * the corpus sentences, without making use of the graphs.
-     * First argument is the path to folder containing the corpus,
-     * second argument is path to output folder, third is 
-     * path to stanford POS tagger model english-bidirectional-distsim.tagger and
-     * fourth is path to stanford NER model english.conll.4class.distsim.crf.ser.gz
+     * First argument is the corpusPath to folder containing the corpus,
+     * second argument is corpusPath to output folder, third is
+     * corpusPath to stanford POS tagger model english-bidirectional-distsim.tagger and
+     * fourth is corpusPath to stanford NER model english.conll.4class.distsim.crf.ser.gz
      * @param args
      * @throws FileNotFoundException
      * @throws IOException
@@ -57,30 +76,55 @@ public class MakeDevData {
      * @throws CorpusReadingException 
      */
     public static void main(String[] args) throws FileNotFoundException, IOException, ClassCastException, ClassNotFoundException, CorpusReadingException {
-        
-        String path = args[0];//path to folder containing the corpus
-        String outPath = args[1];//path to output folder
-        
-//        MaxentTagger tagger = new MaxentTagger(args[2]);//args[2] must be path to stanford POS tagger model english-bidirectional-distsim.tagger
-        AbstractSequenceClassifier<CoreLabel> classifier = CRFClassifier.getClassifier(args[3]);//args[3] must be path to stanford NER model english.conll.4class.distsim.crf.ser.gz
+        MakeDevData mdd = new MakeDevData();
+        JCommander commander = new JCommander(mdd);
+        commander.setProgramName("MakeDevData");
+
+        try {
+            commander.parse(args);
+        } catch (com.beust.jcommander.ParameterException ex) {
+            System.err.println("An error occured: " + ex.toString());
+            System.err.println("\n Available options: ");
+            commander.usage();
+            return;
+        }
+
+        if (mdd.help) {
+            commander.usage();
+            return;
+        }
+
+        mdd.makeDevData();
+    }
+
+    public void makeDevData() throws IOException, CorpusReadingException, ClassNotFoundException {
+        AbstractSequenceClassifier<CoreLabel> classifier = CRFClassifier.getClassifier(stanfordNerFilename);
         
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
-        Corpus corpus = Corpus.readCorpus(new FileReader(path+"finalAlto.corpus"), loaderIRTG);
-        //BufferedReader graphBR = new BufferedReader(new FileReader(path+"raw.amr"));
-        
-        PreprocessedData preprocData = new StanfordPreprocessedData(args[2]); //args[2] must be path to stanford POS tagger model english-bidirectional-distsim.tagger
+        loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        String corpusFilename = corpusPath +"finalAlto.corpus";
+        Corpus corpus = Corpus.readCorpus(new FileReader(corpusFilename), loaderIRTG);
+        //BufferedReader graphBR = new BufferedReader(new FileReader(corpusPath+"raw.amr"));
 
-        // initialize Stanford version of preprocData - TODO #22: do this with companion data
-        ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus);
-        
+        PreprocessedData preprocData = null;
+
+        if( companionDataFile != null ) {
+            preprocData = new MrpPreprocessedData(new File(companionDataFile));
+        } else if( stanfordTaggerFilename != null ){
+            preprocData = new StanfordPreprocessedData(stanfordTaggerFilename);
+            ((StanfordPreprocessedData) preprocData).readTokenizedFromCorpus(corpus);
+        } else {
+            System.err.println("Either MRP companion data or the Stanford POS tagger is required.");
+            System.exit(1);
+        }
         
         FileWriter sentenceW = new FileWriter(outPath+"sentences.txt");
         FileWriter posW = new FileWriter(outPath+"pos.txt");
         FileWriter literalW = new FileWriter(outPath+"literal.txt");
-        //FileWriter goldW = new FileWriter(path+"gold.txt");
+        //FileWriter goldW = new FileWriter(corpusPath+"gold.txt");
         
         for (Instance inst : corpus) {
             List<String> ids = (List)inst.getInputObjects().get("id");

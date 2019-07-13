@@ -41,7 +41,6 @@ public class MrpPreprocessedData implements PreprocessedData {
                 ret.add(tw);
             }
 
-            System.err.printf("mrp postags: %s\n", ret);
             return ret;
         }
     }
@@ -66,7 +65,6 @@ public class MrpPreprocessedData implements PreprocessedData {
                 ret.add(cl);
             }
 
-            System.err.printf("mrp tokens: %s\n", ret);
             return ret;
         }
     }
