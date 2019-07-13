@@ -127,6 +127,7 @@ public class AMR implements Formalism{
         }));
         removeWikiEdges(evaluatedGraph);
         
+        //MRPGraph g = MRPUtils.fromSGraph(evaluatedGraph,PROPERTY_EDGES, 2, "amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
         MRPGraph g = fromSGraph(evaluatedGraph, 2, "amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
         return g;
         
@@ -190,7 +191,9 @@ public class AMR implements Formalism{
         
         int index = 0;
         
-        for (String node: sg.getAllNodeNames()){
+        List<String> nodes = new ArrayList<>(sg.getAllNodeNames());
+        nodes.sort((String s1, String s2) -> s1.compareTo(s2));
+        for (String node: nodes){
             node2id.put(node, index);
             id2node.put(index, node);
             GraphNode gN = sg.getNode(node);
@@ -216,7 +219,9 @@ public class AMR implements Formalism{
         output.setTops(tops);
 
         //add edges
-        for (GraphEdge e : sg.getGraph().edgeSet() ){
+        List<GraphEdge> edges = new ArrayList<>(sg.getGraph().edgeSet());
+        edges.sort((GraphEdge e1, GraphEdge e2) -> e1.getSource().getName().compareTo(e2.getSource().getName()));
+        for (GraphEdge e :  edges){
             if (! isPropertyEdge(e,sg)) {
                 output.getEdges().add(new MRPEdge(node2id.get(e.getSource().getName()), node2id.get(e.getTarget().getName()),e.getLabel()));
             } else {
@@ -236,7 +241,7 @@ public class AMR implements Formalism{
      * @return 
      */
     private boolean isPropertyEdge(GraphEdge e, SGraph sg){
-        if (sg.getGraph().incomingEdgesOf(e.getTarget()).size() > 1) return false; //must have single incoming edge
+        if (sg.getGraph().edgesOf(e.getTarget()).size() != 1) return false; //must have single incoming edge
         if (sg.getSourcesAtNode(e.getTarget().getName()).size() > 0) return false; //must not have sources
         
         String label = e.getSource().getLabel();
