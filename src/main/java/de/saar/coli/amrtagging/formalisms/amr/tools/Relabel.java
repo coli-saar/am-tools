@@ -47,8 +47,8 @@ public class Relabel {
     public static Counter<String> seenNETypeCounter = new Counter<>();
     public static Counter<String> unseenNETypeCounter = new Counter<>();
 
-    private Pattern MMddYY = Pattern.compile("([0-9]+)/([0-9]+)/([0-9]+)");
-    private Pattern MMdd = Pattern.compile("([0-9]+)/([0-9]+)");
+    private final Pattern MMddYY = Pattern.compile("([0-9]+)/([0-9]+)/([0-9]+)");
+    private final Pattern MMdd = Pattern.compile("([0-9]+)/([0-9]+)");
 
     /**
      * Takes the graphs created by de.saar.coli.amrtaggin.Parser and fills in

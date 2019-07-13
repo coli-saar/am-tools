@@ -381,4 +381,8 @@ public class ConllSentence extends ArrayList<ConllEntry> {
             return "#NO-ID";
         }
     }
+    
+    public void setId(String newId){
+        setAttr("id", newId);
+    }
 }

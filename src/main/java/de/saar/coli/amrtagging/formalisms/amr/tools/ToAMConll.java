@@ -117,6 +117,9 @@ public class ToAMConll {
             String id = ids.get(i).get(0);
 
             ConllSentence o = new ConllSentence();
+            o.setId(id);
+            o.setAttr("framework", "amr");
+            o.setAttr("flavor", "2");
             List<String> expandedWords = new ArrayList<>();
             List<Integer> origPositions = new ArrayList<>();
             List<String> ners = new ArrayList<>();
@@ -160,17 +163,19 @@ public class ToAMConll {
             Sentence stanfSent = new Sentence(expandedWords);
             List<String> nerTags = stanfSent.nerTags();
             List<String> ourLemmas = new ArrayList<>(o.words());
-            List<String> lemmas = stanfSent.lemmas();
+            List<String> lemmas;
+            
+            if( preprocData != null ) {
+                lemmas = preprocData.getLemmas(id);
+            } else {
+                lemmas = stanfSent.lemmas();
+            }
 
             for (int j = 0; j < lemmas.size(); j++) {
                 ners.set(origPositions.get(j), nerTags.get(j));
                 ourLemmas.set(origPositions.get(j), lemmas.get(j));
             }
 
-            if( preprocData != null ) {
-                // overwrite Stanford lemmas with those from MRP companion data
-                ourLemmas = preprocData.getLemmas(id);
-            }
 
             o.addReplacement(sentences.get(i));
             o.addPos(posTags.get(i));
