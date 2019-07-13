@@ -8,6 +8,7 @@ import edu.stanford.nlp.ling.TaggedWord;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.Map;
 public class MrpPreprocessedData implements PreprocessedData {
     private Map<String,ConlluSentence> companionData;
 
-    public MrpPreprocessedData(File companionDataFilename) {
+    public MrpPreprocessedData(File companionDataFilename) throws IOException {
         // load companion data
         List<ConlluSentence> sentences = ConlluSentence.read(new FileReader(companionDataFilename));
         companionData = new HashMap<>();

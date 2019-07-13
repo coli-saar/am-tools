@@ -110,7 +110,11 @@ public class RawAMRCorpus2TrainingData {
 
         //Step 0: Convert raw AMR corpus into a corpus in Alto format
         if (r2t.step <= 0) {
-            FullProcess.fullProcess(r2t.inputPath, path, r2t.grammarFile);
+            FullProcess fp = new FullProcess();
+            fp.setAmrCorpusPath(r2t.inputPath);
+            fp.setOutputPath(path);
+            fp.setStanfordGrammarFile(r2t.grammarFile);
+            fp.fullProcess();
         }
 
         //Optional Step 1: split coref

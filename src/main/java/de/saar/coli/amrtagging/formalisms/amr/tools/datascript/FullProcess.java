@@ -102,4 +102,20 @@ public class FullProcess {
 
         System.err.println("\nDone corpus preprocessing\n\n");
     }
+
+    public void setAmrCorpusPath(String amrCorpusPath) {
+        this.amrCorpusPath = amrCorpusPath;
+    }
+
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
+    }
+
+    public void setStanfordGrammarFile(String stanfordGrammarFile) {
+        this.stanfordGrammarFile = stanfordGrammarFile;
+    }
+
+    public void setCompanionDataPath(String companionDataPath) {
+        this.companionDataPath = companionDataPath;
+    }
 }
