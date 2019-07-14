@@ -16,6 +16,7 @@ repositories {
     mavenCentral()
     maven { url 'http://akci.coli.uni-saarland.de/artifactory/external' }
     maven { url 'https://jitpack.io' }
+    maven { url 'http://cogcomp.org/m2repo/'}
 }
 
 dependencies {
@@ -38,6 +39,8 @@ dependencies {
     implementation 'net.sf.jgrapht:jgrapht:0.8.3'
     implementation 'edu.mit:jwi:2.2.3'
     
+    // Illinois NER https://cogcomp.org/page/software_view/NETagger
+    implementation 'edu.illinois.cs.cogcomp:illinois-ner:4.0.13'
     
     implementation 'com.owlike:genson:1.5'
     
