@@ -11,9 +11,7 @@ import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCL
 import de.saar.coli.amrtagging.formalisms.amr.tools.RareWordsAnnotator;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.datascript.TestNER.matchesDatePattern;
 
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
@@ -53,8 +51,8 @@ public class MakeDevData {
     @Parameter(names = {"--tagger-model"}, description = "Filename of Stanford POS tagger model english-bidirectional-distsim.tagger", required = false)
     private String stanfordTaggerFilename;
 
-    @Parameter(names = {"--ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz", required = true)
-    private String stanfordNerFilename;
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz; if argument is not given, use UIUC NER tagger")
+    private String stanfordNerFilename = null;
 
     @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
     private String companionDataFile = null;
@@ -99,8 +97,6 @@ public class MakeDevData {
     }
 
     public void makeDevData() throws IOException, CorpusReadingException, ClassNotFoundException {
-        AbstractSequenceClassifier<CoreLabel> classifier = CRFClassifier.getClassifier(stanfordNerFilename);
-        
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
@@ -108,8 +104,8 @@ public class MakeDevData {
         loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         String corpusFilename = corpusPath +"finalAlto.corpus";
         Corpus corpus = Corpus.readCorpus(new FileReader(corpusFilename), loaderIRTG);
-        //BufferedReader graphBR = new BufferedReader(new FileReader(corpusPath+"raw.amr"));
 
+        // set up tokenizer and POS tagger
         PreprocessedData preprocData = null;
 
         if( companionDataFile != null ) {
@@ -121,6 +117,9 @@ public class MakeDevData {
             System.err.println("Either MRP companion data or the Stanford POS tagger is required.");
             System.exit(1);
         }
+
+        // set up NER recognizer
+        NamedEntityRecognizer nerRecognizer = stanfordNerFilename != null ? new StanfordNamedEntityRecognizer(new File(stanfordNerFilename)) : new UiucNamedEntityRecognizer();
         
         FileWriter sentenceW = new FileWriter(outPath+"sentences.txt");
         FileWriter posW = new FileWriter(outPath+"pos.txt");
@@ -129,14 +128,45 @@ public class MakeDevData {
         
         for (Instance inst : corpus) {
             List<String> ids = (List)inst.getInputObjects().get("id");
-            String id = ids.get(0);
-            
             List<String> sent = (List)inst.getInputObjects().get("string");
-            List<List<CoreLabel>> lcls = classifier.classify(sent.stream().collect(Collectors.joining(" ")).replaceAll("[<>]", ""));
-            List<CoreLabel> lcl = new ArrayList<>();
-            lcls.forEach(l -> lcl.addAll(l));
+            String id = ids.get(0);
+
+            List<CoreLabel> tokens = preprocData.getTokens(id);
+            List<CoreLabel> lcl = null;
+
+            try {
+                lcl = nerRecognizer.tag(tokens);
+            } catch (PreprocessingException e) {
+                System.err.printf("Skipping instance %s because of exception:\n", id);
+                e.printStackTrace();
+                continue;
+            }
+
+//
+//
+//            List<CoreLabel> lcl = nerRecognizer.tag(tokens);
+//
+//            List<String> sent = (List)inst.getInputObjects().get("string");
+//
+//            // AKAKAK
+//            NamedEntityRecognizer nerRecognizer = new UiucNamedEntityRecognizer(); // TODO
+//
+//
+//            try {
+//                lcl = nerRecognizer.tag(preprocData.getTokens(id));
+//            } catch (PreprocessingException e) {
+//                System.err.printf("Skipping instance %s because of exception:\n", id);
+//                e.printStackTrace();
+//                continue;
+//            }
+
+
+//            List<List<CoreLabel>> lcls = classifier.classify(sent.stream().collect(Collectors.joining(" ")).replaceAll("[<>]", ""));
+//            List<CoreLabel> lcl = new ArrayList<>();
+//            lcls.forEach(l -> lcl.addAll(l));
             
-            //lcl and sent are slightly differently tokenized. we need to fix that.
+            // lcl and sent are slightly differently tokenized. we need to fix that.
+            // NB The more systematic fix would be to simply use tokens instead of sent - AK 15/07/19
             if (lcl.size() < sent.size()) {
                 System.err.println(lcl);
                 System.err.println(sent);
@@ -190,8 +220,7 @@ public class MakeDevData {
                         if (!prevCat.equals(ner)) {
                             //if category switched, save previous span and start new.
                             // **WARNING** duplicated code below
-                            literalOut.add(sent.subList(prevIndex, i).stream()
-                                    .collect(Collectors.joining(LITERAL_JOINER)));
+                            literalOut.add(sent.subList(prevIndex, i).stream().collect(Collectors.joining(LITERAL_JOINER)));
                             sentOut.add(RareWordsAnnotator.NAME_TOKEN.toLowerCase());
                             posOut.add(posTags.get(prevIndex));
                             prevIndex = i;
@@ -202,8 +231,7 @@ public class MakeDevData {
                     if (prevIndex != -1) {
                         //if we were working on a span before, save it and continue searching
                         // **WARNING** duplicated code above and below
-                        literalOut.add(sent.subList(prevIndex, i).stream()
-                                    .collect(Collectors.joining(LITERAL_JOINER)));
+                        literalOut.add(sent.subList(prevIndex, i).stream().collect(Collectors.joining(LITERAL_JOINER)));
                         sentOut.add(RareWordsAnnotator.NAME_TOKEN.toLowerCase());
                         posOut.add(posTags.get(prevIndex));
                         prevIndex = -1;
@@ -231,8 +259,7 @@ public class MakeDevData {
             if (prevIndex != -1) {
                 //if we were working on a span before, save it and continue searching
                 // **WARNING** duplicated code above
-                literalOut.add(sent.subList(prevIndex, sent.size()).stream()
-                            .collect(Collectors.joining(LITERAL_JOINER)));
+                literalOut.add(sent.subList(prevIndex, sent.size()).stream().collect(Collectors.joining(LITERAL_JOINER)));
                 sentOut.add(RareWordsAnnotator.NAME_TOKEN.toLowerCase());
                 posOut.add(posTags.get(prevIndex));
             }

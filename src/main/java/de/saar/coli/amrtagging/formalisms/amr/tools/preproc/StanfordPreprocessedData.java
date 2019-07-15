@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.preproc;
 
+import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.corpus.Corpus;
 import de.up.ling.irtg.corpus.Instance;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -82,13 +83,7 @@ public class StanfordPreprocessedData implements PreprocessedData {
 
     @Override
     public void setTokens(String instanceId, List<String> tokens) {
-        List<CoreLabel> labeled = new ArrayList<>();
-
-        for (String tok : tokens) {
-            CoreLabel cl = CoreLabel.wordFromString(tok);
-            labeled.add(cl);
-        }
-
+        List<CoreLabel> labeled = Util.makeCoreLabelsForTokens(tokens);
         tokensForId.put(instanceId, labeled);
     }
 
