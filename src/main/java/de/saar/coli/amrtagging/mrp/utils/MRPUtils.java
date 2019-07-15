@@ -19,6 +19,7 @@ import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -162,6 +163,7 @@ public class MRPUtils {
     }
     
     
+    
      /**
      * Converts back to MRPGraph
      * @param sg
@@ -172,9 +174,28 @@ public class MRPUtils {
      * @param raw
      * @param version
      * @param time
+  
      * @return 
      */
     public static MRPGraph fromAnchoredSGraph(AnchoredSGraph sg, boolean restoreProperties, int flavor, String framework, String graphId, String raw, String version, String time){
+        return fromAnchoredSGraph(sg, restoreProperties, flavor, framework, graphId, raw, version, time,true);
+    }
+    
+    
+     /**
+     * Converts back to MRPGraph
+     * @param sg
+     * @param restoreProperties whether properties and values are encoded as nodes being attached to the node they are a property of.
+     * @param flavor
+     * @param framework
+     * @param graphId
+     * @param raw
+     * @param version
+     * @param time
+     * @param everyNodeMustBeAligned whether or not it is OK to have nodes that are unaligned (UCCA: non-terminal unaligned vs EDS: everything aligned)
+     * @return 
+     */
+    public static MRPGraph fromAnchoredSGraph(AnchoredSGraph sg, boolean restoreProperties, int flavor, String framework, String graphId, String raw, String version, String time, boolean everyNodeMustBeAligned){
         MRPGraph output = new MRPGraph();
         output.sanitize();
         output.setId(graphId);
@@ -225,7 +246,9 @@ public class MRPUtils {
                 Set<GraphNode> parents = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getSource()).collect(Collectors.toSet());
                 Set<String> incomingLabels = sg.getGraph().incomingEdgesOf(n).stream().map(e -> e.getLabel()).collect(Collectors.toSet());
                 if (parents.size() != 1){
-                    System.err.println("[AncoredSGraph -> MRPGraph] WARNING: unaligned node "+n.getName()+" should have exactly one parent but has "+parents.size());
+                    if (everyNodeMustBeAligned) {
+                        System.err.println("[AncoredSGraph -> MRPGraph] WARNING: unaligned node "+n.getName()+" should have exactly one parent but has "+parents.size()+" in graph "+graphId);
+                    }
                 } else {
                     GraphNode parent = parents.stream().findAny().get();
                     String propertyName = incomingLabels.stream().findAny().get(); //there must be exactly one edge label in this set
