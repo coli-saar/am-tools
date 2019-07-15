@@ -203,11 +203,11 @@ public class CreateCorpus {
                 }
             }
         }
+
         System.err.println("ok: " + (counter - problems));
         System.err.println("total: " + counter);
-        System.err.println("i.e. " + 100 * (1.0 - (problems / (float) counter)) + "%");
+        System.err.println("i.e. " + 100 * (1.0 - (problems / (float) counter)) + "% translated correctly");
         cli.write(outCorpus, supertagDictionary);
-
     }
 
 
