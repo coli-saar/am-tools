@@ -124,6 +124,7 @@ public class MakeDevData {
         FileWriter sentenceW = new FileWriter(outPath+"sentences.txt");
         FileWriter posW = new FileWriter(outPath+"pos.txt");
         FileWriter literalW = new FileWriter(outPath+"literal.txt");
+        FileWriter idWriter = new FileWriter(outPath+"graphIDs.txt");
         //FileWriter goldW = new FileWriter(corpusPath+"gold.txt");
         
         for (Instance inst : corpus) {
@@ -244,6 +245,7 @@ public class MakeDevData {
             posW.write(posOut.stream().collect(Collectors.joining(" "))+"\n");
             sentenceW.write(sentOut.stream().collect(Collectors.joining(" "))+"\n");
             literalW.write(literalOut.stream().collect(Collectors.joining(" "))+"\n");
+            idWriter.write(id+"\n");
             
             inst.getInputObjects().put("pos", posOut);
             inst.getInputObjects().put("repstring", sentOut);
@@ -257,6 +259,7 @@ public class MakeDevData {
         posW.close();
         sentenceW.close();
         literalW.close();
+        idWriter.close();
         //goldW.close();
         
         loaderIRTG.addInterpretation("pos", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
