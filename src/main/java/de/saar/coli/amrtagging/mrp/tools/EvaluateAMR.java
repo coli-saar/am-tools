@@ -87,7 +87,7 @@ public class EvaluateAMR {
             try {
                  evaluatedGraph = formalism.evaluate(sentence);
                  evaluatedGraph = formalism.postprocess(evaluatedGraph);
-                 evaluatedGraph.setTime(new SimpleDateFormat("dd-MM-yyyy (hh:mm)").format(new Date()));
+                 evaluatedGraph.setTime(new SimpleDateFormat("yyyy-MM-dd (hh:mm)").format(new Date())); //2019-04-10 (20:10)
                  if (evaluatedGraph.getVersion() == null){
                      evaluatedGraph.setVersion("0.9"); //the version we've been using
                  }
