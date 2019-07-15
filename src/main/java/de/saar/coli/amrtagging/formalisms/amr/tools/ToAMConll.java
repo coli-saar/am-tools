@@ -129,13 +129,14 @@ public class ToAMConll {
             o.setId(id);
             o.setAttr("framework", "amr");
             o.setAttr("flavor", "2");
-            //TODO: set input attribute
+
             List<String> expandedWords = new ArrayList<>();
             List<Integer> origPositions = new ArrayList<>();
             List<String> ners = new ArrayList<>();
 
             for (int positionInSentence = 0; positionInSentence < sentences.get(i).size(); positionInSentence++) {
-                ConllEntry e = new ConllEntry(positionInSentence + 1, literals.get(i).get(positionInSentence));
+                String wordForm = literals.get(i).get(positionInSentence).replace(LITERAL_JOINER, " ");
+                ConllEntry e = new ConllEntry(positionInSentence + 1, wordForm);
                 String tag = tags.get(i).get(positionInSentence).replaceAll("__ALTO_WS__", " ");
 
                 if (!tag.equals("NULL")) {
@@ -170,7 +171,7 @@ public class ToAMConll {
             // because tokens may have been split at underscores. Thus origPositions maps each position in
             // expandedWords to the position in the original sentence from which it came.
 
-            Sentence stanfSent = new Sentence(expandedWords);
+            
             List<CoreLabel> nerTags = null;
             List<String> ourLemmas = new ArrayList<>(o.words());
             List<String> lemmas;
@@ -179,6 +180,7 @@ public class ToAMConll {
                 lemmas = preprocData.getLemmas(id);
                 nerTags = neRecognizer.tag(preprocData.getTokens(id));
             } else {
+                Sentence stanfSent = new Sentence(expandedWords);
                 lemmas = stanfSent.lemmas();
                 nerTags = neRecognizer.tag(Util.makeCoreLabelsForTokens(expandedWords));
             }

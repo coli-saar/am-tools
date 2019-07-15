@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
+import de.saar.coli.amrtagging.Util;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import de.up.ling.tree.TreeParser;
@@ -26,6 +27,8 @@ import java.util.regex.Pattern;
  * @author Jonas
  */
 public class FixAMRAltoCorpus {
+    
+    public static final String UNK_CHAR = "_"; //before, it was _UNK_CHAR_ which BERT probably doesn't like at all
     
     public static void main(String[] args) throws IOException, ParseException {
         String outputPath = args[0];
@@ -168,14 +171,18 @@ public class FixAMRAltoCorpus {
                 line = line.replaceAll(W_PLACEHOLDER, " ");
                 //normalize (separate accent from accented letter) and remove accents
                 line = Normalizer.normalize(line, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+                //replace common non-ascii characters:
+                line = Util.fixPunct(line);
                 //replace non-ascii characters
-                line = line.replaceAll("[^\\x00-\\x7F]", "_UNK_CHAR_");
+                line = line.replaceAll("[^\\x00-\\x7F]", UNK_CHAR);
             } else {
                 line = line.replaceAll("\\[(string|graph|id)\\] ", "");
                 //normalize (separate accent from accented letter) and remove accents
                 line = Normalizer.normalize(line, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+                //replace common non-ascii characters:
+                line = Util.fixPunct(line);
                 //replace non-ascii characters
-                line = line.replaceAll("[^\\x00-\\x7F]", "_UNK_CHAR_");
+                line = line.replaceAll("[^\\x00-\\x7F]", UNK_CHAR);
             }
             writer.write(line+"\n");
         }
