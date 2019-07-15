@@ -164,31 +164,7 @@ public class MakeDevData {
 //            List<List<CoreLabel>> lcls = classifier.classify(sent.stream().collect(Collectors.joining(" ")).replaceAll("[<>]", ""));
 //            List<CoreLabel> lcl = new ArrayList<>();
 //            lcls.forEach(l -> lcl.addAll(l));
-            
-            // lcl and sent are slightly differently tokenized. we need to fix that.
-            // NB The more systematic fix would be to simply use tokens instead of sent - AK 15/07/19
-            if (lcl.size() < sent.size()) {
-                System.err.println(lcl);
-                System.err.println(sent);
-            }
-            String lastWord = "";
-            CoreLabel lastLCL = null;
-            for (int i = 0; i<sent.size(); i++) {
-                String word = sent.get(i);
-                String lclWord = lcl.get(i).word();
-                if (!lclWord.equals(word)) {
-                    if (lastWord.endsWith(lclWord)) {
-                        lcl.remove(i);
-                    } else if (lastLCL != null && lastLCL.word().endsWith(word)) {
-                        lcl.add(i, lastLCL);
-                    }
-                }
-                lastWord = word;
-                lastLCL = lcl.get(i);
-            }
-            if (lcl.size() == sent.size() + 1 && !sent.get(sent.size()-1).equals(lcl.get(lcl.size()-1).word())) {
-                lcl.remove(lcl.size()-1);
-            }
+
             
             List<TaggedWord> posTaggedWords = preprocData.getPosTags(id);
             List<String> posTags = Util.mapToList(posTaggedWords, tw -> tw.tag());
@@ -210,9 +186,9 @@ public class MakeDevData {
             String prevCat = "";
             for (int i = 0; i<sent.size(); i++) {
                 CoreLabel cl = lcl.get(i);
-                String neLabel = cl.ner() != null ? cl.ner() : cl.get(CoreAnnotations.AnswerAnnotation.class);
+                String neLabel = cl.ner();
 
-                if (!neLabel.equals(TestNER.OTHER)) {
+                if (!neLabel.equals(NamedEntityRecognizer.NER_NULL)) {
                     if (prevIndex == -1) {
                         //if we were searching before, now we start.
                         prevIndex = i;

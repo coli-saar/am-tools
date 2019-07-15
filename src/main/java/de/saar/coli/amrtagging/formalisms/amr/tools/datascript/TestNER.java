@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 import com.google.common.collect.Sets;
 import de.saar.coli.amrtagging.formalisms.amr.tools.RareWordsAnnotator;
 import de.saar.coli.amrtagging.Alignment.Span;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class TestNER {
     
-    public static final String OTHER = "O";
+//    public static final String OTHER = "O";
     
     /**
      * Testing script to gain accuracy data for the named entity tagger. Currently
@@ -84,7 +85,7 @@ public class TestNER {
             for (int i = 0; i<lcl.size(); i++) {
                 CoreLabel cl = lcl.get(i);
                 String ner = cl.get(CoreAnnotations.AnswerAnnotation.class);
-                if (!ner.equals(OTHER)) {
+                if (!ner.equals(NamedEntityRecognizer.NER_NULL)) {
                     if (prevIndex == -1) {
                         //if we were searching before, now we start.
                         prevIndex = i;

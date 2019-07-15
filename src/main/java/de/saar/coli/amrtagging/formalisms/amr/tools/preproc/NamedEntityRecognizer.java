@@ -5,16 +5,16 @@ import edu.stanford.nlp.ling.CoreLabel;
 import java.util.List;
 
 public interface NamedEntityRecognizer {
-    public static final String OTHER = "O";
-    public static final String PERSON = "PERSON"; // TODO UIUC is PER
-    public static final String ORGANIZATION = "ORGANIZATION"; // TODO UIUC is ORG
-    public static final String LOCATION = "LOCATION"; // TODO UIUC
-    public static final String MISCELLANEOUS = "MISCELLANEOUS"; // TODO UIUC? how does Stanford call it?
+    public static final String NER_NULL = "O";
+    public static final String PERSON = "PERSON";
+    public static final String ORGANIZATION = "ORGANIZATION";
+    public static final String LOCATION = "LOC";
+    public static final String MISCELLANEOUS = "MISC";
 
 
     /**
      * Annotates the given tokens with named entity information. We use the four-class CoNLL
-     * NER tagset, with values PER/  TODO write this.
+     * NER tagset, with values PERSON, ORGANIZATION, LOC, MISC.
      * Tokens which are not part of a named entity receive the label "O".
      *
      * <p>
