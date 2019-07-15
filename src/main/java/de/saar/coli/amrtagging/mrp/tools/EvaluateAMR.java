@@ -25,7 +25,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -85,6 +87,10 @@ public class EvaluateAMR {
             try {
                  evaluatedGraph = formalism.evaluate(sentence);
                  evaluatedGraph = formalism.postprocess(evaluatedGraph);
+                 evaluatedGraph.setTime(new SimpleDateFormat("dd-MM-yyyy (hh:mm)").format(new Date()));
+                 if (evaluatedGraph.getVersion() == null){
+                     evaluatedGraph.setVersion("0.9"); //the version we've been using
+                 }
             } catch (Exception ex){
                 System.err.println("Error in line "+sentence.getLineNr()+" with id "+sentence.getId());
                 ex.printStackTrace();
