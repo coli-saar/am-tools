@@ -10,17 +10,14 @@ import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
-import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
-
-import static de.saar.coli.amrtagging.formalisms.amr.tools.PrepareTestDataFromFiles.readFile;
-
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
+import de.saar.coli.amrtagging.Util;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.corpus.CorpusReadingException;
 import de.up.ling.tree.ParseException;
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.simple.Sentence;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -29,7 +26,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import edu.stanford.nlp.simple.Sentence;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.PrepareTestDataFromFiles.readFile;
 
 /**
  * Tool to create amconll file from nnData/train
@@ -46,6 +44,9 @@ public class ToAMConll {
     @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin lemmatization", required = false)
     private String companionDataFile = null;
 
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz; if argument is not given, use UIUC NER tagger")
+    private String stanfordNerFilename = null;
+
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
@@ -60,7 +61,7 @@ public class ToAMConll {
      * @throws ParseException
      * @throws InterruptedException
      */
-    public static void main(String[] args) throws FileNotFoundException, IOException, IllegalArgumentException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, IllegalArgumentException, ClassNotFoundException, PreprocessingException {
         ToAMConll cli = new ToAMConll();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("constraint_extractor");
@@ -96,6 +97,7 @@ public class ToAMConll {
         List<ConllSentence> output = new ArrayList<>();
 
         PreprocessedData preprocData = null;
+        NamedEntityRecognizer neRecognizer = null;
 
         if( cli.companionDataFile != null ) {
             preprocData = new MrpPreprocessedData(new File(cli.companionDataFile));
@@ -105,6 +107,12 @@ public class ToAMConll {
             // the Stanford lemmatizer is applied to the expandedWords, in which tokens
             // have been split apart at underscores. Constructing a StanfordPreprocData
             // up here would only duplicate the code. - AK, July 2019.
+        }
+
+        if( cli.stanfordNerFilename != null ) {
+            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+        } else {
+            neRecognizer = new UiucNamedEntityRecognizer();
         }
 
 
@@ -163,18 +171,20 @@ public class ToAMConll {
             // expandedWords to the position in the original sentence from which it came.
 
             Sentence stanfSent = new Sentence(expandedWords);
-            List<String> nerTags = stanfSent.nerTags();
+            List<CoreLabel> nerTags = null;
             List<String> ourLemmas = new ArrayList<>(o.words());
             List<String> lemmas;
             
             if( preprocData != null ) {
                 lemmas = preprocData.getLemmas(id);
+                nerTags = neRecognizer.tag(preprocData.getTokens(id));
             } else {
                 lemmas = stanfSent.lemmas();
+                nerTags = neRecognizer.tag(Util.makeCoreLabelsForTokens(expandedWords));
             }
 
             for (int j = 0; j < lemmas.size(); j++) {
-                ners.set(origPositions.get(j), nerTags.get(j));
+                ners.set(origPositions.get(j), nerTags.get(j).ner());
                 ourLemmas.set(origPositions.get(j), lemmas.get(j));
             }
 
