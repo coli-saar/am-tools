@@ -40,11 +40,11 @@ dependencies {
     implementation 'edu.mit:jwi:2.2.3'
     
     // Illinois NER https://cogcomp.org/page/software_view/NETagger
+    implementation 'edu.illinois.cs.cogcomp:illinois-tokenizer:4.0.13'
     implementation 'edu.illinois.cs.cogcomp:illinois-ner:4.0.13'
     
     implementation 'com.owlike:genson:1.5'
     
     implementation 'de.ruedigermoeller:fst:2.56' // faster serialization
-
 }
 
