@@ -18,6 +18,7 @@ public class StanfordNamedEntityRecognizer implements NamedEntityRecognizer {
         classifier = CRFClassifier.getClassifier(nerModelFile);
     }
 
+    // TODO return NER info in CoreLabel#ner(), not in the weird AnswerClass thing. AKAKAK
     @Override
     public List<CoreLabel> tag(List<CoreLabel> tokens) throws PreprocessingException {
         List<String> sent = Util.mapToList(tokens, CoreLabel::word);

@@ -210,21 +210,22 @@ public class MakeDevData {
             String prevCat = "";
             for (int i = 0; i<sent.size(); i++) {
                 CoreLabel cl = lcl.get(i);
-                String ner = cl.get(CoreAnnotations.AnswerAnnotation.class);
-                if (!ner.equals(TestNER.OTHER)) {
+                String neLabel = cl.ner() != null ? cl.ner() : cl.get(CoreAnnotations.AnswerAnnotation.class);
+
+                if (!neLabel.equals(TestNER.OTHER)) {
                     if (prevIndex == -1) {
                         //if we were searching before, now we start.
                         prevIndex = i;
-                        prevCat = ner;
+                        prevCat = neLabel;
                     } else {
-                        if (!prevCat.equals(ner)) {
+                        if (!prevCat.equals(neLabel)) {
                             //if category switched, save previous span and start new.
                             // **WARNING** duplicated code below
                             literalOut.add(sent.subList(prevIndex, i).stream().collect(Collectors.joining(LITERAL_JOINER)));
                             sentOut.add(RareWordsAnnotator.NAME_TOKEN.toLowerCase());
                             posOut.add(posTags.get(prevIndex));
                             prevIndex = i;
-                            prevCat = ner;
+                            prevCat = neLabel;
                         }
                     }
                 } else {
