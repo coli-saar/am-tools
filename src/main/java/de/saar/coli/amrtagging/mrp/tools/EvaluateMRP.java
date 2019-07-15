@@ -15,6 +15,7 @@ import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
+import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
@@ -33,10 +34,10 @@ import java.util.List;
  */
 public class EvaluateMRP {
     @Parameter(names = {"--corpus"}, description = "Path to the input corpus")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/bla.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.amconll";
     
     @Parameter(names = {"--out", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/bla.mrp";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.mrp";
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
@@ -76,6 +77,8 @@ public class EvaluateMRP {
                 formalism = new PSD();
             } else if (framework.equals("eds")){
                 formalism = new EDS(new ArrayList<>()); //don't need tagging here
+            } else if (framework.equals("ucca")){
+                formalism = new UCCA();
             } else {
                 throw new IllegalArgumentException("Formalism/Framework "+framework+" not supported yet.");
             }

@@ -14,6 +14,7 @@ import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.TokenRange;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.up.ling.irtg.Interpretation;
@@ -41,6 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Create UCCA training data (AMConll).
@@ -89,6 +91,12 @@ public class CreateCorpus {
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton());
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("flavor", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("framework", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("version", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("time", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("spans", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("input", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
@@ -114,6 +122,14 @@ public class CreateCorpus {
             }
             counter++;
             //read graph, string and alignment from corpus
+            String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
+            String inputString = ((List<String>) corpusInstance.getInputObjects().get("input")).stream().collect(Collectors.joining(" "));
+            String version = ((List<String>) corpusInstance.getInputObjects().get("version")).get(0);
+            String time = ((List<String>) corpusInstance.getInputObjects().get("time")).get(0);
+            String framework = ((List<String>) corpusInstance.getInputObjects().get("framework")).get(0);
+            String flavor = ((List<String>) corpusInstance.getInputObjects().get("flavor")).get(0);
+            
+            List<String> tokenRanges = (List) corpusInstance.getInputObjects().get("spans");
             SGraph graph = (SGraph) corpusInstance.getInputObjects().get("graph");
             List<String> sentence = (List) corpusInstance.getInputObjects().get("string");
             List<String> als = (List) corpusInstance.getInputObjects().get("alignment");
@@ -129,7 +145,7 @@ public class CreateCorpus {
             }
             //create MRInstance object that bundles the three:
             MRInstance inst = new MRInstance(sentence, graph, alignments);
-            System.out.println(GraphvizUtils.simpleAlignViz(inst, true)); //this generates a string that you can compile with graphviz dot to get a visualization of what the grouping induced by the alignment looks like.
+            //System.out.println(GraphvizUtils.simpleAlignViz(inst, true)); //this generates a string that you can compile with graphviz dot to get a visualization of what the grouping induced by the alignment looks like.
             //System.out.println(inst.getSentence());
             //System.out.println(inst.getAlignments());
             //System.out.println(inst.getGraph().);
@@ -144,6 +160,13 @@ public class CreateCorpus {
                 if (t != null) { //graph can be decomposed
                     //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
                     ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    sent.setAttr("id", id);
+                    sent.setAttr("input", inputString);
+                    sent.setAttr("flavor", flavor);
+                    sent.setAttr("time", time);
+                    sent.setAttr("framework",framework);
+                    sent.setAttr("version", version);
+                    sent.addRanges(tokenRanges.stream().map((String range) -> TokenRange.fromString(range)).collect(Collectors.toList()));
 
                     Sentence stanfAn = new Sentence(inst.getSentence()); //remove artifical root "word"
 
@@ -183,7 +206,7 @@ public class CreateCorpus {
                         //SGraphDrawer.draw(inst.getGraph(), "");
                     }
 
-                    if (problems > 1) { //ignore the first problems
+                    if (problems > 30) { //ignore the first problems
                         //SGraphDrawer.draw(inst.getGraph(), "");
                         //break;
                     }
