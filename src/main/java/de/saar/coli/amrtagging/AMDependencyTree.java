@@ -247,14 +247,15 @@ public class AMDependencyTree {
 
     /**
      * Binarizes an AM Dependency Tree to some AM Term that can then be used for
-     * evaluation.Based on the fixed tree decoder. align tells if the word
-     * position (and nodenames) of each constant are to be included into the
-     * node labels so that the alignment information persists. If align=true,
-     * the format of the node labels is as follows: wordId SEP nodeName SEP
-     * oldNodeLabel, e.g. node u at position 12 with label "Frankenstein"
-     * becomes 12@@u@@Frankenstein.
+     * evaluation.Based on the fixed tree decoder.align tells if the word
+ position (and nodenames) of each constant are to be included into the
+ node labels so that the alignment information persists. If align=true,
+ the format of the node labels is as follows: wordId SEP nodeName SEP
+ oldNodeLabel, e.g. node u at position 12 with label "Frankenstein"
+ becomes 12@@u@@Frankenstein.
      *
      * @param align
+     * @param relex
      * @return an AM term
      * @throws ParserException
      * @throws ParseException

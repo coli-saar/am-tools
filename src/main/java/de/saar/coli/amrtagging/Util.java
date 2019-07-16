@@ -401,4 +401,14 @@ public class Util {
 
         return ret;
     }
+
+    /**
+     * In the ISI AMR string representation, a node cannot have the label " because " means something.
+     * @param reLex
+     * @return 
+     */
+    static String isiAMREscape(String reLex) {
+        if (reLex.equals("\"")) return "``";
+        return reLex;
+    }
 }

@@ -19,6 +19,7 @@ import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
+import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
@@ -116,6 +117,8 @@ public class CreateCorpus {
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         
         PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
+        
+        UCCA ucca = new UCCA();
 
 
         if (cli.vocab != null) { //vocab given, read from file
@@ -142,6 +145,7 @@ public class CreateCorpus {
             SGraph graph = (SGraph) corpusInstance.getInputObjects().get("graph");
             List<String> sentence = (List) corpusInstance.getInputObjects().get("string");
             List<String> als = (List) corpusInstance.getInputObjects().get("alignment");
+            sentence = ucca.refineTokens(sentence);
             if (als.size() == 1 && als.get(0).equals("")) {
                 //System.err.println("Repaired empty alignment!");
                 als = new ArrayList<>();
@@ -193,7 +197,7 @@ public class CreateCorpus {
                     //sent.addNEs(stanfAn.nerTags()); //slow, only add this for final creation of training data
 
                     sent.addLemmas(preprocData.getLemmas(id));
-
+                    ucca.refineDelex(sent);
                     outCorpus.add(sent); //done with this sentence
                     //we can also create an AM dependency tree now
                     AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);

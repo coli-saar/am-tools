@@ -91,7 +91,8 @@ public class ConllEntry {
         SGraph supertag = delexGraph();
         for (String node : supertag.getAllNodeNames()){
             if (supertag.getNode(node) != null  && supertag.getNode(node).getLabel() != null && supertag.getNode(node).getLabel().equals(LEX_MARKER)){
-                supertag.getNode(node).setLabel(Util.fixPunct(this.getReLexLabel())); //unfortunately, we have to fix punctuation :(
+                String reLex = Util.fixPunct(this.getReLexLabel()); //unfortunately, we have to fix punctuation :(
+                supertag.getNode(node).setLabel(Util.isiAMREscape(reLex)); 
             }
         }
         return supertag;

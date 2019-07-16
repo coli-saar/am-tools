@@ -21,6 +21,7 @@ import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
+import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
@@ -127,7 +128,7 @@ public class CreateCorpusParallel {
             instances.sort((g1,g2) -> Integer.compare(((List) g1.getInputObjects().get("string")).size()
                     , ((List) g2.getInputObjects().get("string")).size()));
         }
-        
+        UCCA ucca = new UCCA();
         PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
         
         instances.parallelStream().forEach((Instance corpusInstance)  -> {
@@ -141,6 +142,7 @@ public class CreateCorpusParallel {
             List<String> tokenRanges = (List) corpusInstance.getInputObjects().get("spans");
             SGraph graph = (SGraph) corpusInstance.getInputObjects().get("graph");
             List<String> sentence = (List) corpusInstance.getInputObjects().get("string");
+            sentence = ucca.refineTokens(sentence);
             List<String> als = (List) corpusInstance.getInputObjects().get("alignment");
             if (als.size() == 1 && als.get(0).equals("")) {
                 //System.err.println("Repaired empty alignment!");
@@ -180,7 +182,8 @@ public class CreateCorpusParallel {
 
                     sent.addPos(preprocData.getPosTags(id).stream().map((TaggedWord w) -> w.tag()).collect(Collectors.toList()));
                     sent.addLemmas(preprocData.getLemmas(id));
-
+                    ucca.refineDelex(sent);
+                    
                     synchronized(outCorpus){
                         outCorpus.add(sent);
 
