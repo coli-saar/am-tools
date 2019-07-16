@@ -407,7 +407,7 @@ public class Util {
      * @param reLex
      * @return 
      */
-    static String isiAMREscape(String reLex) {
+    public static String isiAMREscape(String reLex) {
         if (reLex.equals("\"")) return "``";
         return reLex;
     }
