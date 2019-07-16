@@ -37,7 +37,13 @@ public class UCCA implements Formalism {
 
     @Override
     public ConlluSentence refine(ConlluSentence sentence) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ConlluSentence copy = sentence.withSameMetaData();
+        List<String> withoutWeirdCharacters = refineTokens(sentence.words());
+        for (int i = 0; i < sentence.size();i++){
+            String form = withoutWeirdCharacters.get(i);
+            copy.get(i).setForm(form);
+        }
+        return copy;
     }
     
     /**
