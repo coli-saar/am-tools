@@ -210,42 +210,39 @@ public class CreateCorpus {
                     //SGraphDrawer.draw(alignedGraph, "Reconstructed Graph");
 
                 } else {
-                    //TODO: implement something so that you can easily look at problems here.
-                    problems++;
+                    problems ++;
+                    System.err.println("id "+id);
+                    System.err.println(inst.getGraph());
                     System.err.println("not decomposable " + inst.getSentence());
-                    if (cli.debug) {
-                        //check if we can get a graph constant for every alignment
-                        //if we cannot get at least one graph constant for any blob, the decomposition has no choice but fail.
-                        // Addition by JG: also, the constants can reaveal other causes for a failed decomposition, such as 
-                        for (Alignment al : inst.getAlignments()) {
+                    if (cli.debug){
+                        for (Alignment al : inst.getAlignments()){
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
-                        System.err.println(GraphvizUtils.simpleAlignViz(inst,true));
-
-                        //add the next lines to get the graph printed / drawn
-                        //System.err.println(inst.getGraph().toIsiAmrStringWithSources());
-                        //SGraphDrawer.draw(inst.getGraph(), "");
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
                     }
-
-                    if (problems > 30) { //ignore the first problems
-                        //SGraphDrawer.draw(inst.getGraph(), "");
-                        break;
-                    }
+                    System.err.println("=====end not decomposable=====");
                 }
             } catch (Exception ex) {
-                problems++;
                 System.err.println("Ignoring an exception:");
+                System.err.println("id "+id);
+                System.err.println(inst.getSentence());
                 ex.printStackTrace();
-                System.err.println(GraphvizUtils.simpleAlignViz(inst,true));
-                for (Alignment al : inst.getAlignments()) {
-                    System.err.println(inst.getSentence().get(al.span.start));
-
-                    try {
-                        System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
-                    } catch (Exception e) {
-                        System.err.printf("Additionally, could not print constantsForAlignment: %s\n", e);
-                    }
+                problems++;
+                if (cli.debug){
+                        for (Alignment al : inst.getAlignments()){
+                            System.err.println(inst.getSentence().get(al.span.start));
+                            try {
+                                System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
+                            } catch (IllegalArgumentException ex2){
+                                System.err.println("[]"); //print empty list
+                            } catch (Exception e){
+                                System.err.println(e.getMessage());
+                            }
+                            
+                        }
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
+                        System.err.println("=====end not decomposable=====");
                 }
             }
         }
