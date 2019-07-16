@@ -14,6 +14,7 @@ import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.saar.coli.amrtagging.formalisms.amr.tools.Relabel;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.graphs.MRPEdge;
@@ -91,6 +92,10 @@ public class AMR implements Formalism{
 
     @Override
     public MRPGraph evaluate(ConllSentence amconll) {
+        for (ConllEntry entry : amconll){
+            entry.setForm(entry.getForm().replace(" ", LITERAL_JOINER));
+        }
+        
         SGraph evaluatedGraph;
         try {
             AMDependencyTree amdep = AMDependencyTree.fromSentence(amconll);
