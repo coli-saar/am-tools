@@ -33,9 +33,17 @@ public class UCCABlobUtils extends AMRBlobUtils {
     
     @Override
     public String edge2Source(GraphEdge edge, SGraph graph){
-        if (edge.getLabel().startsWith("A")) {
-           return "A" ;
-         } else return "MOD";
+        if (edge.getLabel().equals("A") || edge.getLabel().equals("H")) {
+           return "a" ;
+        } else if(edge.getLabel().equals("C")) {
+            return "op";
+        } else if(edge.getLabel().equals("U")) {
+            return "pnct";
+        } else if(edge.getLabel().equals("F")) {
+            return "aux";
+        } else { 
+            return "mod";
+        }
              
     }
     

@@ -9,11 +9,13 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
+import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.ConlluSentence;
+import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.TokenRange;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
@@ -25,60 +27,60 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.corpus.Corpus;
 import de.up.ling.irtg.corpus.CorpusReadingException;
 import de.up.ling.irtg.corpus.Instance;
 import de.up.ling.irtg.hom.Homomorphism;
 import de.up.ling.irtg.signature.Signature;
-import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.ling.TaggedWord;
-import edu.stanford.nlp.simple.Sentence;
 import java.io.File;
-
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-
+import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Create UCCA training data (AMConll).
- *
- * @author matthias, Mario
+ * Creates amconll corpus from MRP data.
+ * 
+ * @author matthias
  */
-public class CreateCorpus {
+public class CreateCorpusParallel {
     @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus ")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/alto_fixed 2/alto_fixed/training.txt";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/alto_fixed 2/alto_fixed/100.txt";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
     private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/alto_fixed 2/alto_fixed/";
-
-    @Parameter(names = {"--prefix", "-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")
-//, required=true)
-    private String prefix = "train";
     
     @Parameter(names = {"--companion"}, description = "Path to companion data.")//, required = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/ucca/all_ucca.conllu";
 
+    @Parameter(names = {"--prefix", "-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")
+    private String prefix = "train";
+
     @Parameter(names = {"--vocab", "-v"}, description = "vocab file containing supertags (e.g. points to training vocab when doing dev/test files)")
     private String vocab = null;
-
-    @Parameter(names = {"--debug"}, description = "Enables debug mode")
-    private boolean debug = false;
 
     @Parameter(names = {"--help", "-?", "-h"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
-
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, CorpusReadingException {
-        CreateCorpus cli = new CreateCorpus();
+    @Parameter(names = {"--timeout"}, description = "maximum runtime of the tree-automaton step per thread, in seconds. Default = 1800 (=30 mins)")
+    private int timeout = 1800;
+    
+    @Parameter(names = {"--sort"}, description = "Sort sentences by length")
+    private boolean sort=true;
+        
+    @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
+    private boolean debug=true;
+    
+   
+    
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, CorpusReadingException{      
+        CreateCorpusParallel cli = new CreateCorpusParallel();
         JCommander commander = new JCommander(cli);
 
         try {
@@ -94,7 +96,7 @@ public class CreateCorpus {
             commander.usage();
             return;
         }
-
+        
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton());
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
@@ -109,28 +111,26 @@ public class CreateCorpus {
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
 
         Corpus corpus = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.corpusPath), loaderIRTG);
-
-        int counter = 0;
-        int problems = 0;
+       
         ArrayList<ConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         
-        PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
-
-
-        if (cli.vocab != null) { //vocab given, read from file
+        if (cli.vocab != null){
             supertagDictionary.readFromFile(cli.vocab);
         }
-        for (Instance corpusInstance : corpus) {
-            if (counter % 10 == 0 && counter > 0) {
-                System.err.println(counter);
-                System.err.println("decomposable so far " + 100 * (1.0 - (problems / (float) counter)) + "%");
-            }
-            if (counter % 1000 == 0 && counter > 0) { //every now and then write intermediate results.
-                cli.write(outCorpus, supertagDictionary);
-            }
-            counter++;
-            //read graph, string and alignment from corpus
+        Reader fr = new FileReader(cli.corpusPath);
+        
+        List<Instance> instances = new ArrayList<>();
+        corpus.iterator().forEachRemaining((Instance i) -> instances.add(i));
+        
+        if (cli.sort){
+            instances.sort((g1,g2) -> Integer.compare(((List) g1.getInputObjects().get("string")).size()
+                    , ((List) g2.getInputObjects().get("string")).size()));
+        }
+        
+        PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
+        
+        instances.parallelStream().forEach((Instance corpusInstance)  -> {
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
             String inputString = ((List<String>) corpusInstance.getInputObjects().get("input")).stream().collect(Collectors.joining(" "));
             String version = ((List<String>) corpusInstance.getInputObjects().get("version")).get(0);
@@ -152,22 +152,15 @@ public class CreateCorpus {
                 Alignment al = Alignment.read(alString, 0);
                 alignments.add(al);
             }
-            //create MRInstance object that bundles the three:
             MRInstance inst = new MRInstance(sentence, graph, alignments);
             try {
                 inst.checkEverythingAligned();
             } catch (Exception e){
-                System.err.println("Ignoring:");
                 e.printStackTrace();
-                problems++;
-                continue;
+                return; //skip this sentence
             }
-            //System.out.println(GraphvizUtils.simpleAlignViz(inst, true)); //this generates a string that you can compile with graphviz dot to get a visualization of what the grouping induced by the alignment looks like.
-            //System.out.println(inst.getSentence());
-            //System.out.println(inst.getAlignments());
-            //System.out.println(inst.getGraph().);
-            //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
-            //break;
+            //create MRInstance object that bundles the three:
+            
             ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
             try {
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
@@ -184,86 +177,49 @@ public class CreateCorpus {
                     sent.setAttr("framework",framework);
                     sent.setAttr("version", version);
                     sent.addRanges(tokenRanges.stream().map((String range) -> TokenRange.fromString(range)).collect(Collectors.toList()));
-                    
-                    
-                    //Sentence stanfAn = new Sentence(inst.getSentence());
 
                     sent.addPos(preprocData.getPosTags(id).stream().map((TaggedWord w) -> w.tag()).collect(Collectors.toList()));
-
-                    //sent.addNEs(stanfAn.nerTags()); //slow, only add this for final creation of training data
-
                     sent.addLemmas(preprocData.getLemmas(id));
 
-                    outCorpus.add(sent); //done with this sentence
-                    //we can also create an AM dependency tree now
-                    AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
-                    //use one of these to get visualizations
-                    //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
-                    //amdep.getTree().map(ent -> ent.getForm() +" "+ent.getEdgeLabel()).draw();
+                    synchronized(outCorpus){
+                        outCorpus.add(sent);
 
-                    //this is how we can get back the graph (with alignment to positions where the individual parts came from):
-                    //SGraph alignedGraph = amdep.evaluate(true);
-                    //SGraphDrawer.draw(alignedGraph, "Reconstructed Graph");
-
-                } else {
-                    //TODO: implement something so that you can easily look at problems here.
-                    problems++;
-                    System.err.println("not decomposable " + inst.getSentence());
-                    if (cli.debug) {
-                        //check if we can get a graph constant for every alignment
-                        //if we cannot get at least one graph constant for any blob, the decomposition has no choice but fail.
-                        // Addition by JG: also, the constants can reaveal other causes for a failed decomposition, such as 
-                        for (Alignment al : inst.getAlignments()) {
-                            System.err.println(inst.getSentence().get(al.span.start));
-                            System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
+                        if (outCorpus.size() % 1000 == 0 && outCorpus.size() > 0 ){
+                            synchronized(supertagDictionary){
+                                cli.write(outCorpus, supertagDictionary);
+                            }
+                            System.err.println(outCorpus.size());
                         }
-                        System.err.println(GraphvizUtils.simpleAlignViz(inst));
-
-                        //add the next lines to get the graph printed / drawn
-                        //System.err.println(inst.getGraph().toIsiAmrStringWithSources());
-                        //SGraphDrawer.draw(inst.getGraph(), "");
                     }
-
-                    if (problems > 30) { //ignore the first problems
-                        //SGraphDrawer.draw(inst.getGraph(), "");
-                        //break;
-                    }
+                } else {
+                        System.err.println("not decomposable "+id);
                 }
-            } catch (Exception ex) {
-                problems++;
-                System.err.println("Ignoring an exception:");
-                ex.printStackTrace();
-                for (Alignment al : inst.getAlignments()) {
-                    System.err.println(inst.getSentence().get(al.span.start));
-
-                    try {
-                        System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
-                    } catch (Exception e) {
-                        System.err.printf("Additionally, could not print constantsForAlignment: %s\n", e);
-                    }
+            } catch (Exception ex){
+               System.err.println("Ignoring an exception:");
+               System.err.println("id "+id);
+               System.err.println(inputString);
+               ex.printStackTrace();
+          }
+        });
+        System.err.println("ok: "+(outCorpus.size()));
+        System.err.println("total: "+instances.size());
+        System.err.println("i.e. " + 100*(outCorpus.size() / (float) instances.size())+ "%");
+        synchronized (outCorpus){
+            synchronized(supertagDictionary){
+                cli.write(outCorpus,supertagDictionary);
+            }
+        }
+        
+        
+    }
+        private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+            if (outPath != null && prefix != null){
+                ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+                if (vocab == null){ //only write vocab if it wasn't restored.
+                    supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
                 }
             }
         }
-
-        System.err.println("ok: " + (counter - problems));
-        System.err.println("total: " + counter);
-        System.err.println("i.e. " + 100 * (1.0 - (problems / (float) counter)) + "% translated correctly");
-        cli.write(outCorpus, supertagDictionary);
-    }
-
-
-    private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException {
-        if (outPath != null && prefix != null) {
-            ConllSentence.writeToFile(outPath + "/" + prefix + ".amconll", outCorpus);
-            if (vocab == null) { //only write vocab if it wasn't restored.
-                supertagDictionary.writeToFile(outPath + "/" + prefix + "-supertags.txt");
-            }
-        }
-    }
-
-
+        
+    
 }
-    
-
-    
-
