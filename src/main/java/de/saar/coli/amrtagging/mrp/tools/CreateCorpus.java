@@ -8,15 +8,12 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
-import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPInputCodec;
@@ -26,10 +23,9 @@ import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import edu.stanford.nlp.ling.CoreLabel;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,6 +44,12 @@ public class CreateCorpus {
     
     @Parameter(names = {"--train-companion", "-tc"}, description = "Path to companion data that doesn't contain the test set but the training set")//, required = true)
     private String full_companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
+
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz")
+    private String stanfordNerFilename = null;
+
+    @Parameter(names = {"--uiuc-ner-model"}, description = "Use UIUC NER model")
+    private boolean uiucNer=false;
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
     private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/";
@@ -71,7 +73,7 @@ public class CreateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, ClassNotFoundException {
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 
@@ -88,7 +90,13 @@ public class CreateCorpus {
             commander.usage();
             return;
         }
-        
+
+        NamedEntityRecognizer namedEntityRecognizer = null;
+        if( cli.stanfordNerFilename != null ) {
+            namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+        } else if( cli.uiucNer ) {
+            namedEntityRecognizer = new UiucNamedEntityRecognizer();
+        }
        
         int counter = 0;
         int problems = 0;
@@ -187,8 +195,13 @@ public class CreateCorpus {
                     List<String> posTags = usentence.pos();
                     sent.addPos(posTags);
 
-
-                    //TODO: NER
+                    // add NER tags
+                    if( namedEntityRecognizer != null ) {
+                        List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(sent.words());
+                        List<CoreLabel> nes = namedEntityRecognizer.tag(tokens);
+                        List<String> sNes = de.up.ling.irtg.util.Util.mapToList(nes, CoreLabel::ner);
+                        sent.addNEs(sNes);
+                    }
 
                     List<String> lemmata = usentence.lemmas();
                     sent.addLemmas(lemmata);

@@ -8,16 +8,12 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
-import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPInputCodec;
@@ -27,11 +23,9 @@ import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import edu.stanford.nlp.ling.CoreLabel;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +48,12 @@ public class CreateCorpusAlternativeParallel {
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
     private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/";
+
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz")
+    private String stanfordNerFilename = null;
+
+    @Parameter(names = {"--uiuc-ner-model"}, description = "Use UIUC NER model")
+    private boolean uiucNer = false;
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "bla";
@@ -72,9 +72,18 @@ public class CreateCorpusAlternativeParallel {
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
-   
-    
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException{      
+
+    private NamedEntityRecognizer makeNeRecognizer() throws IOException, ClassNotFoundException {
+        NamedEntityRecognizer namedEntityRecognizer = null;
+        if( stanfordNerFilename != null ) {
+            namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(stanfordNerFilename));
+        } else if( uiucNer ) {
+            namedEntityRecognizer = new UiucNamedEntityRecognizer();
+        }
+        return namedEntityRecognizer;
+    }
+
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, ClassNotFoundException {
         CreateCorpusAlternativeParallel cli = new CreateCorpusAlternativeParallel();
         JCommander commander = new JCommander(cli);
 
@@ -91,7 +100,8 @@ public class CreateCorpusAlternativeParallel {
             commander.usage();
             return;
         }
-        
+
+        final NamedEntityRecognizer namedEntityRecognizer = cli.makeNeRecognizer();
        
         ArrayList<ConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
@@ -172,8 +182,14 @@ public class CreateCorpusAlternativeParallel {
                     List<String> posTags = usentence.pos();
                     sent.addPos(posTags);
 
-
-                    //TODO: NER
+                    if( namedEntityRecognizer != null ) {
+                        synchronized (namedEntityRecognizer) { // not sure if NE recognizers are threadsafe
+                            List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(sent.words());
+                            List<CoreLabel> nes = namedEntityRecognizer.tag(tokens);
+                            List<String> sNes = de.up.ling.irtg.util.Util.mapToList(nes, CoreLabel::ner);
+                            sent.addNEs(sNes);
+                        }
+                    }
 
                     List<String> lemmata = usentence.lemmas();
                     sent.addLemmas(lemmata);
