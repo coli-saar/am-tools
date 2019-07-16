@@ -403,12 +403,11 @@ public class Util {
     }
 
     /**
-     * In the ISI AMR string representation, a node cannot have the label " because " means something.
+     * In the ISI AMR string representation, a node cannot have the label " because it means something.
      * @param reLex
      * @return 
      */
     public static String isiAMREscape(String reLex) {
-        if (reLex.equals("\"")) return reLex.replace("\"","``");
-        return reLex;
+        return reLex.replace("\"","\\\"");
     }
 }

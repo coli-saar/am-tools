@@ -41,7 +41,9 @@ public class UCCA implements Formalism {
         List<String> withoutWeirdCharacters = refineTokens(sentence.words());
         for (int i = 0; i < sentence.size();i++){
             String form = withoutWeirdCharacters.get(i);
-            copy.get(i).setForm(form);
+            ConlluEntry newE = sentence.get(i).copy();
+            newE.setForm(form);
+            copy.add(newE);
         }
         return copy;
     }
@@ -57,7 +59,6 @@ public class UCCA implements Formalism {
             //normalize (separate accent from accented letter) and remove accents
             token = Util.fixPunct(token);
             token = Normalizer.normalize(token, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
-            token = Util.isiAMREscape(token);
             copy.add(token);
         }
         return copy;

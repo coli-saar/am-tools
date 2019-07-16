@@ -56,10 +56,10 @@ import java.util.stream.Collectors;
  */
 public class CreateCorpus {
     @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus ")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/alto_fixed 2/alto_fixed/training.txt";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/alto_reverted 2/training.txt";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/alto_fixed 2/alto_fixed/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/alto_reverted 2/";
 
     @Parameter(names = {"--prefix", "-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")
 //, required=true)
@@ -72,7 +72,7 @@ public class CreateCorpus {
     private String vocab = null;
 
     @Parameter(names = {"--debug"}, description = "Enables debug mode")
-    private boolean debug = false;
+    private boolean debug = true;
 
     @Parameter(names = {"--help", "-?", "-h"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
@@ -221,7 +221,7 @@ public class CreateCorpus {
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
-                        System.err.println(GraphvizUtils.simpleAlignViz(inst));
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst,true));
 
                         //add the next lines to get the graph printed / drawn
                         //System.err.println(inst.getGraph().toIsiAmrStringWithSources());
@@ -230,13 +230,14 @@ public class CreateCorpus {
 
                     if (problems > 30) { //ignore the first problems
                         //SGraphDrawer.draw(inst.getGraph(), "");
-                        //break;
+                        break;
                     }
                 }
             } catch (Exception ex) {
                 problems++;
                 System.err.println("Ignoring an exception:");
                 ex.printStackTrace();
+                System.err.println(GraphvizUtils.simpleAlignViz(inst,true));
                 for (Alignment al : inst.getAlignments()) {
                     System.err.println(inst.getSentence().get(al.span.start));
 
