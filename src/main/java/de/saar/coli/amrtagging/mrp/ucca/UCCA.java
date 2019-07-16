@@ -9,10 +9,14 @@ import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.AnchoredSGraph;
+import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.ConlluEntry;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.TokenRange;
+import de.saar.coli.amrtagging.Util;
+import static de.saar.coli.amrtagging.Util.fixPunct;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
@@ -21,6 +25,7 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +37,25 @@ public class UCCA implements Formalism {
 
     @Override
     public ConlluSentence refine(ConlluSentence sentence) {
-        return sentence;
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    /**
+     * Fixes non-ascii characters.
+     * @param tokens
+     * @return 
+     */
+    public List<String> refineTokens(List<String> tokens){
+        List<String> copy = new ArrayList<>();
+        for (String token : tokens){
+            //normalize (separate accent from accented letter) and remove accents
+            token = Util.fixPunct(token);
+            token = Normalizer.normalize(token, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+            copy.add(token);
+        }
+        return copy;
+    }
+    
 
     @Override
     public MRPGraph preprocess(MRPGraph mrpgraph) {
@@ -52,6 +74,13 @@ public class UCCA implements Formalism {
 
     @Override
     public MRPGraph evaluate(ConllSentence amconll) {
+        
+        //this should be moved to a better place
+        List<String> withoutWeirdCharacters = refineTokens(amconll.words());
+        for (int i = 0; i < amconll.size();i++){
+            String form = withoutWeirdCharacters.get(i);
+            amconll.get(i).setForm(form);
+        }
         try {
             AMDependencyTree amdep = AMDependencyTree.fromSentence(amconll);
             SGraph evaluatedGraph = amdep.evaluate(true);
@@ -75,7 +104,9 @@ public class UCCA implements Formalism {
 
     @Override
     public void refineDelex(ConllSentence sentence) {
-
+        for (ConllEntry entry : sentence){
+            entry.setLexLabelWithoutReplacing("$FORM$");
+        }
     }
     
     /**
