@@ -166,7 +166,11 @@ public class CreateCorpusParallel {
             ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
             try {
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
-                auto.processAllRulesBottomUp(null);
+                try {
+                    auto.processAllRulesBottomUp(null, cli.timeout*1000);
+                } catch (InterruptedException ex) {
+                    System.err.println("Decomposition of graph "+id+" interrupted after "+cli.timeout+" seconds. Will be excluded in output.");
+                }
                 Tree<String> t = auto.viterbi();
 
                 if (t != null) { //graph can be decomposed
