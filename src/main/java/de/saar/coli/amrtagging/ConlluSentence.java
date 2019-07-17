@@ -67,6 +67,10 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
     public ConlluSentence(List<ConlluEntry> entries){
         this.entries = new ArrayList<>(entries);
     }
+    
+    public ConlluSentence(String id){
+        this.id = id;
+    }
 
     public int getLineNr() {
         return lineNr;

@@ -12,7 +12,15 @@ package de.saar.coli.amrtagging.mrp.graphs;
  * @author matthias
  */
 import com.owlike.genson.Genson;
+import de.saar.coli.amrtagging.ConlluEntry;
+import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.TokenRange;
+import de.saar.coli.amrtagging.mrp.MRPInputCodec;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -345,6 +353,69 @@ public class MRPGraph {
      */
     public Set<MRPEdge> incomingEdges(int id){
         return edges.stream().filter(edg -> edg.target == id).collect(Collectors.toSet());
+    }
+    
+    /**
+     * If this MRPGraph has framework=conllu, will return it as a ConlluSentence
+     * @return 
+     */
+    public ConlluSentence toConlluSentence() throws IllegalArgumentException{
+        if (!framework.equals("conllu")) throw new IllegalArgumentException("Cannot convert an MRPGraph of framework "+framework+" to a ConlluSentence");
+        ConlluSentence sent = new ConlluSentence(id);
+        int sentLength = nodes.size();
+        
+        //add nodes
+        for (int i = 0; i < sentLength; i++){
+            MRPNode n = getNode(i);
+            ConlluEntry entry = new ConlluEntry(i+1, n.getLabel()); //+1 because of 1-based indexing in conllu
+            //TokenRange, should probably the minimum of starting points and maximum of end points
+            int minPosition = n.getAnchors().stream().map((MRPAnchor a) -> a.from).min(Integer::compare).get();
+            int maxPosition = n.getAnchors().stream().map((MRPAnchor a) -> a.to).max(Integer::compare).get();
+            entry.setTokenRange(new TokenRange(minPosition, maxPosition));
+            
+            int numProperties = n.getProperties().size();
+            
+            for (int prop = 0; prop < numProperties;prop++){
+                if (n.getProperties().get(prop).equals("lemma")){
+                    entry.setLemma(n.getValues().get(prop));
+                } else if (n.getProperties().get(prop).equals("xpos")){
+                    entry.setPos(n.getValues().get(prop));
+                }
+            }
+            if (tops.contains(i)){
+                entry.setHead(0);
+                entry.setEdgeLabel("root");
+            }
+            sent.add(entry);
+        }
+        //add edges
+        for (MRPEdge e : edges){
+            sent.get(e.target).setHead(e.source);
+            sent.get(e.target).setEdgeLabel(e.label);
+        }
+        
+        return sent;
+    }
+    
+    /**
+     * Read in MRPGraphs.
+     * @param r
+     * @return 
+     * @throws java.io.IOException 
+     */
+    public static List<MRPGraph> read(Reader r) throws IOException{
+        MRPInputCodec graphCodec = new MRPInputCodec();
+        BufferedReader fr = new BufferedReader(r);
+        List<MRPGraph> graphs = new ArrayList<>();
+        String line;
+        while ( (line = fr.readLine()) != null){
+            graphs.add(graphCodec.read(line));
+        }
+        return graphs;
+    }
+    
+    public static List<MRPGraph> readFromFile(String filename) throws FileNotFoundException, IOException {
+        return read(new FileReader(filename));
     }
     
     
