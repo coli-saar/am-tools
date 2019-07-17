@@ -8,11 +8,11 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.ConlluEntry;
-import de.saar.coli.amrtagging.ConlluSentence;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessingException;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
@@ -24,10 +24,9 @@ import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import edu.stanford.nlp.ling.CoreLabel;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,19 +54,25 @@ public class PrepareTestData {
     
     @Parameter(names={"--formalism","-f"}, description = "Formalism whose graphbank to prepare")//, required=true)
     private String formalism = "ucca";
-    
+
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz")
+    private String stanfordNerFilename = null;
+
+    @Parameter(names = {"--uiuc-ner-model"}, description = "Use UIUC NER tagger")
+    private boolean useUiucNer = false;
+
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, ClassNotFoundException, PreprocessingException {
         PrepareTestData cli = new PrepareTestData();
         JCommander commander = new JCommander(cli);
 
         try {
             commander.parse(args);
         } catch (com.beust.jcommander.ParameterException ex) {
-            System.err.println("An error occured: " + ex.toString());
+            System.err.println("An error occurred: " + ex.toString());
             System.err.println("\n Available options: ");
             commander.usage();
             return;
@@ -85,68 +90,100 @@ public class PrepareTestData {
         Reader fr = new FileReader(cli.corpusPath);
         Map<String,TestSentence> id2testSent = TestSentence.read(fr);
         
-        List<ConlluSentence> companionData =MRPGraph.readFromFile(cli.companion).stream().map((MRPGraph g) -> g.toConlluSentence()).collect(Collectors.toList());
-        
+        List<ConlluSentence> companionData = MRPGraph.readFromFile(cli.companion).stream().map((MRPGraph g) -> g.toConlluSentence()).collect(Collectors.toList());
         List<ConlluSentence> trainingDataForTagger = ConlluSentence.readFromFile(cli.full_companion);
-        EDS eds = new EDS(trainingDataForTagger);
-        
-        for (ConlluSentence usentence : companionData){
-            String id = usentence.getId();
-            TestSentence itsTestSentence = id2testSent.get(id);
-            String input = itsTestSentence.input;
-            Formalism formalism;
-            fixWeirdLemmaErrors(usentence);
-            if (cli.formalism.equals("dm")){
-                DM dm = new DM();
-                formalism = dm;
-                usentence = dm.refine(usentence);
-                MRPUtils.addArtificialRootToSent(usentence);
-                input = MRPUtils.addArtificialRootToSent(input);
-            } else if (cli.formalism.equals("psd")){
-                PSD psd = new PSD();
-                formalism = psd;
-                usentence = psd.refine(usentence);
-                MRPUtils.addArtificialRootToSent(usentence);
-                input = MRPUtils.addArtificialRootToSent(input);
-            } else if (cli.formalism.equals("eds")){
-                formalism = eds;
-                usentence = eds.refine(usentence);
-                MRPUtils.addArtificialRootToSent(usentence);
-                input = MRPUtils.addArtificialRootToSent(input);
-            } else if (cli.formalism.equals("ucca")){
-                UCCA ucca = new UCCA();
-                formalism = ucca;
-                usentence = ucca.refine(usentence); //UCCA doesn't need artificial root
-            } else {
-                throw new IllegalArgumentException("Formalism/Framework "+cli.formalism+" not supported yet.");
+
+        if( "amr".equals(cli.formalism)) {
+            // Unlike the other formalisms, AMR produces only a *.amr corpus, which then needs to be processed further
+
+            PrintWriter pw = new PrintWriter(new FileWriter(cli.outPath + "/" + cli.formalism + "_" + cli.prefix + ".amr"));
+
+            // print sentences + dummy graph to *.amr file, in random order
+            for( Map.Entry<String,TestSentence> entry : id2testSent.entrySet() ) {
+                pw.printf("# ::id %s\n", entry.getValue().id);
+                pw.printf("# ::snt %s\n", entry.getValue().input);
+                pw.printf("# dummy\n");
+                pw.printf("(d / dummy)\n\n");
             }
-            if (!itsTestSentence.targets.contains(cli.formalism)) continue;
 
-            ConllSentence sent = new ConllSentence();
-            int idx = 1;
-            for (ConlluEntry e : usentence){
-                sent.add(new ConllEntry(idx, e.getForm()));
-                idx++;
+            pw.flush();
+            pw.close();
+        } else {
+            EDS eds = new EDS(trainingDataForTagger);
+
+            NamedEntityRecognizer neRecognizer = null;
+            if( cli.stanfordNerFilename != null ) {
+                neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+            } else if( cli.useUiucNer ) {
+                neRecognizer = new UiucNamedEntityRecognizer();
             }
-            sent.addRanges(usentence.ranges());
-            sent.setAttr("id", id);
-            sent.setAttr("framework", cli.formalism);
-            sent.setAttr("input",input);
-            sent.setAttr("version", itsTestSentence.version);
-            sent.setAttr("time", itsTestSentence.time);
 
-            List<String> posTags = usentence.pos();
-            sent.addPos(posTags);
-            
-            //TODO: NER
-            List<String> lemmata = usentence.lemmas();
-            sent.addLemmas(lemmata);
-            formalism.refineDelex(sent);
-            outCorpus.add(sent);
 
+            for (ConlluSentence usentence : companionData) {
+                String id = usentence.getId();
+                TestSentence itsTestSentence = id2testSent.get(id);
+                String input = itsTestSentence.input;
+                Formalism formalism;
+                fixWeirdLemmaErrors(usentence);
+
+                if (cli.formalism.equals("dm")) {
+                    DM dm = new DM();
+                    formalism = dm;
+                    usentence = dm.refine(usentence);
+                    MRPUtils.addArtificialRootToSent(usentence);
+                    input = MRPUtils.addArtificialRootToSent(input);
+                } else if (cli.formalism.equals("psd")) {
+                    PSD psd = new PSD();
+                    formalism = psd;
+                    usentence = psd.refine(usentence);
+                    MRPUtils.addArtificialRootToSent(usentence);
+                    input = MRPUtils.addArtificialRootToSent(input);
+                } else if (cli.formalism.equals("eds")) {
+                    formalism = eds;
+                    usentence = eds.refine(usentence);
+                    MRPUtils.addArtificialRootToSent(usentence);
+                    input = MRPUtils.addArtificialRootToSent(input);
+                } else if (cli.formalism.equals("ucca")) {
+                    UCCA ucca = new UCCA();
+                    formalism = ucca;
+                    usentence = ucca.refine(usentence); //UCCA doesn't need artificial root
+                } else {
+                    throw new IllegalArgumentException("Formalism/Framework " + cli.formalism + " not supported yet.");
+                }
+
+                if (!itsTestSentence.targets.contains(cli.formalism)) continue;
+
+                ConllSentence sent = new ConllSentence();
+                int idx = 1;
+                for (ConlluEntry e : usentence) {
+                    sent.add(new ConllEntry(idx, e.getForm()));
+                    idx++;
+                }
+                sent.addRanges(usentence.ranges());
+                sent.setAttr("id", id);
+                sent.setAttr("framework", cli.formalism);
+                sent.setAttr("input", input);
+                sent.setAttr("version", itsTestSentence.version);
+                sent.setAttr("time", itsTestSentence.time);
+
+                List<String> posTags = usentence.pos();
+                sent.addPos(posTags);
+
+                if( neRecognizer != null ) {
+                    List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(usentence.words());
+                    List<CoreLabel> netags = neRecognizer.tag(tokens);
+                    sent.addNEs(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+                }
+                
+                List<String> lemmata = usentence.lemmas();
+                sent.addLemmas(lemmata);
+                formalism.refineDelex(sent);
+                outCorpus.add(sent);
+
+            }
+
+            ConllSentence.writeToFile(cli.outPath + "/" + cli.formalism + "_" + cli.prefix + ".amconll", outCorpus);
         }
-        ConllSentence.writeToFile(cli.outPath+"/"+cli.formalism+"_"+cli.prefix+".amconll", outCorpus);
-        
     }   
     
     /**
