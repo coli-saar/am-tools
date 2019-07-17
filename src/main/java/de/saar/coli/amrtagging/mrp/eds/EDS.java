@@ -365,7 +365,8 @@ public class EDS implements Formalism{
                 asg.addEdge(artRootNode, asg.getNode(headRoot), ROOT_EDGE_LABEL+sntCounter);
             } else {
                System.err.println("[ADD ART-ROOT] WARNING: -- taking arbitrary root for component");
-               asg.addEdge(artRootNode,connectedSet.iterator().next(), ROOT_EDGE_LABEL+sntCounter);
+               GraphNode someNode = connectedSet.stream().filter(node -> !AnchoredSGraph.isLnkNode(node)).findFirst().get();
+               asg.addEdge(artRootNode,someNode, ROOT_EDGE_LABEL+sntCounter);
             }
         sntCounter++;
         }
