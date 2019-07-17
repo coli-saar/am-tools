@@ -362,6 +362,19 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
         }
         throw new IllegalArgumentException("Could not find the exact token for the range "+anchor);
     }
+    
+    /**
+     * Returns the number of edges one has to go to reach the root.
+     * The index is 0-based.
+     * @param index
+     * @return 
+     */
+    public int getDepth(int index){
+        if (index < 0) return 0;
+        else {
+            return 1+getDepth(entries.get(index).getHead()-1);
+        }
+    }
 
     
 }
