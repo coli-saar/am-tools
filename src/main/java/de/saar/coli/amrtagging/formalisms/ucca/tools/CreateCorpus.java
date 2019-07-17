@@ -76,6 +76,9 @@ public class CreateCorpus {
 
     @Parameter(names = {"--help", "-?", "-h"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
+    
+    @Parameter(names = {"--timeout"}, description = "maximum runtime of the tree-automaton step per thread, in seconds. Default = 1800 (=30 mins)")
+    private int timeout = 1800;
 
 
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, CorpusReadingException {
@@ -175,7 +178,11 @@ public class CreateCorpus {
             ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
             try {
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
-                auto.processAllRulesBottomUp(null);
+                try {
+                    auto.processAllRulesBottomUp(null, cli.timeout*1000);
+                } catch (InterruptedException ex) {
+                    System.err.println("Decomposition of graph "+id+" interrupted after "+cli.timeout+" seconds. Will be excluded in output.");
+                }
                 Tree<String> t = auto.viterbi();
 
                 if (t != null) { //graph can be decomposed
