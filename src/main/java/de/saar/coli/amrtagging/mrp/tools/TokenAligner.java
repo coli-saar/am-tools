@@ -293,7 +293,7 @@ public class TokenAligner {
 
 
     public static class TokenAlignmentEditCosts implements EditCosts {
-        private static final List<String> SUBSTITUTION_PAIRS = List.of(".…", "\'’", "`’", "\'“", "`“", "\'”", "`”", "-–");
+        private static final List<String> SUBSTITUTION_PAIRS = List.of(".…", "\'’", "`’", "\'“", "`“", "\'”", "`”", "-–", "\"“", "\"”");
         private SetMultimap<Character,Character> substitutionPairs;
 
         private Set<Character> deletableChars;
