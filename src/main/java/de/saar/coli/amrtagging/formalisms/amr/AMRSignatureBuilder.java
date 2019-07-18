@@ -205,7 +205,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
     
     
     /**
-     * Runs heuristics to create constants that cover the nodes in Alignment al within the SGraph graph.
+     * Runs heuristics to create constants that cover the nodes in TokenAlignment al within the SGraph graph.
      * @param al
      * @param graph
      * @param addCoref

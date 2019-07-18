@@ -377,10 +377,10 @@ public class CandidateMatcher {
 //                        Set<String> nodes = new HashSet<>();
 //                        nodes.add(baseAndLex.left.getName());
 //                        nodes.add(baseAndLex.right.getName());
-//                        Alignment al = new Alignment(nodes, new Alignment.Span(j, j+1));
+//                        TokenAlignment al = new TokenAlignment(nodes, new TokenAlignment.Span(j, j+1));
 //                        ret.put(al, Math.max(ret.getDouble(al), AlignmentScorer.SCP_SPECIAL));//TODO think about where to use max and where not
 //                        untouchedNns.removeAll(nodes);
-//                        Set<Alignment> alsHere = nn2als.get(baseAndLex.left.getName());
+//                        Set<TokenAlignment> alsHere = nn2als.get(baseAndLex.left.getName());
 //                        if (alsHere == null) {
 //                            alsHere = new HashSet<>();
 //                            nn2als.put(baseAndLex.left.getName(), alsHere);

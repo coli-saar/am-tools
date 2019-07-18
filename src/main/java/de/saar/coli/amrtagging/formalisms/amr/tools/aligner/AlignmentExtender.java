@@ -243,7 +243,7 @@ public class AlignmentExtender {
         Set<String> found = new HashSet<>();
         found.add(nodeNames.iterator().next());
         int oldSize = 0;
-        //this loop is horribly inefficient, but total cost is so small that I don't care
+        //this loop is horribly inefficient, but total substitutionCost is so small that I don't care
         while (found.size() > oldSize) {
             oldSize = found.size();
             Set<String> newFound = new HashSet<>();

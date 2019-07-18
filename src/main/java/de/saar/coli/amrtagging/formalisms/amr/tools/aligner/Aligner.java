@@ -194,7 +194,7 @@ public class Aligner {
 
 //                    Counter<String> nnCounter = new Counter<>();
 //                    Counter<Integer> wordCounter = new Counter<>();
-//                    Set<Alignment> alignments = null;
+//                    Set<TokenAlignment> alignments = null;
 
                     List<TaggedWord> posTags = preprocData.getPosTags(id);
 

@@ -292,7 +292,7 @@ public class ConcreteAlignmentTrackingAutomaton extends AlignmentTrackingAutomat
             ConcreteAlignmentSignatureBuilder sb = new ConcreteAlignmentSignatureBuilder(graph, als, new AMRBlobUtils());
             
             //print alignments and constants for debugging
-//            for (Alignment al : als) {
+//            for (TokenAlignment al : als) {
 //                System.err.println();
 //                System.err.println(al);
 //                System.err.println(sb.getConstantsForAlignment(al, graph, false));

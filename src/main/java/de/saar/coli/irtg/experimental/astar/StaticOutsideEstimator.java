@@ -112,7 +112,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
 //
 //            System.err.printf("[%d] bestTagp=%f, bestEdgep=%f, NULL=%f\n", i, bestTagp[i], bestEdgep[i], scoreWithIgnore);
 //
-//            // AKAKAK should scoreWithIgnore also contain cost of IGNORE in-edge?
+//            // AKAKAK should scoreWithIgnore also contain substitutionCost of IGNORE in-edge?
 //            // #951: Token 4 doesn't have an in-edge or a NULL supertag, therefore both scores are -INF
 //            assert Math.max(scoreWithInEdge, scoreWithIgnore) > Astar.FAKE_NEG_INFINITY / 2 : String.format("No good supertag or in-edge for pos %d (while computing context scores for pos %d): withInEdge=%f, withIgnore=%f\n", i, k, scoreWithInEdge, scoreWithIgnore);
 //

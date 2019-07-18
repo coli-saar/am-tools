@@ -194,7 +194,7 @@ public class ConceptnetEnumerator implements IWordnet {
                 }
             }
 
-            // initialize cost table
+            // initialize substitutionCost table
             Object2DoubleMap<Concept> foundCosts = new Object2DoubleOpenHashMap<>();
             foundCosts.defaultReturnValue(Double.MAX_VALUE);
             for (Concept iW : concepts) {
