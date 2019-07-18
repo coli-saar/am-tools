@@ -1,5 +1,7 @@
 package de.saar.coli.amrtagging.mrp.tools;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.TokenRange;
 import de.up.ling.irtg.util.Util;
@@ -291,11 +293,8 @@ public class TokenAligner {
 
 
     public static class TokenAlignmentEditCosts implements EditCosts {
-        private Set<Character> srcReplaceableChars;
-        private Character[] aSrcReplaceableChars = new Character[]{'.', '\'', '`', '-'}; // Latex-style characters
-
-        private Set<Character> tgtReplaceableChars;
-        private Character[] aTgtReplaceableChars = new Character[]{'…', '“', '–'}; // fancy Unicode-style characters
+        private static final List<String> SUBSTITUTION_PAIRS = List.of(".…", "\'’", "`’", "\'“", "`“", "\'”", "`”", "-–");
+        private SetMultimap<Character,Character> substitutionPairs;
 
         private Set<Character> deletableChars;
         private Character[] aDeletableChars = new Character[]{'.', '\'', '`', '-'}; // Latex-style characters that have multiple occurrences corresponding to a fancy character
@@ -304,15 +303,22 @@ public class TokenAligner {
         private Character[] aInsertableChars = new Character[]{' '};
 
         public TokenAlignmentEditCosts() {
-            srcReplaceableChars = new HashSet<>(Arrays.asList(aSrcReplaceableChars));
-            tgtReplaceableChars = new HashSet<>(Arrays.asList(aTgtReplaceableChars));
+            substitutionPairs = HashMultimap.create();
+            for( String sp : SUBSTITUTION_PAIRS ) {
+                substitutionPairs.put(sp.charAt(0), sp.charAt(1));
+            }
+
             deletableChars = new HashSet<>(Arrays.asList(aDeletableChars));
             insertableChars = new HashSet<>(Arrays.asList(aInsertableChars));
         }
 
         @Override
         public double substitutionCost(char originalCharacter, char substitutedCharacter) {
-            if (srcReplaceableChars.contains(originalCharacter) && tgtReplaceableChars.contains(substitutedCharacter)) {
+            Set<Character> subst = substitutionPairs.get(originalCharacter);
+
+            if( subst == null ) {
+                return 1;
+            } else if( subst.contains(substitutedCharacter)) {
                 return 0;
             } else {
                 return 1;
@@ -340,8 +346,13 @@ public class TokenAligner {
 
     public static void main(String[] args) {
         TokenAligner al = new TokenAligner(new TokenAlignmentEditCosts());
-        String leftString = "Hams on Friendly ... RIP.";
-        String rightString = "Hams on Friendly … RIP .";
+//        String leftString = "Hams on Friendly ... RIP.";
+//        String rightString = "Hams on Friendly … RIP .";
+
+        String leftString = "Released the same year and containing re-recorded tracks from Omikron, his album 'Hours ...' featured a song with lyrics by the winner of his \"Cyber Song Contest\" Internet competition, Alex Grant."; // # 509008 input
+        String rightString = "Released the same year and containing re-recorded tracks from Omikron , his album ’Hours … ’ featured a song with lyrics by the winner of his “ Cyber Song Contest ” Internet competition , Alex Grant .";    // # 509008 companion tokens
+
+
         System.out.printf("left: %d, right: %d\n", leftString.length(), rightString.length());
 
         TokenAlignment result = al.compute(leftString, rightString);
