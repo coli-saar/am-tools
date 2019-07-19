@@ -96,7 +96,12 @@ public class EvaluateMRP {
                 System.err.println("Error in line "+sentence.getLineNr()+" with id "+sentence.getId());
                 ex.printStackTrace();
                 System.err.println("Writing empty MRP graph instead");
-                evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),sentence.getAttr("raw"),sentence.getAttr("time"), sentence.getAttr("version"));
+                String input = sentence.getAttr("raw");
+                if (input == null){
+                    input = sentence.getAttr("input");
+                }
+                evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),input,sentence.getAttr("time"), sentence.getAttr("version"));
+                evaluatedGraph.setTime(new SimpleDateFormat("yyyy-MM-dd (hh:mm)").format(new Date())); //2019-04-10 (20:10)
             }
             
             outputCodec.write(evaluatedGraph, output);
