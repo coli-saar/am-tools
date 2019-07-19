@@ -19,6 +19,7 @@ import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
+import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
@@ -37,16 +38,16 @@ import java.util.List;
  */
 public class PrepareDevData {
     @Parameter(names = {"--mrp"}, description = "Path to the input corpus  or subset thereof")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/dm/wsj.mrp";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/UCCA/very_first/dev/out.mrp";
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data")//, required = true)
-    private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
+    private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/really_everything.conllu";
     
     @Parameter(names = {"--train-companion", "-tc"}, description = "Path to companion data that doesn't contain the test set but the training set")//, required = true)
-    private String full_companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
+    private String full_companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/ucca/all_ucca.conllu";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/DM/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/UCCA/very_first/dev/";
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "dev";
@@ -106,6 +107,10 @@ public class PrepareDevData {
                 usentence = eds.refine(usentence);
                 MRPUtils.addArtificialRootToSent(usentence);
                 input = MRPUtils.addArtificialRootToSent(input);
+           } else if (mrpGraph.getFramework().equals("ucca")) {
+                UCCA ucca = new UCCA();
+                formalism = ucca;
+                usentence = ucca.refine(usentence); //UCCA doesn't need artificial root
             } else {
                 throw new IllegalArgumentException("Formalism/Framework "+mrpGraph.getFramework()+" not supported yet.");
             }
@@ -121,7 +126,7 @@ public class PrepareDevData {
             sent.addRanges(usentence.ranges());
             sent.setAttr("id", mrpGraph.getId());
             sent.setAttr("framework", mrpGraph.getFramework());
-            sent.setAttr("raw",input);
+            sent.setAttr("input",input);
             sent.setAttr("version", mrpGraph.getVersion());
             sent.setAttr("time", mrpGraph.getTime());
 

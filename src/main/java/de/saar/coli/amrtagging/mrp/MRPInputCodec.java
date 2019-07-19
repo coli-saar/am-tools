@@ -29,7 +29,9 @@ public class MRPInputCodec extends InputCodec<MRPGraph>{
         MRPGraph g = genson.deserialize(in, MRPGraph.class);
         g.sanitize();
         for (MRPNode n : g.getNodes()){
-            n.setLabel(n.getLabel().toLowerCase());
+            if (n.getLabel() != null){
+                n.setLabel(n.getLabel().toLowerCase());
+            }
         }
         return g;
     }
