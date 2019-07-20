@@ -18,9 +18,13 @@ import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.TokenRange;
+import de.saar.coli.amrtagging.Util;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.up.ling.irtg.Interpretation;
@@ -36,6 +40,7 @@ import de.up.ling.irtg.corpus.Instance;
 import de.up.ling.irtg.hom.Homomorphism;
 import de.up.ling.irtg.signature.Signature;
 import de.up.ling.tree.Tree;
+import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.TaggedWord;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -80,9 +85,13 @@ public class CreateCorpusParallel {
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=true;
     
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz")
+    private String stanfordNerFilename = null;
+
+    
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, CorpusReadingException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, CorpusReadingException, ClassNotFoundException{      
         CreateCorpusParallel cli = new CreateCorpusParallel();
         JCommander commander = new JCommander(cli);
 
@@ -142,6 +151,13 @@ public class CreateCorpusParallel {
             }
         }
         
+        NamedEntityRecognizer neRecognizer;
+        if( cli.stanfordNerFilename != null ) {
+            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+        } else {
+            neRecognizer = new UiucNamedEntityRecognizer();
+        }
+        
         instances.parallelStream().forEach((Instance corpusInstance)  -> {
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
             String inputString = ((List<String>) corpusInstance.getInputObjects().get("input")).stream().collect(Collectors.joining(" "));
@@ -198,6 +214,12 @@ public class CreateCorpusParallel {
 
                     sent.addPos(preprocData.getPosTags(id).stream().map((TaggedWord w) -> w.tag()).collect(Collectors.toList()));
                     sent.addLemmas(preprocData.getLemmas(id));
+                    
+                    //NER:
+                    List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(sentence);
+                    List<CoreLabel> netags = neRecognizer.tag(tokens);
+                    sent.addNEs(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+                    
                     ucca.refineDelex(sent);
                     
                     synchronized(outCorpus){
