@@ -562,4 +562,33 @@ public class MRPUtils {
         }
     }
     
+    
+    /**
+     * Removes invalid anchors from an MRP graph, that point to non-existent string positions.
+     * @param mrpgraph
+     * @param warn if a warning should be printed to stderr
+     * @return if some anchor was deleted
+     */
+    public static boolean removeInvalidAnchros(MRPGraph mrpgraph, boolean warn){
+        
+        int stringLen = mrpgraph.getInput().length();
+        boolean fixedSomething = false;
+        for (MRPNode n : mrpgraph.getNodes()){
+            if (n.getAnchors() != null){
+                List<MRPAnchor> deleteMe = new ArrayList<>();
+                for (MRPAnchor a : n.getAnchors()){
+                    if (a.from > stringLen || a.to > stringLen){
+                        deleteMe.add(a);
+                        fixedSomething = true;
+                        if (warn){
+                            System.err.println("Removing invalid anchoring "+a.toString()+" in graph "+mrpgraph.getId());
+                        }
+                    }
+                }
+                deleteMe.stream().forEach((MRPAnchor a) -> n.getAnchors().remove(a));
+            }
+        }
+        return fixedSomething;
+    }
+    
 }

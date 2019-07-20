@@ -125,7 +125,7 @@ public class EvaluateMRP {
                     System.err.println("Couldn't find input belonging to id "+evaluatedGraph.getId()+ ". The --input option should be used only for the test data");
                 }
             }
-            //MRPUtils.removeInvalidAnchros(evaluatedGraph, true);
+            MRPUtils.removeInvalidAnchros(evaluatedGraph, true);
             
             outputCodec.write(evaluatedGraph, output);
         }
