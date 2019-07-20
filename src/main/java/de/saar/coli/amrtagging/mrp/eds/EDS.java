@@ -264,9 +264,13 @@ public class EDS implements Formalism{
             
             //SGraphDrawer.draw(evaluatedGraph, "mhm");
             //System.err.println(amconll.getId()+"\t"+evaluatedGraph.toString());
-
+            
+            String input = amconll.getAttr("raw");
+            if (input == null){
+                input = amconll.getAttr("input");
+            }
             MRPGraph mrpGraph = MRPUtils.fromAnchoredSGraph(evaluatedGraph, false, 1, "eds",
-                    amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
+                    amconll.getId(), input, amconll.getAttr("version"), amconll.getAttr("time"));
             return removeArtificalRoot(mrpGraph);
             
         } catch (ParseException | ParserException | AMDependencyTree.ConllParserException e){

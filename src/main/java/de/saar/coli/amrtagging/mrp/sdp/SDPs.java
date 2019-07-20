@@ -81,7 +81,11 @@ public abstract class SDPs implements Formalism {
             output.sanitize();
             output.setId(s.getId());
             output.setFlavor(0); //flavor of SDP graphs
-            output.setInput(s.getAttr("raw"));
+            String input = s.getAttr("raw");
+            if (input == null){
+                input = s.getAttr("input");
+            }
+            output.setInput(input);
             output.setVersion(s.getAttr("version"));
             output.setTime(s.getAttr("time"));
 
