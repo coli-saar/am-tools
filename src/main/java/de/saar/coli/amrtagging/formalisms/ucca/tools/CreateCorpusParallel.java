@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -130,6 +131,15 @@ public class CreateCorpusParallel {
         }
         UCCA ucca = new UCCA();
         PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
+        
+        Set<String> companionIds = ConlluSentence.readFromFile(cli.companion).stream().map((ConlluSentence s) -> s.getId()).collect(Collectors.toSet());
+        for (Instance corpusInstance : corpus){
+            String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
+            if (!  companionIds.contains(id)){
+                System.err.println("Check companion data! We don't have an analysis for the sentence belonging to graph "+id);
+                return;
+            }
+        }
         
         instances.parallelStream().forEach((Instance corpusInstance)  -> {
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
