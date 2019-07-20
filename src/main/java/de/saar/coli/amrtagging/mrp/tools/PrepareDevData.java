@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.ConlluEntry;
@@ -124,6 +125,7 @@ public class PrepareDevData {
                 idx++;
             }
             sent.addRanges(usentence.ranges());
+            sent.setAttr("git", AMToolsVersion.GIT_SHA);
             sent.setAttr("id", mrpGraph.getId());
             sent.setAttr("framework", mrpGraph.getFramework());
             sent.setAttr("input",input);

@@ -160,6 +160,7 @@ public class PrepareTestData {
                     idx++;
                 }
                 sent.addRanges(usentence.ranges());
+                sent.setAttr("git", AMToolsVersion.GIT_SHA);
                 sent.setAttr("id", id);
                 sent.setAttr("framework", cli.formalism);
                 sent.setAttr("input", input);
