@@ -30,18 +30,18 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Creates mrp corpus from amconll corpus.
+ * Creates mrp corpus from amconll corpus by evaluating all the AM dependency trees to graphs.
  * 
  * @author matthias
  */
 public class EvaluateMRP {
-    @Parameter(names = {"--corpus"}, description = "Path to the input corpus")//, required = true)
+    @Parameter(names = {"--corpus"}, description = "Input corpus file (*.amconll)")//, required = true)
     private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.amconll";
     
-    @Parameter(names = {"--out", "-o"}, description = "Path for output files")//, required = true)
+    @Parameter(names = {"--out", "-o"}, description = "Output corpus file (*.mrp)")//, required = true)
     private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.mrp";
     
-    @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
+    @Parameter(names = {"--debug"}, description = "Enables debug mode")
     private boolean debug=false;
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)

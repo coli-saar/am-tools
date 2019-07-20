@@ -109,7 +109,7 @@ public class WordnetEnumerator implements IWordnet {
                 }
             }
             
-            // initialize cost table
+            // initialize substitutionCost table
             
             Object2DoubleMap<IWord> foundCosts = new Object2DoubleOpenHashMap<>();
             foundCosts.defaultReturnValue(Double.MAX_VALUE);            
@@ -128,8 +128,8 @@ public class WordnetEnumerator implements IWordnet {
                     // iterate over Wordnet relations
                     for (Pointer p : Pointer.values()) {
                         // iterate over all Wordnet neighbours over this relation;
-                        // keep track of path cost (based on relation);
-                        // if cost threshold not exceeded, add target synset to foundCosts
+                        // keep track of path substitutionCost (based on relation);
+                        // if substitutionCost threshold not exceeded, add target synset to foundCosts
                         iW.getRelatedWords(p).stream().map(id -> dict.getWord(id)).forEach(newIWord -> {
                             double newCost = costIW + (GOOD_POINTERS.contains(p) ? GOOD_COST : BAD_COST);
                             if (newCost < COST_THRESHOLD) {

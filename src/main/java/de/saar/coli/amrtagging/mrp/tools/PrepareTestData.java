@@ -174,7 +174,7 @@ public class PrepareTestData {
                     List<CoreLabel> netags = neRecognizer.tag(tokens);
                     sent.addNEs(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
                 }
-                
+
                 List<String> lemmata = usentence.lemmas();
                 sent.addLemmas(lemmata);
                 formalism.refineDelex(sent);

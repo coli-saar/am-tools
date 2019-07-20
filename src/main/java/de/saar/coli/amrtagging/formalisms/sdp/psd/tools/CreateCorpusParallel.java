@@ -223,7 +223,7 @@ public class CreateCorpusParallel {
     //                    System.err.println(inst.getGraph());
     //                    SGraphDrawer.draw(modified.getGraph(), "");
     //                    if (cli.debug){
-    //                        for (Alignment al : inst.getAlignments()){
+    //                        for (TokenAlignment al : inst.getAlignments()){
     //                            System.err.println(inst.getSentence().get(al.span.start));
     //                            System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
     //                        }

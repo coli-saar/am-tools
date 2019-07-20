@@ -616,7 +616,7 @@ public class ConceptNet implements Serializable {
          * Notice we can safely search on just a single hashmap (either relations_from_concept or relations_to_concept) here
          * because we are are certain all available concepts will be stored in both maps.
          *
-         * We could improve performance at the cost of using even more memory, by optionally creating an additional caching/reference structure,
+         * We could improve performance at the substitutionCost of using even more memory, by optionally creating an additional caching/reference structure,
          * such as a dictionary sorted trie.
          */
         return Collections.unmodifiableSet(relations_from_concept.keySet().parallelStream().filter(c -> StringUtils.containsIgnoreCase(c.getWordphrase(), searchstring)).collect(Collectors.toSet()));

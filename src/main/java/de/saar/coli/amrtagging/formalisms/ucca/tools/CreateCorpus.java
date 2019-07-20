@@ -67,7 +67,7 @@ public class CreateCorpus {
 //, required=true)
     private String prefix = "train";
     
-    @Parameter(names = {"--companion"}, description = "Path to companion data.")//, required = true)
+    @Parameter(names = {"--companion"}, description = "Path to companion data.")//, reqteuired = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/ucca/all_ucca.conllu";
 
     @Parameter(names = {"--vocab", "-v"}, description = "vocab file containing supertags (e.g. points to training vocab when doing dev/test files)")
