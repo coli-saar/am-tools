@@ -4,6 +4,7 @@ plugins {
     id 'groovy'
     id 'com.github.johnrengelman.shadow' version '4.0.2'
     id 'application'
+    id "com.peterabeles.gversion" version "1.5.0" //can retrieve git version from within code
 }
 
 mainClassName = 'de.saar.coli.irtg.experimental.astar.Astar'
@@ -19,6 +20,18 @@ repositories {
     maven { url 'http://cogcomp.org/m2repo/'}
 }
 
+gversion {
+  srcDir       = "src/main/java/"           
+  classPackage = "de.saar.coli.amrtagging"
+  className    = "AMToolsVersion"              
+  dateFormat   = "yyyy-MM-dd'T'HH:mm:ss'Z'" // optional. This is the default
+  timeZone     = "UTC"                      // optional. UTC is default
+  debug        = false                      // optional. print out extra debug information
+  language     = "java"                     // optional. Can be Java or Kotlin, case insensitive
+  explicitType = false                      // optional. Force types to be explicitly printed
+}
+
+project.compileJava.dependsOn(createVersionFile)
 dependencies {
     compile 'com.github.coli-saar:alto:cc71cb7'
     
