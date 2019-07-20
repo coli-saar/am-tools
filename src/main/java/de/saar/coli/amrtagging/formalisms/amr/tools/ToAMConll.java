@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
@@ -126,6 +127,7 @@ public class ToAMConll {
             String id = ids.get(i).get(0);
 
             ConllSentence o = new ConllSentence();
+            o.setAttr("git", AMToolsVersion.GIT_SHA);
             o.setId(id);
             o.setAttr("framework", "amr");
             o.setAttr("flavor", "2");

@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging.formalisms.ucca.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
@@ -200,6 +201,7 @@ public class CreateCorpus {
                 if (t != null) { //graph can be decomposed
                     //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
                     ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", id);
                     sent.setAttr("input", inputString);
                     sent.setAttr("flavor", flavor);

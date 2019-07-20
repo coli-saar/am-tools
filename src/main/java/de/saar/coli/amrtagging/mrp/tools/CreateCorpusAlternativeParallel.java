@@ -173,6 +173,7 @@ public class CreateCorpusAlternativeParallel {
                     //SGraphDrawer.draw(inst.getGraph(), "");
                     ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, instance, supertagDictionary);
                     sent.addRanges(usentence.ranges());
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", preprocessed.getId());
                     sent.setAttr("framework", preprocessed.getFramework());
                     sent.setAttr("raw",preprocessed.getInput());
