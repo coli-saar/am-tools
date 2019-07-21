@@ -7,10 +7,13 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
+
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
@@ -54,7 +57,10 @@ public class PrepareTestDataFromFiles {
 
     @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz; if argument is not given, use UIUC NER tagger")
     private String stanfordNerFilename = null;
-    
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
+
     //public static HashSet<String> specialTokens = new HashSet<>(Arrays.asList(new String[]{"_name_", "_number_", "_date_"}));
     
     public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
@@ -101,7 +107,7 @@ public class PrepareTestDataFromFiles {
         if( cli.stanfordNerFilename != null ) {
             neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
         } else {
-            neRecognizer = new UiucNamedEntityRecognizer();
+            neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }
 
         
@@ -109,6 +115,7 @@ public class PrepareTestDataFromFiles {
         List<ConllSentence> output = new ArrayList<>();
         for (int i = 0; i < sentences.size();i++){
             ConllSentence o = new ConllSentence();
+            o.setAttr("git", AMToolsVersion.GIT_SHA);
             String graphID = IDs.get(i).get(0);
             List<String> expandedWords = new ArrayList<>();
             List<Integer> origPositions = new ArrayList<>();

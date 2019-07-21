@@ -132,8 +132,12 @@ public class AMR implements Formalism{
         }));
         removeWikiEdges(evaluatedGraph);
         
-        //MRPGraph g = MRPUtils.fromSGraph(evaluatedGraph,COMMON_PROPERTY_LABELS, 2, "amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
-        MRPGraph g = fromSGraph(evaluatedGraph, 2, "amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
+        //MRPGraph g = MRPUtils.fromSGraph(evaluatedGraph,PROPERTY_EDGES, 2, "amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("version"), amconll.getAttr("time"));
+        String input = amconll.getAttr("raw");
+        if (input == null){
+            input = amconll.getAttr("input");
+        }
+        MRPGraph g = fromSGraph(evaluatedGraph, 2, "amr", amconll.getId(), input , amconll.getAttr("version"), amconll.getAttr("time"));
         return g;
         
     }

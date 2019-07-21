@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging.formalisms.ucca.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
@@ -17,9 +18,13 @@ import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.TokenRange;
+import de.saar.coli.amrtagging.Util;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.up.ling.irtg.Interpretation;
@@ -35,6 +40,7 @@ import de.up.ling.irtg.corpus.Instance;
 import de.up.ling.irtg.hom.Homomorphism;
 import de.up.ling.irtg.signature.Signature;
 import de.up.ling.tree.Tree;
+import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.TaggedWord;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,7 +49,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
 
 /**
  * Creates amconll corpus from MRP data.
@@ -78,9 +87,15 @@ public class CreateCorpusParallel {
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=true;
     
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz")
+    private String stanfordNerFilename = null;
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
+
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, CorpusReadingException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, CorpusReadingException, ClassNotFoundException{      
         CreateCorpusParallel cli = new CreateCorpusParallel();
         JCommander commander = new JCommander(cli);
 
@@ -131,6 +146,22 @@ public class CreateCorpusParallel {
         UCCA ucca = new UCCA();
         PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
         
+        Set<String> companionIds = ConlluSentence.readFromFile(cli.companion).stream().map((ConlluSentence s) -> s.getId()).collect(Collectors.toSet());
+        for (Instance corpusInstance : corpus){
+            String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
+            if (!  companionIds.contains(id)){
+                System.err.println("Check companion data! We don't have an analysis for the sentence belonging to graph "+id);
+                return;
+            }
+        }
+        
+        NamedEntityRecognizer neRecognizer;
+        if( cli.stanfordNerFilename != null ) {
+            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+        } else {
+            neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
+        }
+        
         instances.parallelStream().forEach((Instance corpusInstance)  -> {
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
             String inputString = ((List<String>) corpusInstance.getInputObjects().get("input")).stream().collect(Collectors.joining(" "));
@@ -176,6 +207,7 @@ public class CreateCorpusParallel {
                 if (t != null) { //graph can be decomposed
                     //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
                     ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", id);
                     sent.setAttr("input", inputString);
                     sent.setAttr("flavor", flavor);
@@ -186,6 +218,12 @@ public class CreateCorpusParallel {
 
                     sent.addPos(preprocData.getPosTags(id).stream().map((TaggedWord w) -> w.tag()).collect(Collectors.toList()));
                     sent.addLemmas(preprocData.getLemmas(id));
+                    
+                    //NER:
+                    List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(sentence);
+                    List<CoreLabel> netags = neRecognizer.tag(tokens);
+                    sent.addNEs(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+                    
                     ucca.refineDelex(sent);
                     
                     synchronized(outCorpus){

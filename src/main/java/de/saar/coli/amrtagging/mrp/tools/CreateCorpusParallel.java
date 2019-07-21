@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
+
 /**
  *  Create training data (amconll) in parallel.
  * @author matthias
@@ -59,6 +61,9 @@ public class CreateCorpusParallel {
 
     @Parameter(names = {"--uiuc-ner-model"}, description = "Use UIUC NER model")
     private boolean uiucNer = false;
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
 
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "generalized";
@@ -89,7 +94,7 @@ public class CreateCorpusParallel {
         if( stanfordNerFilename != null ) {
             namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(stanfordNerFilename));
         } else if( uiucNer ) {
-            namedEntityRecognizer = new UiucNamedEntityRecognizer();
+            namedEntityRecognizer = new UiucNamedEntityRecognizer(uiucNerTagset);
         }
         return namedEntityRecognizer;
     }
@@ -175,6 +180,7 @@ public class CreateCorpusParallel {
                     //SGraphDrawer.draw(inst.getGraph(), "");
                     ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, instance, supertagDictionary);
                     sent.addRanges(usentence.ranges());
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", preprocessed.getId());
                     sent.setAttr("framework", preprocessed.getFramework());
                     sent.setAttr("raw",preprocessed.getInput());

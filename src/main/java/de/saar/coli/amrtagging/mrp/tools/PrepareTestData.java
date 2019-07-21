@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
+
 /**
  *
  * @author matthias
@@ -60,6 +62,9 @@ public class PrepareTestData {
 
     @Parameter(names = {"--uiuc-ner-model"}, description = "Use UIUC NER tagger")
     private boolean useUiucNer = false;
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -115,7 +120,7 @@ public class PrepareTestData {
             if( cli.stanfordNerFilename != null ) {
                 neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
             } else if( cli.useUiucNer ) {
-                neRecognizer = new UiucNamedEntityRecognizer();
+                neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
             }
 
 
@@ -160,6 +165,7 @@ public class PrepareTestData {
                     idx++;
                 }
                 sent.addRanges(usentence.ranges());
+                sent.setAttr("git", AMToolsVersion.GIT_SHA);
                 sent.setAttr("id", id);
                 sent.setAttr("framework", cli.formalism);
                 sent.setAttr("input", input);

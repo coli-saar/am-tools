@@ -8,9 +8,11 @@ package de.saar.coli.amrtagging.formalisms.ucca.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.GraphvizUtils;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
@@ -47,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -122,6 +125,14 @@ public class CreateCorpus {
         PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
         
         UCCA ucca = new UCCA();
+        
+        Set<String> companionIds = ConlluSentence.readFromFile(cli.companion).stream().map((ConlluSentence s) -> s.getId()).collect(Collectors.toSet());
+        for (Instance corpusInstance : corpus){
+            String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
+            if (!  companionIds.contains(id)){
+                System.err.println("Check companion data! We don't have an analysis for the sentence belonging to graph "+id);
+            }
+        }
 
 
         if (cli.vocab != null) { //vocab given, read from file
@@ -135,6 +146,8 @@ public class CreateCorpus {
             if (counter % 1000 == 0 && counter > 0) { //every now and then write intermediate results.
                 cli.write(outCorpus, supertagDictionary);
             }
+            
+            //if (problems > 30) break;
             counter++;
             //read graph, string and alignment from corpus
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
@@ -188,6 +201,7 @@ public class CreateCorpus {
                 if (t != null) { //graph can be decomposed
                     //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
                     ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", id);
                     sent.setAttr("input", inputString);
                     sent.setAttr("flavor", flavor);

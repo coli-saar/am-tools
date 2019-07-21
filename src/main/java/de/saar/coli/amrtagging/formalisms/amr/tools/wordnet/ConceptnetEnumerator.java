@@ -9,6 +9,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import de.up.ling.irtg.util.Util;
+import edu.mit.jwi.data.IHasLifecycle;
 import edu.mit.jwi.item.POS;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
@@ -191,6 +192,8 @@ public class ConceptnetEnumerator implements IWordnet {
                     }
                 } catch (IllegalArgumentException ex) {
                     System.err.printf("** IllegalArgumentException for word '%s' in ConceptEnumerator#getWNCandidates (you can ignore this).\n", word);
+                } catch(IHasLifecycle.ObjectClosedException ex) {
+                    System.err.printf("** ObjectClosedException for word '%s' in ConceptEnumerator#getWNCandidates.\n", word);
                 }
             }
 

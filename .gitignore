@@ -1,2 +1,3 @@
 /.gradle/
 /build/
+/src/main/java/de/saar/coli/amrtagging/AMToolsVersion.java

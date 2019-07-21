@@ -66,10 +66,13 @@ public class StanfordNamedEntityRecognizer implements NamedEntityRecognizer {
         return ret;
     }
 
+    /*
     public static void main(String[] args) throws IOException, ClassNotFoundException, PreprocessingException {
         NamedEntityRecognizer rec = new StanfordNamedEntityRecognizer(new File("resources/english.conll.4class.distsim.crf.ser.gz"));
 
         List<CoreLabel> tags = rec.tag(UiucNamedEntityRecognizer.getTestTokens());
         System.err.println(Util.mapToList(tags, CoreLabel::ner));
     }
+
+     */
 }

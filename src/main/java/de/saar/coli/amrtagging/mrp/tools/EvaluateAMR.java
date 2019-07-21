@@ -15,6 +15,7 @@ import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
 import de.saar.coli.amrtagging.mrp.amr.AMR;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
+import de.saar.coli.amrtagging.mrp.graphs.TestSentence;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
@@ -22,6 +23,7 @@ import de.up.ling.tree.ParseException;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
@@ -29,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Creates mrp corpus from amconll corpus for AMR, does relabeling.
@@ -37,19 +40,22 @@ import java.util.List;
  */
 public class EvaluateAMR {
     @Parameter(names = {"--corpus"}, description = "Path to the input amconll corpus")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/our-amr/everything/amconll/split/dev.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/analyzer/2x2/corenlp_full_28.amconll";
     
     @Parameter(names = {"--wn"}, description = "Path to WordNet")//, required = true)
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
     
     @Parameter(names = {"--conceptnet"}, description = "Path to ConceptNet (.csv.gz file)")//, required = true)
-    private String conceptnet = null;
+    private String conceptnet = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/conceptnet-assertions-5.7.0.csv.gz";
     
     @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
-    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/MRP_first_run/";
+    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/AMR/first_legal/lookup/";
     
     @Parameter(names = {"--out", "-o"}, description = "where to store the MRP graphs")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/training/our-amr/everything/amconll/split/dev_relabeled.mrp";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/analyzer/2x2/corenlp_full_28.mrp";
+    
+    @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
+    private String input = null;
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
@@ -81,6 +87,11 @@ public class EvaluateAMR {
         MRPOutputCodec outputCodec = new MRPOutputCodec();
         Formalism formalism = new AMR(cli.wordnet, cli.conceptnet, cli.lookup, 10);
         
+        Map<String,TestSentence> id2testsent = null;
+        if (cli.input != null){
+            id2testsent = TestSentence.read(new FileReader(cli.input));
+        }
+        
         for (ConllSentence sentence : parsed){
             String framework = sentence.getAttr("framework");
             MRPGraph evaluatedGraph;
@@ -95,8 +106,27 @@ public class EvaluateAMR {
                 System.err.println("Error in line "+sentence.getLineNr()+" with id "+sentence.getId());
                 ex.printStackTrace();
                 System.err.println("Writing empty MRP graph instead");
-                evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),sentence.getAttr("raw"),sentence.getAttr("time"), sentence.getAttr("version"));
+                String input = sentence.getAttr("raw");
+                if (input == null){
+                    input = sentence.getAttr("input");
+                }
+                evaluatedGraph = MRPUtils.getDummy("amr", sentence.getId(),input,sentence.getAttr("time"), sentence.getAttr("version"));
+                evaluatedGraph.setTime(new SimpleDateFormat("yyyy-MM-dd (hh:mm)").format(new Date())); //2019-04-10 (20:10)
             }
+            if (id2testsent != null){
+                if (id2testsent.containsKey(evaluatedGraph.getId())){
+                    String inp = evaluatedGraph.getInput();
+                    if (inp == null){
+                        evaluatedGraph.setInput(evaluatedGraph.getInput());
+                    } else if (!inp.equals(evaluatedGraph.getInput())){
+                        System.err.println("Input string differs for graph "+evaluatedGraph.getId()+" restoring string from --input");
+                        evaluatedGraph.setInput(evaluatedGraph.getInput());
+                    }
+                } else {
+                    System.err.println("Couldn't find input belonging to id "+evaluatedGraph.getId()+ ". The --input option should be used only for the test data");
+                }
+            }
+            //MRPUtils.removeInvalidAnchors(evaluatedGraph, true);
             
             outputCodec.write(evaluatedGraph, output);
         }

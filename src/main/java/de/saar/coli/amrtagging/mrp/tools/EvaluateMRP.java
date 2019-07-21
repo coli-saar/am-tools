@@ -14,6 +14,7 @@ import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
+import de.saar.coli.amrtagging.mrp.graphs.TestSentence;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
@@ -22,12 +23,14 @@ import de.up.ling.tree.ParseException;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Creates mrp corpus from amconll corpus by evaluating all the AM dependency trees to graphs.
@@ -36,13 +39,16 @@ import java.util.List;
  */
 public class EvaluateMRP {
     @Parameter(names = {"--corpus"}, description = "Input corpus file (*.amconll)")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.amconll";
+    private String corpusPath = "/tmp/dm/test_MRP-EDS.amconll";
     
     @Parameter(names = {"--out", "-o"}, description = "Output corpus file (*.mrp)")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.mrp";
+    private String outPath = "/tmp/dm/test_MRP-EDS_eval.mrp";
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode")
     private boolean debug=false;
+    
+    @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
+    private String input = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/test/input.mrp";
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -69,6 +75,11 @@ public class EvaluateMRP {
         List<ConllSentence> parsed = ConllSentence.readFromFile(cli.corpusPath);
         OutputStream output = new FileOutputStream(cli.outPath);
         MRPOutputCodec outputCodec = new MRPOutputCodec();
+        
+        Map<String,TestSentence> id2testsent = null;
+        if (cli.input != null){
+            id2testsent = TestSentence.read(new FileReader(cli.input));
+        }
 
         for (ConllSentence sentence : parsed){
             String framework = sentence.getAttr("framework");
@@ -96,8 +107,25 @@ public class EvaluateMRP {
                 System.err.println("Error in line "+sentence.getLineNr()+" with id "+sentence.getId());
                 ex.printStackTrace();
                 System.err.println("Writing empty MRP graph instead");
-                evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),sentence.getAttr("raw"),sentence.getAttr("time"), sentence.getAttr("version"));
+                String input = sentence.getAttr("raw");
+                if (input == null){
+                    input = sentence.getAttr("input");
+                }
+                evaluatedGraph = MRPUtils.getDummy(framework, sentence.getId(),input,sentence.getAttr("time"), sentence.getAttr("version"));
+                evaluatedGraph.setTime(new SimpleDateFormat("yyyy-MM-dd (hh:mm)").format(new Date())); //2019-04-10 (20:10)
             }
+            if (id2testsent != null){
+                if (id2testsent.containsKey(evaluatedGraph.getId())){
+                    String inp = evaluatedGraph.getInput();
+                    if (!inp.equals(evaluatedGraph.getInput())){
+                        System.err.println("Input string differs for graph "+evaluatedGraph.getId()+" restoring string from --input");
+                        evaluatedGraph.setInput(inp);
+                    }
+                } else {
+                    System.err.println("Couldn't find input belonging to id "+evaluatedGraph.getId()+ ". The --input option should be used only for the test data");
+                }
+            }
+            MRPUtils.removeInvalidAnchors(evaluatedGraph, true);
             
             outputCodec.write(evaluatedGraph, output);
         }
