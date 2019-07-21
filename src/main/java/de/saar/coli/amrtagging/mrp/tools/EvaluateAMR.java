@@ -40,7 +40,7 @@ import java.util.Map;
  */
 public class EvaluateAMR {
     @Parameter(names = {"--corpus"}, description = "Path to the input amconll corpus")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/analyzer/2x2/corenlp_full_28.amconll";
+    private String corpusPath = "/tmp/dm/test_MRP-AMR.amconll";
     
     @Parameter(names = {"--wn"}, description = "Path to WordNet")//, required = true)
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
@@ -52,10 +52,10 @@ public class EvaluateAMR {
     private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/AMR/first_legal/lookup/";
     
     @Parameter(names = {"--out", "-o"}, description = "where to store the MRP graphs")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/analyzer/2x2/corenlp_full_28.mrp";
+    private String outPath = "/tmp/dm/test_MRP-AMR.mrp";
     
     @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
-    private String input = null;
+    private String input = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/test/input.mrp";
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
@@ -116,9 +116,12 @@ public class EvaluateAMR {
             if (id2testsent != null){
                 if (id2testsent.containsKey(evaluatedGraph.getId())){
                     String inp = evaluatedGraph.getInput();
-                    if (!inp.equals(evaluatedGraph.getInput())){
+                    String properInput = id2testsent.get(evaluatedGraph.getId()).input;
+                    if (inp == null){
+                        evaluatedGraph.setInput(properInput);
+                    } else if (!inp.equals(properInput)){
                         System.err.println("Input string differs for graph "+evaluatedGraph.getId()+" restoring string from --input");
-                        evaluatedGraph.setInput(inp);
+                        evaluatedGraph.setInput(properInput);
                     }
                 } else {
                     System.err.println("Couldn't find input belonging to id "+evaluatedGraph.getId()+ ". The --input option should be used only for the test data");
