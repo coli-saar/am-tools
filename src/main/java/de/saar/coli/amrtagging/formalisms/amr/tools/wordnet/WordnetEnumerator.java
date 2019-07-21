@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.wordnet;
 import com.google.common.collect.Sets;
 import de.up.ling.irtg.corpus.CorpusReadingException;
 import edu.mit.jwi.RAMDictionary;
+import edu.mit.jwi.data.IHasLifecycle;
 import edu.mit.jwi.data.ILoadPolicy;
 import edu.mit.jwi.item.IIndexWord;
 import edu.mit.jwi.item.ISynset;
@@ -189,127 +190,7 @@ public class WordnetEnumerator implements IWordnet {
         return wordPairScores.get(word).getDouble(lemma2check);
     }
 
-    /**
-     * For testing, first argument is the path to wordnet 3.0 (the dict folder),
-     * second a word, and optionally third a second word. Prints near neighbors
-     * of the first word and, if applicable, shortest paths to the second word.
-     *
-     * @param args
-     * @throws IOException
-     * @throws CorpusReadingException
-     * @throws MalformedURLException
-     * @throws InterruptedException
-     */
-    /*
-    public static void main(String[] args) throws IOException, CorpusReadingException, MalformedURLException, InterruptedException {
-        
-        
-        
-        WordnetEnumerator we = new WordnetEnumerator(args[0]);
-        String word = args[1];
-        for (POS pos : POS.values()) {
-            System.out.println(pos.toString()+": "+we.stemmer.findStems(word, pos));
-        }
-        System.out.println(we.getWNCandidates(word));
-        System.out.println(we.getAllNounHypernyms(word));
-        if (args.length > 2) {
-            String word2 = args[2];
-            Set<IWord> iWords1 = new HashSet<>();
-            for (POS pos : POS.values()) {
-                for (String stem : we.stemmer.findStems(word, pos)) {
-                    IIndexWord idxWord = we.dict.getIndexWord(stem, pos);
-                    if (idxWord != null) {
-                        for (IWordID wordID : idxWord.getWordIDs()) {
-                            iWords1.add(we.dict.getWord(wordID));
-                        }
-                    }
-                }
-            }
-            Set<IWord> iWords2 = new HashSet<>();
-            for (POS pos : POS.values()) {
-                for (String stem : we.stemmer.findStems(word2, pos)) {
-                    IIndexWord idxWord = we.dict.getIndexWord(stem, pos);
-                    if (idxWord != null) {
-                        for (IWordID wordID : idxWord.getWordIDs()) {
-                            iWords2.add(we.dict.getWord(wordID));
-                        }
-                    }
-                }
-            }
-            Map<IWord, Set<List<String>>> found = new HashMap<>();
-            for (IWord iW : iWords1) {
-                addPath(iW, new ArrayList<>(), found);
-            }
-            for (int k = 0; k<5; k++) {
-                Set<IWord> newWords = new HashSet<>();
-                for (IWord iW : new HashSet<>(found.keySet())) {
-                    for (Pointer p : Pointer.values()) {
-                        iW.getRelatedWords(p).stream().map(id -> we.dict.getWord(id)).forEach(newIWord -> {
-                            newWords.add(newIWord);
-                            for (List<String> path : found.get(iW)) {
-                                List<String> newList = new ArrayList<>(path);
-                                newList.add(p.toString()+"_"+newIWord.getLemma());
-                                addPath(newIWord, newList, found);
-                            }
-                        });
-                        iW.getSynset().getRelatedSynsets(p).stream().map(id -> we.dict.getSynset(id)).forEach(syn -> {
-                            for (IWord synW : syn.getWords()) {
-                                newWords.add(synW);
-                                for (List<String> path : found.get(iW)) {
-                                    List<String> newList = new ArrayList<>(path);
-                                    newList.add("SYN|"+p.toString()+"_"+synW.getLemma());
-                                    addPath(synW, newList, found);
-                                }
-                            }
-                        });
-                    }
-                    for (IWord synW : iW.getSynset().getWords()) {
-                        if (!synW.equals(iW)) {
-                            newWords.add(synW);
-                            for (List<String> path : found.get(iW)) {
-                                List<String> newList = new ArrayList<>(path);
-                                newList.add("SYNSET"+"_"+synW.getLemma());
-                                addPath(synW, newList, found);
-                            }
-                        }
-                    }
-                }
-                if (!Sets.intersection(newWords, iWords2).isEmpty()) {
-                    break;
-                }
-            }      
-            for (IWord iW : iWords2) {
-                if (found.get(iW) != null) {
-                    for (List<String> path : found.get(iW)) {
-                        System.err.println(path);
-                    }
-                }
-            }
-            //System.err.println(found);
-        }
-        
-        
-        
-    }
-     */
- /*
-    private static void addPath(IWord iW, List<String> path, Map<IWord, Set<List<String>>> found) {
-        Set<List<String>> foundHere = found.get(iW);
-        if (foundHere == null) {
-            foundHere = new HashSet<>();
-            foundHere.add(path);
-            found.put(iW, foundHere);
-        } else {
-            int min = foundHere.stream().map(list -> list.size()).collect(Collectors.minBy(Comparator.naturalOrder())).get();
-            if (path.size() < min) {
-                foundHere.clear();
-                foundHere.add(path);
-            } else if (path.size() == min) {
-                foundHere.add(path);
-            }
-        }
-    }
-     */
+
     private final Map<String, Set<String>> word2Hypers = new HashMap<>();
 
     @Override
@@ -417,6 +298,9 @@ public class WordnetEnumerator implements IWordnet {
             return null;
         } catch (IllegalArgumentException ex) {
             System.err.printf("** Illegal argument exception during Wordnet lookup: '%s'\n", word);
+            return word;
+        } catch(IHasLifecycle.ObjectClosedException ex) {
+            System.err.printf("** ObjectClosedException during Wordnet verb-stem lookup: '%s\n", word);
             return null;
         }
     }
@@ -469,6 +353,9 @@ public class WordnetEnumerator implements IWordnet {
         } catch (IllegalArgumentException ex) {
             System.err.printf("** Illegal argument exception during Wordnet lookup: '%s'\n", word);
             return null;
+        } catch(IHasLifecycle.ObjectClosedException ex) {
+            System.err.printf("** ObjectClosedException during Wordnet related-verb-stem lookup: '%s\n", word);
+            return null;
         }
     }
 
@@ -490,6 +377,9 @@ public class WordnetEnumerator implements IWordnet {
         } catch (IllegalArgumentException ex) {
             System.err.printf("** Illegal argument exception during Wordnet lookup: '%s'\n", word);
             return null;
+        } catch(IHasLifecycle.ObjectClosedException ex) {
+            System.err.printf("** ObjectClosedException during Wordnet noun-stem lookup: '%s\n", word);
+            return null;
         }
     }
 
@@ -499,3 +389,128 @@ public class WordnetEnumerator implements IWordnet {
     
     
 }
+
+
+
+
+/**
+ * For testing, first argument is the path to wordnet 3.0 (the dict folder),
+ * second a word, and optionally third a second word. Prints near neighbors
+ * of the first word and, if applicable, shortest paths to the second word.
+ *
+ * @param args
+ * @throws IOException
+ * @throws CorpusReadingException
+ * @throws MalformedURLException
+ * @throws InterruptedException
+ */
+    /*
+    public static void main(String[] args) throws IOException, CorpusReadingException, MalformedURLException, InterruptedException {
+
+
+
+        WordnetEnumerator we = new WordnetEnumerator(args[0]);
+        String word = args[1];
+        for (POS pos : POS.values()) {
+            System.out.println(pos.toString()+": "+we.stemmer.findStems(word, pos));
+        }
+        System.out.println(we.getWNCandidates(word));
+        System.out.println(we.getAllNounHypernyms(word));
+        if (args.length > 2) {
+            String word2 = args[2];
+            Set<IWord> iWords1 = new HashSet<>();
+            for (POS pos : POS.values()) {
+                for (String stem : we.stemmer.findStems(word, pos)) {
+                    IIndexWord idxWord = we.dict.getIndexWord(stem, pos);
+                    if (idxWord != null) {
+                        for (IWordID wordID : idxWord.getWordIDs()) {
+                            iWords1.add(we.dict.getWord(wordID));
+                        }
+                    }
+                }
+            }
+            Set<IWord> iWords2 = new HashSet<>();
+            for (POS pos : POS.values()) {
+                for (String stem : we.stemmer.findStems(word2, pos)) {
+                    IIndexWord idxWord = we.dict.getIndexWord(stem, pos);
+                    if (idxWord != null) {
+                        for (IWordID wordID : idxWord.getWordIDs()) {
+                            iWords2.add(we.dict.getWord(wordID));
+                        }
+                    }
+                }
+            }
+            Map<IWord, Set<List<String>>> found = new HashMap<>();
+            for (IWord iW : iWords1) {
+                addPath(iW, new ArrayList<>(), found);
+            }
+            for (int k = 0; k<5; k++) {
+                Set<IWord> newWords = new HashSet<>();
+                for (IWord iW : new HashSet<>(found.keySet())) {
+                    for (Pointer p : Pointer.values()) {
+                        iW.getRelatedWords(p).stream().map(id -> we.dict.getWord(id)).forEach(newIWord -> {
+                            newWords.add(newIWord);
+                            for (List<String> path : found.get(iW)) {
+                                List<String> newList = new ArrayList<>(path);
+                                newList.add(p.toString()+"_"+newIWord.getLemma());
+                                addPath(newIWord, newList, found);
+                            }
+                        });
+                        iW.getSynset().getRelatedSynsets(p).stream().map(id -> we.dict.getSynset(id)).forEach(syn -> {
+                            for (IWord synW : syn.getWords()) {
+                                newWords.add(synW);
+                                for (List<String> path : found.get(iW)) {
+                                    List<String> newList = new ArrayList<>(path);
+                                    newList.add("SYN|"+p.toString()+"_"+synW.getLemma());
+                                    addPath(synW, newList, found);
+                                }
+                            }
+                        });
+                    }
+                    for (IWord synW : iW.getSynset().getWords()) {
+                        if (!synW.equals(iW)) {
+                            newWords.add(synW);
+                            for (List<String> path : found.get(iW)) {
+                                List<String> newList = new ArrayList<>(path);
+                                newList.add("SYNSET"+"_"+synW.getLemma());
+                                addPath(synW, newList, found);
+                            }
+                        }
+                    }
+                }
+                if (!Sets.intersection(newWords, iWords2).isEmpty()) {
+                    break;
+                }
+            }
+            for (IWord iW : iWords2) {
+                if (found.get(iW) != null) {
+                    for (List<String> path : found.get(iW)) {
+                        System.err.println(path);
+                    }
+                }
+            }
+            //System.err.println(found);
+        }
+
+
+
+    }
+     */
+ /*
+    private static void addPath(IWord iW, List<String> path, Map<IWord, Set<List<String>>> found) {
+        Set<List<String>> foundHere = found.get(iW);
+        if (foundHere == null) {
+            foundHere = new HashSet<>();
+            foundHere.add(path);
+            found.put(iW, foundHere);
+        } else {
+            int min = foundHere.stream().map(list -> list.size()).collect(Collectors.minBy(Comparator.naturalOrder())).get();
+            if (path.size() < min) {
+                foundHere.clear();
+                foundHere.add(path);
+            } else if (path.size() == min) {
+                foundHere.add(path);
+            }
+        }
+    }
+     */
