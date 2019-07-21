@@ -12,6 +12,8 @@ import de.saar.coli.amrtagging.ConllEntry;
 import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
+
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
@@ -55,7 +57,10 @@ public class PrepareTestDataFromFiles {
 
     @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz; if argument is not given, use UIUC NER tagger")
     private String stanfordNerFilename = null;
-    
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
+
     //public static HashSet<String> specialTokens = new HashSet<>(Arrays.asList(new String[]{"_name_", "_number_", "_date_"}));
     
     public static void main(String[] args) throws FileNotFoundException, IOException, ClassNotFoundException {
@@ -102,7 +107,7 @@ public class PrepareTestDataFromFiles {
         if( cli.stanfordNerFilename != null ) {
             neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
         } else {
-            neRecognizer = new UiucNamedEntityRecognizer();
+            neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }
 
         

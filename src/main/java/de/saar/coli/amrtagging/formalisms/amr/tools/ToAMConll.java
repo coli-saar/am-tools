@@ -29,6 +29,7 @@ import java.util.List;
 
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.PrepareTestDataFromFiles.readFile;
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
 
 /**
  * Tool to create amconll file from nnData/train
@@ -47,6 +48,9 @@ public class ToAMConll {
 
     @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz; if argument is not given, use UIUC NER tagger")
     private String stanfordNerFilename = null;
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
 
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
@@ -113,7 +117,7 @@ public class ToAMConll {
         if( cli.stanfordNerFilename != null ) {
             neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
         } else {
-            neRecognizer = new UiucNamedEntityRecognizer();
+            neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }
 
 

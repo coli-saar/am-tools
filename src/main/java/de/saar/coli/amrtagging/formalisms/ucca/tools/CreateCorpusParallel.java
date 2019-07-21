@@ -52,6 +52,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
+
 /**
  * Creates amconll corpus from MRP data.
  * 
@@ -88,7 +90,9 @@ public class CreateCorpusParallel {
     @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz")
     private String stanfordNerFilename = null;
 
-    
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
+
    
     
     public static void main(String[] args) throws FileNotFoundException, IOException, ParserException, CorpusReadingException, ClassNotFoundException{      
@@ -155,7 +159,7 @@ public class CreateCorpusParallel {
         if( cli.stanfordNerFilename != null ) {
             neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
         } else {
-            neRecognizer = new UiucNamedEntityRecognizer();
+            neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }
         
         instances.parallelStream().forEach((Instance corpusInstance)  -> {

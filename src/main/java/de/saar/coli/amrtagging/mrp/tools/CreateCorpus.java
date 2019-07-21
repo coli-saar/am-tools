@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
+
 /**
  * Creates amconll corpus from MRP data.
  * 
@@ -50,6 +52,9 @@ public class CreateCorpus {
 
     @Parameter(names = {"--uiuc-ner-model"}, description = "Use UIUC NER model")
     private boolean uiucNer=false;
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
     private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/EDS/";
@@ -80,7 +85,7 @@ public class CreateCorpus {
         try {
             commander.parse(args);
         } catch (com.beust.jcommander.ParameterException ex) {
-            System.err.println("An error occured: " + ex.toString());
+            System.err.println("An error occurred: " + ex.toString());
             System.err.println("\n Available options: ");
             commander.usage();
             return;
@@ -95,7 +100,7 @@ public class CreateCorpus {
         if( cli.stanfordNerFilename != null ) {
             namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
         } else if( cli.uiucNer ) {
-            namedEntityRecognizer = new UiucNamedEntityRecognizer();
+            namedEntityRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }
        
         int counter = 0;

@@ -10,6 +10,7 @@ import com.beust.jcommander.Parameter;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.saar.coli.amrtagging.formalisms.amr.tools.RareWordsAnnotator;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.datascript.TestNER.matchesDatePattern;
+import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
 
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.up.ling.irtg.Interpretation;
@@ -53,6 +54,9 @@ public class MakeDevData {
 
     @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz; if argument is not given, use UIUC NER tagger")
     private String stanfordNerFilename = null;
+
+    @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
+    private String uiucNerTagset = NER_CONLL;
 
     @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
     private String companionDataFile = null;
@@ -119,7 +123,7 @@ public class MakeDevData {
         }
 
         // set up NER recognizer
-        NamedEntityRecognizer nerRecognizer = stanfordNerFilename != null ? new StanfordNamedEntityRecognizer(new File(stanfordNerFilename)) : new UiucNamedEntityRecognizer();
+        NamedEntityRecognizer nerRecognizer = stanfordNerFilename != null ? new StanfordNamedEntityRecognizer(new File(stanfordNerFilename)) : new UiucNamedEntityRecognizer(uiucNerTagset);
         
         FileWriter sentenceW = new FileWriter(outPath+"sentences.txt");
         FileWriter posW = new FileWriter(outPath+"pos.txt");

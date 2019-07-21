@@ -28,12 +28,17 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
 
     private NERAnnotator co = null;
 
-    public UiucNamedEntityRecognizer() {
+    public UiucNamedEntityRecognizer(String tagset) {
         try {
-            co = new NERAnnotator(ViewNames.NER_CONLL);
+            co = new NERAnnotator(tagset);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+
+    public UiucNamedEntityRecognizer() {
+        this(ViewNames.NER_CONLL);
     }
 
     @Override
@@ -79,6 +84,7 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
         return tokens;
     }
 
+    /*
     public static void main(String[] args) throws IOException, PreprocessingException {
         List<CoreLabel> tokens = getTestTokens();
         UiucNamedEntityRecognizer rec = new UiucNamedEntityRecognizer();
@@ -110,4 +116,6 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
 
         return ret;
     }
+
+     */
 }
