@@ -39,16 +39,16 @@ import java.util.Map;
  */
 public class EvaluateMRP {
     @Parameter(names = {"--corpus"}, description = "Input corpus file (*.amconll)")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.amconll";
+    private String corpusPath = "/tmp/dm/test_MRP-EDS.amconll";
     
     @Parameter(names = {"--out", "-o"}, description = "Output corpus file (*.mrp)")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Mario/ucca/new/train.mrp";
+    private String outPath = "/tmp/dm/test_MRP-EDS_eval.mrp";
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode")
     private boolean debug=false;
     
     @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
-    private String input = null;
+    private String input = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/test/input.mrp";
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -125,7 +125,7 @@ public class EvaluateMRP {
                     System.err.println("Couldn't find input belonging to id "+evaluatedGraph.getId()+ ". The --input option should be used only for the test data");
                 }
             }
-            MRPUtils.removeInvalidAnchros(evaluatedGraph, true);
+            MRPUtils.removeInvalidAnchors(evaluatedGraph, true);
             
             outputCodec.write(evaluatedGraph, output);
         }

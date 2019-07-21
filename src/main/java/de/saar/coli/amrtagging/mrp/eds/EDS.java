@@ -271,7 +271,9 @@ public class EDS implements Formalism{
             }
             MRPGraph mrpGraph = MRPUtils.fromAnchoredSGraph(evaluatedGraph, false, 1, "eds",
                     amconll.getId(), input, amconll.getAttr("version"), amconll.getAttr("time"));
-            return removeArtificalRoot(mrpGraph);
+            mrpGraph = removeArtificalRoot(mrpGraph);
+            addDummyAnchorings(mrpGraph);
+            return mrpGraph;
             
         } catch (ParseException | ParserException | AMDependencyTree.ConllParserException e){
              throw new IllegalArgumentException(e);
@@ -460,6 +462,24 @@ public class EDS implements Formalism{
             }
         }
         return anchor;
+    }
+    
+    /**
+     * mtool will complain if we don't provide an anchoring at every node, 
+     * so invent some stupid anchorings, spanning the entire sentence.
+     * @param g 
+     */
+    private void addDummyAnchorings(MRPGraph g){
+        MRPAnchor a = new MRPAnchor(0,g.getInput().length());
+        for (MRPNode n : g.getNodes()){
+            if (n.getAnchors() == null){
+                n.setAnchors(new ArrayList<>());
+            }
+            if (n.getAnchors().isEmpty()){
+                n.getAnchors().add(a);
+            }
+        }
+        
     }
     
     

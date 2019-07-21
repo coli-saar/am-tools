@@ -569,7 +569,7 @@ public class MRPUtils {
      * @param warn if a warning should be printed to stderr
      * @return if some anchor was deleted
      */
-    public static boolean removeInvalidAnchros(MRPGraph mrpgraph, boolean warn){
+    public static boolean removeInvalidAnchors(MRPGraph mrpgraph, boolean warn){
         
         int stringLen = mrpgraph.getInput().length();
         boolean fixedSomething = false;

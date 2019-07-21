@@ -116,6 +116,7 @@ public class ConlluSentence implements Iterable<ConlluEntry> {
     public String toString() {
         StringBuilder b = new StringBuilder();
         if (id != null){
+            b.append("#");
             b.append(id);
             b.append("\n");
         }
