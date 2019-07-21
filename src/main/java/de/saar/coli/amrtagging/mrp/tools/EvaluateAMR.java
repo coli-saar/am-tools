@@ -116,9 +116,11 @@ public class EvaluateAMR {
             if (id2testsent != null){
                 if (id2testsent.containsKey(evaluatedGraph.getId())){
                     String inp = evaluatedGraph.getInput();
-                    if (!inp.equals(evaluatedGraph.getInput())){
+                    if (inp == null){
+                        evaluatedGraph.setInput(evaluatedGraph.getInput());
+                    } else if (!inp.equals(evaluatedGraph.getInput())){
                         System.err.println("Input string differs for graph "+evaluatedGraph.getId()+" restoring string from --input");
-                        evaluatedGraph.setInput(inp);
+                        evaluatedGraph.setInput(evaluatedGraph.getInput());
                     }
                 } else {
                     System.err.println("Couldn't find input belonging to id "+evaluatedGraph.getId()+ ". The --input option should be used only for the test data");
