@@ -333,7 +333,7 @@ public class AMR implements Formalism{
         */
         for (Pattern label : PROBABLY_PROPERTY_LABELp){  // e.g  op1  quant   fps: before -quant-> multiple ?
             Matcher m = label.matcher(edgelabel);
-            if (m.matches() && sourcenodelabel == "name") return true;
+            if (m.matches() && sourcenodelabel.equals("name")) return true;
         }
         return false;
         // return PROBABLY_PROPERTY_BASED_ON_SOURCE.contains(sourcenodelabel);
