@@ -197,7 +197,7 @@ public class ToAMConll {
             }
 
 
-            o.addReplacement(sentences.get(i));
+            o.addReplacement(sentences.get(i),false);
             o.addPos(posTags.get(i));
             o.addLemmas(ourLemmas);
             o.addNEs(ners);

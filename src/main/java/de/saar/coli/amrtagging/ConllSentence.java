@@ -187,11 +187,22 @@ public class ConllSentence extends ArrayList<ConllEntry> {
     }
 
     public void addReplacement(List<String> replacements) {
+        addReplacement(replacements, true);
+    }
+    
+    /**
+     * Adds replacement tokens
+     * @param replacements
+     * @param caseSensitive whether or not tokens count as equal if they're equal up to case
+     */
+    public void addReplacement(List<String> replacements, boolean caseSensitive){
         if (replacements.size() != this.size()) {
             throw new IllegalArgumentException("Size of replacement list must be equal to sentence length");
         }
         for (int i = 0; i < replacements.size(); i++) {
-            if (!this.get(i).getForm().equals(replacements.get(i))) {
+            if (!this.get(i).getForm().toLowerCase().equals(replacements.get(i).toLowerCase())) {
+                this.get(i).setReplacement(replacements.get(i));
+            } else if (caseSensitive && !this.get(i).getForm().equals(replacements.get(i))){
                 this.get(i).setReplacement(replacements.get(i));
             }
         }
