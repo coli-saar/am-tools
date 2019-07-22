@@ -48,7 +48,7 @@ public class EvaluateMRP {
     private boolean debug=false;
     
     @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
-    private String input = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/test/input.mrp";
+    private String input = null;
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;

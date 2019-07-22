@@ -105,6 +105,7 @@ public class PrepareTestData {
 
             // print sentences + dummy graph to *.amr file, in random order
             for( Map.Entry<String,TestSentence> entry : id2testSent.entrySet() ) {
+                if (!entry.getValue().targets.contains(cli.formalism)) continue;
                 pw.printf("# ::id %s\n", entry.getValue().id);
                 pw.printf("# ::snt %s\n", entry.getValue().input);
                 pw.printf("# dummy\n");
