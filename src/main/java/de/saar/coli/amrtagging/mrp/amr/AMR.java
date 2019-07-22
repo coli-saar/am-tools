@@ -273,7 +273,7 @@ public class AMR implements Formalism{
     // edge label (100% prop) is  mode  li  mod  polite  year  month  day  decade  century  era  quarter
     // edge label  is  polarity  (83.9657 % of the time a prop)  value (99.4341 %)  timezone (93.8776 %)
     public static final List<Pattern> DEFINITELY_PROPERTY_LABELp = Arrays.asList(
-            Pattern.compile("li"), Pattern.compile("polite"), Pattern.compile("mode"), Pattern.compile("mod"),
+            Pattern.compile("li"), Pattern.compile("polite"), Pattern.compile("mode"), //Pattern.compile("mod"),
             Pattern.compile("year[0-9]*"),Pattern.compile("month"), Pattern.compile("day"),
             Pattern.compile("quarter"), Pattern.compile("decade"), Pattern.compile("century"), Pattern.compile("era"),
             Pattern.compile("polarity"), Pattern.compile("value"), Pattern.compile("timezone"));
