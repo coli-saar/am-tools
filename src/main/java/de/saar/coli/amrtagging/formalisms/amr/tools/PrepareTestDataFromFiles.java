@@ -148,7 +148,7 @@ public class PrepareTestDataFromFiles {
                     ourLemmas.set(origPositions.get(j), lemmas.get(j));
 
                 }
-                o.addReplacement(sentences.get(i));
+                o.addReplacement(sentences.get(i),false);
                 o.addPos(posTags.get(i));
                 System.err.println(literals.get(i));
                 System.err.println(ourLemmas);
