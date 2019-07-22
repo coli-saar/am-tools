@@ -7,8 +7,8 @@ package de.saar.coli.amrtagging.formalisms.sdp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import edu.stanford.nlp.simple.Sentence;
 import java.io.FileNotFoundException;
@@ -59,13 +59,13 @@ public class PrepareDevData {
         
         GraphReader2015 reader = new GraphReader2015(cli.corpusPath);
         Graph sdpGraph;
-        ArrayList<ConllSentence> out = new ArrayList<ConllSentence>();
+        ArrayList<AmConllSentence> out = new ArrayList<AmConllSentence>();
         while ((sdpGraph = reader.readGraph()) != null){
-            ConllSentence currentSent = new ConllSentence();
+            AmConllSentence currentSent = new AmConllSentence();
             currentSent.setAttr("id", sdpGraph.id);
             for (Node n : sdpGraph.getNodes()){
                 if (n.id > 0){
-                    ConllEntry e = new ConllEntry(n.id,n.form);
+                    AmConllEntry e = new AmConllEntry(n.id,n.form);
                     e.setPos(n.pos);
                     e.setLemma(n.lemma);
                     currentSent.add(e);
@@ -77,7 +77,7 @@ public class PrepareDevData {
             List<String> neTags = new ArrayList<>(stanfordSent.nerTags());
             neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             
-            ConllEntry artRoot = new ConllEntry(sdpGraph.getNNodes(),SGraphConverter.ARTIFICAL_ROOT_LABEL);
+            AmConllEntry artRoot = new AmConllEntry(sdpGraph.getNNodes(),SGraphConverter.ARTIFICAL_ROOT_LABEL);
             artRoot.setLemma(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             artRoot.setPos(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             currentSent.add(artRoot);
@@ -85,6 +85,6 @@ public class PrepareDevData {
             currentSent.addNEs(neTags);
             out.add(currentSent);
         } 
-        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
+        AmConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
     }
 }

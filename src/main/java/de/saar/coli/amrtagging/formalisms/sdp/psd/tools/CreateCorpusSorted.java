@@ -7,16 +7,9 @@ package de.saar.coli.amrtagging.formalisms.sdp.psd.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
@@ -25,7 +18,6 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.simple.Sentence;
@@ -39,9 +31,7 @@ import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +39,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 /**
  *  Create PSD training data.
@@ -106,7 +95,7 @@ public class CreateCorpusSorted {
         
         int counter = 0;
         int problems = 0;
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         Scorer overall = new Scorer();
         
@@ -132,10 +121,10 @@ public class CreateCorpusSorted {
             
             MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            Future<ConllSentence> future = executor.submit(new Task(inst,sdpGraph, supertagDictionary));
+            Future<AmConllSentence> future = executor.submit(new Task(inst,sdpGraph, supertagDictionary));
 
             try {
-                ConllSentence o = future.get(cli.timeout, TimeUnit.SECONDS);
+                AmConllSentence o = future.get(cli.timeout, TimeUnit.SECONDS);
                 if (o != null){
                     outCorpus.add(o);
                 }
@@ -150,10 +139,10 @@ public class CreateCorpusSorted {
         
     }
     
-    private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+    private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
         if (outPath != null && prefix != null){
             new File(outPath).mkdirs();
-            ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+            AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
             if (vocab == null){ //only write vocab if it wasn't restored.
                 supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
             }
@@ -177,7 +166,7 @@ public class CreateCorpusSorted {
         return ret;
     }
     
-    static class Task implements Callable<ConllSentence> {
+    static class Task implements Callable<AmConllSentence> {
         MRInstance inst;
         Graph sdp;
         SupertagDictionary supertagDictionary;
@@ -187,7 +176,7 @@ public class CreateCorpusSorted {
             supertagDictionary = dict;
         }
         @Override
-        public ConllSentence call() throws Exception {
+        public AmConllSentence call() throws Exception {
             try {
                 ConcreteAlignmentSignatureBuilder sigBuilder =
                     new PSDConcreteSignatureBuilder(inst.getGraph(), inst.getAlignments(), new PSDBlobUtils());
@@ -199,7 +188,7 @@ public class CreateCorpusSorted {
                 Tree<String> t = auto.viterbi();
 
                 if (t != null){
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, modified, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, modified, supertagDictionary);
                     sent.setAttr("id", sdp.id);
                     Sentence stanfAn = new Sentence(modified.getSentence().subList(0, modified.getSentence().size()-1)); //remove artifical root "word"
 

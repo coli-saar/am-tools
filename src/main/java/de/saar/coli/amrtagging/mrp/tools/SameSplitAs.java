@@ -7,13 +7,10 @@ package de.saar.coli.amrtagging.mrp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.ConlluSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.mrp.MRPInputCodec;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
-import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.up.ling.tree.ParseException;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -21,13 +18,10 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -66,10 +60,10 @@ public class SameSplitAs {
         }
         
         
-        List<ConllSentence> sentences = ConllSentence.readFromFile(cli.input);
+        List<AmConllSentence> sentences = AmConllSentence.readFromFile(cli.input);
         
         //those IDs of the dev set that we want to replicate
-        Set<String> devIDs = ConllSentence.readFromFile(cli.devSet).stream().map(sentence -> sentence.getId()).collect(Collectors.toSet());
+        Set<String> devIDs = AmConllSentence.readFromFile(cli.devSet).stream().map(sentence -> sentence.getId()).collect(Collectors.toSet());
         
         //load graphs
         Map<String,MRPGraph> id2Graph = new HashMap<>();
@@ -81,11 +75,11 @@ public class SameSplitAs {
             id2Graph.put(graph.getId(), graph);
         }
         
-        List<ConllSentence> dev = new ArrayList<>();
-        List<ConllSentence> train = new ArrayList<>();
+        List<AmConllSentence> dev = new ArrayList<>();
+        List<AmConllSentence> train = new ArrayList<>();
         List<MRPGraph> devGraphs = new ArrayList<>();
         
-        for (ConllSentence sent : sentences){
+        for (AmConllSentence sent : sentences){
             String id = sent.getId();
             if (id.contains("___")){
                 //Pia's version where the id consists of <file name.mrp>___<actual id>
@@ -108,8 +102,8 @@ public class SameSplitAs {
         }
         System.out.println("Devset has size "+dev.size());
         System.out.println("Devset that this should be based on has size "+devIDs.size());
-        ConllSentence.writeToFile(cli.outPath+"/dev.amconll", dev);
-        ConllSentence.writeToFile(cli.outPath+"/train.amconll", train);
+        AmConllSentence.writeToFile(cli.outPath+"/dev.amconll", dev);
+        AmConllSentence.writeToFile(cli.outPath+"/train.amconll", train);
         MRPOutputCodec outputCodec = new MRPOutputCodec();
         OutputStream output = new FileOutputStream(cli.outPath+"/dev.mrp");
         for (MRPGraph devGraph : devGraphs){

@@ -7,12 +7,9 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.Alignment;
+import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.Alignment.Span;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
@@ -111,7 +108,7 @@ public class DependencyExtractorCLITimeout {
         
         Corpus corpus = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.corpusPath), loaderIRTG);
         
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         
         
         
@@ -170,9 +167,9 @@ public class DependencyExtractorCLITimeout {
                     MRInstance instance = new MRInstance(literals, graph, alignments);   
                     
                     ExecutorService executor = Executors.newSingleThreadExecutor();
-                    Future<ConllSentence> future = executor.submit(new Task(instance, dictionary, posTags, lemmas, nerTags, sent));
+                    Future<AmConllSentence> future = executor.submit(new Task(instance, dictionary, posTags, lemmas, nerTags, sent));
                     try {
-                        ConllSentence o = future.get(cli.timeout, TimeUnit.SECONDS);
+                        AmConllSentence o = future.get(cli.timeout, TimeUnit.SECONDS);
                         if (o != null){
                             outCorpus.add(o);
                         }
@@ -186,18 +183,18 @@ public class DependencyExtractorCLITimeout {
                     executor.shutdownNow();
                     if (i % 10 == 0){
                         System.err.println(i);
-                        ConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
+                        AmConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
                         dictionary.writeToFile(cli.outPath+"/supertags.txt");
                     }
         }
         
-        ConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
+        AmConllSentence.writeToFile(cli.outPath+"/corpus.amconll", outCorpus);
         dictionary.writeToFile(cli.outPath+"/supertags.txt");
         
         
     }
     
-    static class Task implements Callable<ConllSentence> {
+    static class Task implements Callable<AmConllSentence> {
         MRInstance inst;
         SupertagDictionary supertagDictionary;
         private final List<String> posTags;
@@ -213,7 +210,7 @@ public class DependencyExtractorCLITimeout {
             this.repl = repl;
         }
         @Override
-        public ConllSentence call() throws Exception {
+        public AmConllSentence call() throws Exception {
             try {
                 TreeAutomaton auto;
                 auto = AlignmentTrackingAutomaton.create(inst, new AMRSignatureBuilder(), false);
@@ -221,7 +218,7 @@ public class DependencyExtractorCLITimeout {
 
                 Tree<String> vit = auto.viterbi();
                 if (vit != null) {
-                     ConllSentence cs = ConllSentence.fromIndexedAMTerm(vit, inst, supertagDictionary);
+                     AmConllSentence cs = AmConllSentence.fromIndexedAMTerm(vit, inst, supertagDictionary);
                      cs.addPos(posTags);
                      cs.addLemmas(lemmas);
                      cs.addNEs(nerTags);

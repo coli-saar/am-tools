@@ -30,10 +30,10 @@ import java.util.function.Function;
  *
  * @author matthias
  */
-public class ConllSentence extends ArrayList<ConllEntry> {
+public class AmConllSentence extends ArrayList<AmConllEntry> {
 
     private int lineNr;
-    private HashMap<String, String> attributes = new HashMap<>();
+    private Map<String, String> attributes = new HashMap<>();
 
     public void setAttr(String key, String val) {
         if (key.contains("\n")) {
@@ -59,7 +59,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
 
     public List<String> words() {
         ArrayList<String> r = new ArrayList<>();
-        for (ConllEntry e : this) {
+        for (AmConllEntry e : this) {
             r.add(e.getForm());
         }
         return r;
@@ -67,7 +67,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
 
     public List<String> lemmas() {
         ArrayList<String> r = new ArrayList<>();
-        for (ConllEntry e : this) {
+        for (AmConllEntry e : this) {
             r.add(e.getLemma());
         }
         return r;
@@ -75,15 +75,15 @@ public class ConllSentence extends ArrayList<ConllEntry> {
     
    public List<TokenRange> ranges() {
         ArrayList<TokenRange> r = new ArrayList<>();
-        for (ConllEntry e : this) {
+        for (AmConllEntry e : this) {
             r.add(e.getRange());
         }
         return r;
     }
    
-   public <T> List<T> getFields(Function <ConllEntry, T> f) {
+   public <T> List<T> getFields(Function <AmConllEntry, T> f) {
         ArrayList<T> r = new ArrayList<>();
-        for (ConllEntry e : this) {
+        for (AmConllEntry e : this) {
             r.add(f.apply(e));
         }
         return r;
@@ -92,7 +92,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
     @Override
     public String toString() {
         StringBuilder b = new StringBuilder();
-        for (ConllEntry aThi : this) {
+        for (AmConllEntry aThi : this) {
             b.append(aThi);
             b.append("\n");
         }
@@ -100,8 +100,8 @@ public class ConllSentence extends ArrayList<ConllEntry> {
     }
 
     /**
-     * Turns the output of the AlignmentTrackingAutomaton into an ConllSentence
-     * with just the words for now. The ConllSentence will be delexicalized
+     * Turns the output of the AlignmentTrackingAutomaton into an AmConllSentence
+     * with just the words for now. The AmConllSentence will be delexicalized
      * using the alignment info from the instance. To make the supertags
      * consistent, it looks the graph fragment up in the given
      * SupertagDictionary.
@@ -113,19 +113,19 @@ public class ConllSentence extends ArrayList<ConllEntry> {
      * @throws de.up.ling.tree.ParseException
      * @throws de.up.ling.irtg.algebra.ParserException
      */
-    public static ConllSentence fromIndexedAMTerm(Tree<String> indexedAM, MRInstance instance, SupertagDictionary lookup) throws ParseException, ParserException {
+    public static AmConllSentence fromIndexedAMTerm(Tree<String> indexedAM, MRInstance instance, SupertagDictionary lookup) throws ParseException, ParserException {
         Map<Integer, Set<String>> index2lexNodes = new HashMap(); //maps an index to a set of lexical nodes for delexicalization.
         for (Alignment al : instance.getAlignments()) {
             index2lexNodes.put(al.span.start, al.lexNodes);
         }
 
-        ConllSentence conllSent = new ConllSentence();
+        AmConllSentence conllSent = new AmConllSentence();
         int index = 1; //one-based indexing
         for (String word : instance.getSentence()) {
-            ConllEntry ent = new ConllEntry(index, word);
+            AmConllEntry ent = new AmConllEntry(index, word);
             ent.setAligned(true); //for now, change that in the future - ml
             ent.setHead(0);
-            ent.setEdgeLabel(ConllEntry.IGNORE);
+            ent.setEdgeLabel(AmConllEntry.IGNORE);
             conllSent.add(ent);
 
             index++;
@@ -142,7 +142,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 conllSent.get(position).setType(new ApplyModifyGraphAlgebra.Type(graphAndType[1]));
 
                 if (t.equals(indexedAM)) { //we are at the root (no term, just single constant)
-                    conllSent.get(position).setEdgeLabel(ConllEntry.ROOT_SYM);
+                    conllSent.get(position).setEdgeLabel(AmConllEntry.ROOT_SYM);
                 }
 
             } else if (t.getChildren().size() == 2) {
@@ -155,7 +155,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 conllSent.get(to).setEdgeLabel(fromToAndOp[1]);
 
                 if (t.equals(indexedAM)) {
-                    conllSent.get(from).setEdgeLabel(ConllEntry.ROOT_SYM);
+                    conllSent.get(from).setEdgeLabel(AmConllEntry.ROOT_SYM);
                 }
             }
         }
@@ -241,7 +241,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
      * @param sents
      * @throws IOException
      */
-    public static void writeToFile(String filename, List<ConllSentence> sents) throws IOException {
+    public static void writeToFile(String filename, List<AmConllSentence> sents) throws IOException {
         write(new FileWriter(filename), sents);
     }
     
@@ -255,10 +255,10 @@ public class ConllSentence extends ArrayList<ConllEntry> {
      * @param sents
      * @throws IOException
      */
-    public static void write(Writer writer, List<ConllSentence> sents) throws IOException {
+    public static void write(Writer writer, List<AmConllSentence> sents) throws IOException {
         BufferedWriter bw = new BufferedWriter(writer);
         
-        for (ConllSentence s : sents) {
+        for (AmConllSentence s : sents) {
             for (String key : s.attributes.keySet()) {
                 bw.write("#");
                 bw.write(key);
@@ -280,11 +280,11 @@ public class ConllSentence extends ArrayList<ConllEntry> {
      * @throws IOException
      * @throws ParseException 
      */
-    public static List<ConllSentence> read(Reader reader) throws IOException, ParseException {
+    public static List<AmConllSentence> read(Reader reader) throws IOException, ParseException {
         BufferedReader br = new BufferedReader(reader);
         String l = "";
-        ArrayList<ConllSentence> sents = new ArrayList();
-        ConllSentence sent = new ConllSentence();
+        ArrayList<AmConllSentence> sents = new ArrayList();
+        AmConllSentence sent = new AmConllSentence();
         int lineNr = 1;
         sent.setLineNr(lineNr);
         while ((l = br.readLine()) != null) {
@@ -295,7 +295,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 }
             } else if (l.replaceAll("\t", "").length() > 0) {
                 String[] attr = l.split("\t");
-                ConllEntry c = new ConllEntry(Integer.parseInt(attr[0]), attr[1]);
+                AmConllEntry c = new AmConllEntry(Integer.parseInt(attr[0]), attr[1]);
                 c.setReplacement(attr[2]);
                 c.setLemma(attr[3]);
                 c.setPos(attr[4]);
@@ -317,7 +317,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 sent.add(c);
             } else {
                 sents.add(sent);
-                sent = new ConllSentence();
+                sent = new AmConllSentence();
                 sent.setLineNr(lineNr);
             }
             lineNr++;
@@ -337,7 +337,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    public static List<ConllSentence> readFromFile(String filename) throws FileNotFoundException, IOException, ParseException {
+    public static List<AmConllSentence> readFromFile(String filename) throws FileNotFoundException, IOException, ParseException {
         return read(new FileReader(filename));
     }
     
@@ -346,10 +346,10 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         MutableInteger nextLeafPosition = new MutableInteger(0);
         
         // all tokens that are not mentioned in the term will be ignored
-        for( ConllEntry e : this ) {
+        for( AmConllEntry e : this ) {
             e.setHead(0);
-            e.setEdgeLabel(ConllEntry.IGNORE);
-            e.setDelexSupertag(ConllEntry.DEFAULT_NULL);
+            e.setEdgeLabel(AmConllEntry.IGNORE);
+            e.setDelexSupertag(AmConllEntry.DEFAULT_NULL);
             e.setType(null);
         }
         
@@ -360,7 +360,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 int leafPosition = nextLeafPosition.incValue();
                 int stringPosition = leafOrderToStringOrder.get(leafPosition);
                 
-                ConllEntry entry = this.get(stringPosition);
+                AmConllEntry entry = this.get(stringPosition);
                 entry.setDelexSupertag(node.getLabel());
                 entry.setType(supertagToType.apply(node.getLabel()));
                 
@@ -370,7 +370,7 @@ public class ConllSentence extends ArrayList<ConllEntry> {
                 int headStringPosition = childrenValues.get(0);
                 int secondaryStringPosition = childrenValues.get(1);
                 String edgeLabel = node.getLabel();
-                ConllEntry childEntry = this.get(secondaryStringPosition);
+                AmConllEntry childEntry = this.get(secondaryStringPosition);
                 
                 childEntry.setEdgeLabel(edgeLabel);
                 childEntry.setHead(headStringPosition+1);  // convert 0-based (in array) to 1-based (in CoNLL file)
@@ -380,9 +380,9 @@ public class ConllSentence extends ArrayList<ConllEntry> {
         });
         
         // mark root token as root
-        ConllEntry rootEntry = this.get(rootPos);
+        AmConllEntry rootEntry = this.get(rootPos);
         rootEntry.setHead(0);
-        rootEntry.setEdgeLabel(ConllEntry.ROOT_SYM);
+        rootEntry.setEdgeLabel(AmConllEntry.ROOT_SYM);
     }
 
     public String getId() {

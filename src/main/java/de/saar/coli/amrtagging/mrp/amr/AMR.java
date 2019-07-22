@@ -9,8 +9,8 @@ import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
@@ -91,8 +91,8 @@ public class AMR implements Formalism{
     }
 
     @Override
-    public MRPGraph evaluate(ConllSentence amconll) {
-        for (ConllEntry entry : amconll){
+    public MRPGraph evaluate(AmConllSentence amconll) {
+        for (AmConllEntry entry : amconll){
             entry.setForm(entry.getForm().replace(" ", LITERAL_JOINER));
         }
         
@@ -118,7 +118,7 @@ public class AMR implements Formalism{
             }
         }
         evaluatedGraph = evaluatedGraph.withFreshNodenames();
-        relabeler.fixGraph(evaluatedGraph, amconll.getFields((ConllEntry entry) ->
+        relabeler.fixGraph(evaluatedGraph, amconll.getFields((AmConllEntry entry) ->
          {
              if (entry.getReplacement().equals("_")) {
                  return entry.getForm().toLowerCase();
@@ -167,7 +167,7 @@ public class AMR implements Formalism{
     }
 
     @Override
-    public void refineDelex(ConllSentence sentence) {
+    public void refineDelex(AmConllSentence sentence) {
         
     }
     

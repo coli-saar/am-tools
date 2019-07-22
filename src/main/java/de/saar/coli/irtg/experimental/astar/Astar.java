@@ -9,8 +9,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
-import de.saar.coli.amrtagging.ConllSentence;
 import de.saar.coli.amrtagging.Util;
 import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
@@ -785,7 +785,7 @@ public class Astar {
 
         // load input amconll file
         ZipEntry inputEntry = probsZipFile.getEntry("corpus.amconll");
-        final List<ConllSentence> corpus = ConllSentence.read(new InputStreamReader(probsZipFile.getInputStream(inputEntry)));
+        final List<AmConllSentence> corpus = AmConllSentence.read(new InputStreamReader(probsZipFile.getInputStream(inputEntry)));
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);
@@ -847,7 +847,7 @@ public class Astar {
                         e.printStackTrace(new PrintWriter(ww));
                         astar.logger.accept(ww.toString());
                     } finally {
-                        ConllSentence sent = corpus.get(ii);
+                        AmConllSentence sent = corpus.get(ii);
 
                         if (parsingResult != null) {
                             // TODO find out how this can happen - this doesn't look like a normal
@@ -887,7 +887,7 @@ public class Astar {
         logW.close();
 
         // write parsed corpus to output file
-        ConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);
+        AmConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);
     }
 
     /**

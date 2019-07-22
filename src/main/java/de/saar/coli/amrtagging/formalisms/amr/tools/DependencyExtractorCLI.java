@@ -132,7 +132,7 @@ public class DependencyExtractorCLI {
         
         Corpus corpus = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.corpusPath), loaderIRTG);
         
-//        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+//        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         
         PreprocessedData _preprocData = null;
 

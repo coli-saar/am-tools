@@ -8,15 +8,9 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.AMToolsVersion;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.ConlluEntry;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
-import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.Util;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessingException;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
@@ -94,7 +88,7 @@ public class PrepareDevData {
         }
         
        
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         
         NamedEntityRecognizer neRecognizer = null;
         if( cli.stanfordNerFilename != null ) {
@@ -138,10 +132,10 @@ public class PrepareDevData {
                 throw new IllegalArgumentException("Formalism/Framework "+mrpGraph.getFramework()+" not supported yet.");
             }
             
-            ConllSentence sent = new ConllSentence();
+            AmConllSentence sent = new AmConllSentence();
             int idx = 1;
             for (ConlluEntry e : usentence){
-                sent.add(new ConllEntry(idx, e.getForm()));
+                sent.add(new AmConllEntry(idx, e.getForm()));
                 idx++;
             }
             sent.addRanges(usentence.ranges());
@@ -167,7 +161,7 @@ public class PrepareDevData {
             outCorpus.add(sent);
 
         }
-        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", outCorpus);
+        AmConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", outCorpus);
         
     }   
     

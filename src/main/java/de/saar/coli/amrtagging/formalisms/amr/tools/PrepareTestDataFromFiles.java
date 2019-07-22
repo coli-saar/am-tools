@@ -8,8 +8,8 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMToolsVersion;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.Util;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
@@ -17,7 +17,6 @@ import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessingException;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -29,10 +28,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -112,9 +108,9 @@ public class PrepareTestDataFromFiles {
 
         
         
-        List<ConllSentence> output = new ArrayList<>();
+        List<AmConllSentence> output = new ArrayList<>();
         for (int i = 0; i < sentences.size();i++){
-            ConllSentence o = new ConllSentence();
+            AmConllSentence o = new AmConllSentence();
             o.setAttr("git", AMToolsVersion.GIT_SHA);
             String graphID = IDs.get(i).get(0);
             List<String> expandedWords = new ArrayList<>();
@@ -122,7 +118,7 @@ public class PrepareTestDataFromFiles {
             List<String> ners = new ArrayList<>();
             for (int id = 0; id < sentences.get(i).size();id++){
                 String wordForm = literals.get(i).get(id).replace(LITERAL_JOINER, " ");
-                ConllEntry e = new ConllEntry(id + 1, wordForm);
+                AmConllEntry e = new AmConllEntry(id + 1, wordForm);
                 o.add(e);
                 ners.add("O");
                 for (String w : literals.get(i).get(id).split(LITERAL_JOINER)){
@@ -164,7 +160,7 @@ public class PrepareTestDataFromFiles {
             
         }
         
-        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", output);
+        AmConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", output);
         
         
     }

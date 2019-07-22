@@ -16,13 +16,18 @@ import java.util.List;
 import java.util.Map;
 
 public class MrpPreprocessedData implements PreprocessedData {
-    private Map<String,ConlluSentence> companionData;
+    private Map<String, ConlluSentence> companionData;
+
+    public MrpPreprocessedData(ConlluSentence sentence) {
+        companionData = new HashMap<>();
+        companionData.put(sentence.getId(), sentence);
+    }
 
     public MrpPreprocessedData(File companionDataFilename) throws IOException {
         // load companion data
         List<ConlluSentence> sentences = ConlluSentence.read(new FileReader(companionDataFilename));
         companionData = new HashMap<>();
-        for( ConlluSentence sent : sentences ) {
+        for (ConlluSentence sent : sentences) {
             companionData.put(sent.getId(), sent);
         }
     }
@@ -31,12 +36,12 @@ public class MrpPreprocessedData implements PreprocessedData {
     public List<TaggedWord> getPosTags(String instanceId) {
         ConlluSentence sent = companionData.get(instanceId);
 
-        if( sent == null ) {
+        if (sent == null) {
             return null;
         } else {
             List<TaggedWord> ret = new ArrayList<>();
 
-            for( int i = 0; i < sent.size(); i++ ) {
+            for (int i = 0; i < sent.size(); i++) {
                 ConlluEntry entry = sent.get(i);
                 TaggedWord tw = new TaggedWord(entry.getForm(), entry.getPos());
                 ret.add(tw);
@@ -50,12 +55,12 @@ public class MrpPreprocessedData implements PreprocessedData {
     public List<CoreLabel> getTokens(String instanceId) {
         ConlluSentence sent = companionData.get(instanceId);
 
-        if( sent == null ) {
+        if (sent == null) {
             return null;
         } else {
             List<CoreLabel> ret = new ArrayList<>();
 
-            for( int i = 0; i < sent.size(); i++ ) {
+            for (int i = 0; i < sent.size(); i++) {
                 ConlluEntry entry = sent.get(i);
                 TokenRange tr = entry.getTokenRange();
 
@@ -74,7 +79,7 @@ public class MrpPreprocessedData implements PreprocessedData {
     public List<String> getLemmas(String instanceId) {
         ConlluSentence sent = companionData.get(instanceId);
 
-        if( sent == null ) {
+        if (sent == null) {
             return null;
         } else {
             return Util.mapToList(sent, ConlluEntry::getLemma);

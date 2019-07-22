@@ -7,7 +7,7 @@ package de.saar.coli.amrtagging.mrp;
 
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
@@ -61,12 +61,12 @@ public interface Formalism {
     public MRInstance toMRInstance(ConlluSentence sentence, MRPGraph mrpgraph);
     
     /**
-     * Evaluates an AM dependency tree, encoded as a ConllSentence. 
+     * Evaluates an AM dependency tree, encoded as a AmConllSentence.
      * The graph should not be postprocessed already.
      * @param amconll
      * @return 
      */
-    public MRPGraph evaluate(ConllSentence amconll);
+    public MRPGraph evaluate(AmConllSentence amconll);
     
     
      /**
@@ -91,6 +91,6 @@ public interface Formalism {
      * actually contains an AM dependency tree (this function is also used for preparing the test data!).
      * @param sentence
      */
-    public void refineDelex(ConllSentence sentence);
+    public void refineDelex(AmConllSentence sentence);
     
 }

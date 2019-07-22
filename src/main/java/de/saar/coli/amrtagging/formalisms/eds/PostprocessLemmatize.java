@@ -5,19 +5,11 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds;
 
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import de.saar.coli.amrtagging.AmConllSentence;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -122,10 +114,10 @@ public class PostprocessLemmatize {
     
     
      /**
-     * Adds words to the replacement column of the ConllSentence. These make it easier to predict the lexical label.
+     * Adds words to the replacement column of the AmConllSentence. These make it easier to predict the lexical label.
      * @param sent
      */
-    public static void edsLemmaPostProcessing(ConllSentence sent){
+    public static void edsLemmaPostProcessing(AmConllSentence sent){
         ArrayList<String> r = new ArrayList<>();
         for (int i = 0; i < sent.size(); i++){
             String lemma = sent.get(i).getLemma();

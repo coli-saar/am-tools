@@ -16,20 +16,16 @@ import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecog
 import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
-import de.saar.coli.amrtagging.mrp.MRPInputCodec;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.ling.CoreLabel;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
 
@@ -108,7 +104,7 @@ public class CreateCorpusAlternativeParallel {
 
         final NamedEntityRecognizer namedEntityRecognizer = cli.makeNeRecognizer();
        
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         
         if (cli.vocab != null){
@@ -176,7 +172,7 @@ public class CreateCorpusAlternativeParallel {
 
                 if (t != null){
                     //SGraphDrawer.draw(inst.getGraph(), "");
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, instance, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, instance, supertagDictionary);
                     sent.addRanges(usentence.ranges());
                     sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", preprocessed.getId());
@@ -250,9 +246,9 @@ public class CreateCorpusAlternativeParallel {
         
         
     }
-        private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+        private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
             if (outPath != null && prefix != null){
-                ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+                AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
                 if (vocab == null){ //only write vocab if it wasn't restored.
                     supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
                 }

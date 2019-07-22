@@ -5,29 +5,23 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
-import de.saar.coli.amrtagging.formalisms.sdp.dm.tools.*;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.AnchoredSGraph;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
 import de.saar.coli.amrtagging.formalisms.eds.EDSBlobUtils;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
 import de.saar.coli.amrtagging.formalisms.eds.EDSUtils;
 import de.saar.coli.amrtagging.formalisms.eds.PostprocessLemmatize;
-import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.simple.Sentence;
@@ -36,10 +30,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import se.liu.ida.nlp.sdp.toolkit.graph.*;
-import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
-import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 
 
 import java.util.ArrayList;
@@ -109,7 +99,7 @@ public class CreateCorpusParallel {
         if (cli.vocab != null){
             supertagDictionary.readFromFile(cli.vocab);
         }
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         ArrayList<String> edmCorpus = new ArrayList<>();
         ArrayList<String> amrCorpus = new ArrayList<>();
         
@@ -124,7 +114,7 @@ public class CreateCorpusParallel {
                 Tree<String> t = auto.viterbi();
 
                 if (t != null){
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
                     EDSUtils.checkSentence(sent); //check if something bad is happening and print if that's the case
                     sent.setAttr("id", ids.get(lineIndex));
                     sent.setAttr("raw", allSents.get(lineIndex));
@@ -184,9 +174,9 @@ public class CreateCorpusParallel {
     }
     
     
-        private void write(ArrayList<ConllSentence> outCorpus, ArrayList<String>edmCorpus,ArrayList<String> amrCorpus,SupertagDictionary supertagDictionary) throws IOException{
+        private void write(ArrayList<AmConllSentence> outCorpus, ArrayList<String>edmCorpus, ArrayList<String> amrCorpus, SupertagDictionary supertagDictionary) throws IOException{
             if (outPath != null && prefix != null){
-                ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+                AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
                 if (vocab == null){ //only write vocab if it wasn't restored.
                     supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
                 }

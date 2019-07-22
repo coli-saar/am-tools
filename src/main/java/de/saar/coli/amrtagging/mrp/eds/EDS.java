@@ -6,25 +6,15 @@
 package de.saar.coli.amrtagging.mrp.eds;
 
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.AnchoredSGraph;
-import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.ConlluEntry;
-import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.TokenRange;
-import de.saar.coli.amrtagging.Util;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
+
 import static de.saar.coli.amrtagging.Util.fixPunct;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.eds.Aligner;
 import de.saar.coli.amrtagging.formalisms.eds.EDSBlobUtils;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
 import static de.saar.coli.amrtagging.formalisms.eds.EDSConverter.encodeLnks;
-import de.saar.coli.amrtagging.formalisms.eds.EDSUtils;
 import static de.saar.coli.amrtagging.formalisms.eds.EDSUtils.END_PNCT;
 import static de.saar.coli.amrtagging.formalisms.eds.EDSUtils.START_PNCT;
 import de.saar.coli.amrtagging.formalisms.eds.PostprocessLemmatize;
@@ -43,7 +33,6 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -247,7 +236,7 @@ public class EDS implements Formalism{
     }
 
     @Override
-    public MRPGraph evaluate(ConllSentence amconll) {
+    public MRPGraph evaluate(AmConllSentence amconll) {
         try {
             AMDependencyTree amdep = AMDependencyTree.fromSentence(amconll);
             SGraph evaluatedWithAlignmentsGraph = amdep.evaluate(true);
@@ -293,7 +282,7 @@ public class EDS implements Formalism{
     }
 
     @Override
-    public void refineDelex(ConllSentence sentence) {
+    public void refineDelex(AmConllSentence sentence) {
         PostprocessLemmatize.edsLemmaPostProcessing(sentence);
     }
     

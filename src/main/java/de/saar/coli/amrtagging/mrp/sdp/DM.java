@@ -5,20 +5,13 @@
  */
 package de.saar.coli.amrtagging.mrp.sdp;
 
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
-import de.saar.coli.amrtagging.mrp.Formalism;
-import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.TokenRange;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
-import de.saar.coli.amrtagging.mrp.sdp.SDPs;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -52,7 +45,7 @@ public class DM extends SDPs {
     }
 
     @Override
-    public MRPGraph evaluate(ConllSentence s) {
+    public MRPGraph evaluate(AmConllSentence s) {
         try {
             AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
             SGraph evaluatedGraph = amdep.evaluate(true);

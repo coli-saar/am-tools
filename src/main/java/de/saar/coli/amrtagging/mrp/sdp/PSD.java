@@ -5,21 +5,18 @@
  */
 package de.saar.coli.amrtagging.mrp.sdp;
 
-import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDConcreteSignatureBuilder;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
-import de.saar.coli.amrtagging.mrp.sdp.SDPs;
 import de.saar.coli.amrtagging.ConlluSentence;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.saar.coli.amrtagging.TokenRange;
@@ -71,13 +68,13 @@ public class PSD extends SDPs {
     }
     
     /**
-     * Evaluates an AM dependency tree, encoded as a ConllSentence. 
+     * Evaluates an AM dependency tree, encoded as a AmConllSentence.
      * The graph should not be postprocessed already.
      * @param s
      * @return 
      */
     @Override
-    public MRPGraph evaluate(ConllSentence s) throws IllegalArgumentException {
+    public MRPGraph evaluate(AmConllSentence s) throws IllegalArgumentException {
          try {
             AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
             SGraph evaluatedGraph = amdep.evaluate(true);

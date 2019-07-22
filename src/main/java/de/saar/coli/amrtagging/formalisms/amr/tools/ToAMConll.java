@@ -7,11 +7,8 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.AMToolsVersion;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.Util;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
@@ -99,7 +96,7 @@ public class ToAMConll {
         }
 
         ApplyModifyGraphAlgebra ga = new ApplyModifyGraphAlgebra();
-        List<ConllSentence> output = new ArrayList<>();
+        List<AmConllSentence> output = new ArrayList<>();
 
         PreprocessedData preprocData = null;
         NamedEntityRecognizer neRecognizer = null;
@@ -130,7 +127,7 @@ public class ToAMConll {
 
             String id = ids.get(i).get(0);
 
-            ConllSentence o = new ConllSentence();
+            AmConllSentence o = new AmConllSentence();
             o.setAttr("git", AMToolsVersion.GIT_SHA);
             o.setId(id);
             o.setAttr("framework", "amr");
@@ -142,7 +139,7 @@ public class ToAMConll {
 
             for (int positionInSentence = 0; positionInSentence < sentences.get(i).size(); positionInSentence++) {
                 String wordForm = literals.get(i).get(positionInSentence).replace(LITERAL_JOINER, " ");
-                ConllEntry e = new ConllEntry(positionInSentence + 1, wordForm);
+                AmConllEntry e = new AmConllEntry(positionInSentence + 1, wordForm);
                 String tag = tags.get(i).get(positionInSentence).replaceAll("__ALTO_WS__", " ");
 
                 if (!tag.equals("NULL")) {
@@ -224,8 +221,8 @@ public class ToAMConll {
 
             if (hasOutgoing.isEmpty()) {
                 int found = 0;
-                for (ConllEntry e : o) {
-                    if (!e.getDelexSupertag().equals(ConllEntry.DEFAULT_NULL)) {
+                for (AmConllEntry e : o) {
+                    if (!e.getDelexSupertag().equals(AmConllEntry.DEFAULT_NULL)) {
                         found++;
                         e.setEdgeLabel("ROOT");
                     }
@@ -239,8 +236,8 @@ public class ToAMConll {
             } else {
                 System.err.println("Sentence has multiple roots?");
             }
-            for (ConllEntry e : o) {
-                if (e.getEdgeLabel().equals(ConllEntry.DEFAULT_NULL)) {
+            for (AmConllEntry e : o) {
+                if (e.getEdgeLabel().equals(AmConllEntry.DEFAULT_NULL)) {
                     e.setEdgeLabel("IGNORE");
                 }
             }
@@ -257,7 +254,7 @@ public class ToAMConll {
 
         }
 
-        ConllSentence.writeToFile(cli.outPath + "/corpus.amconll", output);
+        AmConllSentence.writeToFile(cli.outPath + "/corpus.amconll", output);
     }
 
 

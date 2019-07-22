@@ -6,14 +6,12 @@
 package de.saar.coli.amrtagging.mrp.sdp;
 
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.ConlluEntry;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.MRPNode;
-import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.Util;
+
 import static de.saar.coli.amrtagging.Util.fixPunct;
 import de.saar.coli.amrtagging.mrp.graphs.MRPAnchor;
 import de.saar.coli.amrtagging.mrp.graphs.MRPEdge;
@@ -76,7 +74,7 @@ public abstract class SDPs implements Formalism {
      * @param s
      * @return 
      */
-    protected MRPGraph sGraphToMRP(SGraph evaluatedGraph, ConllSentence s){
+    protected MRPGraph sGraphToMRP(SGraph evaluatedGraph, AmConllSentence s){
             MRPGraph output = new MRPGraph();
             output.sanitize();
             output.setId(s.getId());
@@ -94,13 +92,13 @@ public abstract class SDPs implements Formalism {
             Map<String,Integer> node2id = new HashMap<>();
             for (String node : evaluatedGraph.getAllNodeNames()){
                 Pair<Integer,Pair<String,String>> triple = AMDependencyTree.decodeNode(evaluatedGraph.getNode(node));
-                int position = triple.left-1; //position we get from triple is 1-based (ConllEntry)
+                int position = triple.left-1; //position we get from triple is 1-based (AmConllEntry)
                 id2node.put(position,node);
                 node2id.put(node,position);
             }
             for (int id : id2node.keySet().stream().sorted().collect(Collectors.toList())){
                 Pair<Integer,Pair<String,String>> triple = AMDependencyTree.decodeNode(evaluatedGraph.getNode(id2node.get(id)));
-                int position = triple.left-1; //position we get from triple is 1-based (ConllEntry)
+                int position = triple.left-1; //position we get from triple is 1-based (AmConllEntry)
                 String label = triple.right.right;
                 List<MRPAnchor> anchors = new ArrayList<>();
                 anchors.add(MRPAnchor.fromTokenRange(s.get(position).getRange()));
@@ -123,7 +121,7 @@ public abstract class SDPs implements Formalism {
     
     
     @Override
-    public void refineDelex(ConllSentence sentence){
+    public void refineDelex(AmConllSentence sentence){
         return; // we don't need this possibility
     }
     

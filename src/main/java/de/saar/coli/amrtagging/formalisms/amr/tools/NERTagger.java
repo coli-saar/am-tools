@@ -5,13 +5,13 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools;
 
-import de.saar.coli.amrtagging.formalisms.ud.tools.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllSentence;
+
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
-import de.saar.coli.amrtagging.formalisms.eds.tools.CreateCorpus;
+
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
 import edu.stanford.nlp.simple.Sentence;
@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Insert NER tags into an existing AMR amconll file. This class is useful if you are not satisfied with the existing named entity tags in an amconll file.
@@ -60,9 +59,9 @@ public class NERTagger {
             return;
         }
         
-        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
         int i = 0;
-        for (ConllSentence sent : sents){
+        for (AmConllSentence sent : sents){
             System.err.println(i);
             i++;
             List<String> words = sent.words();
@@ -85,7 +84,7 @@ public class NERTagger {
             sent.addNEs(ners);
         }
         
-        ConllSentence.writeToFile(cli.outPath+cli.prefix+".amconll", sents);
+        AmConllSentence.writeToFile(cli.outPath+cli.prefix+".amconll", sents);
         
     }
         

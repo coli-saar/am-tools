@@ -5,43 +5,29 @@
  */
 package de.saar.coli.amrtagging.formalisms.sdp.psd.tools;
 
-import de.saar.coli.amrtagging.formalisms.sdp.dm.tools.*;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
 import static de.saar.coli.amrtagging.AMDependencyTree.ALIGNED_SGRAPH_SEP;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
+
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
-import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.TemporaryPSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.tree.ParseException;
-import de.up.ling.tree.Tree;
-import edu.stanford.nlp.simple.Sentence;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import se.liu.ida.nlp.sdp.toolkit.graph.*;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
-
-
-import java.util.ArrayList;
-import java.util.List;
-import se.liu.ida.nlp.sdp.toolkit.io.Constants;
 
 /**
  *  Checks how well preprocessing (conjunctions!) in PSD works.

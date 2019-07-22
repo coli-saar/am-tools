@@ -44,7 +44,7 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
     }
 
     @Override
-    public List<CoreLabel> tag(List<CoreLabel> tokens) throws PreprocessingException {
+    public synchronized List<CoreLabel> tag(List<CoreLabel> tokens) throws PreprocessingException {
         List<String> words = Util.mapToList(tokens, CoreLabel::word);
         String text1 = String.join(" ", words);
         List<IntPair> characterOffsets = Util.mapToList(tokens, cl -> new IntPair(cl.beginPosition(), cl.endPosition()));

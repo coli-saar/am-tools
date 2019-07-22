@@ -7,20 +7,15 @@ package de.saar.coli.amrtagging;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment.Span;
-import static de.saar.coli.amrtagging.ConllEntry.IGNORE;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.AMDecompositionAutomaton;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
-import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import de.up.ling.tree.TreeBottomUpVisitor;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,11 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Represents an aligned AM Dependency Tree where each node is a ConllEntry,
+ * Represents an aligned AM Dependency Tree where each node is a AmConllEntry,
  * i.e. essentially a tuple of (word, supertag + extra stuff). Uses intermediate
  * dummy nodes for edge labels.
  *
@@ -42,48 +36,48 @@ public class AMDependencyTree {
 
     public static final String ALIGNED_SGRAPH_SEP = "@@";
 
-    private Tree<ConllEntry> tree;
+    private Tree<AmConllEntry> tree;
 
     private AMDependencyTree() {
     }
 
-    private AMDependencyTree(Tree<ConllEntry> t) {
+    private AMDependencyTree(Tree<AmConllEntry> t) {
         this.tree = t;
     }
 
-    public Tree<ConllEntry> getTree() {
+    public Tree<AmConllEntry> getTree() {
         return tree;
     }
 
     /**
-     * Makes a Tree out of the flat representation (ConllSentence) that might
+     * Makes a Tree out of the flat representation (AmConllSentence) that might
      * come from a file.
      *
      * @param sent
      * @return
      * @throws de.saar.coli.amrtagging.AMDependencyTree.ConllParserException
      */
-    public static AMDependencyTree fromSentence(ConllSentence sent) throws ConllParserException {
+    public static AMDependencyTree fromSentence(AmConllSentence sent) throws ConllParserException {
         ArrayList<ArrayList<Integer>> trees = new ArrayList();
         for (int i = 0; i < sent.size(); i++) {
             ArrayList<Integer> x = new ArrayList();
             trees.add(x);
         }
-        int root = ConllEntry.NOID;
+        int root = AmConllEntry.NOID;
         for (int i = 0; i < sent.size(); i++) {
             int head = sent.get(i).getHead();
-            if (head == 0 && sent.get(i).getEdgeLabel().equals(ConllEntry.ROOT_SYM)) {
-                if (root != ConllEntry.NOID) { //already assigned a root
-                    throw new ConllParserException("Two roots for ConllSentence. Line " + sent.getLineNr());
+            if (head == 0 && sent.get(i).getEdgeLabel().equals(AmConllEntry.ROOT_SYM)) {
+                if (root != AmConllEntry.NOID) { //already assigned a root
+                    throw new ConllParserException("Two roots for AmConllSentence. Line " + sent.getLineNr());
                 }
                 root = i;
-            } else if (head != 0 && !sent.get(i).getEdgeLabel().equals(ConllEntry.IGNORE)) { //ignore those things that are attached to the artifical root but don't have the root label and things with IGNORE label
+            } else if (head != 0 && !sent.get(i).getEdgeLabel().equals(AmConllEntry.IGNORE)) { //ignore those things that are attached to the artifical root but don't have the root label and things with IGNORE label
                 trees.get(head - 1).add(i);
             }
         }
-        if (root == ConllEntry.NOID) {
+        if (root == AmConllEntry.NOID) {
             //System.err.println(this);
-            throw new ConllParserException("There seems to be no root for this ConllSentence. Line " + sent.getLineNr());
+            throw new ConllParserException("There seems to be no root for this AmConllSentence. Line " + sent.getLineNr());
         }
         
         AMDependencyTree ret = new AMDependencyTree(parse(sent, trees, root));
@@ -92,14 +86,14 @@ public class AMDependencyTree {
 
     /**
      * A helper function for building the tree from the flat structure
-     * ConllSentence. Recursively builds the tree.
+     * AmConllSentence. Recursively builds the tree.
      *
      * @param t
      * @param i
      * @return
      */
-    private static Tree<ConllEntry> parse(ConllSentence sent, ArrayList<ArrayList<Integer>> t, int i) {
-        Tree<ConllEntry> new_t = Tree.create(sent.get(i)); //root of this subtree
+    private static Tree<AmConllEntry> parse(AmConllSentence sent, ArrayList<ArrayList<Integer>> t, int i) {
+        Tree<AmConllEntry> new_t = Tree.create(sent.get(i)); //root of this subtree
 
         for (int c : t.get(i)) {
             new_t = new_t.addSubtree(parse(sent, t, c));
@@ -228,9 +222,9 @@ public class AMDependencyTree {
      * @return
      */
     public Tree<Set<String>> isomorphicTreeWithNodeNames(SGraph sg, List<Alignment> s2n) {
-        return this.getTree().dfs(new TreeBottomUpVisitor<ConllEntry, Tree<Set<String>>>() {
+        return this.getTree().dfs(new TreeBottomUpVisitor<AmConllEntry, Tree<Set<String>>>() {
             @Override
-            public Tree<Set<String>> combine(Tree<ConllEntry> treeNode, List<Tree<Set<String>>> childrenValues) {
+            public Tree<Set<String>> combine(Tree<AmConllEntry> treeNode, List<Tree<Set<String>>> childrenValues) {
                 int id = treeNode.getLabel().getId();
                 Set<String> nodeNames = new HashSet<>();
                 for (Alignment al : s2n) {
@@ -266,11 +260,11 @@ public class AMDependencyTree {
         //HashSet<Item<String>> visited = new HashSet();
 
         HashMap<Pair<Integer, Integer>, String> allowedEdges = new HashMap(); //[head,dependent] -> edge label
-        Map<Tree<ConllEntry>, Tree<ConllEntry>> parentMap = tree.getParentMap();
+        Map<Tree<AmConllEntry>, Tree<AmConllEntry>> parentMap = tree.getParentMap();
 
         int rootIndex = tree.getLabel().getId();
 
-        for (ConllEntry leaf : tree.getLeafLabels()) {
+        for (AmConllEntry leaf : tree.getLeafLabels()) {
             String s;
             SGraph sg;
 
@@ -293,7 +287,7 @@ public class AMDependencyTree {
         }
 
         //System.err.println("Chart "+chart);
-        for (Tree<ConllEntry> subt : tree.getAllNodes()) { //all nodes in pre-order!
+        for (Tree<AmConllEntry> subt : tree.getAllNodes()) { //all nodes in pre-order!
             if (!subt.equals(tree)) { //not at the root, add edges
                 int parentId = parentMap.get(subt).getLabel().getId();
                 allowedEdges.put(new Pair<>(subt.getLabel().getHead(), subt.getLabel().getId()), subt.getLabel().getEdgeLabel());
@@ -301,7 +295,7 @@ public class AMDependencyTree {
             if (!subt.getChildren().isEmpty()) { //inner node with graph constant (not a leaf)
 
                 HashSet<Integer> childIdx = new HashSet();
-                for (Tree<ConllEntry> c : subt.getChildren()) {
+                for (Tree<AmConllEntry> c : subt.getChildren()) {
                     childIdx.add(c.getLabel().getId());
                 }
 

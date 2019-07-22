@@ -7,7 +7,7 @@ package de.saar.coli.amrtagging.mrp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.up.ling.tree.ParseException;
 import java.io.FileNotFoundException;
@@ -53,16 +53,16 @@ public class SameSplitAsMRP {
         }
         
         
-        List<ConllSentence> amsentences = ConllSentence.readFromFile(cli.input);
+        List<AmConllSentence> amsentences = AmConllSentence.readFromFile(cli.input);
         
         //those IDs of the dev set
         Set<String> devIDs = MRPGraph.readFromFile(cli.mrp).stream().map(sentence -> sentence.getId()).collect(Collectors.toSet());
         
         
-        List<ConllSentence> dev = new ArrayList<>();
-        List<ConllSentence> train = new ArrayList<>();
+        List<AmConllSentence> dev = new ArrayList<>();
+        List<AmConllSentence> train = new ArrayList<>();
         
-        for (ConllSentence sent : amsentences){
+        for (AmConllSentence sent : amsentences){
             String id = sent.getId();
             sent.setId(id);
             
@@ -74,8 +74,8 @@ public class SameSplitAsMRP {
         }
         System.out.println("AMconll Devset has size "+dev.size());
         System.out.println("MRP devset has size "+devIDs.size());
-        ConllSentence.writeToFile(cli.outPath+"/gold-dev.amconll", dev);
-        ConllSentence.writeToFile(cli.outPath+"/train.amconll", train);
+        AmConllSentence.writeToFile(cli.outPath+"/gold-dev.amconll", dev);
+        AmConllSentence.writeToFile(cli.outPath+"/train.amconll", train);
         
         
     }

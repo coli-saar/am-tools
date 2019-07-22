@@ -8,8 +8,8 @@ package de.saar.coli.amrtagging.formalisms.sdp.psd.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
+import de.saar.coli.amrtagging.AmConllSentence;
 
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
@@ -68,7 +68,7 @@ public class ToSDPCorpus {
             return;
         }
         
-        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
         GraphReader2015 goldReader = null;
         if (cli.goldCorpus != null){
             goldReader = new GraphReader2015(cli.goldCorpus);
@@ -78,12 +78,12 @@ public class ToSDPCorpus {
             grW = new GraphWriter2015(cli.outPath+".sdp");
         }
         Scorer scorer = new Scorer();
-        for (ConllSentence s : sents){
+        for (AmConllSentence s : sents){
             //prepare raw output without edges
             Graph sdpSent = new Graph("#NO-ID");
             sdpSent.addNode(Constants.WALL_FORM, Constants.WALL_LEMMA, Constants.WALL_POS, false, false, Constants.WALL_SENSE); //some weird dummy node.
 
-            for (ConllEntry word : s){ //build a SDP Graph with only the words copied from the input.
+            for (AmConllEntry word : s){ //build a SDP Graph with only the words copied from the input.
                 if (! word.getForm().equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)){
                     sdpSent.addNode(word.getForm(), word.getLemma(), word.getPos(), false, false, "_");
                 }

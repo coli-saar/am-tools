@@ -17,7 +17,7 @@ import java.util.Set;
  *
  * @author matthias
  */
-public class ConllEntry {
+public class AmConllEntry {
     
     public static final String DEFAULT_NULL = "_";
     
@@ -48,7 +48,7 @@ public class ConllEntry {
     public static final int NOID = -2;
     
     
-    public ConllEntry(int id, String form){
+    public AmConllEntry(int id, String form){
         this.id = id;
         this.form = form;
     }

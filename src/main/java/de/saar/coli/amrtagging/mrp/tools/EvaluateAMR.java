@@ -8,15 +8,12 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.mrp.sdp.DM;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
 import de.saar.coli.amrtagging.mrp.amr.AMR;
-import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.graphs.TestSentence;
-import de.saar.coli.amrtagging.mrp.sdp.PSD;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
@@ -28,7 +25,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +78,7 @@ public class EvaluateAMR {
             return;
         }
               
-        List<ConllSentence> parsed = ConllSentence.readFromFile(cli.corpusPath);
+        List<AmConllSentence> parsed = AmConllSentence.readFromFile(cli.corpusPath);
         OutputStream output = new FileOutputStream(cli.outPath);
         MRPOutputCodec outputCodec = new MRPOutputCodec();
         Formalism formalism = new AMR(cli.wordnet, cli.conceptnet, cli.lookup, 10);
@@ -92,7 +88,7 @@ public class EvaluateAMR {
             id2testsent = TestSentence.read(new FileReader(cli.input));
         }
         
-        for (ConllSentence sentence : parsed){
+        for (AmConllSentence sentence : parsed){
             String framework = sentence.getAttr("framework");
             MRPGraph evaluatedGraph;
             try {

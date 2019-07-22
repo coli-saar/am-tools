@@ -119,7 +119,7 @@ public class CreateCorpusParallel {
 
         final NamedEntityRecognizer namedEntityRecognizer = cli.makeNeRecognizer();
         
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         
         if (cli.vocab != null){
@@ -178,7 +178,7 @@ public class CreateCorpusParallel {
                  Tree<String> t = auto.viterbi();
                 if (t != null){
                     //SGraphDrawer.draw(inst.getGraph(), "");
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, instance, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, instance, supertagDictionary);
                     sent.addRanges(usentence.ranges());
                     sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", preprocessed.getId());
@@ -245,10 +245,10 @@ public class CreateCorpusParallel {
         
     }
     
-    private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+    private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
         if (outPath != null && prefix != null){
             new File(outPath).mkdirs();
-            ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+            AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
             if (vocab == null){ //only write vocab if it wasn't restored.
                 supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
             }

@@ -8,7 +8,7 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.ConlluSentence;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.saar.coli.amrtagging.mrp.MRPOutputCodec;
@@ -68,15 +68,15 @@ public class AMRSplitSomeDevData {
         Reader sentReader = new FileReader(cli.companion);
         List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
         
-        List<ConllSentence> sentences = ConllSentence.readFromFile(cli.amconll);
+        List<AmConllSentence> sentences = AmConllSentence.readFromFile(cli.amconll);
         
         HashMap<List<String>,Pair<MRPGraph,ConlluSentence>> wordsToGraph = new HashMap<>();
         for (Pair<MRPGraph, ConlluSentence> p : pairs){
             wordsToGraph.put(p.right.words(), p);
         }
         
-        List<ConllSentence> dev = new ArrayList<>();
-        List<ConllSentence> train = new ArrayList<>();
+        List<AmConllSentence> dev = new ArrayList<>();
+        List<AmConllSentence> train = new ArrayList<>();
         List<MRPGraph> devGraphs = new ArrayList<>();
         System.err.println("Comparing...");
         int i = 0;
@@ -84,7 +84,7 @@ public class AMRSplitSomeDevData {
         
         Random random = new Random(121);
         Collections.shuffle(sentences, random);
-        for (ConllSentence sent : sentences){
+        for (AmConllSentence sent : sentences){
             if (i % 1000 == 0) System.err.println(i);
             Pair<MRPGraph, ConlluSentence> g = wordsToGraph.get(getWords(sent));
             if (g != null && inDev < cli.devSize){
@@ -103,8 +103,8 @@ public class AMRSplitSomeDevData {
             
             i++;
         }
-        ConllSentence.writeToFile(cli.outPath+"/dev.amconll", dev);
-        ConllSentence.writeToFile(cli.outPath+"/train.amconll", train);
+        AmConllSentence.writeToFile(cli.outPath+"/dev.amconll", dev);
+        AmConllSentence.writeToFile(cli.outPath+"/train.amconll", train);
         MRPOutputCodec outputCodec = new MRPOutputCodec();
         OutputStream output = new FileOutputStream(cli.outPath+"/dev.mrp");
         for (MRPGraph devGraph : devGraphs){
@@ -114,7 +114,7 @@ public class AMRSplitSomeDevData {
         
     }
     
-    private static List<String> getWords(ConllSentence sent){
+    private static List<String> getWords(AmConllSentence sent){
         List<String> words = new ArrayList<>();
         for (int i = 0; i < sent.size(); i++){
             String w = sent.get(i).getForm();

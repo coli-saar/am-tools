@@ -7,19 +7,10 @@ package de.saar.coli.amrtagging.formalisms.ucca.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.AMToolsVersion;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.ConlluSentence;
-import de.saar.coli.amrtagging.GraphvizUtils;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
-import de.saar.coli.amrtagging.TokenRange;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.MrpPreprocessedData;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.up.ling.irtg.Interpretation;
@@ -28,7 +19,6 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.corpus.Corpus;
 import de.up.ling.irtg.corpus.CorpusReadingException;
@@ -38,7 +28,7 @@ import de.up.ling.irtg.signature.Signature;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.ling.TaggedWord;
-import edu.stanford.nlp.simple.Sentence;
+
 import java.io.File;
 
 import java.io.FileNotFoundException;
@@ -47,7 +37,6 @@ import java.io.IOException;
 
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,6 +60,9 @@ public class CreateCorpus {
     @Parameter(names = {"--companion"}, description = "Path to companion data.")//, reqteuired = true)
     private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/ucca/all_ucca.conllu";
 
+    @Parameter(names = {"--merge-uiuc-ner"}, description = "Compute UIUC NER tags and merge them")
+    private boolean mergeUiucNer = false;
+
     @Parameter(names = {"--vocab", "-v"}, description = "vocab file containing supertags (e.g. points to training vocab when doing dev/test files)")
     private String vocab = null;
 
@@ -84,7 +76,7 @@ public class CreateCorpus {
     private int timeout = 1800;
 
 
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, CorpusReadingException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, CorpusReadingException, PreprocessingException {
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 
@@ -119,10 +111,15 @@ public class CreateCorpus {
 
         int counter = 0;
         int problems = 0;
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         
         PreprocessedData preprocData = new MrpPreprocessedData(new File(cli.companion));
+
+        NamedEntityRecognizer ner = null;
+        if( cli.mergeUiucNer) {
+            ner = new UiucNamedEntityRecognizer();
+        }
         
         UCCA ucca = new UCCA();
         
@@ -138,6 +135,8 @@ public class CreateCorpus {
         if (cli.vocab != null) { //vocab given, read from file
             supertagDictionary.readFromFile(cli.vocab);
         }
+
+        instanceLoop:
         for (Instance corpusInstance : corpus) {
             if (counter % 10 == 0 && counter > 0) {
                 System.err.println(counter);
@@ -149,6 +148,7 @@ public class CreateCorpus {
             
             //if (problems > 30) break;
             counter++;
+
             //read graph, string and alignment from corpus
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
             String inputString = ((List<String>) corpusInstance.getInputObjects().get("input")).stream().collect(Collectors.joining(" "));
@@ -161,18 +161,27 @@ public class CreateCorpus {
             SGraph graph = (SGraph) corpusInstance.getInputObjects().get("graph");
             List<String> sentence = (List) corpusInstance.getInputObjects().get("string");
             List<String> als = (List) corpusInstance.getInputObjects().get("alignment");
-            sentence = ucca.refineTokens(sentence);
+
+//            sentence = ucca.refineTokens(sentence); // no longer needed, see #67
+
+
+            // read alignments
+
             if (als.size() == 1 && als.get(0).equals("")) {
                 //System.err.println("Repaired empty alignment!");
                 als = new ArrayList<>();
             }
+
             String[] alStrings = als.toArray(new String[0]);
-            ArrayList<Alignment> alignments = new ArrayList<>();
+            List<Alignment> alignments = new ArrayList<>();
+
             for (String alString : alStrings) {
                 Alignment al = Alignment.read(alString, 0);
                 alignments.add(al);
             }
-            //create MRInstance object that bundles the three:
+
+
+            // create MRInstance object that bundles the three:
             MRInstance inst = new MRInstance(sentence, graph, alignments);
             try {
                 inst.checkEverythingAligned();
@@ -200,7 +209,7 @@ public class CreateCorpus {
 
                 if (t != null) { //graph can be decomposed
                     //SGraphDrawer.draw(inst.getGraph(), ""); //display graph
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
                     sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     sent.setAttr("id", id);
                     sent.setAttr("input", inputString);
@@ -275,9 +284,9 @@ public class CreateCorpus {
     }
 
 
-    private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException {
+    private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException {
         if (outPath != null && prefix != null) {
-            ConllSentence.writeToFile(outPath + "/" + prefix + ".amconll", outCorpus);
+            AmConllSentence.writeToFile(outPath + "/" + prefix + ".amconll", outCorpus);
             if (vocab == null) { //only write vocab if it wasn't restored.
                 supertagDictionary.writeToFile(outPath + "/" + prefix + "-supertags.txt");
             }

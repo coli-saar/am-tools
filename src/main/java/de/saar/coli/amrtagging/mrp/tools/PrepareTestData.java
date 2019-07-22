@@ -7,20 +7,16 @@ package de.saar.coli.amrtagging.mrp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessingException;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.graphs.TestSentence;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
+import de.saar.coli.amrtagging.mrp.ucca.NamedEntityMerger;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
-import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
@@ -66,6 +62,9 @@ public class PrepareTestData {
     @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
     private String uiucNerTagset = NER_CONLL;
 
+    @Parameter(names = {"--merge-ner"}, description = "Merge named entities")
+    private boolean mergeNamedEntities = false;
+
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
    
@@ -89,7 +88,7 @@ public class PrepareTestData {
         }
         
        
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         
         cli.formalism = cli.formalism.toLowerCase();
         Reader fr = new FileReader(cli.corpusPath);
@@ -124,12 +123,13 @@ public class PrepareTestData {
                 neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
             }
 
-
             for (ConlluSentence usentence : companionData) {
                 String id = usentence.getId();
                 TestSentence itsTestSentence = id2testSent.get(id);
                 String input = itsTestSentence.input;
                 Formalism formalism;
+                NamedEntityMerger neMerger = new NamedEntityMerger(id, new MrpPreprocessedData(usentence), neRecognizer);
+
                 fixWeirdLemmaErrors(usentence);
 
                 if (cli.formalism.equals("dm")) {
@@ -153,16 +153,20 @@ public class PrepareTestData {
                     UCCA ucca = new UCCA();
                     formalism = ucca;
                     usentence = ucca.refine(usentence); //UCCA doesn't need artificial root
+
+                    if( cli.mergeNamedEntities ) {
+                        usentence = neMerger.merge(usentence);
+                    }
                 } else {
                     throw new IllegalArgumentException("Formalism/Framework " + cli.formalism + " not supported yet.");
                 }
 
                 if (!itsTestSentence.targets.contains(cli.formalism)) continue;
 
-                ConllSentence sent = new ConllSentence();
+                AmConllSentence sent = new AmConllSentence();
                 int idx = 1;
                 for (ConlluEntry e : usentence) {
-                    sent.add(new ConllEntry(idx, e.getForm()));
+                    sent.add(new AmConllEntry(idx, e.getForm()));
                     idx++;
                 }
                 sent.addRanges(usentence.ranges());
@@ -189,7 +193,7 @@ public class PrepareTestData {
 
             }
 
-            ConllSentence.writeToFile(cli.outPath + "/" + cli.formalism + "_" + cli.prefix + ".amconll", outCorpus);
+            AmConllSentence.writeToFile(cli.outPath + "/" + cli.formalism + "_" + cli.prefix + ".amconll", outCorpus);
         }
     }   
     

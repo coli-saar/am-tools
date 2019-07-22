@@ -7,14 +7,8 @@ package de.saar.coli.amrtagging.formalisms.eds.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AnchoredSGraph;
-import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.GraphvizUtils;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
 import de.saar.coli.amrtagging.formalisms.eds.EDSBlobUtils;
@@ -24,7 +18,6 @@ import de.saar.coli.amrtagging.formalisms.eds.PostprocessLemmatize;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.simple.Sentence;
 import java.io.BufferedReader;
@@ -100,7 +93,7 @@ public class CreateCorpus {
         
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         SupertagDictionary multipleRootFragments = new SupertagDictionary();
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         if (cli.vocab != null){
             supertagDictionary.readFromFile(cli.vocab);
         }
@@ -140,7 +133,7 @@ public class CreateCorpus {
 
                 if (t != null){
                     //SGraphDrawer.draw(inst.getGraph(), "");
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
                     sent.setAttr("id", ids.get(counter));
                     sent.setAttr("raw", allSents.get(counter));
                     Sentence stanfAn = new Sentence(inst.getSentence());
@@ -255,9 +248,9 @@ public class CreateCorpus {
         }
         
     }
-        private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+        private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
             if (outPath != null && prefix != null){
-                ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+                AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
                 if (vocab == null){ //only write vocab if it wasn't restored.
                     supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
                 }

@@ -10,10 +10,10 @@ import de.saar.coli.amrtagging.AMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.Alignment.Span;
 import de.saar.coli.amrtagging.AnchoredSGraph;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.TokenRange;
-import de.saar.coli.amrtagging.Util;
+
 import static de.saar.coli.amrtagging.formalisms.eds.Aligner.preprocessHyphens;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
@@ -26,17 +26,13 @@ import edu.stanford.nlp.simple.Sentence;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-import org.jgrapht.alg.BiconnectivityInspector;
+
 import org.jgrapht.graph.DirectedMultigraph;
 import org.jgrapht.traverse.TopologicalOrderIterator;
-import org.jgrapht.alg.ConnectivityInspector;
-import org.jgrapht.graph.Multigraph;
 
 /**
  * A class that provides methods for deleting and restoring lnks in EDS.
@@ -74,7 +70,7 @@ public class EDSConverter {
         return inst;
     }
     
-    public static AnchoredSGraph evaluateDependencyTree(ConllSentence sent) throws AMDependencyTree.ConllParserException, ParserException, ParseException{
+    public static AnchoredSGraph evaluateDependencyTree(AmConllSentence sent) throws AMDependencyTree.ConllParserException, ParserException, ParseException{
         AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
         SGraph evaluatedWithAlignmentsGraph = amdep.evaluate(true);
         List<Alignment> als = AMDependencyTree.extractAlignments(evaluatedWithAlignmentsGraph);

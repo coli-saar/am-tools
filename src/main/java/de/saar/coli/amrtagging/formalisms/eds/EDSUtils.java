@@ -6,13 +6,9 @@
 package de.saar.coli.amrtagging.formalisms.eds;
 
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AnchoredSGraph;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.TokenRange;
-import de.saar.coli.amrtagging.Util;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllEntry;
+
 import static de.saar.coli.amrtagging.formalisms.eds.Aligner.ADDITIONAL_LEXICAL_NODES;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -20,22 +16,14 @@ import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.process.CoreLabelTokenFactory;
 import edu.stanford.nlp.process.PTBTokenizer;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 /**
  * Some utility functions for working with EDS.
@@ -251,9 +239,9 @@ public class EDSUtils {
     
 
     
-    public static boolean checkSentence(ConllSentence sent){
+    public static boolean checkSentence(AmConllSentence sent){
         boolean ok = true;
-        for (ConllEntry e : sent){
+        for (AmConllEntry e : sent){
             if (e.getLexLabel().equals(EDSConverter.COMPLEX_SPAN) || e.getLexLabel().equals(EDSConverter.SIMPLE_SPAN)){
                 ok = false;
                 System.err.println("WARNING: A lexical node is marked with a span placeholder ("+EDSConverter.SIMPLE_SPAN+" or "+EDSConverter.COMPLEX_SPAN+"):");

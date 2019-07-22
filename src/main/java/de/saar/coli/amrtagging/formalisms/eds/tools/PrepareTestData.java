@@ -5,17 +5,15 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
-import de.saar.coli.amrtagging.formalisms.sdp.tools.*;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AnchoredSGraph;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
 import de.saar.coli.amrtagging.formalisms.eds.EDSUtils;
 import de.saar.coli.amrtagging.formalisms.eds.PostprocessLemmatize;
-import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.simple.Sentence;
 import java.io.BufferedReader;
@@ -25,10 +23,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
-import se.liu.ida.nlp.sdp.toolkit.graph.Node;
-
-import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 /**
  * Prepare test data to be in the format we use for the parser. Strips off all gold information but the tokenization.
@@ -84,15 +78,15 @@ public class PrepareTestData {
         PrintWriter goldEDM = new PrintWriter(cli.outPath+cli.prefix+"-gold.edm");
         PrintWriter goldAMR = new PrintWriter(cli.outPath+cli.prefix+"-gold.amr.txt");
 
-        ArrayList<ConllSentence> out = new ArrayList<ConllSentence>();
+        ArrayList<AmConllSentence> out = new ArrayList<AmConllSentence>();
         for (int i = 0; i < allGraphs.size(); i++){
-            ConllSentence currentSent = new ConllSentence();
+            AmConllSentence currentSent = new AmConllSentence();
             currentSent.setAttr("id", ids.get(i));
             currentSent.setAttr("raw", allSents.get(i));
             List<String> words = EDSUtils.edsTokenizeString(allSents.get(i),true).getRight();
             int wordId = 1;
             for (String word : words){
-                  currentSent.add(new ConllEntry(wordId,word));
+                  currentSent.add(new AmConllEntry(wordId,word));
                   wordId++;
             }
             Sentence stanfordSent = new Sentence(words);
@@ -117,7 +111,7 @@ public class PrepareTestData {
             goldAMR.println();
             
         } 
-        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
+        AmConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
         goldEDM.close();
         goldAMR.close();
     }

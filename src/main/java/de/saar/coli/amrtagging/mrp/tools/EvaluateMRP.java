@@ -8,7 +8,7 @@ package de.saar.coli.amrtagging.mrp.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.Formalism;
@@ -72,7 +72,7 @@ public class EvaluateMRP {
             return;
         }
               
-        List<ConllSentence> parsed = ConllSentence.readFromFile(cli.corpusPath);
+        List<AmConllSentence> parsed = AmConllSentence.readFromFile(cli.corpusPath);
         OutputStream output = new FileOutputStream(cli.outPath);
         MRPOutputCodec outputCodec = new MRPOutputCodec();
         
@@ -81,7 +81,7 @@ public class EvaluateMRP {
             id2testsent = TestSentence.read(new FileReader(cli.input));
         }
 
-        for (ConllSentence sentence : parsed){
+        for (AmConllSentence sentence : parsed){
             String framework = sentence.getAttr("framework");
             Formalism formalism;
             if (framework.equals("dm")){

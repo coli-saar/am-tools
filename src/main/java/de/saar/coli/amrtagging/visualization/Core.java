@@ -7,8 +7,8 @@ package de.saar.coli.amrtagging.visualization;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.MRInstance;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
@@ -117,8 +117,8 @@ public class Core {
     }
     
     
-    public String visualizeAMdep(ConllSentence conll) {
-        for (ConllEntry entry : conll) {
+    public String visualizeAMdep(AmConllSentence conll) {
+        for (AmConllEntry entry : conll) {
             
         }
         throw new UnsupportedOperationException();
