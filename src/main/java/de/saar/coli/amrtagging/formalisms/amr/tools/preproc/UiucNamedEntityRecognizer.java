@@ -27,10 +27,12 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
     private static Map<String,String> uiucTagToStanfordTag = ImmutableMap.of("PER", PERSON, "ORG", ORGANIZATION, "LOC", LOCATION, "MISC", MISCELLANEOUS);
 
     private NERAnnotator co = null;
+    private String tagset;
 
     public UiucNamedEntityRecognizer(String tagset) {
         try {
             co = new NERAnnotator(tagset);
+            this.tagset = tagset;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -38,7 +40,7 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
 
 
     public UiucNamedEntityRecognizer() {
-        this(ViewNames.NER_CONLL);
+        this(ViewNames.NER_CONLL); // 4-label tagset: PER / ORG / LOC / MISC
     }
 
     @Override
@@ -62,7 +64,7 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
             throw new PreprocessingException(e);
         }
 
-        SpanLabelView view = (SpanLabelView) ta.getView(ViewNames.NER_CONLL); // 4-label tagset: PER / ORG / LOC / MISC
+        SpanLabelView view = (SpanLabelView) ta.getView(tagset);
 
         // extract NER labels from view
         for( int i = 0; i < tokens.size(); i++ ) {
