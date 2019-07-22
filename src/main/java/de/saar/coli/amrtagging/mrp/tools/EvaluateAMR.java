@@ -55,7 +55,7 @@ public class EvaluateAMR {
     private String outPath = "/tmp/dm/test_MRP-AMR.mrp";
     
     @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
-    private String input = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/test/input.mrp";
+    private String input = null;
     
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
