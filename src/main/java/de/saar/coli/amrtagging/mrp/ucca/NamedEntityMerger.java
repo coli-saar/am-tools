@@ -73,8 +73,10 @@ public class NamedEntityMerger {
 
             newPosToLastOldPos = Arrays.copyOf(tmpNewPosToLastOldPos, newPos);
 
-            System.err.printf("\nRevised sentence: %s\n", revisedSentence);
-            System.err.printf("Old-to-new map: %s\n", Arrays.toString(oldPosToNewPos));
+//            System.err.printf("\nRevised sentence: %s\n", revisedSentence);
+//            System.err.printf("Old-to-new map: %s\n", Arrays.toString(oldPosToNewPos));
+//            System.err.printf("New-to-last-old map: %s\n", Arrays.toString(newPosToLastOldPos));
+//            System.err.printf("Old to all new: %s\n", newPosToAllOldPositions);
             return revisedSentence;
         } catch (PreprocessingException e) {
             e.printStackTrace();

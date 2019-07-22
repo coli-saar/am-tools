@@ -70,6 +70,9 @@ public class CreateCorpusParallel {
     @Parameter(names = {"--timeout"}, description = "maximum runtime of the tree-automaton step per thread, in seconds. Default = 1800 (=30 mins)")
     private int timeout = 1800;
 
+    @Parameter(names = {"--write-frequency"}, description = "Write output corpus to disk after every <write-frequency> sentences")
+    private int writeFrequency = 1000;
+
     @Parameter(names = {"--sort"}, description = "Sort sentences by length")
     private boolean sort = true;
 
@@ -251,7 +254,7 @@ public class CreateCorpusParallel {
                     synchronized (outCorpus) {
                         outCorpus.add(sent);
 
-                        if (outCorpus.size() % 1000 == 0 && outCorpus.size() > 0) {
+                        if (outCorpus.size() % cli.writeFrequency == 0 && outCorpus.size() > 0) {
                             synchronized (supertagDictionary) {
                                 cli.write(outCorpus, supertagDictionary);
                             }
