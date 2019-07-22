@@ -160,14 +160,16 @@ public class CreateCorpusParallel {
                 final MRPGraph preprocessed = formalism.preprocess(graphi);
                 final ConlluSentence usentence = formalism.refine(pair.getRight());
                 MRInstance instance = formalism.toMRInstance(usentence, preprocessed);
+                AMSignatureBuilder sigBuilder;
                 try {
-                        instance.checkEverythingAligned();
+                    instance.checkEverythingAligned();
+                    sigBuilder = formalism.getSignatureBuilder(instance);
                 } catch (Exception e){
                         e.printStackTrace();
                         problems.incValue();
                         return;
                 }
-                AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
+
                 AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(instance,sigBuilder, false);
                  try {
                         auto.processAllRulesBottomUp(null, cli.threadTimeout*1000);

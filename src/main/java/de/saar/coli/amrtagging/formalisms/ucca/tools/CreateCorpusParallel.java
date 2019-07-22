@@ -207,8 +207,8 @@ public class CreateCorpusParallel {
             }
             //create MRInstance object that bundles the three:
 
-            ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
             try {
+                ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new UCCABlobUtils());
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
                 try {
                     auto.processAllRulesBottomUp(null, cli.timeout * 1000);

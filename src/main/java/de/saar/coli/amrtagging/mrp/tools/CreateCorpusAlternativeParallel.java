@@ -152,8 +152,9 @@ public class CreateCorpusAlternativeParallel {
                 return;
             }
             System.out.println(mrpGraph.getId());
-            AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
+
             try {
+                AMSignatureBuilder sigBuilder = formalism.getSignatureBuilder(instance);
                 AlignmentTrackingAutomaton auto;
                 try {
                      auto = formalism.getAlignmentTrackingAutomaton(instance);
