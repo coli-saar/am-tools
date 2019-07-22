@@ -242,6 +242,18 @@ public class AMR implements Formalism{
         return output;
     }
     
+//    /**
+//     * Tells if the specific edge actually is a property (true) or a normal edge (false).
+//     *
+//     * Note: expects that all properties have the '-prop' suffix (added during preprocessing)
+//     * @param e edge
+//     * @param sg graph containing edge e
+//     * @return true if edge e is a property (with target as its value), otherwise returns false: edge is a normal edge
+//     */
+//    private boolean isPropertyEdge(GraphEdge e, SGraph sg){
+//        return e.getLabel().endsWith("-prop");
+//    }
+    
     /**
      * Tells if the specific edge actually is a property (true) or a normal edge (false).
      * @param e edge
