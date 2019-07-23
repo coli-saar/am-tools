@@ -28,17 +28,18 @@ public class UCCA implements Formalism {
 
     @Override
     public ConlluSentence refine(ConlluSentence sentence) {
-        ConlluSentence copy = sentence.withSameMetaData();
-        List<String> withoutWeirdCharacters = sentence.words(); // refineTokens(sentence.words()); // no longer needed, see #67
+        return sentence;
+        //ConlluSentence copy = sentence.withSameMetaData();
+        //List<String> withoutWeirdCharacters = sentence.words(); // refineTokens(sentence.words()); // no longer needed, see #67
 
-        for (int i = 0; i < sentence.size();i++){
-            String form = withoutWeirdCharacters.get(i);
-            ConlluEntry newE = sentence.get(i).copy();
-            newE.setForm(form);
-            copy.add(newE);
-        }
+        //for (int i = 0; i < sentence.size();i++){
+        //    String form = withoutWeirdCharacters.get(i);
+        //    ConlluEntry newE = sentence.get(i).copy();
+        //    newE.setForm(form);
+        //    copy.add(newE);
+        //}
 
-        return copy;
+        //return copy;
     }
     
     /**
@@ -46,7 +47,7 @@ public class UCCA implements Formalism {
      * @param tokens
      * @return 
      */
-    public List<String> refineTokens(List<String> tokens){
+    private List<String> refineTokens(List<String> tokens){
         List<String> copy = new ArrayList<>();
 
         for (String token : tokens){
