@@ -201,7 +201,7 @@ public class AMRBlobUtils {
      * @return 
      */
     public String coordSourceRegex(){
-        return "op[0-9]+";
+        return "op[0-9]+(-prop)?";
     }
     
     /**
@@ -209,7 +209,7 @@ public class AMRBlobUtils {
      * @return 
      */
     public String getCoordRegex(){
-        return "op[0-9]+";
+        return "op[0-9]+(-prop)?";
     }
     
     public boolean isConjunctionNode(SGraph graph, GraphNode node) {

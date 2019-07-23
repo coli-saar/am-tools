@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +42,8 @@ public class Util {
 
     
     public static final String VERB_PATTERN = ".+-[0-9]+";
+
+    public static final Pattern OP_PATTERN = Pattern.compile("op([0-9]+)(-prop)?"); // group(1) returns number of op
     
     private static final AMRBlobUtils blobUtils = new AMRBlobUtils();
     
@@ -174,7 +178,7 @@ public class Util {
     static boolean isNameNode(GraphNode node, SGraph graph) {
         if (node.getLabel().equals("name")) {
             for (GraphEdge e : graph.getGraph().outgoingEdgesOf(node)) {
-                if (e.getLabel().matches("op[0-9]+")) {
+                if (OP_PATTERN.matcher(e.getLabel()).matches()) {
                     return true;
                 }
             }
@@ -282,9 +286,11 @@ public class Util {
             return null;
         }
         Int2ObjectMap<String> name = new Int2ObjectOpenHashMap<>();
+
         for (GraphEdge e : graph.getGraph().outgoingEdgesOf(node)) {
-            if (e.getLabel().matches("op[0-9]+")) {
-                name.put(Integer.valueOf(e.getLabel().substring(2))-1, e.getTarget().getLabel());//shift to 0-based index
+            Matcher m = OP_PATTERN.matcher(e.getLabel());
+            if (m.matches()) {
+                name.put(Integer.valueOf(m.group(1))-1, e.getTarget().getLabel());//shift to 0-based index
             }
         }
         for (int j : name.keySet()) {
@@ -317,7 +323,7 @@ public class Util {
         Set<String> ret = new HashSet<>();
         ret.add(node.getName());
         for (GraphEdge e : graph.getGraph().outgoingEdgesOf(node)) {
-            if (e.getLabel().matches("op[0-9]+")) {
+            if (OP_PATTERN.matcher(e.getLabel()).matches()) {
                 ret.add(e.getTarget().getName());
             }
         }
@@ -334,7 +340,7 @@ public class Util {
         while (true) {
             boolean found = false;
             for (GraphEdge e : graph.getGraph().outgoingEdgesOf(node)) {
-                if (e.getLabel().equals("op"+i)) {
+                if (e.getLabel().matches("op"+i+"(-prop)?")) {
                     ret.add(e.getTarget().getName());
                     found = true;
                     break;

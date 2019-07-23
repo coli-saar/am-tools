@@ -99,7 +99,8 @@ public class Relabel {
             conceptnetPath = args[4];
         }
 
-        Relabel relabel = new Relabel(wordnetPath, conceptnetPath, lookupPath, threshold, 0);
+        Relabel relabel = new Relabel(wordnetPath, conceptnetPath, lookupPath, threshold, 0, false);
+        // didn't use propSuffix in old experiments, in MRP shared task experiments, main is not called
 
         BufferedReader sentBR = new BufferedReader(new FileReader(parserOutPath + "sentences.txt"));
         List<String> sentences = sentBR.lines().collect(Collectors.toList());
@@ -169,7 +170,22 @@ public class Relabel {
     private final int nnThreshold;
     private final int lookupThreshold;
 
-    public Relabel(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold, int lookupThreshold)
+    private boolean usePropSuffix;
+    private final String propSuffix = "-prop";
+
+    /**
+     *
+     * @param wordnetPath path to wordnet
+     * @param conceptnetPath path to concept net
+     * @param mapsPath path to lookup folder
+     * @param nnThreshold threshold when to trust NN
+     * @param lookupThreshold
+     * @param usePropSuffix whether or not to introduce -prop suffices into relabeled data
+     * @throws IOException
+     * @throws MalformedURLException
+     * @throws InterruptedException
+     */
+    public Relabel(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold, int lookupThreshold, boolean usePropSuffix)
             throws IOException, MalformedURLException, InterruptedException {
 
         if (conceptnetPath == null) {
@@ -187,6 +203,7 @@ public class Relabel {
         word2count = readCounts(mapsPath + "words2labelsLookup.txt");
         this.nnThreshold = nnThreshold;
         this.lookupThreshold = lookupThreshold;
+        this.usePropSuffix = usePropSuffix;
     }
 
     public void fixGraph(SGraph graph, List<String> sent, List<String> lit, List<String> nnLabels) {
@@ -227,7 +244,12 @@ public class Relabel {
             int i = 1;
             for (String op : ops) {
                 GraphNode opNode = graph.addNode(Util.gensym("explicitanon"), op);
-                graph.addEdge(lexNode, opNode, "op" + i);
+                if (usePropSuffix){
+                    graph.addEdge(lexNode, opNode, "op" + i + propSuffix);
+                } else {
+                    graph.addEdge(lexNode, opNode, "op" + i);
+                }
+
                 i++;
             }
 
@@ -295,15 +317,15 @@ public class Relabel {
 
             if (year > 0) {
                 GraphNode node = graph.addNode(Util.gensym("explicitanon"), String.valueOf(year));
-                graph.addEdge(lexNode, node, "year");
+                graph.addEdge(lexNode, node, "year" + (usePropSuffix ? propSuffix : ""));
             }
             if (month > 0) {
                 GraphNode node = graph.addNode(Util.gensym("explicitanon"), String.valueOf(month));
-                graph.addEdge(lexNode, node, "month");
+                graph.addEdge(lexNode, node, "month" + (usePropSuffix ? propSuffix : ""));
             }
             if (day > 0) {
                 GraphNode node = graph.addNode(Util.gensym("explicitanon"), String.valueOf(day));
-                graph.addEdge(lexNode, node, "day");
+                graph.addEdge(lexNode, node, "day" + (usePropSuffix ? propSuffix : ""));
             }
 
         } else if (word.equals(RareWordsAnnotator.NUMBER_TOKEN.toLowerCase())) {

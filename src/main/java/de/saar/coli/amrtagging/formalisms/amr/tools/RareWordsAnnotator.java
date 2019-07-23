@@ -16,6 +16,8 @@ import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.TreeWithAritiesAlgebra;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.aligner.Util.OP_PATTERN;
+
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -42,6 +44,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -266,7 +270,7 @@ public class RareWordsAnnotator {
                         for (String lexN : al.lexNodes) {
                             Set<GraphEdge> opEdges = new HashSet<>();
                             for (GraphEdge e : graph.getGraph().outgoingEdgesOf(graph.getNode(lexN))) {
-                                if (e.getLabel().matches("op[0-9]+") && al.nodes.contains(e.getTarget().getName())) {
+                                if (e.getLabel().matches("op[0-9]+(-prop)?") && al.nodes.contains(e.getTarget().getName())) {
                                     opEdges.add(e);
                                 }
                             }
@@ -670,8 +674,9 @@ public class RareWordsAnnotator {
     private static String encodeName(GraphNode nameNode, SGraph graph) {
         Map<Integer, String> op2label = new HashMap<>();
         for (GraphEdge edge : graph.getGraph().outgoingEdgesOf(nameNode)) {
-            if (edge.getLabel().matches("op[0-9]+")) {
-                op2label.put(Integer.parseInt(edge.getLabel().substring(2)),
+            Matcher m = OP_PATTERN.matcher(edge.getLabel());
+            if (m.matches()) {
+                op2label.put(Integer.parseInt(m.group(1)),
                         GeneralBlobUtils.otherNode(nameNode, edge).getLabel());
             }
         }

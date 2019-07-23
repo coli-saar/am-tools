@@ -45,6 +45,7 @@ import java.util.regex.Pattern;
 public class AMR implements Formalism{
     
     private final Relabel relabeler;
+    private final boolean usePropSuffix;
     
     //List of most frequent "properties" (we treat them as edge labels)
     public static final List<Pattern> COMMON_PROPERTY_LABELS = Arrays.asList(
@@ -65,8 +66,10 @@ public class AMR implements Formalism{
 
     
     
-    public AMR(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold) throws IOException, MalformedURLException, InterruptedException{
-        relabeler = new Relabel(wordnetPath, conceptnetPath, mapsPath, nnThreshold, 0);
+    public AMR(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold, boolean usePropSuffix) throws IOException, MalformedURLException, InterruptedException{
+
+        relabeler = new Relabel(wordnetPath, conceptnetPath, mapsPath, nnThreshold, 0,usePropSuffix);
+        this.usePropSuffix = usePropSuffix;
     }
     
     

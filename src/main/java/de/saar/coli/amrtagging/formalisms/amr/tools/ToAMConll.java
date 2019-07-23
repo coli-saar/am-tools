@@ -52,6 +52,9 @@ public class ToAMConll {
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
+    @Parameter(names = {"--disable-ner"}, description = "disables NER for debugging purposes")
+    private boolean ner_disabled = false;
+
     /**
      * Command line interface for the DependencyExtractor class; call with --help to see options.
      *
@@ -111,11 +114,14 @@ public class ToAMConll {
             // up here would only duplicate the code. - AK, July 2019.
         }
 
-        if( cli.stanfordNerFilename != null ) {
-            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
-        } else {
-            neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
+        if (!cli.ner_disabled){
+            if( cli.stanfordNerFilename != null ) {
+                neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+            } else {
+                neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
+            }
         }
+
 
 
 
@@ -178,18 +184,25 @@ public class ToAMConll {
             List<CoreLabel> nerTags = null;
             List<String> ourLemmas = new ArrayList<>(o.words());
             List<String> lemmas;
-            
+
+
             if( preprocData != null ) {
                 lemmas = preprocData.getLemmas(id);
-                nerTags = neRecognizer.tag(preprocData.getTokens(id));
+                if (!cli.ner_disabled) {
+                    nerTags = neRecognizer.tag(preprocData.getTokens(id));
+                }
             } else {
                 Sentence stanfSent = new Sentence(expandedWords);
                 lemmas = stanfSent.lemmas();
-                nerTags = neRecognizer.tag(Util.makeCoreLabelsForTokens(expandedWords));
+                if (!cli.ner_disabled) {
+                    nerTags = neRecognizer.tag(Util.makeCoreLabelsForTokens(expandedWords));
+                }
             }
 
             for (int j = 0; j < lemmas.size(); j++) {
-                ners.set(origPositions.get(j), nerTags.get(j).ner());
+                if (!cli.ner_disabled) {
+                    ners.set(origPositions.get(j), nerTags.get(j).ner());
+                }
                 ourLemmas.set(origPositions.get(j), lemmas.get(j));
             }
 
@@ -197,7 +210,9 @@ public class ToAMConll {
             o.addReplacement(sentences.get(i),false);
             o.addPos(posTags.get(i));
             o.addLemmas(ourLemmas);
-            o.addNEs(ners);
+            if (!cli.ner_disabled) {
+                o.addNEs(ners);
+            }
 
             //now we add the edges
             HashSet<Integer> hasOutgoing = new HashSet<>();

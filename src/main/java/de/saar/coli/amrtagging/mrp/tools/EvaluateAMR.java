@@ -53,8 +53,11 @@ public class EvaluateAMR {
     @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
     private String input = null;
     
-    @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
+    @Parameter(names = {"--debug"}, description = "Enables debug mode")
     private boolean debug=false;
+
+    @Parameter(names = {"--prop-suffix"}, description = "Turn this on if your training data uses the -prop suffix ")
+    private boolean usePropSuffix=false;
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -81,7 +84,7 @@ public class EvaluateAMR {
         List<AmConllSentence> parsed = AmConllSentence.readFromFile(cli.corpusPath);
         OutputStream output = new FileOutputStream(cli.outPath);
         MRPOutputCodec outputCodec = new MRPOutputCodec();
-        Formalism formalism = new AMR(cli.wordnet, cli.conceptnet, cli.lookup, 10);
+        Formalism formalism = new AMR(cli.wordnet, cli.conceptnet, cli.lookup, 10,cli.usePropSuffix);
         
         Map<String,TestSentence> id2testsent = null;
         if (cli.input != null){
