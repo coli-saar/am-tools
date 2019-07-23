@@ -148,6 +148,8 @@ public class CreateCorpusAlternativeParallel {
             try {
                 instance.checkEverythingAligned();
             } catch (Exception e){
+                System.err.println("Ignoring an exception:");
+                System.err.println("id " + preprocessed.getId());
                 e.printStackTrace();
                 return;
             }
@@ -159,7 +161,8 @@ public class CreateCorpusAlternativeParallel {
                 try {
                      auto = formalism.getAlignmentTrackingAutomaton(instance);
                 } catch (Exception ex){
-                    System.err.println("Ignoring:");
+                    System.err.println("Ignoring an exception:");
+                    System.err.println("id " + preprocessed.getId());
                     ex.printStackTrace();
                     return;
                 }

@@ -162,6 +162,8 @@ public class CreateCorpus {
             try {
                 instance.checkEverythingAligned();
             } catch (Exception e){
+                System.err.println("Ignoring an exception:");
+                System.err.println("id " + preprocessed.getId());
                 e.printStackTrace();
                 problems++;
                 continue;

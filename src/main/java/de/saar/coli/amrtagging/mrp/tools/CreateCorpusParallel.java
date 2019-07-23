@@ -165,6 +165,8 @@ public class CreateCorpusParallel {
                     instance.checkEverythingAligned();
                     sigBuilder = formalism.getSignatureBuilder(instance);
                 } catch (Exception e){
+                    System.err.println("Ignoring an exception:");
+                    System.err.println("id " + preprocessed.getId());
                         e.printStackTrace();
                         problems.incValue();
                         return;

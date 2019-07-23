@@ -202,6 +202,8 @@ public class CreateCorpusParallel {
             try {
                 inst.checkEverythingAligned();
             } catch (Exception e) {
+                System.err.println("Ignoring an exception:");
+                System.err.println("id " + id);
                 e.printStackTrace();
                 return; //skip this sentence
             }
