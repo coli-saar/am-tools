@@ -1,0 +1,18 @@
+#framework:eds
+#raw:CBS Sports earned $50 million or so last year. ART-ROOT
+#id:21057133
+#time:2019-04-10 (20:22)
+#version:0.9
+1	CBS	_	cbs	NNP	_	(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2-of (n1 / compound  :lnk (an1 / COMPLEX)  :ARG1 (n4<s>))  :BV-of (n2 / proper_q  :lnk (an2 / SIMPLE)))	named__carg=$FORM$	(s())	2	MOD_s	true	0:3
+2	Sports	_	sports	NNPS	_	(n8<root> / --LEX--  :lnk (an8 / SIMPLE)  :BV-of (n4 / proper_q  :lnk (an4 / COMPLEX)))	named__carg=$FORM$	()	3	APP_s	true	4:10
+3	earned	_	earn	VBD	_	(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))	_$LEMMA$_v_1	(o(), s())	12	APP_art-snt1	true	11:17
+4	$	dollar	$	$	_	(n2<root> / --LEX--  :lnk (an2 / SIMPLE)  :BV-of (n0 / udef_q  :lnk (an0 / COMPLEX)))	_$REPL$_n_1	()	3	APP_o	true	18:19
+5	50	_	50	CD	_	(n11<root> / --LEX--  :lnk (an11 / SIMPLE))	card__carg=$LEMMA$	()	6	APP_o	true	19:21
+6	million	1000000	million	CD	_	(n9<root> / --LEX--  :lnk (an9 / SIMPLE)  :ARG1 (n7<s>)  :ARG3-of (n10 / times  :lnk (an10 / SIMPLE)  :ARG2 (n8<o>)))	card__carg=$REPL$	(o(), s())	4	MOD_s	true	22:29
+7	or	_	or	CC	_	_	_	_	0	IGNORE	true	30:32
+8	so	_	so	RB	_	_	_	_	0	IGNORE	true	33:35
+9	last	_	last	JJ	_	(n13<root> / --LEX--  :lnk (an13 / SIMPLE)  :ARG1 (n14<s>  :BV-of (n12 / def_implicit_q  :lnk (an12 / SIMPLE))))	_$LEMMA$_a_1	(s())	10	MOD_s	true	36:40
+10	year	_	year	NN	_	(n14<root> / --LEX--  :lnk (an14 / SIMPLE)  :ARG2-of (n11 / loc_nonsp  :lnk (an11 / COMPLEX)  :ARG1 (n5<s>)))	_$LEMMA$_n_1	(s())	3	MOD_s	true	41:46
+11	.	_	.	.	_	_	_	_	0	IGNORE	true	45:46
+12	ART-ROOT	_	ART-ROOT	ART-ROOT	_	(artroot<root> / --LEX--  :lnk (artrootlnk / SIMPLE)  :art-snt1 (n3<art-snt1>))	$LEMMA$	(art-snt1())	0	ROOT	true	47:55
+

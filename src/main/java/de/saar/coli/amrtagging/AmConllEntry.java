@@ -11,6 +11,8 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -20,6 +22,7 @@ import java.util.Set;
 public class AmConllEntry {
     
     public static final String DEFAULT_NULL = "_";
+    public static final String ATTRIBUTE_SEP = "|"; //TODO
     
     public static final String IGNORE ="IGNORE";
     public static final String ROOT_SYM = "ROOT";
@@ -41,6 +44,8 @@ public class AmConllEntry {
     private boolean aligned;
     
     private TokenRange range = null;
+
+    private Map<String,String> furtherAttributes = new HashMap<>(); //TODO
     
     
     
@@ -294,6 +299,21 @@ public class AmConllEntry {
         this.aligned = aligned;
     }
 
+    /**
+     * Sets (possibly overwrites) a further attribute
+     * @param name
+     * @param value
+     */
+    //TODO
+    public void setFurtherAttribute(String name, String value){
+        furtherAttributes.put(name,value);
+    }
+
+    //TODO
+    public String getFurtherAttribute(String name){
+        return  furtherAttributes.get(name);
+    }
+
     
     @Override
     public String toString(){
@@ -329,6 +349,10 @@ public class AmConllEntry {
             b.append("\t");
             b.append(range.toString());
         }
+        //TODO
+        //if (!furtherAttributes.isEmpty()){
+        ///    b.append(ATTRIBUTE_SEP);
+        //}
         return b.toString();
         
     }

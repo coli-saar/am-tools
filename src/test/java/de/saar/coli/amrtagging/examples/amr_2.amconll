@@ -1,0 +1,13 @@
+1	Debbie	_name_	Debbie	NNP	PERSON	(p<root> / person  :name (n / --LEX--))	_NAME_	()	4	APP_o	false
+2	,	_	,	,	O	_	_	_	0	IGNORE	false
+3	do	_	do	VBP	O	_	_	_	0	IGNORE	false
+4	you	_	you	PRP	O	(s<root> / --LEX--  :ARG1 (c<s>)  :ARG2 (p<o>))	say-01	(o(), s(s_UNIFY_o()))	0	ROOT	false
+5	mind	_	mind	VB	O	(c<root> / --LEX--  :ARG0 (y<s>)  :ARG1 (m<o>))	$LEMMA$-01	(o(s_UNIFY_s()), s())	4	APP_s	false
+6	putting	_	put	VBG	O	(s<root> / --LEX--  :ARG0 (y<s>)  :ARG1 (a<o>))	$LEMMA$-up-11	(o(), s())	5	APP_o	false
+7	up	_	up	RP	O	_	_	_	0	IGNORE	false
+8	some	_	some	DT	O	(explicitanon0<root> / --LEX--  :quant-of (b<mod>))	$LEMMA$	(mod())	9	MOD_mod	false
+9	pictures	_	picture	NNS	O	(s<root> / --LEX--  :ARG1 (p<s>))	$LEMMA$-01	(s())	6	APP_o	false
+10	of	_	of	IN	O	_	_	_	0	IGNORE	false
+11	the	_	the	DT	O	_	_	_	0	IGNORE	false
+12	place	_	place	NN	O	(d<root> / --LEX--)	$LEMMA$	()	9	APP_s	false
+13	?	_	?	.	O	(explicitanon0<root> / --LEX--  :mode-of (c<mod>))	interrogative	(mod())	5	MOD_mod	false
