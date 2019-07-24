@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,6 +47,8 @@ public class AMR implements Formalism{
     
     private final Relabel relabeler;
     private final boolean usePropSuffix;
+
+    private final String PROP_SUFFIX = "-prop";
     
     //List of most frequent "properties" (we treat them as edge labels)
     public static final List<Pattern> COMMON_PROPERTY_LABELS = Arrays.asList(
@@ -199,6 +202,7 @@ public class AMR implements Formalism{
         
         Map<Integer,String> id2node = new HashMap<>();
         Map<String,Integer> node2id = new HashMap<>();
+
         
         int index = 0;
         
@@ -211,11 +215,20 @@ public class AMR implements Formalism{
             if (sg.getGraph().incomingEdgesOf(gN).size() == 1){
                 //only nodes with single incoming edges can be properties
                 GraphEdge e = sg.getGraph().incomingEdgesOf(gN).iterator().next();
-                if (! isPropertyEdge(e,sg)) {
-                    //nodes with sources cannot be properties
-                    output.getNodes().add(new MRPNode(index,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),null));
-                    index++;
+                if (usePropSuffix) {
+                    if (! isPropertyEdgePropSuffix(e,sg)) {
+                        //nodes with sources cannot be properties
+                        output.getNodes().add(new MRPNode(index,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),null));
+                        index++;
+                    }
+                } else {
+                    if (! isPropertyEdge(e,sg)) {
+                        //nodes with sources cannot be properties
+                        output.getNodes().add(new MRPNode(index,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),null));
+                        index++;
+                    }
                 }
+
             } else {
                 output.getNodes().add(new MRPNode(index,gN.getLabel(),new ArrayList<>(),new ArrayList<>(),null));
                 index++;
@@ -232,13 +245,25 @@ public class AMR implements Formalism{
         //add edges
         List<GraphEdge> edges = new ArrayList<>(sg.getGraph().edgeSet());
         edges.sort((GraphEdge e1, GraphEdge e2) -> e1.getSource().getName().compareTo(e2.getSource().getName()));
+
         for (GraphEdge e :  edges){
-            if (! isPropertyEdge(e,sg)) {
-                output.getEdges().add(new MRPEdge(node2id.get(e.getSource().getName()), node2id.get(e.getTarget().getName()),e.getLabel()));
-            } else {
-                output.getNode(node2id.get(e.getSource().getName())).getProperties().add(e.getLabel());
-                output.getNode(node2id.get(e.getSource().getName())).getValues().add(e.getTarget().getLabel());
+            if (usePropSuffix){
+                if (! isPropertyEdgePropSuffix(e,sg)) {
+                    output.getEdges().add(new MRPEdge(node2id.get(e.getSource().getName()), node2id.get(e.getTarget().getName()),e.getLabel()));
+                } else {
+                    String propertyName = e.getLabel().substring(0,e.getLabel().length() - PROP_SUFFIX.length());
+                    output.getNode(node2id.get(e.getSource().getName())).getProperties().add(propertyName);
+                    output.getNode(node2id.get(e.getSource().getName())).getValues().add(e.getTarget().getLabel());
+                }
+            } else { //old style
+                if (! isPropertyEdge(e,sg)) {
+                    output.getEdges().add(new MRPEdge(node2id.get(e.getSource().getName()), node2id.get(e.getTarget().getName()),e.getLabel()));
+                } else {
+                    output.getNode(node2id.get(e.getSource().getName())).getProperties().add(e.getLabel());
+                    output.getNode(node2id.get(e.getSource().getName())).getValues().add(e.getTarget().getLabel());
+                }
             }
+
         }
         
         
@@ -253,9 +278,13 @@ public class AMR implements Formalism{
 //     * @param sg graph containing edge e
 //     * @return true if edge e is a property (with target as its value), otherwise returns false: edge is a normal edge
 //     */
-//    private boolean isPropertyEdge(GraphEdge e, SGraph sg){
-//        return e.getLabel().endsWith("-prop");
-//    }
+    private boolean isPropertyEdgePropSuffix(GraphEdge e, SGraph sg){
+        //just to make sure, because the parser might do weird things
+        if (sg.getGraph().edgesOf(e.getTarget()).size() != 1) return false; //only leaf nodes can be values of properties
+        if (sg.getSourcesAtNode(e.getTarget().getName()).size() > 0) return false; //must not have sources
+
+        return e.getLabel().endsWith(PROP_SUFFIX);
+    }
     
     /**
      * Tells if the specific edge actually is a property (true) or a normal edge (false).
@@ -263,26 +292,26 @@ public class AMR implements Formalism{
      * @param sg graph containing edge e
      * @return true if edge e is a proerty (with target as its value), otherwise returns false: edge is a normal edge
      */
-    private boolean isPropertyEdge2(GraphEdge e, SGraph sg){
-        if (sg.getGraph().edgesOf(e.getTarget()).size() != 1) return false; //only leaf nodes can be values of properties
-        if (sg.getSourcesAtNode(e.getTarget().getName()).size() > 0) return false; //must not have sources
-        
-        String sourcenodelabel = e.getSource().getLabel();
-        String targetnodelabel = e.getTarget().getLabel();
+    //private boolean isPropertyEdge2(GraphEdge e, SGraph sg){
+    //    if (sg.getGraph().edgesOf(e.getTarget()).size() != 1) return false; //only leaf nodes can be values of properties
+    //    if (sg.getSourcesAtNode(e.getTarget().getName()).size() > 0) return false; //must not have sources
+    //
+    //    String sourcenodelabel = e.getSource().getLabel();
+     //   String targetnodelabel = e.getTarget().getLabel();
 
-        if (DEFINITELY_EDGE_BASED_ON_SRC.contains(sourcenodelabel)) return false;
-        if (DEFINITELY_EDGE_BASED_ON_TARGET.contains(targetnodelabel)) return false;
-        
-        if (e.getTarget().getName().startsWith("explicitanon")) return true;
-        
-        for (Pattern propertyName : COMMON_PROPERTY_LABELS){
-            Matcher m = propertyName.matcher(e.getLabel());
-            if (m.matches()){
-                return true;
-            }
-        }
-        return PROBABLY_PROPERTY_BASED_ON_SRC.contains(sourcenodelabel) ;
-    }
+    //    if (DEFINITELY_EDGE_BASED_ON_SRC.contains(sourcenodelabel)) return false;
+    //    if (DEFINITELY_EDGE_BASED_ON_TARGET.contains(targetnodelabel)) return false;
+    //
+    //    if (e.getTarget().getName().startsWith("explicitanon")) return true;
+    //
+    //    for (Pattern propertyName : COMMON_PROPERTY_LABELS){
+    //        Matcher m = propertyName.matcher(e.getLabel());
+    //        if (m.matches()){
+    //            return true;
+     //       }
+     //   }
+     //   return PROBABLY_PROPERTY_BASED_ON_SRC.contains(sourcenodelabel) ;
+    //}
 
 
     // edge label (100% prop) is  mode  li  mod  polite  year  month  day  decade  century  era  quarter
