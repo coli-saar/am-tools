@@ -349,25 +349,27 @@ public class AmConllEntry {
         b.append("\t");
         b.append(this.isAligned());
 
-        if (this.range != null && furtherAttributes.isEmpty()){
-            b.append("\t");
-            b.append(range.toString());
-        }
 
         Map<String,String> attributes = new HashMap<>(furtherAttributes);
+
         if (this.range != null){
-            attributes.put(TOKEN_RANGE_REPR,this.range.toString());
+            if (attributes.isEmpty()) {
+                b.append("\t");
+                b.append(range.toString());
+            } else {
+                attributes.put(TOKEN_RANGE_REPR,this.range.toString());
+
+            }
         }
 
-        //create sorted list of further attributes to make this testable
-        List<Map.Entry<String,String>> entries = new ArrayList<>(attributes.entrySet());
-        entries.sort((Map.Entry<String,String> e1, Map.Entry<String,String> e2) -> e1.getKey().compareTo(e2.getKey()));
-
-        if (! entries.isEmpty()){
+        if (!attributes.isEmpty()){
+            //create sorted list of further attributes to make this testable
+            List<Map.Entry<String,String>> entries = new ArrayList<>(attributes.entrySet());
+            entries.sort((Map.Entry<String,String> e1, Map.Entry<String,String> e2) -> e1.getKey().compareTo(e2.getKey()));
             b.append("\t");
-        }
 
-        b.append(entries.stream().map((Map.Entry<String,String> entry) -> entry.getKey()+EQUALS+entry.getValue()).collect(Collectors.joining(ATTRIBUTE_SEP)));
+            b.append(entries.stream().map((Map.Entry<String,String> entry) -> entry.getKey()+EQUALS+entry.getValue()).collect(Collectors.joining(ATTRIBUTE_SEP)));
+        }
 
         return b.toString();
         
