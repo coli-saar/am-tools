@@ -10,15 +10,13 @@ import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.saar.coli.amrtagging.mrp.sdp.DM;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessingException;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
-import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.UiucNamedEntityRecognizer;
 import de.saar.coli.amrtagging.mrp.Formalism;
 import de.saar.coli.amrtagging.mrp.graphs.MRPGraph;
 import de.saar.coli.amrtagging.mrp.eds.EDS;
 import de.saar.coli.amrtagging.mrp.sdp.PSD;
+import de.saar.coli.amrtagging.mrp.ucca.NamedEntityMerger;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.saar.coli.amrtagging.mrp.utils.Fuser;
 import de.saar.coli.amrtagging.mrp.utils.MRPUtils;
@@ -67,6 +65,9 @@ public class PrepareDevData {
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
+
+    @Parameter(names = {"--merge-ner"}, description = "Merge named entities (in UCCA)")
+    private boolean mergeNamedEntities = false;
    
     
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, ClassNotFoundException, PreprocessingException{      
@@ -102,11 +103,15 @@ public class PrepareDevData {
         List<Pair<MRPGraph, ConlluSentence>> pairs = Fuser.fuse(fr, sentReader);
         List<ConlluSentence> trainingDataForTagger = ConlluSentence.readFromFile(cli.full_companion);
         EDS eds = new EDS(trainingDataForTagger);
+
         for (Pair<MRPGraph, ConlluSentence> pair : pairs){
             MRPGraph mrpGraph = pair.getLeft();
             ConlluSentence usentence = pair.getRight();
             String input = mrpGraph.getInput();
             Formalism formalism;
+
+            NamedEntityMerger neMerger = new NamedEntityMerger(mrpGraph.getId(), new MrpPreprocessedData(usentence), neRecognizer);
+
             if (mrpGraph.getFramework().equals("dm")){
                 DM dm = new DM();
                 formalism = dm;
@@ -128,6 +133,10 @@ public class PrepareDevData {
                 UCCA ucca = new UCCA();
                 formalism = ucca;
                 usentence = ucca.refine(usentence); //UCCA doesn't need artificial root
+
+                if( cli.mergeNamedEntities ) {
+                    usentence = neMerger.merge(usentence);
+                }
             } else {
                 throw new IllegalArgumentException("Formalism/Framework "+mrpGraph.getFramework()+" not supported yet.");
             }
