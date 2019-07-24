@@ -4,7 +4,10 @@
  * and open the template in the editor.
  */
 
-package de.saar.coli.amrtagging
+package de.saar.coli.amrtagging.amconll
+
+import de.saar.coli.amrtagging.AmConllEntry
+import de.saar.coli.amrtagging.AmConllSentence
 
 import static org.junit.Assert.*
 import org.junit.*

@@ -48,7 +48,12 @@ public class TokenRange {
         if (parts.length != 2){
             throw new IllegalArgumentException(s+ " is not a valid TokenRange");
         }
-        return new TokenRange(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]));
+        try {
+            return new TokenRange(Integer.parseInt(parts[0]),Integer.parseInt(parts[1]));
+        } catch (NumberFormatException ex){
+            throw new IllegalArgumentException(s+ " is not a valid TokenRange");
+        }
+
     }
     
     @Override

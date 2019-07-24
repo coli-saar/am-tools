@@ -19,12 +19,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -283,7 +281,7 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
     public static List<AmConllSentence> read(Reader reader) throws IOException, ParseException {
         BufferedReader br = new BufferedReader(reader);
         String l = "";
-        ArrayList<AmConllSentence> sents = new ArrayList();
+        ArrayList<AmConllSentence> sents = new ArrayList<>();
         AmConllSentence sent = new AmConllSentence();
         int lineNr = 1;
         sent.setLineNr(lineNr);
@@ -310,7 +308,28 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
                 c.setEdgeLabel(attr[10]);
                 c.setAligned(Boolean.valueOf(attr[11]));
                 if (attr.length > 12){
-                    c.setRange(TokenRange.fromString(attr[12]));
+                    //we have a last column
+                    //try if this is a token range
+                    try {
+                        c.setRange(TokenRange.fromString(attr[12]));
+                    } catch (IllegalArgumentException ex){
+                        //apparently, it's not a token range
+                        for (String keyVal : attr[12].split(Pattern.quote(AmConllEntry.ATTRIBUTE_SEP))){
+                            String[] keyVals = keyVal.split(Pattern.quote(AmConllEntry.EQUALS));
+                            if (keyVals.length == 0) throw new IllegalArgumentException("Illegal further attribute "+attr[12]+" in sentence with id "+sent.getId());
+
+                            String key = keyVals[0];
+                            String value = Arrays.stream(keyVals).skip(1).collect(Collectors.joining(AmConllEntry.EQUALS));
+                            // special treatment of token ranges
+                            if (key.equals(AmConllEntry.TOKEN_RANGE_REPR)){
+                                c.setRange(TokenRange.fromString(value));
+                            } else {
+                                c.setFurtherAttribute(key, value);
+                            }
+
+                        }
+                    }
+
                 }
 
                 //System.out.println(c);

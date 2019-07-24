@@ -14,6 +14,7 @@ import de.up.ling.irtg.algebra.graph.SGraph;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -23,13 +24,17 @@ public class AmConllEntry {
     
     public static final String DEFAULT_NULL = "_";
     public static final String ATTRIBUTE_SEP = "|"; //TODO
+    public static final String EQUALS = "=";
+
+    public static final String TOKEN_RANGE_REPR = "TokenRange";
     
     public static final String IGNORE ="IGNORE";
     public static final String ROOT_SYM = "ROOT";
     
     public static final String LEX_MARKER = "--LEX--";
-    
-    
+
+
+
     private int id;
     private String form;
     private String replacement = DEFAULT_NULL;
@@ -345,14 +350,19 @@ public class AmConllEntry {
         b.append(this.getEdgeLabel());
         b.append("\t");
         b.append(this.isAligned());
-        if (this.range != null){
+
+        if (this.range != null && furtherAttributes.isEmpty()){
             b.append("\t");
             b.append(range.toString());
         }
-        //TODO
-        //if (!furtherAttributes.isEmpty()){
-        ///    b.append(ATTRIBUTE_SEP);
-        //}
+
+        Map<String,String> attributes = new HashMap<>(furtherAttributes);
+        if (this.range != null){
+            attributes.put(TOKEN_RANGE_REPR,this.range.toString());
+        }
+
+        b.append(attributes.entrySet().stream().map((Map.Entry<String,String> entry) -> entry.getKey()+EQUALS+entry.getValue()).collect(Collectors.joining(ATTRIBUTE_SEP)));
+
         return b.toString();
         
     }
