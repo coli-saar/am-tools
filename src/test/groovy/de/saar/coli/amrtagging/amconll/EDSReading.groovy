@@ -68,6 +68,7 @@ class EDSReading {
 11\t.\t_\t.\t.\t_\t_\t_\t_\t0\tIGNORE\ttrue\t45:46
 12\tART-ROOT\t_\tART-ROOT\tART-ROOT\t_\t(artroot<root> / --LEX--  :lnk (artrootlnk / SIMPLE)  :art-snt1 (n3<art-snt1>))\t$LEMMA$\t(art-snt1())\t0\tROOT\ttrue\t47:55
 '''
+
     final String eds2='''#framework:eds
 #raw:CBS Sports earned $50 million or so last year. ART-ROOT
 #id:21057133
@@ -86,6 +87,7 @@ class EDSReading {
 11\t.\t_\t.\t.\t_\t_\t_\t_\t0\tIGNORE\ttrue\tTokenRange=45:46
 12\tART-ROOT\t_\tART-ROOT\tART-ROOT\t_\t(artroot<root> / --LEX--  :lnk (artrootlnk / SIMPLE)  :art-snt1 (n3<art-snt1>))\t$LEMMA$\t(art-snt1())\t0\tROOT\ttrue\tTokenRange=47:55
 '''
+
     final String eds3='''#framework:eds
 #raw:CBS Sports earned $50 million or so last year. ART-ROOT
 #id:21057133

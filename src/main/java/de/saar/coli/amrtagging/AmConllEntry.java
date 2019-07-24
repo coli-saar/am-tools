@@ -11,9 +11,7 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -361,7 +359,15 @@ public class AmConllEntry {
             attributes.put(TOKEN_RANGE_REPR,this.range.toString());
         }
 
-        b.append(attributes.entrySet().stream().map((Map.Entry<String,String> entry) -> entry.getKey()+EQUALS+entry.getValue()).collect(Collectors.joining(ATTRIBUTE_SEP)));
+        //create sorted list of further attributes to make this testable
+        List<Map.Entry<String,String>> entries = new ArrayList<>(attributes.entrySet());
+        entries.sort((Map.Entry<String,String> e1, Map.Entry<String,String> e2) -> e1.getKey().compareTo(e2.getKey()));
+
+        if (! entries.isEmpty()){
+            b.append("\t");
+        }
+
+        b.append(entries.stream().map((Map.Entry<String,String> entry) -> entry.getKey()+EQUALS+entry.getValue()).collect(Collectors.joining(ATTRIBUTE_SEP)));
 
         return b.toString();
         
