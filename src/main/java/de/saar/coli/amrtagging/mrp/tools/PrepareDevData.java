@@ -107,6 +107,7 @@ public class PrepareDevData {
         for (Pair<MRPGraph, ConlluSentence> pair : pairs){
             MRPGraph mrpGraph = pair.getLeft();
             ConlluSentence usentence = pair.getRight();
+            ConlluSentence originalUsentence = usentence.copy(); // preserve all tokens here, even if NEs are merged in usentence
             String input = mrpGraph.getInput();
             Formalism formalism;
 
@@ -159,9 +160,10 @@ public class PrepareDevData {
             sent.addPos(posTags);
             
              if( neRecognizer != null ) {
-                    List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(usentence.words());
+                    List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(originalUsentence.words());
                     List<CoreLabel> netags = neRecognizer.tag(tokens);
-                    sent.addNEs(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+                    List<String> mappedNeTags = neMerger.mapTags(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+                    sent.addNEs(mappedNeTags);
              }
             
             List<String> lemmata = usentence.lemmas();

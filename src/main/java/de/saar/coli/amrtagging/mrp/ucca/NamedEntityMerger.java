@@ -9,6 +9,7 @@ import de.saar.coli.amrtagging.TokenRange;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessingException;
+import de.up.ling.irtg.util.Util;
 import edu.stanford.nlp.ling.CoreLabel;
 
 import java.util.ArrayList;
@@ -97,7 +98,7 @@ public class NamedEntityMerger {
 
         assert mergedTokenRanges.size() == mergedWords.size();
 
-        for( int newPos = 0; newPos < mergedWords.size(); newPos++ ) {
+        for (int newPos = 0; newPos < mergedWords.size(); newPos++) {
             ConlluEntry e = sentence.get(newPosToLastOldPos[newPos]);  // inherit all fields from last corresponding element of original sentence
             e.setForm(mergedWords.get(newPos));                        // ... except overwrite word-form with potentially merged multiword token
             e.setTokenRange(mergedTokenRanges.get(newPos));            // ... and combine the token ranges
@@ -117,12 +118,12 @@ public class NamedEntityMerger {
     public List<Alignment> fixAlignments(List<Alignment> alignments) {
         List<Alignment> ret = new ArrayList<>();
 
-        for( Alignment al : alignments ) {
+        for (Alignment al : alignments) {
             Alignment.Span span = al.span;
-            assert span.end == span.start+1;  // Mario promised this would be true
+            assert span.end == span.start + 1;  // Mario promised this would be true
 
             int newPos = oldPosToNewPos[span.start];
-            Alignment.Span newSpan = new Alignment.Span(newPos, newPos+1);
+            Alignment.Span newSpan = new Alignment.Span(newPos, newPos + 1);
             Alignment fixed = new Alignment(al.nodes, newSpan, al.lexNodes, al.color, al.getWeight());
             ret.add(fixed);
         }
@@ -140,7 +141,7 @@ public class NamedEntityMerger {
      * a list of tags; if multiple tokens of the original string were merged
      * into one token, then the tag of the last corresponding token in the
      * original string is returned.<p>
-     *
+     * <p>
      * If the {@link #merge(List)} method has not yet been called on this object,
      * this method returns the original tag list unchanged.
      *
@@ -148,7 +149,7 @@ public class NamedEntityMerger {
      * @return
      */
     public List<String> mapTags(List<String> tagsInOriginalString) {
-        if( hasData() ) {
+        if (hasData()) {
             List<String> ret = new ArrayList<>();
 
             for (int newPos = 0; newPos < revisedSentence.size(); newPos++) {
@@ -171,7 +172,7 @@ public class NamedEntityMerger {
      * @return
      */
     public List<TokenRange> combineTokenRanges(List<TokenRange> originalTokenRanges) {
-        if( hasData() ) {
+        if (hasData()) {
             List<TokenRange> ret = new ArrayList<>();
 
             for (int newPos = 0; newPos < revisedSentence.size(); newPos++) {
@@ -179,7 +180,7 @@ public class NamedEntityMerger {
                 int minFrom = Integer.MAX_VALUE;
                 int maxTo = Integer.MIN_VALUE;
 
-                for( int oldPosition : oldPositions ) {
+                for (int oldPosition : oldPositions) {
                     TokenRange tr = originalTokenRanges.get(oldPosition);
                     minFrom = Math.min(minFrom, tr.getFrom());
                     maxTo = Math.max(maxTo, tr.getTo());

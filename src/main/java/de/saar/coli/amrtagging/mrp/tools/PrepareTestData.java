@@ -125,6 +125,7 @@ public class PrepareTestData {
 
             for (ConlluSentence usentence : companionData) {
                 String id = usentence.getId();
+                ConlluSentence originalUsentence = usentence.copy(); // preserve all tokens here, even if NEs are merged in usentence
                 TestSentence itsTestSentence = id2testSent.get(id);
                 String input = itsTestSentence.input;
                 Formalism formalism;
@@ -181,7 +182,7 @@ public class PrepareTestData {
                 sent.addPos(posTags);
 
                 if( neRecognizer != null ) {
-                    List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(usentence.words());
+                    List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(originalUsentence.words());
                     List<CoreLabel> netags = neRecognizer.tag(tokens);
                     sent.addNEs(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
                 }
