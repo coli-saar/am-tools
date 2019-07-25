@@ -158,8 +158,8 @@ public class PrepareDevData {
 
             List<String> posTags = usentence.pos();
             sent.addPos(posTags);
-            
-             if( neRecognizer != null ) {
+
+            if( neRecognizer != null ) {
                     List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(originalUsentence.words());
                     List<CoreLabel> netags = neRecognizer.tag(tokens);
                     List<String> mappedNeTags = neMerger.mapTags(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
