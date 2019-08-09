@@ -184,7 +184,8 @@ public class PrepareTestData {
                 if( neRecognizer != null ) {
                     List<CoreLabel> tokens = Util.makeCoreLabelsForTokens(originalUsentence.words());
                     List<CoreLabel> netags = neRecognizer.tag(tokens);
-                    sent.addNEs(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+                    List<String> mappedNeTags = neMerger.mapTags(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+                    sent.addNEs(mappedNeTags);
                 }
 
                 List<String> lemmata = usentence.lemmas();
