@@ -127,6 +127,10 @@ public class AMR implements Formalism{
         relabeler.fixGraph(evaluatedGraph, amconll.getFields((AmConllEntry entry) ->
          {
              if (entry.getReplacement().equals("_")) {
+                 //if supertagger thinks this is a named entity, we trust it because NE recall (Illinois NER) is really low
+                 if (entry.getLexLabel().toLowerCase().equals("_name_")){
+                     return entry.getLexLabel().toLowerCase();
+                 }
                  return entry.getForm().toLowerCase();
              } else {
                  return entry.getReplacement().toLowerCase();
