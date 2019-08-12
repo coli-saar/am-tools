@@ -42,7 +42,7 @@ public class EvaluateAMR {
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
     
     @Parameter(names = {"--conceptnet"}, description = "Path to ConceptNet (.csv.gz file)")//, required = true)
-    private String conceptnet = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/conceptnet-assertions-5.7.0.csv.gz";
+    private String conceptnet = null;// "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/conceptnet-assertions-5.7.0.csv.gz";
     
     @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
     private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/AMR/first_legal/lookup/";
