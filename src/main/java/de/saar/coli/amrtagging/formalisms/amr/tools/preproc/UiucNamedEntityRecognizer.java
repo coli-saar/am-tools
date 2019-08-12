@@ -97,6 +97,7 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
 
     }
 
+*/
     static List<CoreLabel> getTestTokens() {
         List<CoreLabel> ret = new ArrayList<>();
         List<String> sent = Arrays.asList("John","Doe","is","there","at","Google","at","9","April","2019","10","a.m.");
@@ -118,6 +119,4 @@ public class UiucNamedEntityRecognizer implements NamedEntityRecognizer {
 
         return ret;
     }
-
-     */
 }
