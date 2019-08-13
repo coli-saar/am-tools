@@ -25,11 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Prepare test data to be in the format we use for the parser. Strips off all gold information but the tokenization.
+ * Prepare test and dev data to be in the format we use for the parser. Strips off all gold information but the tokenization.
  * @author matthias
  */
 public class PrepareTestData {
-    @Parameter(names = {"--corpus", "-c"}, description = "Points to the input corpus (en.dm.sdp) or subset thereof", required = true)
+    @Parameter(names = {"--corpus", "-c"}, description = "Points to the input corpus or subset thereof", required = true)
     private String corpusPath ;
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files", required = true)
