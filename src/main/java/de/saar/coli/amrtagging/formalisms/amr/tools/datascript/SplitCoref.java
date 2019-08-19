@@ -94,6 +94,7 @@ public class SplitCoref {
         dummyIrtg.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySignature, dummySignature)));
         dummyIrtg.addInterpretation("tree", new Interpretation(new TreeWithAritiesAlgebra(), new Homomorphism(dummySignature, dummySignature)));
         dummyIrtg.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySignature, dummySignature)));
+        dummyIrtg.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySignature, dummySignature)));
         Corpus corpus = Corpus.readCorpus(new FileReader(corpusPath), dummyIrtg);
         BufferedReader origBR = new BufferedReader(new FileReader(origGraphsPath));
         

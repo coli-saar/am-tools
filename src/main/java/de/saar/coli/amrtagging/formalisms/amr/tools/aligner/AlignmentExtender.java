@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.aligner;
 
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
@@ -43,8 +44,7 @@ public class AlignmentExtender {
      * @param we
      * @return how badly we want to extend the alignment from "from" to "to"
      */
-    static double scoreExtension(GraphNode from, GraphEdge edge, GraphNode to, Set<Pair<TaggedWord, Double>> wordsAndProbs, SGraph graph,
-            WordnetEnumerator we) {
+    static double scoreExtension(GraphNode from, GraphEdge edge, GraphNode to, Set<Pair<TaggedWord, Double>> wordsAndProbs, SGraph graph, IWordnet we) {
         if (edge.getLabel().equals("name") && edge.getTarget().equals(from)) {
             return AlignmentScorer.SCP_EXTENSION;//name to named entity
         } else if (!Util.isNamed(to, graph)) {
@@ -66,7 +66,7 @@ public class AlignmentExtender {
                 return AlignmentScorer.SCP_EXTENSION;
             } else if (edge.getTarget().getLabel().equals("government-organization") && edge.getSource().getLabel().equals("govern-01")) {
                 return AlignmentScorer.SCP_EXTENSION;//between government-organization and govern
-            } else if (edge.getSource().getLabel().equals("multiple") && edge.getLabel().equals("op1") && edge.getSource().equals(to)) {
+            } else if (edge.getSource().getLabel().equals("multiple") && edge.getLabel().matches("op1(-prop)?") && edge.getSource().equals(to)) {
                 return AlignmentScorer.SCP_EXTENSION;
             } else if (edge.getLabel().equals("mode") && to.getLabel().equals("imperative") && edge.getTarget().equals(to)) {
                 return AlignmentScorer.SCP_EXTENSION;  // extends verb to imperative
@@ -75,7 +75,7 @@ public class AlignmentExtender {
                                                              //This should extend the alignment from the verb to "you" just if they are currently unaligned.
             } else if (edge.getLabel().equals("degree") && from.getLabel().equals("thing")) {
                 return AlignmentScorer.SCP_MAYBE_EXTENSION;
-            } else if (edge.getLabel().equals("op1") && (from.getLabel().equals("before") || from.getLabel().equals("after")) && to.getLabel().equals("now") && edge.getTarget().equals(to)) {
+            } else if (edge.getLabel().matches("op1(-prop)?") && (from.getLabel().equals("before") || from.getLabel().equals("after")) && to.getLabel().equals("now") && edge.getTarget().equals(to)) {
                 return AlignmentScorer.SCP_EXTENSION;
             } else if (edge.getLabel().equals("time") && to.getLabel().equals("now") && edge.getTarget().equals(to)) {
                 return AlignmentScorer.SCP_MAYBE_EXTENSION;
@@ -243,7 +243,7 @@ public class AlignmentExtender {
         Set<String> found = new HashSet<>();
         found.add(nodeNames.iterator().next());
         int oldSize = 0;
-        //this loop is horribly inefficient, but total cost is so small that I don't care
+        //this loop is horribly inefficient, but total substitutionCost is so small that I don't care
         while (found.size() > oldSize) {
             oldSize = found.size();
             Set<String> newFound = new HashSet<>();

@@ -6,6 +6,7 @@
 package de.saar.coli.irtg.experimental.astar;
 
 import de.saar.coli.irtg.experimental.astar.Astar.Evaluable;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 
 /**
  *
@@ -96,7 +97,11 @@ public class Item implements Comparable<Item>, Evaluable {
 
     @Override
     public String toString() {
-        return String.format("<[%d-%d] root %d  Type %s   (prob=%f est=%f)>", start, end, root, type, logProb, getScore());
+        return String.format("<[%d-%d] root %d  Type %s (prob=%f est=%f)>", start, end, root, type, logProb, getScore());
+    }
+    
+    public String toString(TypeInterner<Type> typelex) {
+        return String.format("<[%d-%d] root %d  Type %s (prob=%f est_outside=%f est_total=%f)>", start, end, root, typelex.resolveID(type), logProb, outsideEstimate, getScore());
     }
     
     public String shortString() {

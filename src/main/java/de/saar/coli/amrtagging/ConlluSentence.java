@@ -1,0 +1,381 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package de.saar.coli.amrtagging;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
+/**
+ * A conllu sentence.
+ * See https://universaldependencies.org/format.html
+ * @author matthias
+ */
+public class ConlluSentence implements Iterable<ConlluEntry> {
+
+    private int lineNr;
+    private String id = null;
+    private List<ConlluEntry> entries = new ArrayList<>();
+
+    public ConlluEntry get(int i) {
+        return entries.get(i);
+    }
+
+    public int size() {
+        return entries.size();
+    }
+
+    public boolean isEmpty() {
+        return entries.isEmpty();
+    }
+
+    public ConlluEntry set(int i, ConlluEntry e) {
+        return entries.set(i, e);
+    }
+
+    public boolean add(ConlluEntry e) {
+        return entries.add(e);
+    }
+
+    public boolean addAll(Collection<? extends ConlluEntry> clctn) {
+        return entries.addAll(clctn);
+    }
+
+    public List<ConlluEntry> subList(int i, int i1) {
+        return entries.subList(i, i1);
+    }
+    
+    public ConlluSentence(){
+        
+    }
+    
+    public ConlluSentence(List<ConlluEntry> entries){
+        this.entries = new ArrayList<>(entries);
+    }
+    
+    public ConlluSentence(String id){
+        this.id = id;
+    }
+
+    public int getLineNr() {
+        return lineNr;
+    }
+
+    public void setLineNr(int n) {
+        lineNr = n;
+    }
+
+    public List<String> words() {
+        ArrayList<String> r = new ArrayList<>();
+        for (ConlluEntry e : entries) {
+            r.add(e.getForm());
+        }
+        return r;
+    }
+
+    public List<String> lemmas() {
+        ArrayList<String> r = new ArrayList<>();
+        for (ConlluEntry e : entries) {
+            r.add(e.getLemma());
+        }
+        return r;
+    }
+    
+    public List<String> pos() {
+        ArrayList<String> r = new ArrayList<>();
+        for (ConlluEntry e : entries) {
+            r.add(e.getPos());
+        }
+        return r;
+    }
+    
+   public List<TokenRange> ranges() {
+        ArrayList<TokenRange> r = new ArrayList<>();
+        for (ConlluEntry e : entries) {
+            r.add(e.getTokenRange());
+        }
+        return r;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        if (id != null){
+            b.append("#");
+            b.append(id);
+            b.append("\n");
+        }
+        for (ConlluEntry aThi : entries) {
+            b.append(aThi);
+            b.append("\n");
+        }
+        return b.toString();
+    }
+
+
+    public void setPos(List<String> pos) {
+        if (pos.size() != entries.size()) {
+            throw new IllegalArgumentException("Size of pos list must be equal to sentence length");
+        }
+        for (int i = 0; i < pos.size(); i++) {
+            entries.get(i).setPos(pos.get(i));
+        }
+    }
+    
+    public void setUPos(List<String> pos) {
+        if (pos.size() != entries.size()) {
+            throw new IllegalArgumentException("Size of pos list must be equal to sentence length");
+        }
+        for (int i = 0; i < pos.size(); i++) {
+            entries.get(i).setUPos(pos.get(i));
+        }
+    }
+
+    public void setLemmas(List<String> lemmas) {
+        if (lemmas.size() != entries.size()) {
+            throw new IllegalArgumentException("Size of lemma list must be equal to sentence length");
+        }
+        for (int i = 0; i < lemmas.size(); i++) {
+            entries.get(i).setLemma(lemmas.get(i));
+        }
+    }
+    
+    public ConlluSentence copy(){
+        ConlluSentence s = new ConlluSentence();
+        s.id = this.id;
+        s.lineNr = this.lineNr;
+        for (ConlluEntry e : this){
+            s.add(e.copy());
+        }
+        return s;
+    }
+    
+    /**
+     * Creates an empty ConlluSentence that contains the same metadata (id, line nr).
+     * @return 
+     */
+    public ConlluSentence withSameMetaData(){
+        ConlluSentence r = new ConlluSentence();
+        r.id = id;
+        r.lineNr = lineNr;
+        return r;
+    }
+    
+    /**
+     * Returns the index (0-based) of the head of a given span.
+     * If the span coveres multiple subtrees, it gives the head of the left most subtree.
+     * @param from
+     * @param to
+     * @return an int head, such that from <= head <= to
+     */
+    public int headOfSpan(int from, int to){
+        int guess = to;
+        for (int position = from; position <= to; position++){
+            guess = Integer.min(guess, mostDistantParent(position, from, to));
+        }
+        return guess; 
+    }
+    
+    /**
+     * Finds the most distant parent (0-based) of position index (different from aritifical root)
+     * that is still in the span.
+     * @param index
+     * @param from
+     * @param to
+     * @return 
+     */
+    private int mostDistantParent(int index, int from, int to){
+        int head = entries.get(index).getHead();
+        if (head == 0){ //reached root
+            return index;
+        } else{
+           head--; //convert to 0-based indexing
+           if (head < from || head > to){ //we would leave the interval
+                return index;
+           } else {
+                return mostDistantParent(head, from, to);
+           }
+        }
+    }
+
+    /**
+     * Writes a list of ConllSentences to a file.
+     * 
+     * @see #write(java.io.Writer, java.util.List) 
+     *
+     * @param filename
+     * @param sents
+     * @throws IOException
+     */
+    public static void writeToFile(String filename, List<ConlluSentence> sents) throws IOException {
+        write(new FileWriter(filename), sents);
+    }
+    
+    /**
+     * Writes a list of ConllSentences to a writer.<p>
+     * 
+     * TODO: might want to set the
+     * line of the objects to where it was written to file.
+     *
+     * @param writer
+     * @param sents
+     * @throws IOException
+     */
+    public static void write(Writer writer, List<ConlluSentence> sents) throws IOException {
+        BufferedWriter bw = new BufferedWriter(writer);
+        
+        for (ConlluSentence s : sents) {
+            bw.write(s.toString());
+            bw.write("\n");
+        }
+        bw.close();
+    }
+    
+    /**
+     * Reads a CoNLL corpus from a Reader and returns the list of instances.
+     * 
+     * @param reader
+     * @return
+     * @throws IOException
+     */
+    public static List<ConlluSentence> read(Reader reader) throws IOException {
+        BufferedReader br = new BufferedReader(reader);
+        String l = "";
+        ArrayList<ConlluSentence> sents = new ArrayList();
+        ConlluSentence sent = new ConlluSentence();
+        int lineNr = 1;
+        sent.setLineNr(lineNr);
+        
+        while ((l = br.readLine()) != null) {
+            if (l.startsWith("#")) {
+                    sent.id = l.substring(1);
+            } else if (l.replaceAll("\t", "").length() > 0) {
+                String[] attr = l.split("\t");
+                ConlluEntry c = new ConlluEntry(Integer.parseInt(attr[0]), attr[1]);
+                c.setLemma(attr[2]);
+                c.setUPos(attr[3]);
+                c.setPos(attr[4]);
+                c.setFeats(attr[5]);
+                c.setHead(Integer.parseInt(attr[6]));
+                c.setEdgeLabel(attr[7]);
+                c.setDeps(attr[8]);
+                c.setMisc(attr[9]);
+
+                //System.out.println(c);
+                sent.add(c);
+            } else {
+                sents.add(sent);
+                sent = new ConlluSentence();
+                sent.setLineNr(lineNr);
+            }
+            lineNr++;
+        }
+        
+        if (!sent.isEmpty()) {
+            sents.add(sent);
+        }
+        br.close();
+        return sents;
+    }
+
+    /**
+     * Reads a CoNLLu corpus from a file and returns the list of instances.
+     *
+     * @param filename
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static List<ConlluSentence> readFromFile(String filename) throws FileNotFoundException, IOException {
+        return read(new FileReader(filename));
+    }
+    
+
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public Iterator<ConlluEntry> iterator() {
+        return entries.iterator();
+    }
+
+    /**
+     * Removes ConlluEntry (0-based) and updates ids.
+     * @param i
+     * @return 
+     */
+    public ConlluEntry remove(int i) throws IllegalArgumentException{
+        ConlluEntry e = entries.get(i);
+        
+        for (ConlluEntry x : this){
+            if (x.getId() != e.getHead() && x.getHead() == e.getId()) throw new IllegalArgumentException("Cannot delete ConlluEntry "+i+" because it has children, e.g. "+x.getId());
+        }
+        
+        for (int j = i+1; j < entries.size();j++) {
+            entries.get(j).setId(entries.get(j).getId()-1);
+        }
+        
+        entries.remove(i);
+        return e;
+    }
+    
+    
+    
+     /**
+     * Returns the token index (0-based) that (sort of) fits the given TokenRange.
+     * @param anchor
+     * @return 
+     */
+    public int getCorrespondingIndex(TokenRange anchor){
+        int from = anchor.getFrom();
+        int index = 0;
+        for (ConlluEntry entry : this){
+            TokenRange range = entry.getTokenRange();
+            if (range.getFrom() >= from) return index;
+            index++;
+        }
+        return index;
+    }
+    
+    public int getExactIndex(TokenRange anchor){
+        int from = anchor.getFrom();
+        int index = 0;
+        for (ConlluEntry entry : this){
+            TokenRange range = entry.getTokenRange();
+            if (range.equals(anchor)) return index;
+            index++;
+        }
+        throw new IllegalArgumentException("Could not find the exact token for the range "+anchor);
+    }
+    
+    /**
+     * Returns the number of edges one has to go to reach the root.
+     * The index is 0-based.
+     * @param index
+     * @return 
+     */
+    public int getDepth(int index){
+        if (index < 0) return 0;
+        else {
+            return 1+getDepth(entries.get(index).getHead()-1);
+        }
+    }
+
+    
+}

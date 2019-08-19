@@ -5,23 +5,17 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
-import de.saar.coli.amrtagging.formalisms.sdp.dm.tools.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
-import de.saar.coli.amrtagging.formalisms.eds.EDSUtils;
-
-import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
-import de.up.ling.irtg.codec.GraphVizDotOutputCodec;
 import de.up.ling.tree.ParseException;
 
 import java.io.FileNotFoundException;
@@ -29,11 +23,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.jgrapht.alg.ConnectivityInspector;
-import org.jgrapht.alg.CycleDetector;
 
 /**
  * Converts an AM Dependency corpus (amconll) into an EDS corpus in EDM format used by Buys and Blunsom for evaluation and to AMR format (without character spans).
@@ -70,18 +62,18 @@ public class EvaluateCorpus {
             return;
         }
         
-        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
 
         PrintWriter amr = new PrintWriter(cli.outPath+".amr.txt");
         PrintWriter edm = new PrintWriter(cli.outPath+".edm");
 
-        for (ConllSentence s : sents){
+        for (AmConllSentence s : sents){
             //prepare raw output without edges
             try {
                 
-                SGraph evaluated = EDSConverter.ensureRootIsWritable(EDSConverter.evaluateDependencyTree(s));
+                AnchoredSGraph evaluated = EDSConverter.ensureRootIsWritable(EDSConverter.evaluateDependencyTree(s));
                 try {
-                    SGraph str = EDSUtils.stripLnks(evaluated);
+                    SGraph str = evaluated.stripLnks();
                     ConnectivityInspector<GraphNode,GraphEdge> con = new ConnectivityInspector(str.getGraph());
                     if (con.isGraphConnected()){
                         amr.println(str.toIsiAmrString());

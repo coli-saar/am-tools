@@ -5,19 +5,12 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
-import de.saar.coli.amrtagging.formalisms.sdp.dm.tools.*;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
-import de.saar.coli.amrtagging.formalisms.eds.Aligner;
 import de.saar.coli.amrtagging.formalisms.eds.EDSBlobUtils;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
 import de.saar.coli.amrtagging.formalisms.eds.EDSUtils;
@@ -25,9 +18,6 @@ import de.saar.coli.amrtagging.formalisms.eds.PostprocessLemmatize;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
-import de.up.ling.irtg.codec.GraphVizDotOutputCodec;
-import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.simple.Sentence;
 import java.io.BufferedReader;
@@ -40,12 +30,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *  Create DM training data.
+ *  Create EDS training data.
  * @author matthias
  */
 public class CreateCorpus {
@@ -68,7 +57,7 @@ public class CreateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException,ParserException{      
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 
@@ -87,7 +76,7 @@ public class CreateCorpus {
         }
         
         
-        List<SGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
+        List<AnchoredSGraph> allGraphs = ReadRawCorpus.readGraphs(cli.corpusPath);
         BufferedReader br = new BufferedReader(new FileReader(cli.corpusPath));
         String line;
         List<String> allSents = new ArrayList<>();
@@ -104,7 +93,7 @@ public class CreateCorpus {
         
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         SupertagDictionary multipleRootFragments = new SupertagDictionary();
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         if (cli.vocab != null){
             supertagDictionary.readFromFile(cli.vocab);
         }
@@ -115,19 +104,28 @@ public class CreateCorpus {
         int moreIncoming = 0;
         PrintWriter goldEDM = new PrintWriter(cli.outPath+cli.prefix+"-gold.edm");
         PrintWriter goldAMR = new PrintWriter(cli.outPath+cli.prefix+"-gold.amr.txt");
-        for (counter = 0; counter < allSents.size();counter++){
+        
+        for (counter = 0; counter < allSents.size(); counter++){
             if (counter % 10 == 0 && counter>0){
                 System.err.println(counter);
                 System.err.println("decomposable so far " + 100*(1.0 - (problems / (float) counter))+ "%");
             }
+            
             if (counter % 1000 == 0 && counter>0){ //every now and then write intermediate results.
                 cli.write(outCorpus, supertagDictionary);
             }
+            
             totalCounter ++;
             MRInstance inst = EDSConverter.toSGraph(allGraphs.get(counter), allSents.get(counter));
+            ConcreteAlignmentSignatureBuilder sigBuilder;
+            try {
+                 sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
+            } catch (Exception ex){
+                System.err.println("Couldn't create concrete alignment signature builder for "+counter);
+                continue;
+            }
             
             try {
-                ConcreteAlignmentSignatureBuilder sigBuilder = new ConcreteAlignmentSignatureBuilder(inst.getGraph(), inst.getAlignments(), new EDSBlobUtils());
                 ConcreteAlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(inst, sigBuilder, false);
                 //AlignmentTrackingAutomaton auto = AlignmentTrackingAutomaton.create(inst,sigBuilder, false);
                 auto.processAllRulesBottomUp(null);
@@ -135,7 +133,7 @@ public class CreateCorpus {
 
                 if (t != null){
                     //SGraphDrawer.draw(inst.getGraph(), "");
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
                     sent.setAttr("id", ids.get(counter));
                     sent.setAttr("raw", allSents.get(counter));
                     Sentence stanfAn = new Sentence(inst.getSentence());
@@ -154,8 +152,7 @@ public class CreateCorpus {
                     outCorpus.add(sent);
                     goldEDM.println(EDSConverter.toEDM(allGraphs.get(counter)));
                     //in AMR notation: make sure that node names are displayed correctly
-                    SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(counter)));
-                    amr = EDSUtils.stripLnks(amr);
+                    SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(counter))).stripLnks();
                     goldAMR.println(amr.toIsiAmrString());
                     goldAMR.println();
                     AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
@@ -168,6 +165,7 @@ public class CreateCorpus {
                     //amdep.getTree().draw();
                 } else {
                     problems ++;
+                    System.err.println("id "+ids.get(counter));
                     System.err.println(inst.getGraph());
                     System.err.println("not decomposable " + inst.getSentence());
                     if (cli.debug){
@@ -175,14 +173,33 @@ public class CreateCorpus {
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
-                        System.err.println(EDSUtils.simpleAlignViz(inst));
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
                     }
+                    System.err.println("=====end not decomposable=====");
                 }
             } catch (Exception ex){
                 System.err.println("Ignoring an exception:");
+                System.err.println("id "+ids.get(counter));
+                System.err.println(inst.getSentence());
                 ex.printStackTrace();
                 problems++;
-                if (ex.getMessage().contains("More than one node with edges from outside")){
+                if (cli.debug){
+                        for (Alignment al : inst.getAlignments()){
+                            System.err.println(inst.getSentence().get(al.span.start));
+                            try {
+                                System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
+                            } catch (IllegalArgumentException ex2){
+                                System.err.println("[]"); //print empty list
+                            } catch (Exception e){
+                                System.err.println(e.getMessage());
+                            }
+                            
+                        }
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
+                        System.err.println("=====end not decomposable=====");
+                }
+                
+                if (ex.getMessage() != null && ex.getMessage().contains("More than one node with edges from outside")){
                     moreIncoming++;
                     Pattern p = Pattern.compile("\\|\\|([0-9]+)-([0-9]+)\\|\\|1,0");
                     Matcher m = p.matcher(ex.getMessage());
@@ -203,7 +220,7 @@ public class CreateCorpus {
                             }
                             try {
                             multipleRootFragments.getRepr(errGraph); //count this graph pattern
-                             System.err.println(errGraph);
+                             //System.err.println(errGraph);
                             } catch (UnsupportedOperationException e){
                                 
                             }
@@ -231,9 +248,9 @@ public class CreateCorpus {
         }
         
     }
-        private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+        private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
             if (outPath != null && prefix != null){
-                ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+                AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
                 if (vocab == null){ //only write vocab if it wasn't restored.
                     supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
                 }

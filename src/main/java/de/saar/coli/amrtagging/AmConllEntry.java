@@ -11,22 +11,28 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
 
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
  * @author matthias
  */
-public class ConllEntry {
+public class AmConllEntry {
     
     public static final String DEFAULT_NULL = "_";
+    public static final String ATTRIBUTE_SEP = "|"; //TODO
+    public static final String EQUALS = "=";
+
+    public static final String TOKEN_RANGE_REPR = "TokenRange";
     
     public static final String IGNORE ="IGNORE";
     public static final String ROOT_SYM = "ROOT";
     
     public static final String LEX_MARKER = "--LEX--";
-    
-    
+
+
+
     private int id;
     private String form;
     private String replacement = DEFAULT_NULL;
@@ -40,13 +46,17 @@ public class ConllEntry {
     private String edgeLabel = DEFAULT_NULL;
     private boolean aligned;
     
+    private TokenRange range = null;
+
+    private Map<String,String> furtherAttributes = new HashMap<>(); //TODO
+    
     
     
     
     public static final int NOID = -2;
     
     
-    public ConllEntry(int id, String form){
+    public AmConllEntry(int id, String form){
         this.id = id;
         this.form = form;
     }
@@ -89,16 +99,20 @@ public class ConllEntry {
         SGraph supertag = delexGraph();
         for (String node : supertag.getAllNodeNames()){
             if (supertag.getNode(node) != null  && supertag.getNode(node).getLabel() != null && supertag.getNode(node).getLabel().equals(LEX_MARKER)){
-                supertag.getNode(node).setLabel(Util.fixPunct(this.getReLexLabel())); //unfortunately, we have to fix punctuation :(
+                String reLex = Util.fixPunct(this.getReLexLabel()); //unfortunately, we have to fix punctuation :(
+                supertag.getNode(node).setLabel(reLex); //Util.isiAMREscape(reLex) 
             }
         }
         return supertag;
     }
-    
-    
-    
-    
-    
+
+    public TokenRange getRange() {
+        return range;
+    }
+
+    public void setRange(TokenRange range) {
+        this.range = range;
+    }
     
     
     
@@ -212,12 +226,14 @@ public class ConllEntry {
         this.lexLabel = lexLabel;
         if (!lemma.equals(DEFAULT_NULL) && lexLabel.contains(this.lemma)){
             this.lexLabel = this.lexLabel.replace(this.lemma, "$LEMMA$");
-        }
-        if (!form.equals(DEFAULT_NULL)  && lexLabel.contains(this.form)){
+        } else if (!form.equals(DEFAULT_NULL)  && lexLabel.contains(this.form)){
             this.lexLabel = this.lexLabel.replace(this.form, "$FORM$");
-        }
-        if (!replacement.equals(DEFAULT_NULL)  && lexLabel.contains(this.replacement)){
+        } else if (!replacement.equals(DEFAULT_NULL)  && lexLabel.contains(this.replacement)){
             this.lexLabel = this.lexLabel.replace(this.replacement, "$REPL$");
+        }
+        
+        if (!pos.equals(DEFAULT_NULL) && lexLabel.contains(pos)){
+            this.lexLabel = this.lexLabel.replace(pos, "$POS$");
         }
     }
     
@@ -236,6 +252,9 @@ public class ConllEntry {
         }
         if (!replacement.equals(DEFAULT_NULL)  && label.contains("$REPL$")){
             label = label.replace("$REPL$", this.replacement);
+        }
+        if (!pos.equals(DEFAULT_NULL)  && label.contains("$POS$")){
+            label = label.replace("$POS$", this.pos);
         }
         
         return label;
@@ -283,6 +302,21 @@ public class ConllEntry {
         this.aligned = aligned;
     }
 
+    /**
+     * Sets (possibly overwrites) a further attribute
+     * @param name
+     * @param value
+     */
+    //TODO
+    public void setFurtherAttribute(String name, String value){
+        furtherAttributes.put(name,value);
+    }
+
+    //TODO
+    public String getFurtherAttribute(String name){
+        return  furtherAttributes.get(name);
+    }
+
     
     @Override
     public String toString(){
@@ -314,6 +348,29 @@ public class ConllEntry {
         b.append(this.getEdgeLabel());
         b.append("\t");
         b.append(this.isAligned());
+
+
+        Map<String,String> attributes = new HashMap<>(furtherAttributes);
+
+        if (this.range != null){
+            if (attributes.isEmpty()) {
+                b.append("\t");
+                b.append(range.toString());
+            } else {
+                attributes.put(TOKEN_RANGE_REPR,this.range.toString());
+
+            }
+        }
+
+        if (!attributes.isEmpty()){
+            //create sorted list of further attributes to make this testable
+            List<Map.Entry<String,String>> entries = new ArrayList<>(attributes.entrySet());
+            entries.sort((Map.Entry<String,String> e1, Map.Entry<String,String> e2) -> e1.getKey().compareTo(e2.getKey()));
+            b.append("\t");
+
+            b.append(entries.stream().map((Map.Entry<String,String> entry) -> entry.getKey()+EQUALS+entry.getValue()).collect(Collectors.joining(ATTRIBUTE_SEP)));
+        }
+
         return b.toString();
         
     }

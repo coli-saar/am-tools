@@ -9,7 +9,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
+import de.saar.coli.amrtagging.AmConllSentence;
 
 
 import de.up.ling.irtg.algebra.ParserException;
@@ -20,7 +21,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,12 +60,12 @@ public class EvaluateCorpus {
             return;
         }
         
-        List<ConllSentence> sents = ConllSentence.readFromFile(cli.corpusPath);
+        List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
         PrintWriter o = new PrintWriter(cli.outPath+"/parserOut.txt");
         PrintWriter l = new PrintWriter(cli.outPath+"/labels.txt");
         PrintWriter indices = new PrintWriter(cli.outPath+"/indices.txt");
         int index = 0;
-        for (ConllSentence s : sents){
+        for (AmConllSentence s : sents){
             indices.println(index);
             index++;
             //prepare raw output without edges
@@ -73,7 +73,7 @@ public class EvaluateCorpus {
                 AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluateWithoutRelex(true);
                 //rename nodes names from 1@@m@@--LEX-- to LEX@0
-                ArrayList<String> labels = s.lemmas();
+                List<String> labels = s.lemmas();
                 for (String n : evaluatedGraph.getAllNodeNames()){
                     if (evaluatedGraph.getNode(n).getLabel().contains("LEX")){
                         Pair<Integer,Pair<String,String>> info = AMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
@@ -84,7 +84,7 @@ public class EvaluateCorpus {
                         evaluatedGraph.getNode(n).setLabel(info.right.right);
                     }
                 }
-                l.println(labels.stream().collect(Collectors.joining(" ")));
+                l.println(labels.stream().map(lbl -> lbl.equals(AmConllEntry.DEFAULT_NULL) ? "NULL" : lbl).collect(Collectors.joining(" ")));
                 o.println(evaluatedGraph.toIsiAmrString());
             } catch (Exception ex){
                 System.err.println("In line "+s.getLineNr());

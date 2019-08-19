@@ -6,8 +6,10 @@
 package de.saar.coli.amrtagging;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -99,6 +101,7 @@ public class Alignment {
         DecimalFormat df = new DecimalFormat();
         df.setMaximumFractionDigits(6);
         df.setMinimumFractionDigits(1);
+        df.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.US));
         return sjN.toString() + "||" + span.toString() + "||" + df.format(getWeight());
     }
 

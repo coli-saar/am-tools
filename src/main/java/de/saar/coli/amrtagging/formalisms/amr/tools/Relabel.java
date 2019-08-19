@@ -6,108 +6,119 @@
 package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.ConceptnetEnumerator;
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.IWordnet;
+import de.saar.coli.amrtagging.formalisms.amr.tools.wordnet.WordnetEnumerator;
 import de.up.ling.irtg.algebra.StringAlgebra;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.irtg.util.Util;
-import edu.mit.jwi.RAMDictionary;
-import edu.mit.jwi.data.ILoadPolicy;
-import edu.mit.jwi.item.IIndexWord;
-import edu.mit.jwi.item.IWord;
-import edu.mit.jwi.item.IWordID;
-import edu.mit.jwi.item.POS;
-import edu.mit.jwi.item.Pointer;
-import edu.mit.jwi.morph.WordnetStemmer;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Takes the graphs created by de.saar.coli.amrtaggin.Parser
- * and fills in labels at lexical nodes.
+ * Takes the graphs created by de.saar.coli.amrtaggin.Parser and fills in labels
+ * at lexical nodes.
+ *
  * @author Jonas
  */
 public class Relabel {
-    
+
     public static final String LEXMARKER = "LEX@";
-    
+
     public static int allNameCount = 0;
     public static int seenNameCount = 0;
     public static Counter<String> seenNETypeCounter = new Counter<>();
     public static Counter<String> unseenNETypeCounter = new Counter<>();
-    
+
+    private final Pattern MMddYY = Pattern.compile("([0-9]+)/([0-9]+)/([0-9]+)");
+    private final Pattern MMdd = Pattern.compile("([0-9]+)/([0-9]+)");
+
     /**
-     * Takes the graphs created by de.saar.coli.amrtaggin.Parser
-     * and fills in labels at lexical nodes. Also makes sure that the
-     * gold graphs and predicted graphs are in the same order.
-     * Needs three parameters, fourth is optional:
-     *       1) path to parser output, must contain files parserOut.txt (output of parser, including root markers, one AMR per line), sentences.txt, literal.txt, labels.txt (all from the supertagger)
-     *           and a file indices.txt that contains an index for each instance of parserOut that refers to its original index in the sentences.txt etc files. Also requires a file goldAMR.txt with the original gold AMRs.
-     *       2) path to lookup folder (nameLookup.txt etc)
-     *       3) path to wordnet (3.0/dict/ folder)
-     *       4) (optional) threshold for when to use the backup over the neural predictions
+     * Takes the graphs created by de.saar.coli.amrtaggin.Parser and fills in
+     * labels at lexical nodes. Also makes sure that the gold graphs and
+     * predicted graphs are in the same order. Needs three parameters, fourth is
+     * optional: 1) path to parser output, must contain files parserOut.txt
+     * (output of parser, including root markers, one AMR per line),
+     * sentences.txt, literal.txt, labels.txt (all from the supertagger) and a
+     * file indices.txt that contains an index for each instance of parserOut
+     * that refers to its original index in the sentences.txt etc files. Also
+     * requires a file goldAMR.txt with the original gold AMRs. 2) path to
+     * lookup folder (nameLookup.txt etc) 3) path to wordnet (3.0/dict/ folder)
+     * 4) (optional) threshold for when to use the backup over the neural
+     * predictions
+     *
      * @param args
      * @throws IOException
      * @throws MalformedURLException
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     public static void main(String[] args) throws IOException, MalformedURLException, InterruptedException {
-        
+
         if (args.length < 3) {
             System.err.println("Needs three parameters, fourth is optional");
-            System.err.println("1) path to parser output, must contain files parserOut.txt (output of parser, including root markers, one AMR per line), sentences.txt, literal.txt, labels.txt (all from the supertagger) " +
-                " and a file indices.txt that contains an index for each instance of parserOut that refers to its original index in the sentences.txt etc files. Also goldAMR.txt");
+            System.err.println("1) path to parser output, must contain files parserOut.txt (output of parser, including root markers, one AMR per line), sentences.txt, literal.txt, labels.txt (all from the supertagger) "
+                    + " and a file indices.txt that contains an index for each instance of parserOut that refers to its original index in the sentences.txt etc files. Also goldAMR.txt");
             System.err.println("2) path to lookup folder (nameLookup.txt etc)");
             System.err.println("3) path to wordnet (3.0/dict/ folder)");
             System.err.println("4) (optional) threshold for when to use the backup over the neural predictions");
+            System.err.println("5) (optional) path to conceptnet (.csv.gz file)");
         }
-        
+
         String parserOutPath = args[0]; // must contain files parserOut.txt (output of parser, including root markers, one AMR per line), sentences.txt, literal.txt, labels.txt (all from the supertagger)
         // and a file indices.txt that contains an index for each instance of parserOut that refers to its original index in the sentences.txt etc files. Also goldAMR.txt
         String lookupPath = args[1];
         String wordnetPath = args[2];
-        
+
         int threshold = 10;
-        if (args.length >3) {            
+        if (args.length > 3) {
             threshold = Integer.parseInt(args[3]);
         } else {
-            System.err.println("No threshold parameter given, using default "+threshold);
+            System.err.println("No threshold parameter given, using default " + threshold);
         }
-        
-        Relabel relabel = new Relabel(wordnetPath, lookupPath, threshold, 0);
-        
-        BufferedReader sentBR = new BufferedReader(new FileReader(parserOutPath+"sentences.txt"));
+
+        String conceptnetPath = null;
+        if (args.length > 4) {
+            conceptnetPath = args[4];
+        }
+
+        Relabel relabel = new Relabel(wordnetPath, conceptnetPath, lookupPath, threshold, 0, false);
+        // didn't use propSuffix in old experiments, in MRP shared task experiments, main is not called
+
+        BufferedReader sentBR = new BufferedReader(new FileReader(parserOutPath + "sentences.txt"));
         List<String> sentences = sentBR.lines().collect(Collectors.toList());
-        BufferedReader litBR = new BufferedReader(new FileReader(parserOutPath+"literal.txt"));
+        BufferedReader litBR = new BufferedReader(new FileReader(parserOutPath + "literal.txt"));
         List<String> literals = litBR.lines().collect(Collectors.toList());
-        BufferedReader labelBR = new BufferedReader(new FileReader(parserOutPath+"labels.txt"));
+        BufferedReader labelBR = new BufferedReader(new FileReader(parserOutPath + "labels.txt"));
         List<String> nnLabels = labelBR.lines().collect(Collectors.toList());
-        BufferedReader goldBR = new BufferedReader(new FileReader(parserOutPath+"goldAMR.txt"));
+        BufferedReader goldBR = new BufferedReader(new FileReader(parserOutPath + "goldAMR.txt"));
         List<String> golds = goldBR.lines().collect(Collectors.toList());
-        
-        BufferedReader indicesBR = new BufferedReader(new FileReader(parserOutPath+"indices.txt"));
-        BufferedReader parserOutBR = new BufferedReader(new FileReader(parserOutPath+"parserOut.txt"));
-        
+
+        BufferedReader indicesBR = new BufferedReader(new FileReader(parserOutPath + "indices.txt"));
+        BufferedReader parserOutBR = new BufferedReader(new FileReader(parserOutPath + "parserOut.txt"));
+
         FileWriter w = new FileWriter(parserOutPath + "relabeled.txt");
         FileWriter goldW = new FileWriter(parserOutPath + "gold_orderedAsRelabeled.txt");
-        
+
         int orphanDateEdges = 0;
-        
+
         StringAlgebra alg = new StringAlgebra();
         while (parserOutBR.ready() && indicesBR.ready()) {
             SGraph graph = new IsiAmrInputCodec().read(parserOutBR.readLine());
@@ -123,15 +134,15 @@ public class Relabel {
                     orphanDateEdges++;
                 }
             }
-            w.write(graph.toIsiAmrString()+"\n\n");
-            goldW.write(golds.get(index)+"\n\n");
+            w.write(graph.toIsiAmrString() + "\n\n");
+            goldW.write(golds.get(index) + "\n\n");
         }
-        
-        System.err.println("orphan date edges: "+orphanDateEdges);
-        
+
+        System.err.println("orphan date edges: " + orphanDateEdges);
+
         w.close();
         goldW.close();
-        
+
 //        System.err.println(allNameCount);
 //        System.err.println(seenNameCount);
 //        System.err.println(seenNameCount/(double)allNameCount);
@@ -139,25 +150,18 @@ public class Relabel {
 //        seenNETypeCounter.printAllSorted();
 //        System.err.println("Unseen NE types (predicted):");
 //        unseenNETypeCounter.printAllSorted();
-        
 //        List<String> sent = new StringAlgebra().parseString("_name_ runs");
 //        List<String> lit = new StringAlgebra().parseString("Obama runs");
 //        List<String> nnLabels = new StringAlgebra().parseString("_NAME_ run-09");
-        
-        
 //        relabel.fixGraph(graph, sent, lit, nnLabels);
 //        
 //        System.err.println(graph.toIsiAmrStringWithSources());
-        
 //        relabel.getLabel("prefer");
 //        relabel.getLabel("dogs");
-        
     }
-    
-    
-    private final RAMDictionary dict;
-    private final WordnetStemmer stemmer;
-    
+
+    private final IWordnet wordnet;
+
     private final Map<String, String> lit2name;
     private final Map<String, String> lit2wiki;
     private final Map<String, String> lit2type;
@@ -165,35 +169,49 @@ public class Relabel {
     private final Map<String, String> word2label;
     private final int nnThreshold;
     private final int lookupThreshold;
-    
-    
-    private Relabel(String wordnetPath, String mapsPath, int nnThreshold, int lookupThreshold)
+
+    private boolean usePropSuffix;
+    private final String propSuffix = "-prop";
+
+    /**
+     *
+     * @param wordnetPath path to wordnet
+     * @param conceptnetPath path to concept net
+     * @param mapsPath path to lookup folder
+     * @param nnThreshold threshold when to trust NN
+     * @param lookupThreshold
+     * @param usePropSuffix whether or not to introduce -prop suffices into relabeled data
+     * @throws IOException
+     * @throws MalformedURLException
+     * @throws InterruptedException
+     */
+    public Relabel(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold, int lookupThreshold, boolean usePropSuffix)
             throws IOException, MalformedURLException, InterruptedException {
-        
-        URL url = new URL("file", null, wordnetPath);
-        
-        dict = new RAMDictionary(url, ILoadPolicy.BACKGROUND_LOAD);
-        dict.open();
-        //dict.load(true);//do this when aligning full corpus
-        
-        stemmer = new WordnetStemmer(dict);
-        
-        lit2name = readMap(mapsPath+"nameLookup.txt");
-        lit2wiki = readMap(mapsPath+"wikiLookup.txt");
-        lit2type = readMap(mapsPath+"nameTypeLookup.txt");
-        word2label = readMap(mapsPath+"words2labelsLookup.txt");
-        word2count = readCounts(mapsPath+"words2labelsLookup.txt");
+
+        if (conceptnetPath == null) {
+            System.err.println("Reading full Wordnet.");
+            wordnet = new WordnetEnumerator(wordnetPath);
+        } else {
+            System.err.println("Reading ConceptNet + Wordnet stemmer.");
+            wordnet = new ConceptnetEnumerator(new File(conceptnetPath), wordnetPath);
+        }
+
+        lit2name = readMap(mapsPath + "nameLookup.txt");
+        lit2wiki = readMap(mapsPath + "wikiLookup.txt");
+        lit2type = readMap(mapsPath + "nameTypeLookup.txt");
+        word2label = readMap(mapsPath + "words2labelsLookup.txt");
+        word2count = readCounts(mapsPath + "words2labelsLookup.txt");
         this.nnThreshold = nnThreshold;
         this.lookupThreshold = lookupThreshold;
+        this.usePropSuffix = usePropSuffix;
     }
-    
-    
-    private void fixGraph(SGraph graph, List<String> sent, List<String> lit, List<String> nnLabels) {
-        
+
+    public void fixGraph(SGraph graph, List<String> sent, List<String> lit, List<String> nnLabels) {
+
         for (GraphNode node : new HashSet<>(graph.getGraph().vertexSet())) {
-            if (node.getLabel().matches(LEXMARKER+"[0-9]+")) {
+            if (node.getLabel().matches(LEXMARKER + "[0-9]+")) {
                 int i = Integer.parseInt(node.getLabel().substring(LEXMARKER.length()));
-                String nextWord = (i+1 < sent.size()) ? sent.get(i+1) : null;
+                String nextWord = (i + 1 < sent.size()) ? sent.get(i + 1) : null;
                 if (i >= sent.size() || i >= nnLabels.size()) {
                     System.err.println(sent);
                     System.err.println(nnLabels);
@@ -202,17 +220,16 @@ public class Relabel {
                 fixLabel(sent.get(i), lit.get(i), nextWord, nnLabels.get(i), graph, node);
             }
         }
-        
+
     }
-    
-    
+
     private void fixLabel(String word, String lit, String nextWord,
             String nnLabel, SGraph graph, GraphNode lexNode) {
-        
+
         if (word.equals(RareWordsAnnotator.NAME_TOKEN.toLowerCase())) {
-            
+
             allNameCount++;
-            
+
             lexNode.setLabel("name");
             String lookupName = lit2name.get(lit);
             String[] ops;
@@ -222,15 +239,20 @@ public class Relabel {
                 seen = true;
                 ops = lookupName.split(":");
             } else {
-                ops = lit.split("_");
+                ops = lit.split(LITERAL_JOINER);
             }
             int i = 1;
             for (String op : ops) {
                 GraphNode opNode = graph.addNode(Util.gensym("explicitanon"), op);
-                graph.addEdge(lexNode, opNode, "op"+i);
+                if (usePropSuffix){
+                    graph.addEdge(lexNode, opNode, "op" + i + propSuffix);
+                } else {
+                    graph.addEdge(lexNode, opNode, "op" + i);
+                }
+
                 i++;
             }
-            
+
             //add wiki node
             GraphEdge nameEdge = null;
             for (GraphEdge edge : graph.getGraph().incomingEdgesOf(lexNode)) {
@@ -248,48 +270,66 @@ public class Relabel {
                 }
                 graph.addEdge(neNode, wikiNode, "wiki");
             }
-            
-            
+
         } else if (word.equals(RareWordsAnnotator.DATE_TOKEN.toLowerCase())) {
-            
+
             lexNode.setLabel("date-entity");
-            
-            Integer year;
-            Integer month;
-            Integer day;
-            
+
+            Integer year = 0;
+            Integer month = 0;
+            Integer day = 0;
+            Matcher m;
             if (lit.contains("-")) {
                 //yyyy-MM-dd
                 year = Integer.parseInt(lit.substring(0, 4));
                 month = Integer.parseInt(lit.substring(5, 7));
                 day = Integer.parseInt(lit.substring(8, 10));
             } else if (lit.contains("/")) {
-                //MM/dd/yy
-                year = fixYear(Integer.parseInt(lit.substring(6, 8)));
-                month = Integer.parseInt(lit.substring(0, 2));
-                day = Integer.parseInt(lit.substring(3, 5));
+                m = MMddYY.matcher(lit);
+                boolean foundSomething = false;
+                if (m.matches()) {
+                    //MM/dd/yy
+                    year = fixYear(Integer.parseInt(m.group(3)));
+                    month = Integer.parseInt(m.group(1));
+                    day = Integer.parseInt(m.group(2));
+                    foundSomething = true;
+                }
+                m = MMdd.matcher(lit);
+                if (m.matches()) {
+                    //MM/dd
+                    month = Integer.parseInt(m.group(1));
+                    day = Integer.parseInt(m.group(2));
+                    foundSomething = true;
+                }
+                if (!foundSomething) {
+                    System.err.println("[Relabeler] Couldn't parse this date expression " + lit);
+                    year = 0;
+                    month = 0;
+                    day = 0;
+                }
+
             } else {
                 //yyMMdd
                 year = fixYear(Integer.parseInt(lit.substring(0, 2)));
                 month = Integer.parseInt(lit.substring(2, 4));
                 day = Integer.parseInt(lit.substring(4, 6));
             }
-            
+
             if (year > 0) {
                 GraphNode node = graph.addNode(Util.gensym("explicitanon"), String.valueOf(year));
-                graph.addEdge(lexNode, node, "year");
+                graph.addEdge(lexNode, node, "year" + (usePropSuffix ? propSuffix : ""));
             }
             if (month > 0) {
                 GraphNode node = graph.addNode(Util.gensym("explicitanon"), String.valueOf(month));
-                graph.addEdge(lexNode, node, "month");
+                graph.addEdge(lexNode, node, "month" + (usePropSuffix ? propSuffix : ""));
             }
             if (day > 0) {
                 GraphNode node = graph.addNode(Util.gensym("explicitanon"), String.valueOf(day));
-                graph.addEdge(lexNode, node, "day");
+                graph.addEdge(lexNode, node, "day" + (usePropSuffix ? propSuffix : ""));
             }
-            
+
         } else if (word.equals(RareWordsAnnotator.NUMBER_TOKEN.toLowerCase())) {
-            
+
             //recover large numbers
             if (nextWord == null) {
                 lexNode.setLabel(lit);
@@ -309,12 +349,12 @@ public class Relabel {
                     lexNode.setLabel(lit.replaceAll("[,.]", ""));
                 }
             }
-            
+
         } else {
             // find verb stems
-            
+
             int count = word2count.getInt(word);
-            
+
             if (count >= nnThreshold) {
                 lexNode.setLabel(nnLabel);
             } else if (count > lookupThreshold && word2label.containsKey(word)) {
@@ -327,93 +367,31 @@ public class Relabel {
                         break;
                     }
                 }
-                
+
                 if (hasArgs) {
-                    boolean foundWithStemming = false;
-                    try {
-                        List<String> verbStems = stemmer.findStems(word, POS.VERB);
-                        if (!verbStems.isEmpty()) {
-                            IIndexWord idxWord = dict.getIndexWord(verbStems.iterator().next(), POS.VERB);
-                            try {
-                                lexNode.setLabel(dict.getWord(idxWord.getWordIDs().iterator().next()).getLemma()+"-01");
-                                foundWithStemming = true;
-                            } catch (java.lang.Exception ex) {
-                                //ex.printStackTrace();
-                            }
-                        }
-                    } catch (IllegalArgumentException ex) {
-                        System.err.println(word);
-//                        ex.printStackTrace();
-                    }
-                        
-                    if (!foundWithStemming) {
-                    
-                        //find related verbs
-                        Set<IWord> iWords = new HashSet<>();
-                        for (POS pos : POS.values()) {
-                            try {
-                                for (String stem : stemmer.findStems(word, pos)) {
-                                    IIndexWord idxWord = dict.getIndexWord(stem, pos);
-                                    if (idxWord != null) {
-                                        for (IWordID wordID : idxWord.getWordIDs()) {
-                                            iWords.add(dict.getWord(wordID));
-                                        }
-                                    }
-                                }
-                            } catch (java.lang.IllegalArgumentException ex) {
-                                System.err.println("*** WARNING *** "
-                                        + de.up.ling.irtg.util.Util.getStackTrace(ex));
-                            }
-                        }
-                        Set<IWord> seen = new HashSet<>(iWords);
-                        boolean changed = true;
-                        while (changed) {
-                            changed = false;
-                            for (IWord iW : new HashSet<>(seen)) {
-                                List<IWord> newHere = iW.getRelatedWords(Pointer.DERIVATIONALLY_RELATED)
-                                        .stream().map(id -> dict.getWord(id)).collect(Collectors.toList());
-                                for (IWord newIW : newHere) {
-                                    if (!seen.contains(newIW)) {
-                                        changed = true;
-                                        seen.add(newIW);
-                                    }
-                                }
-                            }
-                        }
-                        seen.removeIf(iW -> !iW.getPOS().equals(POS.VERB));
-                        if (!seen.isEmpty()) {
-                            lexNode.setLabel(seen.iterator().next().getLemma()+"-01");
+                    String verbStem = wordnet.findVerbStem(word);
+
+                    if (verbStem != null) {
+                        lexNode.setLabel(verbStem + "-01");
+                    } else {
+                        String relatedVerbStem = wordnet.findRelatedVerbStem(word);
+
+                        if (relatedVerbStem != null) {
+                            lexNode.setLabel(relatedVerbStem + "-01");
                         } else {
-                            lexNode.setLabel(word+"-01");
+                            lexNode.setLabel(word + "-01");
                         }
                     }
-                    
+
                 } else {
-                    boolean foundWithStemming = false;
-                    try {
-                        List<String> nounStems = stemmer.findStems(word, POS.NOUN);
-                        if (!nounStems.isEmpty()) {
-                            IIndexWord idxWord = dict.getIndexWord(nounStems.iterator().next(), POS.NOUN);
-                            try {
-                                lexNode.setLabel(dict.getWord(idxWord.getWordIDs().iterator().next()).getLemma());
-                                foundWithStemming = true;
-                            } catch (java.lang.Exception ex) {
-                                //ex.printStackTrace();
-                            }
-                        }
-                    } catch (IllegalArgumentException ex) {
-//                        ex.printStackTrace();
-                    }
-                    
-                    if (!foundWithStemming) {
-                        lexNode.setLabel(word);
-                    }
+                    String nounStem = wordnet.findNounStem(word);
+                    lexNode.setLabel(nounStem != null ? nounStem : word);
                 }
             }
 
         }
     }
-    
+
     private static Map<String, String> readMap(String filePath) throws IOException {
         Map<String, String> ret = new HashMap<>();
         BufferedReader br = new BufferedReader(new FileReader(filePath));
@@ -425,7 +403,7 @@ public class Relabel {
         }
         return ret;
     }
-    
+
     private static Object2IntMap<String> readCounts(String filePath) throws IOException {
         Object2IntMap<String> ret = new Object2IntOpenHashMap<>();
         BufferedReader br = new BufferedReader(new FileReader(filePath));
@@ -437,26 +415,26 @@ public class Relabel {
         }
         return ret;
     }
-    
+
     private static int fixYear(int twoDigitYear) {
-        return (twoDigitYear < 20) ? twoDigitYear+2000 : twoDigitYear+1900;
+        return (twoDigitYear < 20) ? twoDigitYear + 2000 : twoDigitYear + 1900;
     }
-    
+
     private static String shiftZero(String number, int amount) {
-        for (int i = 0; i<amount; i++) {
+        for (int i = 0; i < amount; i++) {
             int dotIndex = number.indexOf(".");
             if (dotIndex == -1) {
-                number = number+"0";
+                number = number + "0";
             } else {
                 number = number.replace(".", "");
-                if (dotIndex < number.length() -1) {
+                if (dotIndex < number.length() - 1) {
                     //re-insert dot one further
-                    number = number.substring(0, dotIndex+1)+"."+number.substring(dotIndex+1);
+                    number = number.substring(0, dotIndex + 1) + "." + number.substring(dotIndex + 1);
                 }
                 //else keep it as is
             }
         }
         return number;
     }
-    
+
 }

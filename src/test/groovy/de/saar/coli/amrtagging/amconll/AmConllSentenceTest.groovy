@@ -4,7 +4,10 @@
  * and open the template in the editor.
  */
 
-package de.saar.coli.amrtagging
+package de.saar.coli.amrtagging.amconll
+
+import de.saar.coli.amrtagging.AmConllEntry
+import de.saar.coli.amrtagging.AmConllSentence
 
 import static org.junit.Assert.*
 import org.junit.*
@@ -17,11 +20,11 @@ import de.up.ling.tree.Tree
  *
  * @author koller
  */
-class ConllSentenceTest {
+class AmConllSentenceTest {
     
     @Test
     public void testAmTermToConllSentence() {
-        ConllSentence sent = s([e(1, "John"), e(2, "likes"), e(3, "Mary")]);
+        AmConllSentence sent = s([e(1, "John"), e(2, "likes"), e(3, "Mary")]);
         Tree<String> amterm = pt("APP_s(APP_o(xxlikes, xxmary), xxjohn)");
         List leafOrderToStringOrder = [1, 2, 0];
         Map stToType = ["xxlikes": new Type("(s(),o())"), "xxmary": new Type("()"), "xxjohn": new Type("()")];
@@ -29,13 +32,13 @@ class ConllSentenceTest {
         sent.setDependenciesFromAmTerm(amterm, leafOrderToStringOrder, { st -> stToType[st] });
         
         assertIncoming(sent[0], 2, "APP_s", "xxjohn")
-        assertIncoming(sent[1], 0, ConllEntry.ROOT_SYM, "xxlikes")
+        assertIncoming(sent[1], 0, AmConllEntry.ROOT_SYM, "xxlikes")
         assertIncoming(sent[2], 2, "APP_o", "xxmary")
     }
     
     @Test
     public void testComplexAmTermToConllSentence() {
-        ConllSentence sent = s([e(1, "John"), e(2, "thinks"), e(3, "that"), e(4, "Mary"), e(5, "sleeps")]);
+        AmConllSentence sent = s([e(1, "John"), e(2, "thinks"), e(3, "that"), e(4, "Mary"), e(5, "sleeps")]);
         Tree<String> amterm = pt("APP_s(APP_v(xxthinks, APP_s(xxsleeps, xxMary)), xxJohn)")
         List leafOrderToStringOrder = [1, 4, 3, 0];
         Map stToType = ["xxthinks": new Type("(s(),v())"), "xxMary": new Type("()"), "xxJohn": new Type("()"), "xxsleeps": new Type("(s())")];
@@ -43,17 +46,17 @@ class ConllSentenceTest {
         sent.setDependenciesFromAmTerm(amterm, leafOrderToStringOrder, { st -> stToType[st] });
         
         assertIncoming(sent[0], 2, "APP_s", "xxJohn")
-        assertIncoming(sent[1], 0, ConllEntry.ROOT_SYM, "xxthinks")
-        assertIncoming(sent[2], 0, ConllEntry.IGNORE, ConllEntry.DEFAULT_NULL)
+        assertIncoming(sent[1], 0, AmConllEntry.ROOT_SYM, "xxthinks")
+        assertIncoming(sent[2], 0, AmConllEntry.IGNORE, AmConllEntry.DEFAULT_NULL)
         assertIncoming(sent[3], 5, "APP_s", "xxMary")
         assertIncoming(sent[4], 2, "APP_v", "xxsleeps")
     }
     
     @Test
     public void testEncodeDecode() {
-        List<ConllSentence> sents = ConllSentence.read(new StringReader(AMCONLL));
+        List<AmConllSentence> sents = AmConllSentence.read(new StringReader(AMCONLL));
         StringWriter w = new StringWriter();
-        ConllSentence.write(w, sents);
+        AmConllSentence.write(w, sents);
         
         String result = w.toString().trim();
         result = result.replaceAll("true", "True");
@@ -63,9 +66,9 @@ class ConllSentenceTest {
     
     @Test
     public void testAmTermInfoLoss() {
-        List<ConllSentence> sents = ConllSentence.read(new StringReader(AMCONLL));
+        List<AmConllSentence> sents = AmConllSentence.read(new StringReader(AMCONLL));
         
-        ConllEntry e = sents.get(0).get(0);
+        AmConllEntry e = sents.get(0).get(0);
         int oldHead = e.getHead();
         String oldEdgeLabel = e.getEdgeLabel();
         String oldSupertag = e.getDelexSupertag();
@@ -74,7 +77,7 @@ class ConllSentenceTest {
         e.setDelexSupertag("hello supertag with space");
         
         StringWriter w = new StringWriter();
-        ConllSentence.write(w, sents);
+        AmConllSentence.write(w, sents);
         
         String result = w.toString().trim();
         result = result.replaceAll("true", "True");
@@ -85,20 +88,20 @@ class ConllSentenceTest {
         assertEquals(AMCONLL.trim(), result)
     }
     
-    public void assertIncoming(ConllEntry entry, int expectedHead, String expectedEdgeLabel, String expectedSupertag) {
+    public void assertIncoming(AmConllEntry entry, int expectedHead, String expectedEdgeLabel, String expectedSupertag) {
         assertEquals(expectedHead, entry.getHead());
         assertEquals(expectedEdgeLabel, entry.getEdgeLabel());
         assertEquals(expectedSupertag, entry.getDelexSupertag());
     }
     
-    public ConllSentence s(List<ConllEntry> entries) {
-        ConllSentence ret = new ConllSentence();
+    public AmConllSentence s(List<AmConllEntry> entries) {
+        AmConllSentence ret = new AmConllSentence();
         ret.addAll(entries);
         return ret;
     }
     
-    public ConllEntry e(int pos, String form) {
-        return new ConllEntry(pos, form);
+    public AmConllEntry e(int pos, String form) {
+        return new AmConllEntry(pos, form);
     }
     
     private static final String AMCONLL = '''#id:#22000001

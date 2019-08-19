@@ -5,11 +5,13 @@
  */
 package de.saar.coli.amrtagging.formalisms.eds.tools;
 
+import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.formalisms.GraphStats;
 import de.saar.coli.amrtagging.formalisms.amr.tools.ReadRawCorpus;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,9 +23,12 @@ public class PrintEdgeStats {
     
     public static void main(String[] args) throws FileNotFoundException, IOException {
                 
-        List<SGraph> allGraphs = ReadRawCorpus.readGraphs(args[0]);
-        
-        GraphStats.printEdgeStats(allGraphs);
+        List<AnchoredSGraph> allGraphs = ReadRawCorpus.readGraphs(args[0]);
+        List<SGraph> allGs = new ArrayList<>();
+        for (AnchoredSGraph sg : allGraphs){
+            allGs.add(sg);
+        }
+        GraphStats.printEdgeStats(allGs);
     }
     
 }

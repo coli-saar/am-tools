@@ -84,6 +84,8 @@ public class FixUnalignedNodes {
         interps.put("alignmentp", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         interps.put("repalignmentp", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         interps.put("spanmap", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        interps.put("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+
         
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
         loaderIRTG.addAllInterpretations((Map) interps); // TODO fix type conflict properly
@@ -122,7 +124,7 @@ public class FixUnalignedNodes {
             
             ((SGraph)newInst.getInputObjects().get("graph")).setWriteAsAMR(true);
             ((SGraph)newInst.getInputObjects().get("repgraph")).setWriteAsAMR(true);
-            
+                                
             retCorpus.addInstance(newInst);
             if ((i+1) % 500 == 0) {
                 System.err.println("Successes for absolute alignments: "+success.getValue()+"/"+i);

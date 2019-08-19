@@ -7,12 +7,14 @@ package de.saar.coli.amrtagging.formalisms.eds;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -29,12 +31,12 @@ public class EDSBlobUtils extends AMRBlobUtils{
     public static final String COORD = "op";
     //public static final String SUBORD = "sub";
     
-    public static final HashSet<String> EXCEPTIONS_TARGET = new HashSet<String>(){{
+    public static final Set<String> EXCEPTIONS_TARGET = new HashSet<String>(){{
         add("udef_q");
         add("nominalization"); //this rule is really bs but it helps us decompose more graphs.
     }};
     
-    public static final HashSet<String> EXCEPTIONS_SOURCE = new HashSet<String>(){{
+    public static final Set<String> EXCEPTIONS_SOURCE = new HashSet<String>(){{
     }};
     
     
@@ -53,13 +55,15 @@ public class EDSBlobUtils extends AMRBlobUtils{
             case "ARG1": return SUBJ;
             case "ARG2": return OBJ;
             case "BV": return DET;
-            case "R-INDEX": return COORD+"1";
-            case "L-INDEX": return COORD+"2";
-            case "R-HNDL": return COORD+"1";
-            case "L-HNDL": return COORD+"2";
+            case "R-INDEX": return COORD+"2";
+            case "L-INDEX": return COORD+"1";
+            case "R-HNDL": return COORD+"2";
+            case "L-HNDL": return COORD+"1";
             default:
                 if (edge.getLabel().startsWith("ARG")) {
                     return OBJ;  
+               } else if (edge.getLabel().startsWith(SGraphConverter.ROOT_EDGE_LABEL)) {
+                    return edge.getLabel();
                 } else {
                     return MOD;
                 }
@@ -80,7 +84,7 @@ public class EDSBlobUtils extends AMRBlobUtils{
             }
             if (s.equals(SUBJ)) {
                 GraphNode n = graph.getNode(graph.getNodeForSource(s));
-                Set<GraphEdge> edges = graph.getGraph().edgesOf(n);
+                Set<GraphEdge> edges = graph.getGraph().edgesOf(n).stream().filter(edge -> !edge.getLabel().equals("BV")).collect(Collectors.toSet());
                 if (!edges.isEmpty()) {
                     if (edges.size() > 1) {
                         System.err.println("***WARNING*** more than one edge at node "+n);

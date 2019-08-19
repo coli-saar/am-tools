@@ -7,15 +7,9 @@ package de.saar.coli.amrtagging.formalisms.sdp.psd.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
@@ -24,7 +18,6 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
@@ -42,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.mutable.MutableInt;
 
 /**
  *  Create PSD training data.
@@ -100,7 +92,7 @@ public class CreateCorpusParallel {
         
         
         GraphReader2015 gr = new GraphReader2015(cli.corpusPath);
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         Scorer overall = new Scorer();
         
@@ -171,7 +163,7 @@ public class CreateCorpusParallel {
                         //SGraphDrawer.draw(inst.getGraph(), "");
 
                         
-                        ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, modified, supertagDictionary);
+                        AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, modified, supertagDictionary);
                         sent.setAttr("id", sdpGraphi.id);
                         Sentence stanfAn = new Sentence(modified.getSentence().subList(0, modified.getSentence().size()-1)); //remove artifical root "word"
 
@@ -192,7 +184,7 @@ public class CreateCorpusParallel {
                             if (i % 100 == 0){
                                 System.err.println(i);
                             }
-                            if (i % 10 == 0){
+                            if (i % 1000 == 0){
                                 synchronized(supertagDictionary){
                                     cli.write(outCorpus, supertagDictionary);
                                 }
@@ -223,7 +215,7 @@ public class CreateCorpusParallel {
     //                    System.err.println(inst.getGraph());
     //                    SGraphDrawer.draw(modified.getGraph(), "");
     //                    if (cli.debug){
-    //                        for (Alignment al : inst.getAlignments()){
+    //                        for (TokenAlignment al : inst.getAlignments()){
     //                            System.err.println(inst.getSentence().get(al.span.start));
     //                            System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
     //                        }
@@ -256,10 +248,10 @@ public class CreateCorpusParallel {
         
     }
     
-    private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+    private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
         if (outPath != null && prefix != null){
             new File(outPath).mkdirs();
-            ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+            AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
             if (vocab == null){ //only write vocab if it wasn't restored.
                 supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
             }

@@ -6,7 +6,9 @@
 package de.saar.coli.amrtagging;
 
 import de.up.ling.irtg.algebra.graph.SGraph;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An instance of a Meaning Representation that will be given to the AlignmentTrackingAutomaton
@@ -47,6 +49,59 @@ public class MRInstance {
      */
     public List<Alignment> getAlignments() {
         return alignments;
+    }
+    
+    
+    /**
+     * Gives for every node the number of alignments it participates in.
+     * @return 
+     */
+    public Map<String,Integer> getAlignmentCounter(){
+       Map<String,Integer> counter = new HashMap<>();
+        for (String node : graph.getAllNodeNames()){
+            counter.put(node, 0);
+        }
+        
+        for (Alignment al : alignments){
+            for (String node : al.nodes){
+                counter.put(node, counter.get(node)+1);
+            }
+        }
+        return counter;
+    }
+    
+    /**
+     * Returns true iff every node is aligned to exactly one token.
+     * @throws de.saar.coli.amrtagging.MRInstance.UnalignedNode
+     * @throws de.saar.coli.amrtagging.MRInstance.MultipleAlignments
+     */
+    public void checkEverythingAligned() throws UnalignedNode, MultipleAlignments{
+        
+        Map<String,Integer> counter = getAlignmentCounter();
+        
+        for (String node : graph.getAllNodeNames()){
+            if (counter.get(node) == 0){
+                throw new UnalignedNode(node+" with label "+graph.getNode(node).getLabel());
+            } else if (counter.get(node) > 1){
+                throw new MultipleAlignments(node+" with label "+graph.getNode(node).getLabel());
+            }
+        }
+        
+    }
+    
+    public class UnalignedNode extends Exception {
+        public UnalignedNode(String msg){
+            super(msg);
+        }
+        
+    }
+    
+    public class MultipleAlignments extends Exception {
+        
+        public MultipleAlignments(String msg){
+            super(msg);
+        }
+        
     }
     
 }

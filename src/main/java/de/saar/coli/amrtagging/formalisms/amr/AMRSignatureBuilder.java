@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  * @author Jonas
  */
 public class AMRSignatureBuilder implements AMSignatureBuilder{
-    
+
     
     //---------------------------------------------   constants   --------------------------------------------------------
     
@@ -205,7 +205,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
     
     
     /**
-     * Runs heuristics to create constants that cover the nodes in Alignment al within the SGraph graph.
+     * Runs heuristics to create constants that cover the nodes in TokenAlignment al within the SGraph graph.
      * @param al
      * @param graph
      * @param addCoref
@@ -905,8 +905,41 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
         return ret;
     }
     
-    
-    
+    /**
+     * Maximal object promotion and passivisation
+     * @param typedGraph: pair of SGraph and its type. The type is never used, this is for forward compatability with the new am-tools
+     * @return 
+     */
+    public static double scoreGraphPassiveSpecial(Pair<SGraph, ApplyModifyGraphAlgebra.Type> typedGraph) {
+        SGraph graph = typedGraph.getLeft();
+        double ret = 1.0;
+        for (String s : graph.getAllSources()) {
+            if (s.matches(OBJ+"[0-9]+")) {
+                double oNr = Integer.parseInt(s.substring(1));
+                ret /= oNr;
+            }
+            if (s.equals(SUBJ)) {
+                GraphNode n = graph.getNode(graph.getNodeForSource(s));
+                Set<GraphEdge> edges = graph.getGraph().edgesOf(n);
+                if (!edges.isEmpty()) {                    
+                    if (edges.size() > 1) {
+                        System.err.println("***WARNING*** more than one edge at node "+n.getName());
+                        System.err.println(edges);
+                    }
+                    GraphEdge e = edges.iterator().next();
+                    if (e.getLabel().equals("ARG0")) {
+                        ret *= 2.0;
+                    } else if (e.getLabel().equals("ARG1")) {
+                        ret *= 1.5;
+                    }
+                } else {
+                    System.err.println("***WARNING*** no edges at node "+n.getName());
+                }
+            }
+        }
+        return ret;
+    }
+     
     
     
     

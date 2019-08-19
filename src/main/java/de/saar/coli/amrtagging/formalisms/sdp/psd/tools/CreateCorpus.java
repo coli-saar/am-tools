@@ -7,16 +7,9 @@ package de.saar.coli.amrtagging.formalisms.sdp.psd.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
-import de.saar.coli.amrtagging.ConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.ConcreteAlignmentSignatureBuilder;
-import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
@@ -39,9 +32,7 @@ import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -120,7 +111,7 @@ public class CreateCorpus {
         Graph sdpGraph;
         int counter = 0;
         int problems = 0;
-        ArrayList<ConllSentence> outCorpus = new ArrayList<>();
+        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         Scorer overall = new Scorer();
         
@@ -166,7 +157,7 @@ public class CreateCorpus {
 
                 if (t != null){
                     
-                    ConllSentence sent = ConllSentence.fromIndexedAMTerm(t, modified, supertagDictionary);
+                    AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, modified, supertagDictionary);
                     sent.setAttr("id", sdpGraph.id);
                     Sentence stanfAn = new Sentence(modified.getSentence().subList(0, modified.getSentence().size()-1)); //remove artifical root "word"
 
@@ -253,10 +244,10 @@ public class CreateCorpus {
         
     }
     
-    private void write(ArrayList<ConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+    private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
         if (outPath != null && prefix != null){
             new File(outPath).mkdirs();
-            ConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+            AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
             if (vocab == null){ //only write vocab if it wasn't restored.
                 supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
             }

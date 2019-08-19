@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.Alignment.Span;
+import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
@@ -79,7 +80,7 @@ public class MakeNETypeLookup {
                     debug.add("names");
                     Alignment al = id2al.get(i);
                     Span span = new Span(spanmap.get(i));
-                    StringJoiner sj = new StringJoiner("_");
+                    StringJoiner sj = new StringJoiner(LITERAL_JOINER);
                     for (int j = span.start; j<span.end; j++) {
                         sj.add(sent.get(j));
                     }

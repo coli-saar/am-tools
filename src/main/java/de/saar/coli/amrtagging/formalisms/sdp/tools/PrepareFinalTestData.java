@@ -7,8 +7,8 @@ package de.saar.coli.amrtagging.formalisms.sdp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.ConllEntry;
-import de.saar.coli.amrtagging.ConllSentence;
+import de.saar.coli.amrtagging.AmConllEntry;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import edu.stanford.nlp.simple.Sentence;
 import java.io.FileNotFoundException;
@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
-import se.liu.ida.nlp.sdp.toolkit.graph.Node;
 
 import se.liu.ida.nlp.sdp.toolkit.io.ParagraphReader;
 
@@ -60,24 +58,24 @@ public class PrepareFinalTestData {
         
         ParagraphReader reader = new ParagraphReader(cli.corpusPath);
         List<String> para;
-        ArrayList<ConllSentence> out = new ArrayList<>();
+        ArrayList<AmConllSentence> out = new ArrayList<>();
         while ((para = reader.readParagraph()) != null){
-            ConllSentence currentSent = new ConllSentence();
+            AmConllSentence currentSent = new AmConllSentence();
             para = para.stream().filter(line -> !line.startsWith("#")).collect(Collectors.toList());
             for (String info : para){
                 String[] fields = info.split("\t");
-                ConllEntry e = new ConllEntry(Integer.parseInt(fields[0]), fields[1]);
+                AmConllEntry e = new AmConllEntry(Integer.parseInt(fields[0]), fields[1]);
                 e.setLemma(fields[2]);
                 e.setPos(fields[3]);
                 currentSent.add(e);
             }
-            ArrayList<String> words = currentSent.words();
+            List<String> words = currentSent.words();
             Sentence stanfordSent = new Sentence(words);
             
-            ArrayList<String> neTags = new ArrayList<>(stanfordSent.nerTags());
+            List<String> neTags = new ArrayList<>(stanfordSent.nerTags());
             neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             
-            ConllEntry artRoot = new ConllEntry(para.size()+1,SGraphConverter.ARTIFICAL_ROOT_LABEL);
+            AmConllEntry artRoot = new AmConllEntry(para.size()+1,SGraphConverter.ARTIFICAL_ROOT_LABEL);
             artRoot.setLemma(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             artRoot.setPos(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             currentSent.add(artRoot);
@@ -85,6 +83,6 @@ public class PrepareFinalTestData {
             currentSent.addNEs(neTags);
             out.add(currentSent);
         } 
-        ConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
+        AmConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
     }
 }

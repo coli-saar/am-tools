@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
+import de.saar.coli.amrtagging.Util;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import de.up.ling.tree.TreeParser;
@@ -26,6 +27,8 @@ import java.util.regex.Pattern;
  * @author Jonas
  */
 public class FixAMRAltoCorpus {
+    
+    public static final String UNK_CHAR = "_"; //before, it was _UNK_CHAR_ which BERT probably doesn't like at all
     
     public static void main(String[] args) throws IOException, ParseException {
         String outputPath = args[0];
@@ -57,17 +60,19 @@ public class FixAMRAltoCorpus {
     
     private FixAMRAltoCorpus(boolean useTrees) {
         if (useTrees) {
-            START_LINE = 8;
+            START_LINE = 10;
             STRING_LINE = 0;
             TREE_LINE = 1;
             GRAPH_LINE = 2;
-            TOTAL_LINES = 3;
+            ID_LINE = 3;
+            TOTAL_LINES = 4;
         } else {
-            START_LINE = 7;
+            START_LINE = 9;
             STRING_LINE = 0;
             TREE_LINE = -1;
             GRAPH_LINE = 1;
-            TOTAL_LINES = 2;
+            ID_LINE = 2;
+            TOTAL_LINES = 3;
         }
     }
     
@@ -75,6 +80,7 @@ public class FixAMRAltoCorpus {
     final int STRING_LINE;
     final int TREE_LINE;
     final int GRAPH_LINE;
+    final int ID_LINE;
     final int TOTAL_LINES;
 
     public static final String SINGLEQUOTE_REPLACEMENT = "AsinglequoteA";
@@ -95,11 +101,13 @@ public class FixAMRAltoCorpus {
         int actualLineCounter = 0;
         while ((line = corpusReader.readLine()) != null) {
             if (i>= START_LINE) {
-                if (actualLineCounter%TOTAL_LINES == STRING_LINE) {
+                // if we're on a string or line we just copy it to the new corpus
+                if (actualLineCounter%TOTAL_LINES == STRING_LINE || 
+                        actualLineCounter%TOTAL_LINES == ID_LINE) { 
                     writer.write(line+"\n");
-                } else if (actualLineCounter%TOTAL_LINES == GRAPH_LINE) {
+                } else if (actualLineCounter%TOTAL_LINES == GRAPH_LINE) { // we're on a graph line
                     writer.write(line.replaceAll("\'", SINGLEQUOTE_REPLACEMENT)+"\n");
-                } else if (actualLineCounter%TOTAL_LINES == TREE_LINE) {
+                } else if (actualLineCounter%TOTAL_LINES == TREE_LINE) { // we're on a tree line
                     StringBuilder sb = new StringBuilder();
                     boolean inDoubleQuotes = false;
                     for (int j = 0; j<line.length(); j++) {
@@ -163,14 +171,18 @@ public class FixAMRAltoCorpus {
                 line = line.replaceAll(W_PLACEHOLDER, " ");
                 //normalize (separate accent from accented letter) and remove accents
                 line = Normalizer.normalize(line, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+                //replace common non-ascii characters:
+                line = Util.fixPunct(line);
                 //replace non-ascii characters
-                line = line.replaceAll("[^\\x00-\\x7F]", "_UNK_CHAR_");
+                line = line.replaceAll("[^\\x00-\\x7F]", UNK_CHAR);
             } else {
-                line = line.replaceAll("\\[(string|graph)\\] ", "");
+                line = line.replaceAll("\\[(string|graph|id)\\] ", "");
                 //normalize (separate accent from accented letter) and remove accents
                 line = Normalizer.normalize(line, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+                //replace common non-ascii characters:
+                line = Util.fixPunct(line);
                 //replace non-ascii characters
-                line = line.replaceAll("[^\\x00-\\x7F]", "_UNK_CHAR_");
+                line = line.replaceAll("[^\\x00-\\x7F]", UNK_CHAR);
             }
             writer.write(line+"\n");
         }
@@ -340,7 +352,12 @@ public class FixAMRAltoCorpus {
             if (i>= START_LINE) {
                 if (actualLineCounter%TOTAL_LINES == GRAPH_LINE) {
                     int index = line.indexOf("/");
-                    writer.write(line.substring(0, index)+"<root> "+line.substring(index)+"\n");
+                    if (index > -1) { // it's -1 if / isn't found
+                        writer.write(line.substring(0, index)+"<root> "+line.substring(index)+"\n");
+                    } else {
+                        System.out.println("addRootSources error: I didn't find a graph where I should have");
+                        System.out.println("Line: " + line);
+                    }
                 } else {
                     writer.write(line+"\n");
                 }
@@ -366,8 +383,8 @@ public class FixAMRAltoCorpus {
      */
     private void tokenizeTree(String path) throws IOException, ParseException {
         
-        String corpusPath = path+"RefOrderFixed.corpus";//"C:/Users/Jonas/Documents/Work/experimentData/Corpora/semeval2017Stripped/train20.corpus";//BitBuckets/alto-experimental/corpus100Dev3.txt";//args[0];
-        String targetPath = path+"tokenizedTrees.corpus";//"C:/Users/Jonas/Documents/Work/experimentData/Corpora/semeval2017Stripped/train20Rooted.corpus";//BitBuckets/alto-experimental/corpus100DevRooted.txt";//args[1];
+        String corpusPath = path+"RefOrderFixed.corpus";
+        String targetPath = path+"tokenizedTrees.corpus";
         
         
         BufferedReader corpusReader = new BufferedReader(new FileReader(corpusPath));
