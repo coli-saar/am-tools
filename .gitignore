@@ -1,3 +1,5 @@
-/.gradle/
+/.nb-gradle/
 /build/
+build.log
+/.gradle/
 /src/main/java/de/saar/coli/amrtagging/AMToolsVersion.java
