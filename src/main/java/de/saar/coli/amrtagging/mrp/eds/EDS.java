@@ -116,7 +116,7 @@ public class EDS implements Formalism{
         //this is mainly important for evaluation time.
         int lastIndex = 0;
         for (int i = 0; i < copy.size(); i++){
-            String word =  fixPunct(copy.get(i).getForm());
+            String word =  copy.get(i).getForm(); //fixPunct(copy.get(i).getForm());
             if (! word.matches(END_PNCT)){
                 lastIndex = i;
             }
@@ -127,7 +127,7 @@ public class EDS implements Formalism{
         }
         int firstIndex = -1;
         for (int i = copy.size()-1; i >= 0; i--){
-            String word =  fixPunct(copy.get(i).getForm());
+            String word =  copy.get(i).getForm(); //fixPunct(copy.get(i).getForm());
             if (! word.matches(START_PNCT)){
                 firstIndex = i;
             }

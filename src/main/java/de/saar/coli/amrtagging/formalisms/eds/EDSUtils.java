@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public class EDSUtils {
     
-    public static final String PNCT = "[\";.!?()”“']+";
+    public static final String PNCT = "[\";.!?()”“'’]+";
     public static final String END_PNCT = ".*"+PNCT;
     public static final String START_PNCT = PNCT+".*";
     
@@ -110,7 +110,7 @@ public class EDSUtils {
         //this is mainly important for evaluation time.
         int lastIndex = 0;
         for (int i = 0; i < words.size(); i++){
-            String word =  Util.fixPunct(words.get(i));
+            String word =  words.get(i);//Util.fixPunct(words.get(i));
             if (! word.matches(END_PNCT)){
                 lastIndex = i;
             }
@@ -120,7 +120,7 @@ public class EDSUtils {
         }
         int firstIndex = -1;
         for (int i = words.size()-1; i >= 0; i--){
-            String word =  Util.fixPunct(words.get(i));
+            String word =  words.get(i);//Util.fixPunct(words.get(i));
             if (! word.matches(START_PNCT)){
                 firstIndex = i;
             }
