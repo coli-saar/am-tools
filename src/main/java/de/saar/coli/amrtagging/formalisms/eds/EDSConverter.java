@@ -318,43 +318,7 @@ public class EDSConverter {
     }
     
     
-    /**
-     * Does what it is supposed to do but it's not good at its job.
-     * @param treeWithNodeNames
-     * @param eds
-     * @param stanfSpans
-     * @param als
-     * @return
-     * @deprecated
-     */
-    @Deprecated
-    public static AnchoredSGraph restoreComplexSpans(Tree<Set<String>> treeWithNodeNames, SGraph eds,List<Pair<Integer,Integer>> stanfSpans, List<Alignment> als) {
-        AnchoredSGraph copy = (AnchoredSGraph) eds.merge(new SGraph());
-        treeWithNodeNames.dfs(new TreeBottomUpVisitor<Set<String>, Pair<Integer,Integer>>(){
-            @Override
-            public Pair<Integer, Integer> combine(Tree<Set<String>> node, List<Pair<Integer, Integer>> childrenValues) {
-                //identify character span of my nodes:
-                for (Alignment al : als){
-                    if (al.nodes.equals(node.getLabel())){
-                        childrenValues.add(stanfSpans.get(al.span.start));
-                    }
-                }
-                //find minimum and maximum of character spans over me and my children:
-                int min = childrenValues.stream().map(p -> p.left).min(Integer::compare).get();
-                int max = childrenValues.stream().map(p -> p.right).max(Integer::compare).get();
-                
-                for (String nodeName : node.getLabel()){
-                    if (copy.getNode(nodeName).getLabel().equals(COMPLEX_SPAN)){
-                        copy.getNode(nodeName).setLabel("<"+min+":"+max+">");
-                    }
-                }
-                return new Pair<>(min,max);
-                
-            }
-            
-        });
-        return copy;
-    }
+
       /**
      * Restores complex spans by assuming that we can do so by taking the minimum position of all children and the maximal position of all children.
      * Assumes that all simple spans are filled in and some nodes with label COMPLEX_SPAN are still there (both cases deleting HNDL edges).
