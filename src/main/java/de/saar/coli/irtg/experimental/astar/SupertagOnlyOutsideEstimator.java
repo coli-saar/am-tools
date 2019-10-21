@@ -8,14 +8,19 @@ package de.saar.coli.irtg.experimental.astar;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 
 /**
+ * An outside estimator that is based only on supertag scores.
+ * It estimates the outside score of a span as the sum of the highest
+ * log supertag probabilities for each token outside of the span.
+ * This includes the log probability of the NULL supertag.
+ * Edge scores are otherwise ignored by this estimator.
  *
  * @author koller
  */
 public class SupertagOnlyOutsideEstimator implements OutsideEstimator {
 
     private double[] bestTagp;       // bestTagp[k]    = max_s tagp[k][s]
-    private double[] outsideLeft;    // outsideLeft[k] = sum_{0 <= i < k} bestEdgep[i] + bestTagp[i]
-    private double[] outsideRight;   // outsideRight[k] = sum_{k <= i < n} bestEdgep[i] + bestTagp[i]
+    private double[] outsideLeft;    // outsideLeft[k] = sum_{0 <= i < k} bestTagp[i]
+    private double[] outsideRight;   // outsideRight[k] = sum_{k <= i < n} bestTagp[i]
 
     private final int N;
     private final SupertagProbabilities tagp;
