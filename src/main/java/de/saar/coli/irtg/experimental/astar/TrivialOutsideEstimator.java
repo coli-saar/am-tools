@@ -6,6 +6,8 @@
 package de.saar.coli.irtg.experimental.astar;
 
 /**
+ * An outside estimator which estimates the outside score
+ * of each span as zero.
  *
  * @author koller
  */
