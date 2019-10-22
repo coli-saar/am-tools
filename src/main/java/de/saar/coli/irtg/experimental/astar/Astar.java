@@ -112,8 +112,8 @@ public class Astar {
         w.record();
 
 //        this.outside = new StaticOutsideEstimator(edgep, tagp);
-        this.outside = new SupertagOnlyOutsideEstimator(tagp);
-//        this.outside = new TrivialOutsideEstimator();
+//        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        this.outside = new TrivialOutsideEstimator();
 
         w.record();
         // precompute supertag types
@@ -377,6 +377,7 @@ public class Astar {
 //        System.err.printf("item: %s\n", item);
 
 //        System.err.printf("%s -> logprob=%f, real_outside=%f, outside_estimate=%f\n", item.shortString(), item.getLogProb(), realOutside, item.getOutsideEstimate());
+        
         if (realOutside > item.getOutsideEstimate() + EPS) {
             logger.accept(String.format("WARNING: Inadmissible estimate (realOutside=%f, item=%s).", realOutside, item.toString()));
         }
