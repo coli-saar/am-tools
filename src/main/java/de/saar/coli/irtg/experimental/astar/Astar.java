@@ -112,9 +112,8 @@ public class Astar {
         w.record();
 
 //        this.outside = new StaticOutsideEstimator(edgep, tagp);
-//        this.outside = new SupertagOnlyOutsideEstimator(tagp);
-        this.outside = new TrivialOutsideEstimator();
-        System.err.println("changed outside estimator!");
+        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+//        this.outside = new TrivialOutsideEstimator();
 
         w.record();
         // precompute supertag types
