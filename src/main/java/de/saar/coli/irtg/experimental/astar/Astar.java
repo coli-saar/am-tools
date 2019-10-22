@@ -841,6 +841,13 @@ public class Astar {
 
                         System.err.println("parsing result:");
                         System.err.println(parsingResult);
+
+                        if (goalItem == null && parsingResult == null) {
+                            synchronized (logW) {
+                                logW.printf("NULL ITEM %d:", ii);
+                            } 
+                        }
+
                         w.record();
                     } catch (Throwable e) {
                         astar.logger.accept(String.format("Exception (sentence id=%d):\n", ii));
