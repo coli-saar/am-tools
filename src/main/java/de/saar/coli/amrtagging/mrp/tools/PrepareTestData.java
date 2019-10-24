@@ -127,6 +127,7 @@ public class PrepareTestData {
                 String id = usentence.getId();
                 ConlluSentence originalUsentence = usentence.copy(); // preserve all tokens here, even if NEs are merged in usentence
                 TestSentence itsTestSentence = id2testSent.get(id);
+
                 String input = itsTestSentence.input;
                 Formalism formalism;
                 NamedEntityMerger neMerger = new NamedEntityMerger(id, new MrpPreprocessedData(usentence), neRecognizer);
