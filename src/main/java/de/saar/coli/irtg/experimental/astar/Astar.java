@@ -31,9 +31,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -204,6 +207,9 @@ public class Astar {
                     Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
                     it.setCreatedBySupertag(supertagId);
                     it.setOutsideEstimate(outside.evaluate(it));
+                    if (it == null) {
+                        System.err.println("this is null");
+                    }
                     agenda.enqueue(it);
                 }
             });
@@ -253,6 +259,9 @@ public class Astar {
                     for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineRight(op, it, partner);
                         assert result.getScore() <= it.getScore() + EPS : "[0R] Generated " + result + " from " + it;
+                        if (result == null) {
+                            System.err.println("this is null");
+                        }
                         agenda.enqueue(result);
                     }
 
@@ -260,6 +269,9 @@ public class Astar {
                     for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineLeft(op, it, partner);
                         assert result.getScore() <= it.getScore() + EPS : "[0L] Generated " + result + " from " + it;
+                        if (result == null) {
+                            System.err.println("this is null");
+                        }
                         agenda.enqueue(result);
                     }
                 }
@@ -281,6 +293,9 @@ public class Astar {
                         ((StaticOutsideEstimator) outside).analyze(result, supertagLexicon, edgeLabelLexicon);
                          */
                         assert result.getScore() <= it.getScore() + EPS : String.format("[1R] Generated %s from it: %s <--[%s:%f]-- partner: %s", result.toString(typeLexicon), it.toString(typeLexicon), edgeLabelLexicon.resolveId(op), logEdgeProbability, partner.toString(typeLexicon));
+                        if (result == null) {
+                            System.err.println("this is null");
+                        }
                         agenda.enqueue(result);
                     }
 
@@ -288,6 +303,9 @@ public class Astar {
                     for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineRight(op, partner, it);
                         assert result.getScore() <= it.getScore() + EPS : "[1L] Generated " + result.toString(typeLexicon) + " from " + it.toString(typeLexicon);
+                        if (result == null) {
+                            System.err.println("this is null");
+                        }
                         agenda.enqueue(result);
                     }
                 }
@@ -299,6 +317,9 @@ public class Astar {
 
                 if (skipRight != null) {
                     assert skipRight.getScore() <= it.getScore() + EPS;
+                    if (skipRight == null) {
+                        System.err.println("this is null");
+                    }
                     agenda.enqueue(skipRight);
                 }
             }
@@ -309,6 +330,9 @@ public class Astar {
 
                 if (skipLeft != null) {
                     assert skipLeft.getScore() <= it.getScore() + EPS;
+                    if (skipLeft == null) {
+                        System.err.println("this is null");
+                    }
                     agenda.enqueue(skipLeft);
                 }
             }
@@ -318,6 +342,9 @@ public class Astar {
 //                System.err.println(" --> almost goal");
                 Item goalItem = makeGoalItem(it);
 //                System.err.println(" --> goal: " + goalItem);
+                if (goalItem == null) {
+                    System.err.println("this is null");
+                }
                 agenda.enqueue(goalItem);
             }
         }
@@ -804,8 +831,17 @@ public class Astar {
 
         final ProgressBar pb = new ProgressBar("Parsing", sentenceIndices.size());
 
+        // reads null index
+        ArrayList<Integer> nullIndex = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader("../amr17data/null_index.txt"))) {
+            while (br.ready()) {
+                nullIndex.add(Integer.parseInt(br.readLine()));
+            }
+        }
+
         for (int i : sentenceIndices) { // loop over corpus
-            if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
+            //if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
+            if (nullIndex.contains(i)) {
                 final int ii = i;
 
 //                System.err.printf("\n[%02d] EDGES:\n", ii);

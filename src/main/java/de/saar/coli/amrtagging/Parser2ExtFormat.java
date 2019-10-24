@@ -285,6 +285,7 @@ public class Parser2ExtFormat {
                                 succIDW.flush();
                             }
                             allW.write(graph.toIsiAmrString()+"\n\n");
+                            System.err.println(graph.toIsiAmrString()+"\n");
                             allUnlabeledW.write(graph.toIsiAmrStringWithSources()+"\n");
                             allWGold.write(gold.toIsiAmrString()+"\n\n");
                             allW.flush();

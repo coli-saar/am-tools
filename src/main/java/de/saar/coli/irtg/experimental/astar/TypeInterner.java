@@ -138,7 +138,8 @@ public abstract class TypeInterner<E> implements Serializable {
             
             //add all types to interner
             types.forEach(t -> t.getAllSubtypes().forEach(t_rec -> interner.addObject(t_rec)));
-//            interner.getKnownObjects().forEach(o -> System.err.println(o));
+            // types.forEach(t -> System.err.println(t));
+            // interner.getKnownObjects().forEach(o -> System.err.println(o));
             
             
             //check all possible type operations and store them accordingly
@@ -158,12 +159,12 @@ public abstract class TypeInterner<E> implements Serializable {
                         Type result = Type.evaluateOperation(t1, t2, edgeLabel);
                         if (result != null) {
                             int resultID = interner.resolveObject(result);
-                            //System.err.println("adding "+interner.resolveId(id1)+" || "+interner.resolveId(id2)+" --"+edgeLabel+"-> "+interner.resolveId(resultID));
+                            // System.err.println("adding "+interner.resolveId(id1)+" || "+interner.resolveId(id2)+" --"+edgeLabel+"-> "+interner.resolveId(resultID));
                             pos2edge2state2partners[0][edgeID0][id1-1].add(id2);
                             edge2left2right2result[edgeID][id1][id2] = resultID;
                         }
                         if (Type.evaluateOperation(t2, t1, edgeLabel) != null) {
-                            //System.err.println("adding "+interner.resolveId(id2)+" || "+interner.resolveId(id1)+" --"+edgeLabel+"-> ??");
+                            // System.err.println("adding "+interner.resolveId(id2)+" || "+interner.resolveId(id1)+" --"+edgeLabel+"-> ??");
                             pos2edge2state2partners[1][edgeID0][id1-1].add(id2);
                         }
                     }
