@@ -324,9 +324,9 @@ public class Parser2ExtFormat {
                     }
                 } catch (Exception ex) {
                     System.err.println(i);
+                    System.err.println(de.up.ling.irtg.util.Util.getStackTrace(ex));
                     System.err.println(sent.stream().collect(Collectors.joining(" ")));
                     System.err.println(gold.toIsiAmrStringWithSources());
-                    System.err.println(de.up.ling.irtg.util.Util.getStackTrace(ex));
                 }
             });
         }

@@ -3,3 +3,4 @@
 build.log
 /.gradle/
 /src/main/java/de/saar/coli/amrtagging/AMToolsVersion.java
+.nb-gradle-properties

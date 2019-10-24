@@ -90,8 +90,8 @@ public class Parser {
             List<AnnotatedSupertag> tAndPs = fragmentProbs.get(i);
             for (int k = 0; k<Math.min(maxK, tAndPs.size()); k++) {
                 AnnotatedSupertag tAndP = tAndPs.get(k);
-                if (tAndP.graph.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
-                    types[i].addAll(new Type(tAndP.graph.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1]).getAllSubtypes());
+                if (!tAndP.isNull()) {
+                    types[i].addAll(new Type(tAndP.type).getAllSubtypes());
                 }
             }
         }
@@ -116,7 +116,7 @@ public class Parser {
             boolean foundNull = false;
             for (int k = 0; k<Math.min(maxK, ifp.size()); k++) {
                 AnnotatedSupertag fAndP = ifp.get(k);
-                if (fAndP.graph.contains(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)) {
+                if (!fAndP.isNull()) {
                     //i.e. we actually have a graph fragment
                     String label = "\""+LEXMARKER_OUT+i+"\"";//mark label with word position (this may be replaced in next if clause), for use in a different script.
                     if (ilp != null) {
@@ -126,12 +126,11 @@ public class Parser {
                             label = ilp.get(1).left;
                         }
                     }
-                    String fullGraphString = Util.raw2readable(fAndP.graph).replace(DependencyExtractor.LEX_MARKER, Util.raw2readable(label));
-                    String type = fAndP.graph.split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[1];
+                    String fullGraphString = Util.raw2readable(fAndP.graphAndTypeString()).replace(DependencyExtractor.LEX_MARKER, Util.raw2readable(label));
                     int head = i;
-                    String nt = head+"|"+new Type(type).toString();//to make strings consistent with method below
+                    String nt = head+"|"+new Type(fAndP.type).toString();//to make strings consistent with method below
                     String ruleLabel = gensym("const_"+i+"__");
-                    ruleLabel2tag.put(ruleLabel, fAndP.graph);
+                    ruleLabel2tag.put(ruleLabel, fAndP.graphAndTypeString());
                     grammarAuto.addRule(grammarAuto.createRule(nt, ruleLabel, new String[0], Math.pow(fAndP.probability, tagExponent)));
                     min = Math.min(min, Math.pow(fAndP.probability, tagExponent));
                     graphHom.add(ruleLabel, Tree.create(fullGraphString, new Tree[0]));

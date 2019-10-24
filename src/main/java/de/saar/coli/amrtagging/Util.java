@@ -114,15 +114,14 @@ public class Util {
                         String t = raw2readable(tAndP.substring(0, sepInd));
 
                         Matcher m = typePattern.matcher(t);
-                        AnnotatedSupertag st = m.matches() ? new AnnotatedSupertag(m.group(1), m.group(2), 0) : new AnnotatedSupertag(t, null, 0);
 
                         Double p = Double.valueOf(tAndP.substring(sepInd + 1));
 
                         if (areLogs) {
                             p = Math.exp(p);
                         }
+                        AnnotatedSupertag st = m.matches() ? new AnnotatedSupertag(m.group(1), m.group(2), p) : new AnnotatedSupertag(t, null, p);
 
-                        st.probability = p;
                         wordList.add(st);
                     } else {
                         System.err.println("***WARNING*** could not read probability for token " + org.apache.commons.lang3.StringEscapeUtils.escapeJava(tAndP));
