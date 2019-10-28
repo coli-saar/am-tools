@@ -503,9 +503,9 @@ public class Astar {
 
         double logEdgeProbability = edgep.get(functor.getRoot(), argument.getRoot(), op);
 
-        if (logEdgeProbability < FAKE_NEG_INFINITY / 2) {
-            System.err.println(logEdgeProbability);
-        }
+        // if (logEdgeProbability < FAKE_NEG_INFINITY / 2) {
+        //     System.err.println(logEdgeProbability);
+        // }
 
         Item ret = new Item(functor.getStart(), argument.getEnd(), functor.getRoot(), t, functor.getLogProb() + argument.getLogProb() + logEdgeProbability);
         ret.setCreatedByOperation(op, functor, argument);
@@ -521,9 +521,9 @@ public class Astar {
 
         double logEdgeProbability = edgep.get(functor.getRoot(), argument.getRoot(), op);
 
-        if (logEdgeProbability < FAKE_NEG_INFINITY / 2) {
-            System.err.println(logEdgeProbability);
-        }
+        // if (logEdgeProbability < FAKE_NEG_INFINITY / 2) {
+        //     System.err.println(logEdgeProbability);
+        // }
 
         Item ret = new Item(argument.getStart(), functor.getEnd(), functor.getRoot(), t, functor.getLogProb() + argument.getLogProb() + logEdgeProbability);
         ret.setCreatedByOperation(op, functor, argument);
@@ -765,7 +765,7 @@ public class Astar {
         // calculate edge-label lexicon
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 20, true);  // TODO make these configurable  // was: 0.1, 5
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 10, true);  // TODO make these configurable  // was: 0.1, 5
         Interner<String> edgeLabelLexicon = new Interner<>();
         x = 0;
 
