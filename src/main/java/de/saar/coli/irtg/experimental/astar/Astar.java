@@ -220,6 +220,7 @@ public class Astar {
             Item it = agenda.dequeue();
 
             if (it == null) {
+                System.err.println(N);
                 // emptied agenda without finding goal item
                 w.record(); // agenda looping time
                 runtimeStatistics = new RuntimeStatistics(numDequeuedItems, w.getTimeBefore(1), Double.NaN);
@@ -229,6 +230,11 @@ public class Astar {
             numDequeuedItems++;
 
 //            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it.toString(typeLexicon));
+
+            if (it.getStart() == 0 && it.getEnd() == N) {
+                System.err.println(it);
+                System.err.println(typeLexicon.resolveID(it.getType()).keySet().isEmpty());
+            }
 
             // return first found goal item
             if (isGoal(it)) {
@@ -259,8 +265,9 @@ public class Astar {
                     for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineRight(op, it, partner);
                         assert result.getScore() <= it.getScore() + EPS : "[0R] Generated " + result + " from " + it;
-                        if (result == null) {
-                            System.err.println("this is null");
+                        if (result.getScore() < FAKE_NEG_INFINITY / 2) {
+                            System.err.println(edgeLabelLexicon.resolveId(op));
+                            System.err.println(result.toString() + " " + result.getLogProb() + " " + result.getOutsideEstimate());
                         }
                         agenda.enqueue(result);
                     }
@@ -269,8 +276,9 @@ public class Astar {
                     for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineLeft(op, it, partner);
                         assert result.getScore() <= it.getScore() + EPS : "[0L] Generated " + result + " from " + it;
-                        if (result == null) {
-                            System.err.println("this is null");
+                        if (result.getScore() < FAKE_NEG_INFINITY / 2) {
+                            System.err.println(edgeLabelLexicon.resolveId(op));
+                            System.err.println(result.toString() + " " + result.getLogProb() + " " + result.getOutsideEstimate());
                         }
                         agenda.enqueue(result);
                     }
@@ -293,8 +301,9 @@ public class Astar {
                         ((StaticOutsideEstimator) outside).analyze(result, supertagLexicon, edgeLabelLexicon);
                          */
                         assert result.getScore() <= it.getScore() + EPS : String.format("[1R] Generated %s from it: %s <--[%s:%f]-- partner: %s", result.toString(typeLexicon), it.toString(typeLexicon), edgeLabelLexicon.resolveId(op), logEdgeProbability, partner.toString(typeLexicon));
-                        if (result == null) {
-                            System.err.println("this is null");
+                        if (result.getScore() < FAKE_NEG_INFINITY / 2) {
+                            System.err.println(edgeLabelLexicon.resolveId(op));
+                            System.err.println(result.toString() + " " + result.getLogProb() + " " + result.getOutsideEstimate());
                         }
                         agenda.enqueue(result);
                     }
@@ -303,8 +312,9 @@ public class Astar {
                     for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                         Item result = combineRight(op, partner, it);
                         assert result.getScore() <= it.getScore() + EPS : "[1L] Generated " + result.toString(typeLexicon) + " from " + it.toString(typeLexicon);
-                        if (result == null) {
-                            System.err.println("this is null");
+                        if (result.getScore() < FAKE_NEG_INFINITY / 2) {
+                            System.err.println(edgeLabelLexicon.resolveId(op));
+                            System.err.println(result.toString() + " " + result.getLogProb() + " " + result.getOutsideEstimate());
                         }
                         agenda.enqueue(result);
                     }
@@ -317,8 +327,8 @@ public class Astar {
 
                 if (skipRight != null) {
                     assert skipRight.getScore() <= it.getScore() + EPS;
-                    if (skipRight == null) {
-                        System.err.println("this is null");
+                    if (skipRight.getScore() < FAKE_NEG_INFINITY / 2) {
+                        System.err.println(skipRight + " " + skipRight.getLogProb() + " " + skipRight.getOutsideEstimate());
                     }
                     agenda.enqueue(skipRight);
                 }
@@ -326,12 +336,12 @@ public class Astar {
 
             // skip to the left
             if (it.getStart() > 1) {
-                Item skipLeft = makeSkipItem(it, it.getStart() - 1, it.getEnd(), it.getStart() - 1);
+                Item skipLeft = makeSkipItem(it, it.getStart() - 1, it.getEnd(), it.getStart());
 
                 if (skipLeft != null) {
                     assert skipLeft.getScore() <= it.getScore() + EPS;
-                    if (skipLeft == null) {
-                        System.err.println("this is null");
+                    if (skipLeft.getScore() < FAKE_NEG_INFINITY / 2) {
+                        System.err.println(skipLeft + " " + skipLeft.getLogProb() + " " + skipLeft.getOutsideEstimate());
                     }
                     agenda.enqueue(skipLeft);
                 }
@@ -341,9 +351,9 @@ public class Astar {
             if( isAlmostGoal(it) ) {
 //                System.err.println(" --> almost goal");
                 Item goalItem = makeGoalItem(it);
-//                System.err.println(" --> goal: " + goalItem);
-                if (goalItem == null) {
-                    System.err.println("this is null");
+                System.err.println(" --> goal: " + goalItem);
+                if (goalItem.getScore() < FAKE_NEG_INFINITY / 2) {
+                    System.err.println(goalItem + " " + goalItem.getLogProb() + " " + goalItem.getOutsideEstimate());
                 }
                 agenda.enqueue(goalItem);
             }
@@ -364,6 +374,7 @@ public class Astar {
         Item goalItem = new Item(almostGoalItem.getStart()-1, almostGoalItem.getEnd(), almostGoalItem.getRoot(), almostGoalItem.getType(), almostGoalItem.getLogProb() + rootProb);
         goalItem.setOutsideEstimate(0);
         goalItem.setCreatedByOperation(-1, almostGoalItem, null);
+        // System.err.println(goalItem);
         return goalItem;
     }
 
@@ -375,10 +386,11 @@ public class Astar {
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
-//            System.err.printf("Warning: couldn't skip %s to %d; nullProb=%f, ignoreProb=%f\n", originalItem, skippedPosition, nullProb, ignoreProb);
+            // System.err.printf("Warning: couldn't skip %s to %d; nullProb=%f, ignoreProb=%f\n", originalItem, skippedPosition, nullProb, ignoreProb);
             return null;
         }
 
+        // System.err.printf("skip success :%s to %d; new start: %d; new end: %d\n", originalItem, skippedPosition, newStart, newEnd);
         double newItemCost = originalItem.getLogProb() + nullProb + ignoreProb;
 
         Item itemAfterSkip = new Item(newStart, newEnd, originalItem.getRoot(), originalItem.getType(), newItemCost);
@@ -490,6 +502,11 @@ public class Astar {
         assert functor.getEnd() == argument.getStart();
 
         double logEdgeProbability = edgep.get(functor.getRoot(), argument.getRoot(), op);
+
+        if (logEdgeProbability < FAKE_NEG_INFINITY / 2) {
+            System.err.println(logEdgeProbability);
+        }
+
         Item ret = new Item(functor.getStart(), argument.getEnd(), functor.getRoot(), t, functor.getLogProb() + argument.getLogProb() + logEdgeProbability);
         ret.setCreatedByOperation(op, functor, argument);
         ret.setOutsideEstimate(outside.evaluate(ret));
@@ -503,6 +520,11 @@ public class Astar {
         assert functor.getStart() == argument.getEnd();
 
         double logEdgeProbability = edgep.get(functor.getRoot(), argument.getRoot(), op);
+
+        if (logEdgeProbability < FAKE_NEG_INFINITY / 2) {
+            System.err.println(logEdgeProbability);
+        }
+
         Item ret = new Item(argument.getStart(), functor.getEnd(), functor.getRoot(), t, functor.getLogProb() + argument.getLogProb() + logEdgeProbability);
         ret.setCreatedByOperation(op, functor, argument);
         ret.setOutsideEstimate(outside.evaluate(ret));
@@ -743,7 +765,7 @@ public class Astar {
         // calculate edge-label lexicon
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 10, true);  // TODO make these configurable  // was: 0.1, 5
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 20, true);  // TODO make these configurable  // was: 0.1, 5
         Interner<String> edgeLabelLexicon = new Interner<>();
         x = 0;
 
@@ -768,6 +790,9 @@ public class Astar {
 
                     try {
                         edgepHere.set(e.from, e.to, edgeLabelId, Math.log(edge.right));
+                        // if (Math.log(edge.right) < FAKE_NEG_INFINITY / 2) {
+                        //     System.err.println(e);
+                        // }
                     } catch (ArrayIndexOutOfBoundsException ee) {
                         throw ee;
                     }
