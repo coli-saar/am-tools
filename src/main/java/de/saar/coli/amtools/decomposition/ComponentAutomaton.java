@@ -85,11 +85,11 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             assert parent.left.getAllNodes().equals(graph.getGraph().vertexSet());
             
             //compute main DAG component
-            GraphNode root = this.graph.getNode(this.graph.getNodeForSource("source"));
+            GraphNode root = this.graph.getNode(this.graph.getNodeForSource("root"));
             DAGComponent mainDAG = new DAGComponent(graph, root, blobUtils);
             
             // get remaining connected components
-            Collection<ConnectedComponent> connComps = ConnectedComponent.getAllConnectedComponents(graph, mainDAG.getAllNodes());
+            Collection<ConnectedComponent> connComps = ConnectedComponent.getAllConnectedComponents(graph, mainDAG.getAllAsGraphNodes());
             
             return Collections.singleton(makeRule(connComps, mainDAG, root, parent));
             
@@ -125,7 +125,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
                 Set<GraphNode> removedNodes = new HashSet<>();
                 removedNodes.addAll(graph.getGraph().vertexSet());
                 removedNodes.removeAll(connComp.getAllNodes());
-                removedNodes.addAll(newDAG.getAllNodes());
+                removedNodes.addAll(newDAG.getAllAsGraphNodes());
                 Collection<ConnectedComponent> connComps = ConnectedComponent.getAllConnectedComponents(graph, removedNodes);
                 
                 ret.add(makeRule(connComps, newDAG, root, parent));
@@ -139,7 +139,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
      
     private Rule makeRule(Collection<ConnectedComponent> connComps, DAGComponent dagComp, GraphNode root, Pair<ConnectedComponent, DAGComponent> parent) {
         int ar = connComps.size();
-        String label = root.getName()+"_"+ar;
+        String label = root.getName()+"/"+root.getLabel().split("~")[0]+"__"+ar;
         
         List<Pair<ConnectedComponent, DAGComponent>> children = 
                 connComps.stream().map(cc -> new Pair<>(cc, dagComp)).collect(Collectors.toList());
@@ -205,7 +205,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
         GraphReader2015 gr = new GraphReader2015(corpusPath);
         Graph sdpGraph;
         
-        int max = 3;
+        int max = 1000;
         int i = 0;
         
         while ((sdpGraph = gr.readGraph()) != null && i++ < max){
@@ -213,11 +213,14 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             
             SGraph graph = inst.getGraph();
             
-            ComponentAutomaton auto = new ComponentAutomaton(graph, blobUtils);
+            ConcreteTreeAutomaton auto = new ComponentAutomaton(graph, blobUtils).asConcreteTreeAutomatonTopDown();
             
-            System.err.println(auto.asConcreteTreeAutomatonTopDown());
-            System.err.println();
-            System.err.println();
+            System.err.println(Math.log(auto.countTrees())/Math.log(2));
+            
+            
+//            System.err.println(auto.asConcreteTreeAutomatonTopDown());
+//            System.err.println();
+//            System.err.println();
 
         }
         

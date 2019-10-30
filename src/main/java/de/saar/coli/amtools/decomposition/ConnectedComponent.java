@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 
 /**
  *
@@ -74,5 +76,41 @@ public class ConnectedComponent {
         }
         return ret;
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 53 * hash + Objects.hashCode(this.allNodes);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ConnectedComponent other = (ConnectedComponent) obj;
+        if (!Objects.equals(this.allNodes, other.allNodes)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner(", ", "[", "]");
+        for (GraphNode node : getAllNodes()) {
+            sj.add(node.getName()+"/"+node.getLabel().split("~")[0]);
+        }
+        return sj.toString();
+    }
+    
+    
     
 }

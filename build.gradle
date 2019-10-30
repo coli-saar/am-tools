@@ -62,12 +62,12 @@ dependencies {
 }
 
 //for debugging, works e.g. in NetBeans. You can change the main class and the arguments here --JG
-task debug(dependsOn: classes, type: JavaExec) {
-    main = "de.saar.coli.amrtagging.Parser2ExtFormat"
-    classpath = sourceSets.main.runtimeClasspath
-    standardInput = System.in
-    args '-c', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/evalInput.corpus', '-p', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/', '-rep', 'false', '--shift'
-    ignoreExitValue = true
-    debug = true
-}
+//task debug(dependsOn: classes, type: JavaExec) {
+//    main = "de.saar.coli.amrtagging.Parser2ExtFormat"
+//    classpath = sourceSets.main.runtimeClasspath
+//    standardInput = System.in
+//    args '-c', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/evalInput.corpus', '-p', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/', '-rep', 'false', '--shift'
+//    ignoreExitValue = true
+//    debug = true
+//}
 
