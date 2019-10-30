@@ -58,6 +58,7 @@ public abstract class TypeInterner<E> implements Serializable {
         return edge2left2right2result[edgeLabelID][left][right];
     }
     
+    
     public int resolveObject(E object) {
         return interner.resolveObject(object);
     }
