@@ -6,7 +6,10 @@
 package de.saar.coli.amtools.decomposition;
 
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
+import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -16,6 +19,7 @@ import de.up.ling.irtg.automata.TreeAutomaton;
 import de.up.ling.irtg.signature.Signature;
 import it.unimi.dsi.fastutil.ints.IntArrayFIFOQueue;
 import it.unimi.dsi.fastutil.ints.IntPriorityQueue;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -25,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
+import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 /**
  *
@@ -188,5 +194,34 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
         }
 
     }
+    
+    
+    
+    public static void main(String[] args) throws IOException {
+        
+        String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
+        AMRBlobUtils blobUtils = new DMBlobUtils();
+        
+        GraphReader2015 gr = new GraphReader2015(corpusPath);
+        Graph sdpGraph;
+        
+        int max = 3;
+        int i = 0;
+        
+        while ((sdpGraph = gr.readGraph()) != null && i++ < max){
+            MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
+            
+            SGraph graph = inst.getGraph();
+            
+            ComponentAutomaton auto = new ComponentAutomaton(graph, blobUtils);
+            
+            System.err.println(auto.asConcreteTreeAutomatonTopDown());
+            System.err.println();
+            System.err.println();
+
+        }
+        
+    }
+    
     
 }

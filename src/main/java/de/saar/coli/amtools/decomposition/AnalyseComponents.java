@@ -6,6 +6,7 @@
 package de.saar.coli.amtools.decomposition;
 
 import de.saar.coli.amrtagging.MRInstance;
+import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
@@ -31,6 +32,8 @@ public class AnalyseComponents {
     public static void main(String[] args) throws IOException {
         
         String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
+        AMRBlobUtils blobUtils = new DMBlobUtils();
+        
         
         GraphReader2015 gr = new GraphReader2015(corpusPath);
         Graph sdpGraph;
@@ -44,7 +47,7 @@ public class AnalyseComponents {
             SGraph graph = inst.getGraph();
             GraphNode root = graph.getNode(graph.getNodeForSource("root"));
             
-            DAGComponent dagComp = new DAGComponent(graph, root, new DMBlobUtils());
+            DAGComponent dagComp = new DAGComponent(graph, root, blobUtils);
             
             Set<DAGNode> removed = dagComp.getAllNodes();
             Collection<ConnectedComponent> connComps = ConnectedComponent.getAllConnectedComponents(graph, removed);

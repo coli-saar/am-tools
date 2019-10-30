@@ -134,8 +134,15 @@ public class DAGComponent {
         
         assert !commonAncestors.isEmpty();        
         
-        
-        
+        // TODO the following seems inefficient or maybe even wrong to me -- JG
+        for (DAGNode ancestor : commonAncestors) {
+            Set<DAGNode> commonAncestorsExcludingThisOne = new HashSet<>(commonAncestors);
+            commonAncestorsExcludingThisOne.remove(ancestor);
+            if (node2ancestors.get(ancestor).containsAll(commonAncestors)) {
+                return ancestor;
+            }
+        }
+        return null;
     }
     
     
