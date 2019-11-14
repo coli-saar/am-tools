@@ -194,7 +194,7 @@ public class Astar {
         }
 
         // initialize agenda
-        for (int i = 1; i < N; i++) {  // no items for 0
+        for (int i = 0; i < N; i++) {  // no items for 0
             final int i_final = i;
 
             tagp.foreachInOrder(i, (supertagId, prob) -> {
@@ -314,12 +314,12 @@ public class Astar {
             }
             
             // add ROOT edge from 0
-            if( isAlmostGoal(it) ) {
-//                System.err.println(" --> almost goal");
-                Item goalItem = makeGoalItem(it);
-//                System.err.println(" --> goal: " + goalItem);
-                agenda.enqueue(goalItem);
-            }
+//             if( isAlmostGoal(it) ) {
+// //                System.err.println(" --> almost goal");
+//                 Item goalItem = makeGoalItem(it);
+// //                System.err.println(" --> goal: " + goalItem);
+//                 agenda.enqueue(goalItem);
+//             }
         }
 
         w.record();
