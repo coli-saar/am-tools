@@ -241,6 +241,9 @@ public class Parser2ExtFormat {
             SGraph gold = (SGraph)inst.getInputObjects().get(graphInterp);
             List<List<AnnotatedSupertag>> tagProb = tagProbsIt.next();
             List<List<Pair<String, Double>>> labelProb = labelProbsIt == null ? null : labelProbsIt.next();
+
+            System.err.println(i);
+            System.err.println(sent);
             
             //now parse and write result
             forkJoinPool.execute(() -> {
@@ -297,6 +300,7 @@ public class Parser2ExtFormat {
                                 Pair<String[], List<String>> constraints = parser.getConstraintsFromTree(vit, sent.size());
                                 tagW.write(Arrays.stream(constraints.left).collect(Collectors.joining(" "))+"\n");
                                 opW.write(constraints.right.stream().collect(Collectors.joining(" "))+"\n");
+                                System.err.println(constraints.right.stream().collect(Collectors.joining(" "))+"\n");
                             } else {
                                 tagW.write("\n");
                                 opW.write("\n");
