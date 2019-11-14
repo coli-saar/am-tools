@@ -65,6 +65,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.swing.UnsupportedLookAndFeelException;
 import me.tongfei.progressbar.ProgressBar;
+import java.util.Arrays;
 
 /**
  *
@@ -198,14 +199,14 @@ public class Astar {
 
         // System.err.println(N);
         // initialize agenda
-        for (int i = 1; i < N; i++) {  // no items for 0
+        for (int i = 0; i < N; i++) {  // no items for 0
             final int i_final = i;
 
             tagp.foreachInOrder(i, (supertagId, prob) -> {
-//                System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
+                // System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
 
                 if (supertagId != tagp.getNullSupertagId()) { // skip NULL entries - NULL items are created on the fly during the agenda exploration phase
-                    Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
+                    Item it = new Item(i_final , i_final + 1, i_final, getSupertagType(supertagId), prob);
                     it.setCreatedBySupertag(supertagId);
                     it.setOutsideEstimate(outside.evaluate(it));
                     // if (it == null) {
@@ -219,6 +220,7 @@ public class Astar {
         // iterate over agenda
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
+            System.err.println(it);
 
             if (it == null) {
                 System.err.println(N);
@@ -255,6 +257,11 @@ public class Astar {
 
             addItemToChart(rightChart[it.getStart()], it);
             addItemToChart(leftChart[it.getEnd()], it);
+            
+            // ArrayList<Integer> possible = new ArrayList<Integer>();
+            // possible.add(1);
+            // possible.add(6);
+            // possible.add(8);
 
             // combine it with partners on the right
             for (int op : edgeLabelLexicon.getKnownIds()) {
@@ -355,15 +362,15 @@ public class Astar {
             }
             
             // add ROOT edge from 0
-            if( isAlmostGoal(it) ) {
-//                System.err.println(" --> almost goal");
-                Item goalItem = makeGoalItem(it);
-                // System.err.println(" --> goal: " + goalItem);
-                // if (goalItem.getScore() < FAKE_NEG_INFINITY / 2) {
-                //     System.err.println(goalItem + " " + goalItem.getLogProb() + " " + goalItem.getOutsideEstimate());
-                // }
-                agenda.enqueue(goalItem);
-            }
+//             if( isAlmostGoal(it) ) {
+// //                System.err.println(" --> almost goal");
+//                 Item goalItem = makeGoalItem(it);
+//                 // System.err.println(" --> goal: " + goalItem);
+//                 // if (goalItem.getScore() < FAKE_NEG_INFINITY / 2) {
+//                 //     System.err.println(goalItem + " " + goalItem.getLogProb() + " " + goalItem.getOutsideEstimate());
+//                 // }
+//                 agenda.enqueue(goalItem);
+//             }
         }
 
         w.record();
@@ -389,8 +396,8 @@ public class Astar {
 
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
-        // double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-        double ignoreProb = 0;
+        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
+        // double ignoreProb = 0;
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
