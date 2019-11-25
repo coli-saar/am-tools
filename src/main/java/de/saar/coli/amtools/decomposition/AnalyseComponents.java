@@ -9,17 +9,14 @@ import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
-import de.up.ling.irtg.algebra.graph.GraphEdge;
-import de.up.ling.irtg.algebra.graph.GraphNode;
+import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
+import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.util.Counter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
@@ -33,15 +30,21 @@ public class AnalyseComponents {
     
     public static void main(String[] args) throws IOException {
         
-        String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
-        AMRBlobUtils blobUtils = new DMBlobUtils();
+        String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.psd.sdp";
+        PSDBlobUtils blobUtils = new PSDBlobUtils();
         
         
         GraphReader2015 gr = new GraphReader2015(corpusPath);
         Graph sdpGraph;
         
+        int treeCountReportThreshold = 100;
+        
         int max = 100000;
         int i = 0;
+        
+        List<MRInstance> cyclicGraphs = new ArrayList<>();
+        List<MRInstance> failedModifieeGraphs = new ArrayList<>();
+        List<MRInstance> manyChoicesGraphs = new ArrayList<>();
         
         Counter<Long> treeCountFrequencies = new Counter<>();
         long maxTreeCount = 0;
@@ -49,10 +52,15 @@ public class AnalyseComponents {
         
         while ((sdpGraph = gr.readGraph()) != null && i++ < max){
             
+            if (i%1000 == 0) {
+                System.err.println(i);
+            }
+            
+            MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
+            inst = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils), inst.getAlignments());
+            SGraph graph = inst.getGraph();
             try {
-                MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
 
-                SGraph graph = inst.getGraph();
 //                GraphNode root = graph.getNode(graph.getNodeForSource("root"));
 //
 //                DAGComponent dagComp = new DAGComponent(graph, root, blobUtils);
@@ -98,12 +106,16 @@ public class AnalyseComponents {
 
                 ConcreteTreeAutomaton auto = new ComponentAutomaton(graph, blobUtils).asConcreteTreeAutomatonTopDown();
                 long treeCount = auto.countTrees();
-                if (treeCount == 4096) {
-                    System.err.println(graph);
+                if (treeCount > treeCountReportThreshold) {
+                    manyChoicesGraphs.add(inst);
                 }
                 treeCountFrequencies.add(treeCount);
                 maxTreeCount = Math.max(maxTreeCount, treeCount);
                 maxLogTreeCount = Math.max(maxLogTreeCount, (float)(Math.log(treeCount)/Math.log(2)));
+            } catch (DAGComponent.CyclicGraphException ex) {
+                cyclicGraphs.add(inst);
+            } catch (DAGComponent.NoEdgeToRequiredModifieeException ex) {
+                failedModifieeGraphs.add(inst);
             } catch (java.lang.Exception ex) {
                 System.err.println(ex);
             }
@@ -112,9 +124,36 @@ public class AnalyseComponents {
         }
         
         
+        System.err.println("Cyclic graphs: "+cyclicGraphs.size());
+        System.err.println("missing Modifiee edge graphs: "+failedModifieeGraphs.size());
+        System.err.println("Graphs with more than "+treeCountReportThreshold+" component trees: "+manyChoicesGraphs.size());
         System.err.println("max tree count: "+maxTreeCount);
         System.err.println("max log2 tree count: "+maxLogTreeCount);
         treeCountFrequencies.printAllSorted();
+        
+        System.err.println("\n\n");
+        System.err.println("Cyclic graphs: "+cyclicGraphs.size());
+        for (MRInstance inst : cyclicGraphs) {
+            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
+            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
+            System.err.println();
+        }
+        
+        System.err.println("\n\n");
+        System.err.println("missing Modifiee edge graphs: "+failedModifieeGraphs.size());
+        for (MRInstance inst : failedModifieeGraphs) {
+            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
+            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
+            System.err.println();
+        }
+        
+        System.err.println("\n\n");
+        System.err.println("Graphs with more than "+treeCountReportThreshold+" component trees: "+manyChoicesGraphs.size());
+        for (MRInstance inst : manyChoicesGraphs) {
+            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
+            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
+            System.err.println();
+        }
         
     }
     

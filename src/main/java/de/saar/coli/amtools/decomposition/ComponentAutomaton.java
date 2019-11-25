@@ -10,6 +10,7 @@ import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
+import de.saar.coli.amtools.decomposition.DAGComponent.NoEdgeToRequiredModifieeException;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -103,9 +104,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             GraphNode lowestCommonAncestor = dagComp.getLowestCommonAncestor(connectedNodesInDAG);
             if (!connectedNodesInDAG.contains(lowestCommonAncestor)) {
                 //then the modify operation has no valid possible root in connComp
-                System.err.println("lowestCommonAncestor not in connectedNodesInDAG!");
-                System.err.println(graph.toIsiAmrStringWithSources());
-                return Collections.EMPTY_LIST;
+                throw new NoEdgeToRequiredModifieeException();
             }
             
             //find possible roots in connComp

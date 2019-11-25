@@ -35,7 +35,10 @@ public class DAGComponent {
     private final Map<GraphNode, Set<DAGNode>> node2parents;
     private final Map<GraphNode, Set<DAGNode>> node2ancestors;
     
-    public DAGComponent(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils) {
+    public static class CyclicGraphException extends java.lang.RuntimeException {}
+    public static class NoEdgeToRequiredModifieeException extends java.lang.RuntimeException {}
+    
+    public DAGComponent(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils) throws CyclicGraphException {
         
         this.graph = graph;
         this.root = dagRoot;
@@ -79,16 +82,13 @@ public class DAGComponent {
     }
     
     
-    private void setAncestors(DAGNode node, int depth) {
+    private void setAncestors(DAGNode node, int depth) throws CyclicGraphException {
         if (node2ancestors.containsKey(node.getNode())) {
             return;
         }
         if (depth > graph.getGraph().vertexSet().size()+3) {
             // the +3 is just to make sure we don't have an off-by-one error or smth
-            System.err.println("Loop detected! Creating DAG failed!");
-            System.err.println(node);
-            System.err.println(graph);
-            return;
+            throw new CyclicGraphException();
         }
         Set<DAGNode> ancestors = new HashSet<>(node2parents.get(node.getNode())); 
         for (DAGNode parent : node2parents.get(node.getNode())) {
