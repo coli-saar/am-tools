@@ -69,7 +69,7 @@ public class PrepareTestData {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, ClassNotFoundException, PreprocessingException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, ClassNotFoundException, PreprocessingException {
         PrepareTestData cli = new PrepareTestData();
         JCommander commander = new JCommander(cli);
 

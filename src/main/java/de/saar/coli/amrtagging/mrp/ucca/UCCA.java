@@ -86,12 +86,12 @@ public class UCCA implements Formalism {
             amconll.get(i).setForm(form);
         }
         try {
-            AMDependencyTree amdep = AMDependencyTree.fromSentence(amconll);
+            AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(amconll);
             SGraph evaluatedGraph = amdep.evaluate(true);
             AnchoredSGraph withAnchors = addAnchors(evaluatedGraph, amconll);
             MRPGraph output = MRPUtils.fromAnchoredSGraph(withAnchors, false, 1, "ucca", amconll.getId(), amconll.getAttr("input"), amconll.getAttr("version"), amconll.getAttr("time"),false);
             return output;
-         } catch (ParseException | ParserException | AMDependencyTree.ConllParserException e){
+         } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e){
              throw new IllegalArgumentException(e);
          }
     }
@@ -125,7 +125,7 @@ public class UCCA implements Formalism {
         int nodeCounter = 0;
         List<GraphNode> vertices = new ArrayList<>(copy.getGraph().vertexSet());
         for (GraphNode n : vertices ){
-            Pair<Integer, Pair<String, String>> info = AMDependencyTree.decodeNode(n);
+            Pair<Integer, Pair<String, String>> info = AlignedAMDependencyTree.decodeNode(n);
             int position = info.left-1;
             String label = info.right.right;
             n.setLabel(label);

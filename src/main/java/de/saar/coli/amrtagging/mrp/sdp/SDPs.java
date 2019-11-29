@@ -91,13 +91,13 @@ public abstract class SDPs implements Formalism {
             Map<Integer,String> id2node = new HashMap<>();
             Map<String,Integer> node2id = new HashMap<>();
             for (String node : evaluatedGraph.getAllNodeNames()){
-                Pair<Integer,Pair<String,String>> triple = AMDependencyTree.decodeNode(evaluatedGraph.getNode(node));
+                Pair<Integer,Pair<String,String>> triple = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(node));
                 int position = triple.left-1; //position we get from triple is 1-based (AmConllEntry)
                 id2node.put(position,node);
                 node2id.put(node,position);
             }
             for (int id : id2node.keySet().stream().sorted().collect(Collectors.toList())){
-                Pair<Integer,Pair<String,String>> triple = AMDependencyTree.decodeNode(evaluatedGraph.getNode(id2node.get(id)));
+                Pair<Integer,Pair<String,String>> triple = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(id2node.get(id)));
                 int position = triple.left-1; //position we get from triple is 1-based (AmConllEntry)
                 String label = triple.right.right;
                 List<MRPAnchor> anchors = new ArrayList<>();

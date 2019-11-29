@@ -52,7 +52,7 @@ public class CreateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 
@@ -124,7 +124,7 @@ public class CreateCorpus {
                     sent.addLemmas(lemmata);
 
                     outCorpus.add(sent);
-                    AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
+                    AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(sent);
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
 

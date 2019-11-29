@@ -8,7 +8,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 
@@ -41,7 +41,7 @@ public class EvaluateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
         EvaluateCorpus cli = new EvaluateCorpus();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("constraint_extractor");
@@ -70,17 +70,17 @@ public class EvaluateCorpus {
             index++;
             //prepare raw output without edges
             try {
-                AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
+                AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluateWithoutRelex(true);
                 //rename nodes names from 1@@m@@--LEX-- to LEX@0
                 List<String> labels = s.lemmas();
                 for (String n : evaluatedGraph.getAllNodeNames()){
                     if (evaluatedGraph.getNode(n).getLabel().contains("LEX")){
-                        Pair<Integer,Pair<String,String>> info = AMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
+                        Pair<Integer,Pair<String,String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
                         labels.set(info.left-1, s.get(info.left-1).getReLexLabel());
                         evaluatedGraph.getNode(n).setLabel("LEX@"+(info.left-1));
                     } else {
-                        Pair<Integer,Pair<String,String>> info = AMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
+                        Pair<Integer,Pair<String,String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
                         evaluatedGraph.getNode(n).setLabel(info.right.right);
                     }
                 }
