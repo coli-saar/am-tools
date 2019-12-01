@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Separates train and dev data of DM and PSD. Uses the same split as in the SemEval 2015 shared task.
+ * Separates train and dev data of DM and PSD (and EDS). Uses the same split as in the SemEval 2015 shared task.
  * @author matthias
  */
 public class SeparateTrainDev {
