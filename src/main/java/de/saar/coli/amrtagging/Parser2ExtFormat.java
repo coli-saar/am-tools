@@ -225,11 +225,13 @@ public class Parser2ExtFormat {
         FileWriter succUnlabeledW = new FileWriter(p2ext.path+"successUnlabeld"+suffix);
         FileWriter allWGold = new FileWriter(p2ext.path+"allGoldOutput"+suffix);
         FileWriter succWGold = new FileWriter(p2ext.path+"successGoldOutput"+suffix);
+        FileWriter succScoreW = new FileWriter(p2ext.path+"successScores"+suffix);
         FileWriter idW = new FileWriter(p2ext.path+"allIDs"+suffix);
         FileWriter succIDW = new FileWriter(p2ext.path+"successIDs"+suffix);
         FileWriter tagW = new FileWriter(p2ext.path+"allTags"+suffix);
         FileWriter opW = new FileWriter(p2ext.path+"allOps"+suffix);
         FileWriter logW = new FileWriter(p2ext.path+"allLog"+suffix);
+        FileWriter scoreW = new FileWriter(p2ext.path+"allScores"+suffix);
         
         MutableInteger nextInstanceID = new MutableInteger(0);
         ForkJoinPool forkJoinPool = new ForkJoinPool(p2ext.t);
@@ -264,11 +266,12 @@ public class Parser2ExtFormat {
                                 sent, p2ext.k, p2ext.edgeExponent, p2ext.edgeFactor, p2ext.tagExponent,
                                 p2ext.addNull, p2ext.addEdges, stringAlg);
 
-                        Pair<SGraph, Tree<String>> graphAndVit = parser.run();
+                        Pair<Pair<SGraph, Tree<String>>, Double> graphAndVit = parser.run();
                         
                         
-                        SGraph graph = graphAndVit.left;
-                        Tree<String> vit = graphAndVit.right;
+                        SGraph graph = graphAndVit.left.left;
+                        Tree<String> vit = graphAndVit.left.right;
+                        double score = graphAndVit.right;
                         
                         watch.record();
                         
@@ -283,6 +286,8 @@ public class Parser2ExtFormat {
                                 succUnlabeledW.flush();
                                 succIDW.write(i+"\n");
                                 succIDW.flush();
+                                succScoreW.write(score+"\n");
+                                succScoreW.flush();
                             }
                             allW.write(graph.toIsiAmrString()+"\n\n");
                             allUnlabeledW.write(graph.toIsiAmrStringWithSources()+"\n");
@@ -292,6 +297,8 @@ public class Parser2ExtFormat {
                             allUnlabeledW.flush();
                             idW.write(i+"\n");
                             idW.flush();
+                            scoreW.write(score+"\n");
+                            scoreW.flush();
                             if (vit != null) {
                                 Pair<String[], List<String>> constraints = parser.getConstraintsFromTree(vit, sent.size());
                                 tagW.write(Arrays.stream(constraints.left).collect(Collectors.joining(" "))+"\n");
@@ -345,6 +352,8 @@ public class Parser2ExtFormat {
         tagW.close();
         opW.close();
         logW.close();
+        succScoreW.close();
+        scoreW.close();
     }
     
 }

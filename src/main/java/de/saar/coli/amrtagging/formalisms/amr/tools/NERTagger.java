@@ -8,7 +8,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools;
 import de.saar.coli.amrtagging.AmConllSentence;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 
 import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCLI.LITERAL_JOINER;
 
@@ -41,7 +41,7 @@ public class NERTagger {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
         NERTagger cli = new NERTagger();
         JCommander commander = new JCommander(cli);
 

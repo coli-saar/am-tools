@@ -7,7 +7,7 @@ package de.saar.coli.amrtagging.formalisms.sdp.dm.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 
@@ -48,7 +48,7 @@ public class ToSDPCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
         ToSDPCorpus cli = new ToSDPCorpus();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("constraint_extractor");
@@ -94,7 +94,7 @@ public class ToSDPCorpus {
             boolean read = false;
             
             try {
-                AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
+                AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluate(true);
                 Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
                 

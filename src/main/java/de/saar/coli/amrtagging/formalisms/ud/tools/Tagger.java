@@ -7,7 +7,7 @@ package de.saar.coli.amrtagging.formalisms.ud.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
@@ -35,7 +35,7 @@ public class Tagger {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
         Tagger cli = new Tagger();
         JCommander commander = new JCommander(cli);
 

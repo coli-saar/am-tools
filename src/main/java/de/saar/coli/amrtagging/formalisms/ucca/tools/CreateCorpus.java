@@ -76,7 +76,7 @@ public class CreateCorpus {
     private int timeout = 1800;
 
 
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, CorpusReadingException, PreprocessingException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, CorpusReadingException, PreprocessingException {
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 
@@ -231,7 +231,7 @@ public class CreateCorpus {
                     ucca.refineDelex(sent);
                     outCorpus.add(sent); //done with this sentence
                     //we can also create an AM dependency tree now
-                    AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
+                    AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(sent);
                     //use one of these to get visualizations
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
                     //amdep.getTree().map(ent -> ent.getForm() +" "+ent.getEdgeLabel()).draw();

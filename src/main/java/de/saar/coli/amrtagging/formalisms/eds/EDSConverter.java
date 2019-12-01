@@ -6,7 +6,7 @@
 package de.saar.coli.amrtagging.formalisms.eds;
 
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.Alignment.Span;
 import de.saar.coli.amrtagging.AnchoredSGraph;
@@ -70,15 +70,15 @@ public class EDSConverter {
         return inst;
     }
     
-    public static AnchoredSGraph evaluateDependencyTree(AmConllSentence sent) throws AMDependencyTree.ConllParserException, ParserException, ParseException{
-        AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
+    public static AnchoredSGraph evaluateDependencyTree(AmConllSentence sent) throws AlignedAMDependencyTree.ConllParserException, ParserException, ParseException{
+        AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(sent);
         SGraph evaluatedWithAlignmentsGraph = amdep.evaluate(true);
-        List<Alignment> als = AMDependencyTree.extractAlignments(evaluatedWithAlignmentsGraph);
+        List<Alignment> als = AlignedAMDependencyTree.extractAlignments(evaluatedWithAlignmentsGraph);
         Pair p = EDSUtils.edsTokenizeString(sent.getAttr("raw"), true);
         List<String> words = (List<String>) p.right;
         List<TokenRange> stanfSpans = (List<TokenRange>) p.left;
         SGraph evaluated = evaluatedWithAlignmentsGraph;
-        AMDependencyTree.stripAlignments(evaluated); //now alignment info is not present in nodes anymore
+        AlignedAMDependencyTree.stripAlignments(evaluated); //now alignment info is not present in nodes anymore
 
         //now we replace the placeholder SIMPLE_SPAN with its character span
         restoreSimpleSpans(evaluated, words,stanfSpans, als);

@@ -331,7 +331,7 @@ public class Parser {
         return new Pair(Math.pow(pos2prob.get(second), exponent)*factor, true);
     }
     
-    Pair<SGraph, Tree<String>> run() throws ParserException {
+    Pair<Pair<SGraph, Tree<String>>, Double> run() throws ParserException {
         Object input = irtg.getInterpretation("string").getAlgebra().parseString(sentInternal.stream().collect(Collectors.joining(" ")));
         TreeAutomaton<String> auto = (TreeAutomaton) irtg.parseSimple("string", input);
         auto.makeAllRulesExplicit();
@@ -342,13 +342,14 @@ public class Parser {
         } else {
             try {
                 SGraph ret = ((Pair<SGraph, Type>)irtg.getInterpretation("graph").interpret(vit)).left;
-                return new Pair(ret, vit);
+                double score = auto.getWeight(vit);
+                return new Pair(new Pair(ret, vit), score);
             } catch (java.lang.Exception ex) {
                 System.err.println("Evaluation in algebra failed!");
                 System.err.println(de.up.ling.irtg.util.Util.getStackTrace(ex));
                 System.err.println(vit);
                 //System.err.println(irtg); // probably not smart to always print the full IRTG
-                return new Pair(FAILED_EVAL_GRAPH, null);
+                return new Pair(new Pair(FAILED_EVAL_GRAPH, null), 0);
             }
         }
     }

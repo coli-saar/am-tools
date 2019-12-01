@@ -238,13 +238,13 @@ public class EDS implements Formalism{
     @Override
     public MRPGraph evaluate(AmConllSentence amconll) {
         try {
-            AMDependencyTree amdep = AMDependencyTree.fromSentence(amconll);
+            AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(amconll);
             SGraph evaluatedWithAlignmentsGraph = amdep.evaluate(true);
-            List<Alignment> als = AMDependencyTree.extractAlignments(evaluatedWithAlignmentsGraph);
+            List<Alignment> als = AlignedAMDependencyTree.extractAlignments(evaluatedWithAlignmentsGraph);
             List<String> words = amconll.words();
             List<TokenRange> stanfSpans = amconll.ranges();
             SGraph evaluated = evaluatedWithAlignmentsGraph;
-            AMDependencyTree.stripAlignments(evaluated); //now alignment info is not present in nodes anymore
+            AlignedAMDependencyTree.stripAlignments(evaluated); //now alignment info is not present in nodes anymore
 
             //now we replace the placeholder SIMPLE_SPAN with its character span
             EDSConverter.restoreSimpleSpans(evaluated, words,stanfSpans, als);
@@ -264,7 +264,7 @@ public class EDS implements Formalism{
             addDummyAnchorings(mrpGraph);
             return mrpGraph;
             
-        } catch (ParseException | ParserException | AMDependencyTree.ConllParserException e){
+        } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e){
              throw new IllegalArgumentException(e);
          }
     }

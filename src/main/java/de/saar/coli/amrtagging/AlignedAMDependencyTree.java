@@ -32,16 +32,16 @@ import java.util.stream.Collectors;
  *
  * @author matthias
  */
-public class AMDependencyTree {
+public class AlignedAMDependencyTree {
 
     public static final String ALIGNED_SGRAPH_SEP = "@@";
 
     private Tree<AmConllEntry> tree;
 
-    private AMDependencyTree() {
+    private AlignedAMDependencyTree() {
     }
 
-    private AMDependencyTree(Tree<AmConllEntry> t) {
+    private AlignedAMDependencyTree(Tree<AmConllEntry> t) {
         this.tree = t;
     }
 
@@ -57,7 +57,7 @@ public class AMDependencyTree {
      * @return
      * @throws de.saar.coli.amrtagging.AMDependencyTree.ConllParserException
      */
-    public static AMDependencyTree fromSentence(AmConllSentence sent) throws ConllParserException {
+    public static AlignedAMDependencyTree fromSentence(AmConllSentence sent) throws ConllParserException {
         ArrayList<ArrayList<Integer>> trees = new ArrayList();
         for (int i = 0; i < sent.size(); i++) {
             ArrayList<Integer> x = new ArrayList();
@@ -80,7 +80,7 @@ public class AMDependencyTree {
             throw new ConllParserException("There seems to be no root for this AmConllSentence. Line " + sent.getLineNr());
         }
         
-        AMDependencyTree ret = new AMDependencyTree(parse(sent, trees, root));
+        AlignedAMDependencyTree ret = new AlignedAMDependencyTree(parse(sent, trees, root));
         return ret;
     }
 
