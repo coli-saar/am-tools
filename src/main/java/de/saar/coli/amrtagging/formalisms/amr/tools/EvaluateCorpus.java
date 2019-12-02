@@ -14,6 +14,8 @@ import de.saar.coli.amrtagging.AmConllSentence;
 
 
 import de.up.ling.irtg.algebra.ParserException;
+import de.up.ling.irtg.algebra.graph.BlobUtils;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
@@ -22,10 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
-import java.util.HashMap;
+import java.util.*;
 
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -164,6 +164,24 @@ public class EvaluateCorpus {
                             }
                             node.setLabel(nodeNameToPosition.get(nodeName) + AL_LABEL_SEP + node.getLabel());
                         }
+
+//                        for (GraphNode node : evaluatedGraph.getGraph().vertexSet()) {
+//                            if (!nodeNameToPosition.containsKey(node.getName())) {
+//                                Set<GraphEdge> edges = evaluatedGraph.getGraph().edgesOf(node);
+//                                if (edges.size() == 1) {
+//                                    String otherLabel = BlobUtils.otherNode(node, edges.iterator().next()).getLabel();
+//                                    if (otherLabel.contains(AL_LABEL_SEP)) {
+//                                        String alignment = otherLabel.substring(otherLabel.indexOf(AL_LABEL_SEP));
+//                                        node.setLabel(alignment+AL_LABEL_SEP+node.getLabel());
+//                                    } else {
+//                                        System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
+//                                    }
+//                                } else {
+//                                    System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
+//                                }
+//                            }
+//                        }
+
                     }
                     
                 }
