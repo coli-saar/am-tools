@@ -9,6 +9,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
+import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 
@@ -80,6 +81,11 @@ public class EvaluateCorpus {
             return;
         }
         
+        if (cli.keepAligned && ! cli.relabel){
+            System.err.println("Keeping the alignments without relabeling is not supported");
+            return;
+        }
+        
         List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
         PrintWriter o = new PrintWriter(cli.outPath+"/parserOut.txt"); //will contain graphs, potentially relabeled
         PrintWriter l = null;
@@ -107,6 +113,14 @@ public class EvaluateCorpus {
                 AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluateWithoutRelex(true);
                 
+                List<Alignment> alignments = null;
+                
+                if (cli.relabel){ // in principle, this shouldn't hurt if we also did that in case of not relabeling but this is safer.
+                    evaluatedGraph = evaluatedGraph.withFreshNodenames();
+                    alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
+                }
+
+                
                 //rename nodes names from 1@@m@@--LEX-- to LEX@0
                 List<String> labels = s.lemmas();
                 for (String n : evaluatedGraph.getAllNodeNames()){
@@ -126,18 +140,7 @@ public class EvaluateCorpus {
                     
                 } else {
                     
-                    //we have to get fresh node names to make sure that relabeling works smoothly
-                    evaluatedGraph = evaluatedGraph.withFreshNodenames();
-                    
-                    //now let's reconstruct the alignments that are still explicit in the labels
-                    Map<String, Integer> nodeNameToPosition = new HashMap<>();
-                    for (GraphNode n : evaluatedGraph.getGraph().vertexSet()){
-                        if (n.getLabel().matches(Relabel.LEXMARKER+"[0-9]+")){
-                            int i = Integer.parseInt(n.getLabel().substring(Relabel.LEXMARKER.length()));
-                            nodeNameToPosition.put(n.getName(), i);
-                        }
-                    }
-                    
+                    // relabel graph                    
                     relabeler.fixGraph(evaluatedGraph, s.getFields((AmConllEntry entry) ->
                      {
                          if (entry.getReplacement().equals("_")) {
@@ -157,30 +160,42 @@ public class EvaluateCorpus {
                     
                     if (cli.keepAligned){
                         //now add alignment again, format: POSITION|NODE LABEL where POSITION is 0-based.
+                        
+                        Map<String,Integer> nodeNameToPosition = new HashMap<>();
+                        
+                        for (Alignment al : alignments){
+                            for (String nodeName : al.nodes){
+                                nodeNameToPosition.put(nodeName, al.span.start);
+                            }
+                        }             
+                        
                         for (String nodeName : nodeNameToPosition.keySet()){
                             GraphNode node = evaluatedGraph.getNode(nodeName);
                             if (node == null){
                                 System.err.println("Warning: a nodename for which we have an alignment cannot be found in the relabeled graph");
+                            } else {
+                                node.setLabel(nodeNameToPosition.get(nodeName) + AL_LABEL_SEP + node.getLabel());
                             }
-                            node.setLabel(nodeNameToPosition.get(nodeName) + AL_LABEL_SEP + node.getLabel());
+                            
+                        }               
+                        
+                       // try to find alignments for nodes that the relabeling introduced.
+                       
+                        for (GraphNode node : evaluatedGraph.getGraph().vertexSet()) {
+                            if (!nodeNameToPosition.containsKey(node.getName())) {
+                                Set<GraphEdge> edges = evaluatedGraph.getGraph().edgesOf(node);
+                                if (edges.size() == 1) {
+                                    GraphNode endPoint = BlobUtils.otherNode(node, edges.iterator().next());
+                                    if (nodeNameToPosition.containsKey(endPoint.getName())) {
+                                        node.setLabel(nodeNameToPosition.get(endPoint.getName()) + AL_LABEL_SEP + node.getLabel());
+                                    } else {
+                                        System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
+                                    }
+                                } else {
+                                    System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment and multiple adjacent edges.");
+                                }
+                            }
                         }
-
-//                        for (GraphNode node : evaluatedGraph.getGraph().vertexSet()) {
-//                            if (!nodeNameToPosition.containsKey(node.getName())) {
-//                                Set<GraphEdge> edges = evaluatedGraph.getGraph().edgesOf(node);
-//                                if (edges.size() == 1) {
-//                                    String otherLabel = BlobUtils.otherNode(node, edges.iterator().next()).getLabel();
-//                                    if (otherLabel.contains(AL_LABEL_SEP)) {
-//                                        String alignment = otherLabel.substring(otherLabel.indexOf(AL_LABEL_SEP));
-//                                        node.setLabel(alignment+AL_LABEL_SEP+node.getLabel());
-//                                    } else {
-//                                        System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
-//                                    }
-//                                } else {
-//                                    System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
-//                                }
-//                            }
-//                        }
 
                     }
                     
