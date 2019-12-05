@@ -244,52 +244,56 @@ public class Astar {
             addItemToChart(leftChart[it.getEnd()], it);
 
             // combine it with partners on the right
-            for (int op : edgeLabelLexicon.getKnownIds()) {
-                for (int[] types : siblingFinders[op - 1].getPartners(it.getType(), 0)) {
-                    // here, 'it' is the functor and partner is the argument
-                    int partnerType = types[1];
+            if (it.getType() != 0) {
 
-                    // items with matching types on the right
-                    for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
-                        Item result = combineRight(op, it, partner);
-                        assert result.getScore() <= it.getScore() + EPS : "[0R] Generated " + result + " from " + it;
-                        agenda.enqueue(result);
+                for (int op : edgeLabelLexicon.getKnownIds()) {
+                    for (int[] types : siblingFinders[op - 1].getPartners(it.getType(), 0)) {
+                        // here, 'it' is the functor and partner is the argument
+                        int partnerType = types[1];
+
+                        // items with matching types on the right
+                        for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
+                            Item result = combineRight(op, it, partner);
+                            assert result.getScore() <= it.getScore() + EPS : "[0R] Generated " + result + " from " + it;
+                            agenda.enqueue(result);
+                        }
+
+                        // items with matching types on the left  *** GUT
+                        for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
+                            Item result = combineLeft(op, it, partner);
+                            assert result.getScore() <= it.getScore() + EPS : "[0L] Generated " + result + " from " + it;
+                            agenda.enqueue(result);
+                        }
                     }
 
-                    // items with matching types on the left  *** GUT
-                    for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
-                        Item result = combineLeft(op, it, partner);
-                        assert result.getScore() <= it.getScore() + EPS : "[0L] Generated " + result + " from " + it;
-                        agenda.enqueue(result);
+                    for (int[] types : siblingFinders[op - 1].getPartners(it.getType(), 1)) {
+                        // here, 'it' is the argument and partner is the functor
+                        int partnerType = types[0];
+
+                        // items with matching types on the right     ** SCHLECHT
+                        for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
+                            Item result = combineLeft(op, partner, it);
+                            double logEdgeProbability = edgep.get(partner.getRoot(), it.getRoot(), op); // AKAKAK
+
+                            /*
+                            System.err.println("analysis for it:");
+                            ((StaticOutsideEstimator) outside).analyze(it, supertagLexicon, edgeLabelLexicon);
+                            
+                            System.err.println("analysis for result:");
+                            ((StaticOutsideEstimator) outside).analyze(result, supertagLexicon, edgeLabelLexicon);
+                            */
+                            assert result.getScore() <= it.getScore() + EPS : String.format("[1R] Generated %s from it: %s <--[%s:%f]-- partner: %s", result.toString(typeLexicon), it.toString(typeLexicon), edgeLabelLexicon.resolveId(op), logEdgeProbability, partner.toString(typeLexicon));
+                            agenda.enqueue(result);
+                        }
+
+                        // items with matching types on the left
+                        for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
+                            Item result = combineRight(op, partner, it);
+                            assert result.getScore() <= it.getScore() + EPS : "[1L] Generated " + result.toString(typeLexicon) + " from " + it.toString(typeLexicon);
+                            agenda.enqueue(result);
+                        }
                     }
-                }
 
-                for (int[] types : siblingFinders[op - 1].getPartners(it.getType(), 1)) {
-                    // here, 'it' is the argument and partner is the functor
-                    int partnerType = types[0];
-
-                    // items with matching types on the right     ** SCHLECHT
-                    for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
-                        Item result = combineLeft(op, partner, it);
-                        double logEdgeProbability = edgep.get(partner.getRoot(), it.getRoot(), op); // AKAKAK
-
-                        /*
-                        System.err.println("analysis for it:");
-                        ((StaticOutsideEstimator) outside).analyze(it, supertagLexicon, edgeLabelLexicon);
-                        
-                        System.err.println("analysis for result:");
-                        ((StaticOutsideEstimator) outside).analyze(result, supertagLexicon, edgeLabelLexicon);
-                         */
-                        assert result.getScore() <= it.getScore() + EPS : String.format("[1R] Generated %s from it: %s <--[%s:%f]-- partner: %s", result.toString(typeLexicon), it.toString(typeLexicon), edgeLabelLexicon.resolveId(op), logEdgeProbability, partner.toString(typeLexicon));
-                        agenda.enqueue(result);
-                    }
-
-                    // items with matching types on the left
-                    for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
-                        Item result = combineRight(op, partner, it);
-                        assert result.getScore() <= it.getScore() + EPS : "[1L] Generated " + result.toString(typeLexicon) + " from " + it.toString(typeLexicon);
-                        agenda.enqueue(result);
-                    }
                 }
             }
 
@@ -345,8 +349,8 @@ public class Astar {
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
         //double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-        double ignoreProb =0;
-        
+        double ignoreProb = 0;
+
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
 //            System.err.printf("Warning: couldn't skip %s to %d; nullProb=%f, ignoreProb=%f\n", originalItem, skippedPosition, nullProb, ignoreProb);
