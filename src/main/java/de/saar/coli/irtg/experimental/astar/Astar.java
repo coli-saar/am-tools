@@ -111,8 +111,8 @@ public class Astar {
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
 
-//        this.outside = new StaticOutsideEstimator(edgep, tagp);
-        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        this.outside = new StaticOutsideEstimator(edgep, tagp);
+//        this.outside = new SupertagOnlyOutsideEstimator(tagp);
 //        this.outside = new TrivialOutsideEstimator();
 
         w.record();
