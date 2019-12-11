@@ -66,6 +66,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
     public double evaluate(Item it) {
         double v = left(it.getStart()) + right(it.getEnd()); // supertags and best incoming edges for the left and right context
         // TODO plus best edge into root of item?
+        v += bestEdgep[it.getRoot()]; 
         return v;
         
         
