@@ -13,5 +13,4 @@ public interface Agenda {
     public void enqueue(Item item);
     public boolean isEmpty();
     public Item dequeue();
-    public int getSize();
 }

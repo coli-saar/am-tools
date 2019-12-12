@@ -216,7 +216,7 @@ public class Astar {
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
             // if (j % 500 == 0) {
-            //     System.err.println(agenda.getSize());
+            //     System.err.println(agenda.());
             // }
 
             if (it == null) {

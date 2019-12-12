@@ -91,10 +91,6 @@ class PriorityQueueAgenda implements Agenda {
         return item;
     }
 
-    public int getSize() {
-        return agenda.size();
-    }
-
     public static class ItemCache {
 
         private Long2ObjectMap<Long2ObjectMap<Item>> cache;
