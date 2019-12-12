@@ -73,7 +73,7 @@ public class Astar {
     private static final String IGNORE_EDGELABEL = "IGNORE";
     private static final String ROOT_EDGELABEL = "ROOT";
     
-    private boolean declutterAgenda = true; // previously dequeued items will never be enqueued again
+    private boolean declutterAgenda = false; // previously dequeued items will never be enqueued again
 
     private int N;
     private final EdgeProbabilities edgep;
@@ -111,9 +111,9 @@ public class Astar {
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
 
-        this.outside = new StaticOutsideEstimator(edgep, tagp);
+//        this.outside = new StaticOutsideEstimator(edgep, tagp);
 //        this.outside = new DynamicOutsideEstimator(edgep, tagp);
-//        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        this.outside = new SupertagOnlyOutsideEstimator(tagp);
 //        this.outside = new TrivialOutsideEstimator();
 
         w.record();
@@ -180,8 +180,8 @@ public class Astar {
 
         w.record();
 
-//        Agenda agenda = new PriorityQueueAgenda(declutterAgenda);
-        Agenda agenda = new StanfordAgenda();
+        Agenda agenda = new PriorityQueueAgenda(declutterAgenda);
+//        Agenda agenda = new StanfordAgenda();
 
         SiblingFinder[] siblingFinders = new SiblingFinder[edgeLabelLexicon.size()];  // siblingFinders[op] = type-sibling-finder for operation op, for all seen types
         for (int j : edgeLabelLexicon.getKnownIds()) {
@@ -212,8 +212,12 @@ public class Astar {
         }
 
         // iterate over agenda
+        int j = 0;
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
+            // if (j % 500 == 0) {
+            //     System.err.println(agenda.getSize());
+            // }
 
             if (it == null) {
                 // emptied agenda without finding goal item
@@ -326,6 +330,7 @@ public class Astar {
 // //                System.err.println(" --> goal: " + goalItem);
 //                 agenda.enqueue(goalItem);
 //             }
+            j += 1;
         }
 
         w.record();
@@ -350,8 +355,8 @@ public class Astar {
 
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
-        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-//        double ignoreProb = 0;
+//        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
+        double ignoreProb = 0;
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
@@ -703,7 +708,8 @@ public class Astar {
             for (int tokenPos = 0; tokenPos < sentence.size(); tokenPos++) {
                 List<AnnotatedSupertag> token = sentence.get(tokenPos);
 
-                for (int stPos = 0; stPos < token.size(); stPos++) {
+                // for (int stPos = 0; stPos < token.size(); stPos++) {
+                for (int stPos = 0; stPos < 6; stPos++) {
                     AnnotatedSupertag st = token.get(stPos);
                     String supertag = st.graph;
                     int supertagId = supertagLexicon.resolveObject(supertag);
@@ -722,7 +728,7 @@ public class Astar {
         // calculate edge-label lexicon
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 10, true);  // TODO make these configurable  // was: 0.1, 5
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 5, true);  // TODO make these configurable  // was: 0.1, 5
         Interner<String> edgeLabelLexicon = new Interner<>();
         x = 0;
 
