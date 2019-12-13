@@ -42,7 +42,8 @@ dependencies {
 
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'junit:junit:4.12'
-    testCompile 'org.codehaus.groovy:groovy-all:2.4.13'
+    testCompile 'org.codehaus.groovy:groovy-all:3.0.0-rc-2'
+    //testCompile 'org.codehaus.groovy:groovy-all:2.4.13'
 
     // the following dependencies are in alto, but we need to include them here again
     // (this stuff seems to not be recursive)
