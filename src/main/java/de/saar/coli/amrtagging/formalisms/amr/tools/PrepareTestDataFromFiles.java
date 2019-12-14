@@ -101,7 +101,7 @@ public class PrepareTestDataFromFiles {
         }
 
         if( cli.stanfordNerFilename != null ) {
-            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), true);
         } else {
             neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }
@@ -117,7 +117,7 @@ public class PrepareTestDataFromFiles {
             List<Integer> origPositions = new ArrayList<>();
             List<String> ners = new ArrayList<>();
             for (int id = 0; id < sentences.get(i).size();id++){
-                String wordForm = literals.get(i).get(id).replace(LITERAL_JOINER, " ");
+                String wordForm = literals.get(i).get(id).replace(LITERAL_JOINER, "_");
                 AmConllEntry e = new AmConllEntry(id + 1, wordForm);
                 o.add(e);
                 ners.add("O");

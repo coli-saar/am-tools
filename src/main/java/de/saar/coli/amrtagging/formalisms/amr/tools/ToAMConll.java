@@ -116,7 +116,7 @@ public class ToAMConll {
 
         if (!cli.ner_disabled){
             if( cli.stanfordNerFilename != null ) {
-                neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+                neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), true);
             } else {
                 neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
             }
@@ -144,7 +144,7 @@ public class ToAMConll {
             List<String> ners = new ArrayList<>();
 
             for (int positionInSentence = 0; positionInSentence < sentences.get(i).size(); positionInSentence++) {
-                String wordForm = literals.get(i).get(positionInSentence).replace(LITERAL_JOINER, " ");
+                String wordForm = literals.get(i).get(positionInSentence).replace(LITERAL_JOINER, "_");
                 AmConllEntry e = new AmConllEntry(positionInSentence + 1, wordForm);
                 String tag = tags.get(i).get(positionInSentence).replaceAll("__ALTO_WS__", " ");
 

@@ -149,11 +149,16 @@ public class CreateCorpusParallel {
             }
         }
 
-        NamedEntityRecognizer neRecognizer;
-        if (cli.stanfordNerFilename != null) {
-            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+        NamedEntityRecognizer neRecognizer ;
+        NamedEntityRecognizer neRecognizerForMerging;
+        
+        if( cli.stanfordNerFilename != null ) {
+            neRecognizerForMerging = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), false);
+            neRecognizer = neRecognizerForMerging;
+            
         } else {
             neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
+            neRecognizerForMerging = neRecognizer;
         }
 
         instances.parallelStream().forEach((Instance corpusInstance) -> {
@@ -190,7 +195,7 @@ public class CreateCorpusParallel {
 
 
             // merge named entities
-            NamedEntityMerger nemerger = new NamedEntityMerger(id, preprocData, neRecognizer);
+            NamedEntityMerger nemerger = new NamedEntityMerger(id, preprocData, neRecognizerForMerging);
 
             if (cli.mergeNamedEntities && neRecognizer != null) {
                 sentence = nemerger.merge(sentence);

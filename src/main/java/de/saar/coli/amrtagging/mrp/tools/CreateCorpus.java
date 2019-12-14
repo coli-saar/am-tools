@@ -96,7 +96,7 @@ public class CreateCorpus {
 
         NamedEntityRecognizer namedEntityRecognizer = null;
         if( cli.stanfordNerFilename != null ) {
-            namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+            namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), false); //what we had for MRP, probably want to have true!
         } else if( cli.uiucNer ) {
             namedEntityRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }

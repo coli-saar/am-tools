@@ -118,7 +118,7 @@ public class PrepareTestData {
 
             NamedEntityRecognizer neRecognizer = null;
             if( cli.stanfordNerFilename != null ) {
-                neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+                neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), false); //might want to change to true? But we used the coarser tagset in MRP shared task
             } else if( cli.useUiucNer ) {
                 neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
             }
