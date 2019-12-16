@@ -13,7 +13,6 @@ import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
-import de.saar.coli.amrtagging.mrp.amr.AMR;
 
 
 import de.up.ling.irtg.algebra.ParserException;
@@ -49,7 +48,7 @@ public class EvaluateCorpus {
         
    //For relabeler, all optional
    @Parameter(names = {"--relabel"}, description = "perform relabeling automatically")
-    private boolean relabel = true;
+    private boolean relabel = false;
    
    @Parameter(names = {"--keep-aligned"}, description = "keep index of token position in node label")
     private boolean keepAligned = false;
