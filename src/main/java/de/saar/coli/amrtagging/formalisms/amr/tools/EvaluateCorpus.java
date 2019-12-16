@@ -12,6 +12,8 @@ import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
+import de.saar.coli.amrtagging.mrp.amr.AMR;
 
 
 import de.up.ling.irtg.algebra.ParserException;
@@ -36,10 +38,10 @@ import java.util.stream.Collectors;
  */
 public class EvaluateCorpus {
      @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus with decoded AM dependency trees")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/tratz_orig/AMR-2017_pred.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/properties/17_dev.amconll";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/tratz_orig/debugging/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/properties/";
     
    @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -47,16 +49,19 @@ public class EvaluateCorpus {
         
    //For relabeler, all optional
    @Parameter(names = {"--relabel"}, description = "perform relabeling automatically")
-    private boolean relabel = false;
+    private boolean relabel = true;
    
    @Parameter(names = {"--keep-aligned"}, description = "keep index of token position in node label")
     private boolean keepAligned = false;
+   
+   @Parameter(names = {"--th"}, description = "Threshold for relabeler. Default: 10")
+    private int threshold = 10;
     
     @Parameter(names = {"--wn"}, description = "Path to WordNet")
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
     
     @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
-    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/lookupdata17";
+    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/lookupdata17/";
     
     
     public static final String AL_LABEL_SEP = "|";
@@ -97,7 +102,7 @@ public class EvaluateCorpus {
             l = new PrintWriter(cli.outPath+"/labels.txt");
             indices = new PrintWriter(cli.outPath+"/indices.txt");
         } else {
-             relabeler = new Relabel(cli.wordnet, null, cli.lookup, 10, 0,false);
+             relabeler = new Relabel(cli.wordnet, null, cli.lookup, cli.threshold, 0,false);
         }
 
         int index = 0;
@@ -163,11 +168,7 @@ public class EvaluateCorpus {
                          } else {
                              return entry.getReplacement().toLowerCase();
                          }
-                    }), s.words(), s.getFields(entry -> {
-                        String relex = entry.getReLexLabel();
-                        if (relex.equals("_")) return "NULL";
-                                else return relex;
-                    }));
+                    }), s.words(), s.getFields(entry -> entry.getReLexLabel()));
                     
                     if (cli.keepAligned){
                         //now add alignment again, format: POSITION|NODE LABEL where POSITION is 0-based.
@@ -212,7 +213,13 @@ public class EvaluateCorpus {
                     
                 }
                 
+                if (cli.relabel) {
+                     //fix properties
+                    evaluatedGraph = PropertyDetection.fixProperties(evaluatedGraph);
+                }
+                
                 o.println(evaluatedGraph.toIsiAmrString());
+                if (cli.relabel) o.println();
                 
             } catch (Exception ex){
                 System.err.println("In line "+s.getLineNr());
@@ -224,6 +231,8 @@ public class EvaluateCorpus {
                 
                 if (!cli.relabel){
                     l.println();
+                } else {
+                    o.println();
                 }
             }
         }
@@ -238,6 +247,6 @@ public class EvaluateCorpus {
         
     }
     
-
+    
     
 }
