@@ -728,7 +728,7 @@ public class Astar {
         // calculate edge-label lexicon
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 5, true);  // TODO make these configurable  // was: 0.1, 5
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 10, true);  // TODO make these configurable  // was: 0.1, 5
         Interner<String> edgeLabelLexicon = new Interner<>();
         x = 0;
 
