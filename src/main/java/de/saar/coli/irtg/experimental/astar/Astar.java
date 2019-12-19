@@ -111,9 +111,9 @@ public class Astar {
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
 
-//        this.outside = new StaticOutsideEstimator(edgep, tagp);
+        this.outside = new StaticOutsideEstimator(edgep, tagp);
 //        this.outside = new DynamicOutsideEstimator(edgep, tagp);
-        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+//        this.outside = new SupertagOnlyOutsideEstimator(tagp);
 //        this.outside = new TrivialOutsideEstimator();
 
         w.record();
@@ -355,8 +355,8 @@ public class Astar {
 
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
-//        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-        double ignoreProb = 0;
+        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
+//        double ignoreProb = 0;
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
