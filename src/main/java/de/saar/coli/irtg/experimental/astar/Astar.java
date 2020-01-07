@@ -212,6 +212,7 @@ public class Astar {
         }
 
         // iterate over agenda
+        //
         int j = 0;
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
