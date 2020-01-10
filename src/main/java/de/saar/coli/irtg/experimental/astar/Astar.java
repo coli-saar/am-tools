@@ -188,9 +188,9 @@ public class Astar {
             siblingFinders[j - 1] = typeLexicon.makeSiblingFinder(j);
         }
 
-        Int2ObjectMap<Set<Item>>[] rightChart = new Int2ObjectMap[N + 1];      // rightChart[i].get(t) = all previously dequeued items that start at i with type-ID t
-        Int2ObjectMap<Set<Item>>[] leftChart = new Int2ObjectMap[N + 1];       // leftChart[i].get(t) = all previously dequeued items that end at i with type-ID t
-        for (int i = 0; i < N + 1; i++) {
+        Int2ObjectMap<Set<Item>>[] rightChart = new Int2ObjectMap[N + 2];      // rightChart[i].get(t) = all previously dequeued items that start at i with type-ID t
+        Int2ObjectMap<Set<Item>>[] leftChart = new Int2ObjectMap[N + 2];       // leftChart[i].get(t) = all previously dequeued items that end at i with type-ID t
+        for (int i = 1; i <= N + 1; i++) {
             rightChart[i] = new Int2ObjectOpenHashMap<>();
             leftChart[i] = new Int2ObjectOpenHashMap<>();
         }
@@ -199,7 +199,7 @@ public class Astar {
         for (int i = 1; i <= N; i++) {  // no items for 0
             final int i_final = i;
             tagp.foreachInOrder(i, (supertagId, prob) -> {
-//                System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
+                //System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
 
                 if (supertagId != tagp.getNullSupertagId()) { // skip NULL entries - NULL items are created on the fly during the agenda exploration phase
                     Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
@@ -336,9 +336,9 @@ public class Astar {
             
             // add ROOT edge from 0
             if( isAlmostGoal(it) ) {
-                // System.err.println(" --> almost goal");
+                //System.err.println(" --> almost goal");
                 Item goalItem = makeGoalItem(it);
-                // System.err.println(" --> goal: " + goalItem);
+                //System.err.println(" --> goal: " + goalItem);
                 agenda.enqueue(goalItem);
             }
             j += 1;
@@ -350,14 +350,14 @@ public class Astar {
     }
     
     private boolean isAlmostGoal(Item it) {
-        return it.getStart() == 1 && it.getEnd() == N && typeLexicon.resolveID(it.getType()).keySet().isEmpty();
+        return it.getStart() == 1 && it.getEnd()-1 == N && typeLexicon.resolveID(it.getType()).keySet().isEmpty();
     }
     
     private Item makeGoalItem(Item almostGoalItem) {
         double rootProb = edgep.get(0, almostGoalItem.getRoot(), edgep.getRootEdgeId());
         //double rootProb = 0;
         //System.err.println(rootProb);
-        Item goalItem = new Item(almostGoalItem.getStart()-1, almostGoalItem.getEnd(), almostGoalItem.getRoot(), almostGoalItem.getType(), almostGoalItem.getLogProb() + rootProb);
+        Item goalItem = new Item(almostGoalItem.getStart()-1, almostGoalItem.getEnd()-1, almostGoalItem.getRoot(), almostGoalItem.getType(), almostGoalItem.getLogProb() + rootProb);
         goalItem.setOutsideEstimate(0);
         goalItem.setCreatedByOperation(-1, almostGoalItem, null);
         return goalItem;
@@ -408,7 +408,7 @@ public class Astar {
         if (item.getLeft() == null) {
             // leaf; decode op as supertag
             String supertag = supertagLexicon.resolveId(item.getOperation());
-            leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart());
+            leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart()-1);
             return Tree.create(supertag);
 
             /*
@@ -830,6 +830,7 @@ public class Astar {
 
         for (int i : sentenceIndices) { // loop over corpus
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
+            //if (tagp.get(i).getLength() == 1) {
                 final int ii = i;
 
 //                System.err.printf("\n[%02d] EDGES:\n", ii);
