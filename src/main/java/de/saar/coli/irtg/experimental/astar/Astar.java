@@ -100,12 +100,12 @@ public class Astar {
         this.N = tagp.getLength();              // sentence length
 
         // create type interner for the supertags in tagp
-        Set<Type> types = new HashSet<>();
-        for (int i = 0; i < tagp.getLength(); i++) {
-            tagp.foreachInOrder(i, (id, prob) -> {
-                types.add(idToAsGraph.get(id).right);
-            });
-        }
+        // Set<Type> types = new HashSet<>();
+        // for (int i = 1; i <= tagp.getLength(); i++) {
+        //     tagp.foreachInOrder(i, (id, prob) -> {
+        //         types.add(idToAsGraph.get(id).right);
+        //     });
+        // }
 
         w.record();
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
@@ -173,7 +173,7 @@ public class Astar {
     }
 
     private Item process() {
-//        edgep.prettyprint(edgeLabelLexicon, System.err);
+        // edgep.prettyprint(edgeLabelLexicon, System.err);
 
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
@@ -196,9 +196,8 @@ public class Astar {
         }
 
         // initialize agenda
-        for (int i = 0; i < N; i++) {  // no items for 0
+        for (int i = 1; i <= N; i++) {  // no items for 0
             final int i_final = i;
-
             tagp.foreachInOrder(i, (supertagId, prob) -> {
 //                System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
 
@@ -206,21 +205,30 @@ public class Astar {
                     Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
                     it.setCreatedBySupertag(supertagId);
                     it.setOutsideEstimate(outside.evaluate(it));
+                    //System.err.println(it);
                     agenda.enqueue(it);
                 }
             });
         }
+
+        //tagp.prettyprint(idToSupertag, System.err);
+        //edgep.prettyprint(edgeLabelLexicon, System.err);
 
         // iterate over agenda
         //
         int j = 0;
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
-            // if (j % 500 == 0) {
-            //     System.err.println(agenda.());
-            // }
+            //System.err.println(it);
+            //if (j % 500 == 0) {
+                // System.err.println(it.getOutsideEstimate());
+                // System.err.println(it.getLogProb());
+                // System.err.println(it.getScore());
+                // System.err.println("");
+            //}
 
             if (it == null) {
+                //System.err.println(j);
                 // emptied agenda without finding goal item
                 w.record(); // agenda looping time
                 runtimeStatistics = new RuntimeStatistics(numDequeuedItems, w.getTimeBefore(1), Double.NaN);
@@ -233,6 +241,8 @@ public class Astar {
 
             // return first found goal item
             if (isGoal(it)) {
+                // it.setOutsideEstimate(it.getOutsideEstimate() - edgep.getBestIncomingProb(it.getRoot()));
+                // System.err.println(j);
                 w.record(); // agenda looping time
 
                 runtimeStatistics = new RuntimeStatistics(numDequeuedItems, w.getTimeBefore(1), it.getLogProb());
@@ -325,18 +335,17 @@ public class Astar {
             }
             
             // add ROOT edge from 0
-//             if( isAlmostGoal(it) ) {
-// //                System.err.println(" --> almost goal");
-//                 Item goalItem = makeGoalItem(it);
-// //                System.err.println(" --> goal: " + goalItem);
-//                 agenda.enqueue(goalItem);
-//             }
+            if( isAlmostGoal(it) ) {
+                // System.err.println(" --> almost goal");
+                Item goalItem = makeGoalItem(it);
+                // System.err.println(" --> goal: " + goalItem);
+                agenda.enqueue(goalItem);
+            }
             j += 1;
         }
 
         w.record();
         runtimeStatistics = new RuntimeStatistics(numDequeuedItems, w.getTimeBefore(1), Double.NaN);
-
         return null;
     }
     
@@ -346,6 +355,8 @@ public class Astar {
     
     private Item makeGoalItem(Item almostGoalItem) {
         double rootProb = edgep.get(0, almostGoalItem.getRoot(), edgep.getRootEdgeId());
+        //double rootProb = 0;
+        //System.err.println(rootProb);
         Item goalItem = new Item(almostGoalItem.getStart()-1, almostGoalItem.getEnd(), almostGoalItem.getRoot(), almostGoalItem.getType(), almostGoalItem.getLogProb() + rootProb);
         goalItem.setOutsideEstimate(0);
         goalItem.setCreatedByOperation(-1, almostGoalItem, null);
@@ -387,9 +398,9 @@ public class Astar {
 
     private Tree<String> decode(Item item, double logProbGoalItem, IntList leafOrderToStringOrder, MutableInteger nextLeafPosition) {
         double realOutside = logProbGoalItem - item.getLogProb();
-//        System.err.printf("item: %s\n", item);
+       // System.err.printf("item: %s\n", item);
 
-//        System.err.printf("%s -> logprob=%f, real_outside=%f, outside_estimate=%f\n", item.shortString(), item.getLogProb(), realOutside, item.getOutsideEstimate());
+       // System.err.printf("%s -> logprob=%f, real_outside=%f, outside_estimate=%f\n", item.shortString(), item.getLogProb(), realOutside, item.getOutsideEstimate());
         if (realOutside > item.getOutsideEstimate() + EPS) {
             logger.accept(String.format("WARNING: Inadmissible estimate (realOutside=%f, item=%s).", realOutside, item.toString()));
         }
@@ -714,7 +725,7 @@ public class Astar {
                     AnnotatedSupertag st = token.get(stPos);
                     String supertag = st.graph;
                     int supertagId = supertagLexicon.resolveObject(supertag);
-                    tagpHere.put(tokenPos, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
+                    tagpHere.put(tokenPos + 1, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
                 }
             }
 
@@ -729,7 +740,7 @@ public class Astar {
         // calculate edge-label lexicon
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 10, true);  // TODO make these configurable  // was: 0.1, 5
+        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 7, false);  // TODO make these configurable  // was: 0.1, 5
         Interner<String> edgeLabelLexicon = new Interner<>();
         x = 0;
 
@@ -822,7 +833,7 @@ public class Astar {
                 final int ii = i;
 
 //                System.err.printf("\n[%02d] EDGES:\n", ii);
-//                edgep.get(ii).prettyprint(edgeLabelLexicon, System.err);
+                //edgep.get(ii).prettyprint(edgeLabelLexicon, System.err);
                 forkJoinPool.execute(() -> {
                     Astar astar = null;
                     ParsingResult parsingResult = null;
