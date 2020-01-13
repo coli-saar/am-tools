@@ -263,6 +263,11 @@ public class AlignedAMDependencyTree {
         Map<Tree<AmConllEntry>, Tree<AmConllEntry>> parentMap = tree.getParentMap();
 
         int rootIndex = tree.getLabel().getId();
+        
+        if (tree.getLabel().getType() == null){
+            // \bot was selected as supertag for the root.
+            throw new IllegalArgumentException("AM dependency tree has type \\bot (meaning no semantic contribution) at the root and thus doesn't represent a graph.");
+        }
 
         for (AmConllEntry leaf : tree.getLeafLabels()) {
             String s;
