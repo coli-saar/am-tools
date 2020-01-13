@@ -4,3 +4,9 @@ build.log
 /.gradle/
 /src/main/java/de/saar/coli/amrtagging/AMToolsVersion.java
 .nb-gradle-properties
+.idea/codeStyles/codeStyleConfig.xml
+.idea/gradle.xml
+.idea/jarRepositories.xml
+.idea/misc.xml
+.idea/vcs.xml
+.idea/workspace.xml
