@@ -169,11 +169,22 @@ public class ToAMConll {
 
                 o.add(e);
                 ners.add("O");
-
-                for (String w : literals.get(i).get(positionInSentence).split(LITERAL_JOINER)) {
-                    expandedWords.add(w);
+                
+                String[] splits = literals.get(i).get(positionInSentence).split(LITERAL_JOINER);
+                
+                if (splits.length == 0){
+                    // we have to add a token otherwise things break.
+                    expandedWords.add(literals.get(i).get(positionInSentence));
                     origPositions.add(positionInSentence);
+                } else {
+                    for (String w : splits) {
+                        if (w.length() > 0) {
+                             expandedWords.add(w);
+                            origPositions.add(positionInSentence);
+                        }
+                    }
                 }
+
             }
 
             // At this point, expandedWords is a list of tokens. Potentially, |expandedWords| > |sentences(i)|,
