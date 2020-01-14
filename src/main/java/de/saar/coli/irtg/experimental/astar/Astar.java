@@ -79,6 +79,7 @@ public class Astar {
     private final EdgeProbabilities edgep;
     private final SupertagProbabilities tagp;
     private final OutsideEstimator outside;
+    private final String outsideEstimatorString;
     private final Int2ObjectMap<Pair<SGraph, Type>> idToSupertag;
     private final Interner<String> supertagLexicon;
     private final Interner<String> edgeLabelLexicon;
@@ -98,6 +99,7 @@ public class Astar {
         this.edgeLabelLexicon = edgeLabelLexicon;
         this.supertagLexicon = supertagLexicon;
         this.N = tagp.getLength();              // sentence length
+        this.outsideEstimatorString = outsideEstimatorString;
 
         // create type interner for the supertags in tagp
         // Set<Type> types = new HashSet<>();
@@ -111,12 +113,13 @@ public class Astar {
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
 
-        if (outsideEstimatorString == "supertagonly") {
+        if (this.outsideEstimatorString.equals("supertagonly")) {
             this.outside = new SupertagOnlyOutsideEstimator(tagp);
         } else {
             this.outside = new StaticOutsideEstimator(edgep, tagp);
         }
-//        this.outside = new StaticOutsideEstimator(edgep, tagp);
+        //this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        //this.outside = new StaticOutsideEstimator(edgep, tagp);
 //        this.outside = new SupertagOnlyOutsideEstimator(tagp);
 //        this.outside = new TrivialOutsideEstimator();
 
@@ -372,7 +375,10 @@ public class Astar {
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
         double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-//        double ignoreProb = 0;
+        
+        if (this.outsideEstimatorString.equals("supertagonly")) {
+            ignoreProb = 0;
+        }
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE

@@ -106,7 +106,7 @@ public class SupertagOnlyOutsideEstimator implements OutsideEstimator {
 
 
         // calculate best supertag for each token
-        bestTagp = new double[N];
+        bestTagp = new double[N+1];
         for (int k = 1; k <= N; k++) {
             bestTagp[k] = tagp.getMaxProb(k);
 //            System.err.printf("best tag @%d: %f\n", k, bestTagp[k]);
