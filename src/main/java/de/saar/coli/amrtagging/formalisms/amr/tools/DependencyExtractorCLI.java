@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  */
 public class DependencyExtractorCLI {
     
-    public static final String LITERAL_JOINER = "_@_";
+    public static final String LITERAL_JOINER = "_";
     
     @Parameter(names = {"--corpusPath", "-c"}, description = "Path to the input corpus") //required = true)
     private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/AMR-toy/100.corpus";

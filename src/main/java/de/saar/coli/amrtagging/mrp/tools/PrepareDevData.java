@@ -92,10 +92,15 @@ public class PrepareDevData {
         ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         
         NamedEntityRecognizer neRecognizer = null;
+        NamedEntityRecognizer neRecognizerForMerging = null;
+        
         if( cli.stanfordNerFilename != null ) {
-            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename));
+            neRecognizerForMerging = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), false);
+            neRecognizer = neRecognizerForMerging; //new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), true); //probably want to use the version with true
+            
         } else if( cli.useUiucNer ) {
             neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
+            neRecognizerForMerging = neRecognizer;
         }
         
         Reader fr = new FileReader(cli.corpusPath);
@@ -111,7 +116,7 @@ public class PrepareDevData {
             String input = mrpGraph.getInput();
             Formalism formalism;
 
-            NamedEntityMerger neMerger = new NamedEntityMerger(mrpGraph.getId(), new MrpPreprocessedData(usentence), neRecognizer);
+            NamedEntityMerger neMerger = new NamedEntityMerger(mrpGraph.getId(), new MrpPreprocessedData(usentence), neRecognizerForMerging);
 
             if (mrpGraph.getFramework().equals("dm")){
                 DM dm = new DM();
