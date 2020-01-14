@@ -87,7 +87,7 @@ public class Astar {
     private final Int2IntMap supertagTypes;
     private Consumer<String> logger;
 
-    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon) {
+    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon, String outsideEstimatorString) {
         logger = (s) -> System.err.println(s);  // by default, log to stderr
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         w.record();
@@ -111,8 +111,12 @@ public class Astar {
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
 
-        this.outside = new StaticOutsideEstimator(edgep, tagp);
-//        this.outside = new DynamicOutsideEstimator(edgep, tagp);
+        if (outsideEstimatorString == "supertagonly") {
+            this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        } else {
+            this.outside = new StaticOutsideEstimator(edgep, tagp);
+        }
+//        this.outside = new StaticOutsideEstimator(edgep, tagp);
 //        this.outside = new SupertagOnlyOutsideEstimator(tagp);
 //        this.outside = new TrivialOutsideEstimator();
 
@@ -577,6 +581,9 @@ public class Astar {
         @Parameter(names = "--threads", description = "Number of threads to use.")
         private Integer numThreads = 1;
 
+        @Parameter(names = "--outside-estimator", description = "Outside estimator to use.")
+        private String outsideEstimatorString = "static";
+
         @Parameter(names = "--sort", description = "Sort corpus by sentence length.")
         private boolean sort = false;
 
@@ -844,7 +851,7 @@ public class Astar {
                     try {
                         w.record();
 
-                        astar = new Astar(edgep.get(ii), tagp.get(ii), idToSupertag, supertagLexicon, edgeLabelLexicon, typeLexicon);
+                        astar = new Astar(edgep.get(ii), tagp.get(ii), idToSupertag, supertagLexicon, edgeLabelLexicon, typeLexicon, arguments.outsideEstimatorString);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
 
