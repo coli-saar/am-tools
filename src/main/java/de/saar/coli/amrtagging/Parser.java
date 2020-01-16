@@ -201,8 +201,8 @@ public class Parser {
             for (int h2=h1+1; h2<l; h2++) {
                 //APP_lr
                 for (Type t1 : types[h1]) {
-                    for (String s : t1.keySet()) {
-                        Type res = t1.simulateApply(s);
+                    for (String s : t1.getOrigins()) {
+                        Type res = t1.performApply(s);
                         if (res != null) {
                             String nt = h1+"|"+res.toString();
                             String nt1 = h1+"|"+t1.toString();
@@ -220,8 +220,8 @@ public class Parser {
                 }
                 //APP_rl //TODO unify duplicate code
                 for (Type t2 : types[h2]) {
-                    for (String s : t2.keySet()) {
-                        Type res = t2.simulateApply(s);
+                    for (String s : t2.getOrigins()) {
+                        Type res = t2.performApply(s);
                         if (res != null) {
                             String nt = h2+"|"+res.toString();
                             String nt2 = h2+"|"+t2.toString();
@@ -242,7 +242,7 @@ public class Parser {
                     String nt = h1+"|"+t1.toString();
                     String nt1 = h1+"|"+t1.toString();
                     for (Type t2 : types[h2]) {
-                        for (String s : t2.keySet()) {
+                        for (String s : t2.getOrigins()) {
                             if (t1.canBeModifiedBy(t2, s)) {
                                 String nt2 = h2+"|"+t2.toString();
                                 for (Tree<String> stringTree : stringTrees) {
@@ -258,7 +258,7 @@ public class Parser {
                     String nt = h2+"|"+t2.toString();
                     String nt2 = h2+"|"+t2.toString();
                     for (Type t1 : types[h1]) {
-                        for (String s : t1.keySet()) {
+                        for (String s : t1.getOrigins()) {
                             if (t2.canBeModifiedBy(t1, s)) {
                                 String nt1 = h1+"|"+t1.toString();
                                 for (Tree<String> reverseStringTree : reverseStringTrees) {

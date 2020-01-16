@@ -55,9 +55,9 @@ public class ConcreteAlignmentTrackingAutomaton extends AlignmentTrackingAutomat
             case 0:
             {
                 String[] asGraphParts = labelParts[1].split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP);
-                AMDecompositionAutomaton.Type type;
+                ApplyModifyGraphAlgebra.Type type;
                 try {
-                    type = AMDecompositionAutomaton.Type.fromAlgebraType(new ApplyModifyGraphAlgebra.Type(asGraphParts[1]), decomp.getGraphInfo());
+                    type = new ApplyModifyGraphAlgebra.Type(asGraphParts[1]);
                 } catch (ParseException ex) {
                     System.err.println("Could not parse type "+asGraphParts[1]+". Ignored this constant "+ label +".");
                     System.err.println(ex.toString());
@@ -67,7 +67,7 @@ public class ConcreteAlignmentTrackingAutomaton extends AlignmentTrackingAutomat
                 //return exactly matching 
                 BoundaryRepresentation br = new BoundaryRepresentation(subgraph, decomp.getGraphInfo());
                 double score = scoreConst.get(decomp.getSignature().getIdForSymbol(labelParts[1]));
-                Pair<BoundaryRepresentation, AMDecompositionAutomaton.Type> state = new Pair(br, type);
+                Pair<BoundaryRepresentation, ApplyModifyGraphAlgebra.Type> state = new Pair(br, type);
                 decomp.getStateInterner().addObject(state);
                 int stateID = makeState(state, Integer.parseInt(labelParts[0]));
                 Collection<Rule> ret = Collections.singleton(createRule(stateID,labelId, childStates, score));

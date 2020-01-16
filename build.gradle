@@ -33,7 +33,7 @@ gversion {
 
 project.compileJava.dependsOn(createVersionFile)
 dependencies {
-    compile 'com.github.coli-saar:alto:cc71cb7'
+    compile 'com.github.coli-saar:alto:94b80cd6'
     
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'

@@ -343,7 +343,7 @@ public class AMDependencyTree {
                             ArrayList<Tree<String>> children = new ArrayList();
                             children.add(curr.term);
                             children.add(dep.term);
-                            deduced = new Item<>(curr.index, copied, curr.tau.simulateApply(source), Tree.create(operation, children));
+                            deduced = new Item<>(curr.index, copied, curr.tau.performApply(source), Tree.create(operation, children));
 
                         }
                     } else if (operation.contains(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
