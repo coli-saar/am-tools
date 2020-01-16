@@ -30,7 +30,8 @@ public class AnalyseComponents {
     
     public static void main(String[] args) throws IOException {
         
-        String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.psd.sdp";
+        String corpusPath = "C://Users/Jonas/Documents/Work/data/sdp/2015/psd/train.sdp";
+            //"/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.psd.sdp";
         PSDBlobUtils blobUtils = new PSDBlobUtils();
         
         
@@ -130,30 +131,30 @@ public class AnalyseComponents {
         System.err.println("max tree count: "+maxTreeCount);
         System.err.println("max log2 tree count: "+maxLogTreeCount);
         treeCountFrequencies.printAllSorted();
-        
-        System.err.println("\n\n");
-        System.err.println("Cyclic graphs: "+cyclicGraphs.size());
-        for (MRInstance inst : cyclicGraphs) {
-            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
-            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
-            System.err.println();
-        }
-        
-        System.err.println("\n\n");
-        System.err.println("missing Modifiee edge graphs: "+failedModifieeGraphs.size());
-        for (MRInstance inst : failedModifieeGraphs) {
-            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
-            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
-            System.err.println();
-        }
-        
-        System.err.println("\n\n");
-        System.err.println("Graphs with more than "+treeCountReportThreshold+" component trees: "+manyChoicesGraphs.size());
-        for (MRInstance inst : manyChoicesGraphs) {
-            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
-            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
-            System.err.println();
-        }
+//
+//        System.err.println("\n\n");
+//        System.err.println("Cyclic graphs: "+cyclicGraphs.size());
+//        for (MRInstance inst : cyclicGraphs) {
+//            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
+//            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
+//            System.err.println();
+//        }
+//
+//        System.err.println("\n\n");
+//        System.err.println("missing Modifiee edge graphs: "+failedModifieeGraphs.size());
+//        for (MRInstance inst : failedModifieeGraphs) {
+//            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
+//            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
+//            System.err.println();
+//        }
+//
+//        System.err.println("\n\n");
+//        System.err.println("Graphs with more than "+treeCountReportThreshold+" component trees: "+manyChoicesGraphs.size());
+//        for (MRInstance inst : manyChoicesGraphs) {
+//            System.err.println(inst.getSentence().stream().collect(Collectors.joining(" ")));
+//            System.err.println(inst.getGraph().toIsiAmrStringWithSources());
+//            System.err.println();
+//        }
         
     }
     

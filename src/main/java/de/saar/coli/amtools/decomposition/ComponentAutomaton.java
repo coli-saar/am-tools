@@ -98,7 +98,8 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             // this means we don't have the start state as parent and need to do some actual work.
             DAGComponent dagComp = parent.right;
             ConnectedComponent connComp = parent.left;
-            
+
+
             //find the node in dagComp that *must* be the target of the modify operation that connects connComp to dagComp
             Collection<GraphNode> connectedNodesInDAG = dagComp.getNodesWithEdgeTo(connComp.getAllNodes());
             GraphNode lowestCommonAncestor = dagComp.getLowestCommonAncestor(connectedNodesInDAG);
@@ -119,7 +120,8 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             
             List<Rule> ret = new ArrayList<>();
             for (GraphNode root : possibleRoots) {
-                DAGComponent newDAG = new DAGComponent(graph, root, blobUtils);
+
+                DAGComponent newDAG = DAGComponent.createWithoutForbiddenNodes(graph, root, blobUtils, dagComp.getAllAsGraphNodes());
                 // the following may be possible to do more efficiently via some sort of automaton-wide dynamic programming
                 Set<GraphNode> removedNodes = new HashSet<>();
                 removedNodes.addAll(graph.getGraph().vertexSet());

@@ -56,7 +56,15 @@ public class DAGComponent {
         }
     }
     
-    
+    public static DAGComponent createWithoutForbiddenNodes(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils,
+                                                           Iterable<GraphNode> forbidden) throws CyclicGraphException {
+        SGraph graphCopy = graph.merge(new SGraph());//TODO HACKY! should give SGraph a proper clone method (use copyInto)
+        for (GraphNode node : forbidden){
+            graphCopy.removeNode(node.getName());
+        }
+        return new DAGComponent(graphCopy, dagRoot, blobUtils);
+    }
+
     private void addRecursive(DAGNode node) {
         if (!allNodes.contains(node)) {
             allNodes.add(node);
