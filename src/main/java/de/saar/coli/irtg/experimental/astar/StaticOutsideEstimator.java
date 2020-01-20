@@ -9,6 +9,7 @@ import de.saar.basic.Pair;
 import de.saar.coli.irtg.experimental.astar.EdgeProbabilities.Edge;
 import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
+import edu.illinois.cs.cogcomp.core.datastructures.Triple;
 
 /**
  * An outside estimator that sums up the best supertag scores and the best
@@ -24,6 +25,10 @@ public class StaticOutsideEstimator implements OutsideEstimator {
     private final double[] outsideRight;   // outsideRight[k] = sum_{k <= i < n} bestEdgep[i] + bestTagp[i]
     private final double[] worstIncomingLeft; // min score of the best incoming edges in 0...k
     private final double[] worstIncomingRight; // min score of the best incoming edges in k...n
+
+    private final double[] rootDiff;      // difference of root item and non root item
+    private final double[] ignoreProbIfHighest;      // difference of root item and non root item
+    private final double[] nullProb;      // null probability
 
     private final int N;
     private final EdgeProbabilities edgep;
@@ -96,6 +101,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
      */
     private void sumContext(int k, int start, int end, double[] onesidedOutsides, double[] onesidedWorstIncoming) {
         double sum = 0;
+        double fromRoot = Double.NEGATIVE_INFINITY;
 //        double worst = 0;  // score of worst best in-edge
 
         for (int i = start; i < end; i++) {
@@ -103,7 +109,22 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             double bestSupertag = bestTagp[i];       // best supertag, including NULL
             // TODO more fine-grained interaction of IGNORE and NULL
             
+            // assign NULL if IGNORE is the best edgep and null prob exists. then we assign 0 to root difference because this node cannot be root anymore
+            if (ignoreProbIfHighest[i] != Double.NEGATIVE_INFINITY && nullProb[i] != Double.NEGATIVE_INFINITY) {
+                bestIncomingEdge = ignoreProbIfHighest[i];
+                bestSupertag = nullProb[i];
+                rootDiff[i] = Double.NEGATIVE_INFINITY;
+            }
+
+            if (fromRoot < rootDiff[i]) {
+                fromRoot = rootDiff[i];
+            }
+
             sum += bestIncomingEdge + bestSupertag + bias;
+        }
+
+        if (fromRoot != Double.NEGATIVE_INFINITY) {
+            sum += fromRoot;
         }
             
 //            
@@ -139,17 +160,39 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         this.edgep = edgep;
         this.tagp = tagp;
 
+        // getRootId and add it into the ignore
+        edgep.addIgnoredEdgeLabel(edgep.getRootEdgeId());
+
+        rootDiff = new double[N+1];
+        ignoreProbIfHighest = new double[N+1];
+        nullProb = new double[N+1];
+
         // calculate best incoming edge for each token >= 1
         bestEdgep = new double[N+1];
         for (int k = 1; k <= N; k++) {
-            bestEdgep[k] = edgep.getBestIncomingProb(k);
+            Triple<Double, Double, Double> res = edgep.getBestIncomingProbNoDoubleRootItemAndForceIgnoreNullTogether(k);
+            rootDiff[k] = res.getSecond();
+            ignoreProbIfHighest[k] = res.getFirst();
+            bestEdgep[k] = res.getThird();
+            //bestEdgep[k] = edgep.getBestIncomingProb(k);
         }
+
+        // for (double elem : rootDiff) {
+        //     System.err.println(elem);
+        // }
 
         // calculate best supertag for each token >= 1
         bestTagp = new double[N+1];
         for (int k = 1; k <= N; k++) {
-            bestTagp[k] = tagp.getMaxProb(k);
+            Pair<Double, Double> res = tagp.getMaxProbAndNull(k);
+            bestTagp[k] = res.getRight();
+            nullProb[k] = res.getLeft();
+            //bestTagp[k] = tagp.getMaxProb(k);
         }
+
+        // for (double elem : nullProb) {
+        //     System.err.println(elem);
+        // }
         
         // calculate left-side outside estimates
         outsideLeft = new double[N+1];
@@ -170,6 +213,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         for (int k = 1; k <= N; k++) {
             sumContext(k, k, N, outsideRight, worstIncomingRight);
         }
+
         // for (double elem : outsideRight) {
         //     System.err.println(elem);
         // }

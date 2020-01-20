@@ -92,6 +92,25 @@ public class SupertagProbabilities {
 
         return max;
     }
+
+    public Pair<Double, Double> getMaxProbAndNull(int pos) {
+        Int2DoubleMap m = supertags.get(pos);
+        double max = Double.NEGATIVE_INFINITY;
+        double nullProb = Double.NEGATIVE_INFINITY;
+
+        if (m != null) {
+            for (Int2DoubleMap.Entry entry : m.int2DoubleEntrySet()) {
+                // DON'T skip NULL
+                if (entry.getIntKey() == nullSupertagId) {
+                    nullProb = Math.max(nullProb, entry.getDoubleValue());
+                } else {
+                    max = Math.max(max, entry.getDoubleValue());
+                }
+            }
+        }
+
+        return new Pair<Double, Double>(nullProb, max);
+    }
     
     public Pair<Integer,Double> getBestSupertag(int pos) {
         Int2DoubleMap m = supertags.get(pos);

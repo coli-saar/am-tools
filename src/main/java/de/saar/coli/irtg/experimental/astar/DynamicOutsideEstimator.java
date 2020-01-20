@@ -23,7 +23,7 @@ public class DynamicOutsideEstimator implements OutsideEstimator {
         double score = 0;
         double worstEdge = 0;
         
-        for( int i = 0; i < it.getStart(); i++ ) {
+        for( int i = 1; i < it.getStart(); i++ ) {
             double scoreHere = bestTagp[i];
             double bestEdge = edgep.getBestIncomingProbExceptIntoItemNonroot(i, it);
             
@@ -33,7 +33,7 @@ public class DynamicOutsideEstimator implements OutsideEstimator {
             }
         }
         
-        for( int i = it.getEnd(); i < N; i++ ) {
+        for( int i = it.getEnd(); i <= N; i++ ) {
             double scoreHere = bestTagp[i];
             double bestEdge = edgep.getBestIncomingProbExceptIntoItemNonroot(i, it);
             
@@ -58,14 +58,14 @@ public class DynamicOutsideEstimator implements OutsideEstimator {
         this.tagp = tagp;
 
         // calculate best supertag for each token
-        bestTagp = new double[N];
-        for (int k = 0; k < N; k++) {
+        bestTagp = new double[N+1];
+        for (int k = 1; k <= N; k++) {
             bestTagp[k] = tagp.getMaxProb(k);
         }
         
         // calculate NULL supertag scores
-        nullTagP = new double[N];
-        for( int k = 0; k < N; k++ ) {
+        nullTagP = new double[N+1];
+        for( int k = 1; k <= N; k++ ) {
             nullTagP[k] = tagp.get(k, tagp.getNullSupertagId());
         }
     }
