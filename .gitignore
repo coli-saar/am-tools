@@ -11,3 +11,7 @@ build.log
 .idea/vcs.xml
 .idea/workspace.xml
 .idea/encodings.xml
+.idea/modules.xml
+.idea/libraries/libs.xml
+.idea/libraries/gradle_wrapper.xml
+.idea/libraries/distributions.xml
