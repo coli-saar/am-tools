@@ -12,6 +12,7 @@ import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
 
 
 import de.up.ling.irtg.algebra.ParserException;
@@ -36,10 +37,10 @@ import java.util.stream.Collectors;
  */
 public class EvaluateCorpus {
      @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus with decoded AM dependency trees")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Tatiana/gold-dev.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/properties/17_dev.amconll";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Tatiana/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/properties/";
     
    @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -51,12 +52,15 @@ public class EvaluateCorpus {
    
    @Parameter(names = {"--keep-aligned"}, description = "keep index of token position in node label")
     private boolean keepAligned = false;
+   
+   @Parameter(names = {"--th"}, description = "Threshold for relabeler. Default: 10")
+    private int threshold = 10;
     
     @Parameter(names = {"--wn"}, description = "Path to WordNet")
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
     
     @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
-    private String lookup = "/home/matthias/Schreibtisch/Hiwi/Tatiana/lookup/";
+    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/lookupdata17/";
     
     
     public static final String AL_LABEL_SEP = "|";
@@ -97,11 +101,22 @@ public class EvaluateCorpus {
             l = new PrintWriter(cli.outPath+"/labels.txt");
             indices = new PrintWriter(cli.outPath+"/indices.txt");
         } else {
-             relabeler = new Relabel(cli.wordnet, null, cli.lookup, 10, 0,false);
+             relabeler = new Relabel(cli.wordnet, null, cli.lookup, cli.threshold, 0,false);
         }
 
         int index = 0;
         for (AmConllSentence s : sents){
+            
+            //fix the REPL problem:
+            //the NN was trained with data where REPL was used for some nouns because the lexical label was lower-cased
+            //we don't want $REPL$ in our output, so let's replace predictions that contain REPL but where there is no replacement field
+            //with the word form.
+            
+            for (AmConllEntry e : s){
+                if (e.getLexLabel().contains(AmConllEntry.REPL_PLACEHOLDER) && e.getReplacement().equals(AmConllEntry.DEFAULT_NULL)){
+                    e.setLexLabel(e.getReLexLabel().replace(AmConllEntry.REPL_PLACEHOLDER, AmConllEntry.FORM_PLACEHOLDER));
+                }
+            }
             
             if (!cli.relabel){
                 indices.println(index);
@@ -152,11 +167,7 @@ public class EvaluateCorpus {
                          } else {
                              return entry.getReplacement().toLowerCase();
                          }
-                    }), s.words(), s.getFields(entry -> {
-                        String relex = entry.getReLexLabel();
-                        if (relex.equals("_")) return "NULL";
-                                else return relex;
-                    }));
+                    }), s.words(), s.getFields(entry -> entry.getReLexLabel()));
                     
                     if (cli.keepAligned){
                         //now add alignment again, format: POSITION|NODE LABEL where POSITION is 0-based.
@@ -196,12 +207,17 @@ public class EvaluateCorpus {
                                 }
                             }
                         }
-
                     }
                     
                 }
                 
+                if (cli.relabel) {
+                     //fix properties
+                    evaluatedGraph = PropertyDetection.fixProperties(evaluatedGraph);
+                }
+                
                 o.println(evaluatedGraph.toIsiAmrString());
+                if (cli.relabel) o.println();
                 
             } catch (Exception ex){
                 System.err.println("In line "+s.getLineNr());
@@ -213,6 +229,8 @@ public class EvaluateCorpus {
                 
                 if (!cli.relabel){
                     l.println();
+                } else {
+                    o.println();
                 }
             }
         }
@@ -227,6 +245,6 @@ public class EvaluateCorpus {
         
     }
     
-
+    
     
 }

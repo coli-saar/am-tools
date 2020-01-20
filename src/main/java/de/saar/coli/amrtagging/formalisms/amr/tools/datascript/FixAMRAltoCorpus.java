@@ -28,7 +28,10 @@ import java.util.regex.Pattern;
  */
 public class FixAMRAltoCorpus {
     
-    public static final String UNK_CHAR = "_"; //before, it was _UNK_CHAR_ which BERT probably doesn't like at all
+    public static final String UNK_CHAR = "UNKCHAR"; 
+//originally, it was _UNK_CHAR_. With the reasoning that BERT probably doesn't like at all, it was changed to "_"
+// this messed up with ToAMConll because LITERAL_JOINER should really be "_" for compatability
+// so, now set to UNKCHAR. ML, Jan. 2020.
     
     public static void main(String[] args) throws IOException, ParseException {
         String outputPath = args[0];

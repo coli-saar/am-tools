@@ -92,7 +92,7 @@ public class CreateCorpusParallel {
     private NamedEntityRecognizer makeNeRecognizer() throws IOException, ClassNotFoundException {
         NamedEntityRecognizer namedEntityRecognizer = null;
         if( stanfordNerFilename != null ) {
-            namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(stanfordNerFilename));
+            namedEntityRecognizer = new StanfordNamedEntityRecognizer(new File(stanfordNerFilename), false); //probably want to set to true?
         } else if( uiucNer ) {
             namedEntityRecognizer = new UiucNamedEntityRecognizer(uiucNerTagset);
         }
