@@ -263,6 +263,11 @@ public class AlignedAMDependencyTree {
         Map<Tree<AmConllEntry>, Tree<AmConllEntry>> parentMap = tree.getParentMap();
 
         int rootIndex = tree.getLabel().getId();
+        
+        if (tree.getLabel().getType() == null){
+            // \bot was selected as supertag for the root.
+            throw new IllegalArgumentException("AM dependency tree has type \\bot (meaning no semantic contribution) at the root and thus doesn't represent a graph.");
+        }
 
         for (AmConllEntry leaf : tree.getLeafLabels()) {
             String s;
@@ -333,6 +338,7 @@ public class AlignedAMDependencyTree {
                 for (int dep_i : toBeProcessed) {
                     String operation = allowedEdges.get(new Pair(curr.index, dep_i));
                     Item<String> dep = chart.get(dep_i);
+                    if (dep == null) throw new IllegalArgumentException("Couldn't find a binarization of AMDependencyTree. Couldn't find chart entry for token "+dep_i+". Perhaps different parts of your pipeline use different versions of the AM algebra?");
                     Item<String> deduced = null;
                     //System.err.println("Combine "+curr+" with " + dep); 
                     if (operation.contains(ApplyModifyGraphAlgebra.OP_APPLICATION)) {

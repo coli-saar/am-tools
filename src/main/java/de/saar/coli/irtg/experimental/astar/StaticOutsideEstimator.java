@@ -66,6 +66,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
     public double evaluate(Item it) {
         double v = left(it.getStart()) + right(it.getEnd()); // supertags and best incoming edges for the left and right context
         // TODO plus best edge into root of item?
+        v += bestEdgep[it.getRoot()]; 
         return v;
         
         
@@ -139,30 +140,39 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         this.tagp = tagp;
 
         // calculate best incoming edge for each token >= 1
-        bestEdgep = new double[N];
-        for (int k = 1; k < N; k++) {
+        bestEdgep = new double[N+1];
+        for (int k = 1; k <= N; k++) {
             bestEdgep[k] = edgep.getBestIncomingProb(k);
         }
 
         // calculate best supertag for each token >= 1
-        bestTagp = new double[N];
-        for (int k = 1; k < N; k++) {
+        bestTagp = new double[N+1];
+        for (int k = 1; k <= N; k++) {
             bestTagp[k] = tagp.getMaxProb(k);
         }
-
+        
         // calculate left-side outside estimates
-        outsideLeft = new double[N];
-        worstIncomingLeft = new double[N];
-        for (int k = 1; k < N; k++) {
+        outsideLeft = new double[N+1];
+        worstIncomingLeft = new double[N+1];
+        for (int k = 1; k <= N; k++) {
             sumContext(k, 1, k, outsideLeft, worstIncomingLeft);
         }
 
+        // for (double elem : outsideLeft) {
+        //     System.err.println(elem);
+        // }
+
+        // System.err.println("");
+
         // calculate right-side outside estimates
-        outsideRight = new double[N + 1];
-        worstIncomingRight = new double[N + 1];
+        outsideRight = new double[N+1];
+        worstIncomingRight = new double[N+1];
         for (int k = 1; k <= N; k++) {
             sumContext(k, k, N, outsideRight, worstIncomingRight);
         }
+        // for (double elem : outsideRight) {
+        //     System.err.println(elem);
+        // }
 
         w.record();
 //        w.printMilliseconds("initialize outside estimator");

@@ -9,8 +9,10 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
+import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
 
 
 import de.up.ling.irtg.algebra.ParserException;
@@ -35,10 +37,10 @@ import java.util.stream.Collectors;
  */
 public class EvaluateCorpus {
      @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus with decoded AM dependency trees")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Tatiana/gold-dev.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/properties/17_dev.amconll";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Tatiana/";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/debugging_tratz/properties/";
     
    @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -50,12 +52,15 @@ public class EvaluateCorpus {
    
    @Parameter(names = {"--keep-aligned"}, description = "keep index of token position in node label")
     private boolean keepAligned = false;
+   
+   @Parameter(names = {"--th"}, description = "Threshold for relabeler. Default: 10")
+    private int threshold = 10;
     
     @Parameter(names = {"--wn"}, description = "Path to WordNet")
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
     
     @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
-    private String lookup = "/home/matthias/Schreibtisch/Hiwi/Tatiana/lookup/";
+    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/lookupdata17/";
     
     
     public static final String AL_LABEL_SEP = "|";
@@ -80,6 +85,11 @@ public class EvaluateCorpus {
             return;
         }
         
+        if (cli.keepAligned && ! cli.relabel){
+            System.err.println("Keeping the alignments without relabeling is not supported");
+            return;
+        }
+        
         List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
         PrintWriter o = new PrintWriter(cli.outPath+"/parserOut.txt"); //will contain graphs, potentially relabeled
         PrintWriter l = null;
@@ -91,11 +101,22 @@ public class EvaluateCorpus {
             l = new PrintWriter(cli.outPath+"/labels.txt");
             indices = new PrintWriter(cli.outPath+"/indices.txt");
         } else {
-             relabeler = new Relabel(cli.wordnet, null, cli.lookup, 10, 0,false);
+             relabeler = new Relabel(cli.wordnet, null, cli.lookup, cli.threshold, 0,false);
         }
 
         int index = 0;
         for (AmConllSentence s : sents){
+            
+            //fix the REPL problem:
+            //the NN was trained with data where REPL was used for some nouns because the lexical label was lower-cased
+            //we don't want $REPL$ in our output, so let's replace predictions that contain REPL but where there is no replacement field
+            //with the word form.
+            
+            for (AmConllEntry e : s){
+                if (e.getLexLabel().contains(AmConllEntry.REPL_PLACEHOLDER) && e.getReplacement().equals(AmConllEntry.DEFAULT_NULL)){
+                    e.setLexLabel(e.getReLexLabel().replace(AmConllEntry.REPL_PLACEHOLDER, AmConllEntry.FORM_PLACEHOLDER));
+                }
+            }
             
             if (!cli.relabel){
                 indices.println(index);
@@ -106,6 +127,14 @@ public class EvaluateCorpus {
             try {
                 AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluateWithoutRelex(true);
+                
+                List<Alignment> alignments = null;
+                
+                if (cli.relabel){ // in principle, this shouldn't hurt if we also did that in case of not relabeling but this is safer.
+                    evaluatedGraph = evaluatedGraph.withFreshNodenames();
+                    alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
+                }
+
                 
                 //rename nodes names from 1@@m@@--LEX-- to LEX@0
                 List<String> labels = s.lemmas();
@@ -126,18 +155,7 @@ public class EvaluateCorpus {
                     
                 } else {
                     
-                    //we have to get fresh node names to make sure that relabeling works smoothly
-                    evaluatedGraph = evaluatedGraph.withFreshNodenames();
-                    
-                    //now let's reconstruct the alignments that are still explicit in the labels
-                    Map<String, Integer> nodeNameToPosition = new HashMap<>();
-                    for (GraphNode n : evaluatedGraph.getGraph().vertexSet()){
-                        if (n.getLabel().matches(Relabel.LEXMARKER+"[0-9]+")){
-                            int i = Integer.parseInt(n.getLabel().substring(Relabel.LEXMARKER.length()));
-                            nodeNameToPosition.put(n.getName(), i);
-                        }
-                    }
-                    
+                    // relabel graph                    
                     relabeler.fixGraph(evaluatedGraph, s.getFields((AmConllEntry entry) ->
                      {
                          if (entry.getReplacement().equals("_")) {
@@ -149,49 +167,57 @@ public class EvaluateCorpus {
                          } else {
                              return entry.getReplacement().toLowerCase();
                          }
-                    }), s.words(), s.getFields(entry -> {
-                        String relex = entry.getReLexLabel();
-                        if (relex.equals("_")) return "NULL";
-                                else return relex;
-                    }));
+                    }), s.words(), s.getFields(entry -> entry.getReLexLabel()));
                     
                     if (cli.keepAligned){
                         //now add alignment again, format: POSITION|NODE LABEL where POSITION is 0-based.
+                        
+                        Map<String,Integer> nodeNameToPosition = new HashMap<>();
+                        
+                        for (Alignment al : alignments){
+                            for (String nodeName : al.nodes){
+                                nodeNameToPosition.put(nodeName, al.span.start);
+                            }
+                        }             
+                        
                         for (String nodeName : nodeNameToPosition.keySet()){
                             GraphNode node = evaluatedGraph.getNode(nodeName);
                             if (node == null){
                                 System.err.println("Warning: a nodename for which we have an alignment cannot be found in the relabeled graph");
+                            } else {
+                                node.setLabel(nodeNameToPosition.get(nodeName) + AL_LABEL_SEP + node.getLabel());
                             }
-                            node.setLabel(nodeNameToPosition.get(nodeName) + AL_LABEL_SEP + node.getLabel());
+                            
+                        }               
+                        
+                       // try to find alignments for nodes that the relabeling introduced.
+                       
+                        for (GraphNode node : evaluatedGraph.getGraph().vertexSet()) {
+                            if (!nodeNameToPosition.containsKey(node.getName())) {
+                                Set<GraphEdge> edges = evaluatedGraph.getGraph().edgesOf(node);
+                                if (edges.size() == 1) {
+                                    GraphNode endPoint = BlobUtils.otherNode(node, edges.iterator().next());
+                                    if (nodeNameToPosition.containsKey(endPoint.getName())) {
+                                        node.setLabel(nodeNameToPosition.get(endPoint.getName()) + AL_LABEL_SEP + node.getLabel());
+                                    } else {
+                                        System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
+                                    }
+                                } else {
+                                    System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment and multiple adjacent edges.");
+                                }
+                            }
                         }
-
-                        //iterate over all nodes in the graph for which we didn't get an alignment in the previous step
-//                        for (GraphNode node : evaluatedGraph.getGraph().vertexSet()) {
-//                            if (!nodeNameToPosition.containsKey(node.getName())) {
-                                  // make sure there is exactly one incident edge.
-//                                Set<GraphEdge> edges = evaluatedGraph.getGraph().edgesOf(node);
-//                                if (edges.size() == 1) {
-                                      // get node label of the unique neighbour
-//                                    String otherLabel = BlobUtils.otherNode(node, edges.iterator().next()).getLabel();
-                                      //make sure that label has an alignment marker
-//                                    if (otherLabel.contains(AL_LABEL_SEP)) {
-                                          // copy that alignment marker over.
-//                                        String alignment = otherLabel.substring(0, otherLabel.indexOf(AL_LABEL_SEP));
-//                                        node.setLabel(alignment+AL_LABEL_SEP+node.getLabel());
-//                                    } else {
-//                                        System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
-//                                    }
-//                                } else {
-//                                    System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");
-//                                }
-//                            }
-//                        }
-
                     }
                     
                 }
                 
+                if (cli.relabel) {
+                     //fix properties
+                    evaluatedGraph = PropertyDetection.fixProperties(evaluatedGraph);
+                }
+                
                 o.println(evaluatedGraph.toIsiAmrString());
+                if (cli.relabel) o.println();
                 
             } catch (Exception ex){
                 System.err.println("In line "+s.getLineNr());
@@ -203,6 +229,8 @@ public class EvaluateCorpus {
                 
                 if (!cli.relabel){
                     l.println();
+                } else {
+                    o.println();
                 }
             }
         }
@@ -217,6 +245,6 @@ public class EvaluateCorpus {
         
     }
     
-
+    
     
 }

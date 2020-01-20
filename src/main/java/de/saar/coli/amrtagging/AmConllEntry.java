@@ -31,6 +31,10 @@ public class AmConllEntry {
     
     public static final String LEX_MARKER = "--LEX--";
 
+    public static final String POS_PLACEHOLDER = "$POS$";
+    public static final String REPL_PLACEHOLDER = "$REPL$";
+    public static final String FORM_PLACEHOLDER = "$FORM$";
+    public static final String LEMMA_PLACEHOLDER = "$LEMMA$";
 
 
     private int id;
@@ -225,15 +229,15 @@ public class AmConllEntry {
     public void setLexLabel(String lexLabel) {
         this.lexLabel = lexLabel;
         if (!lemma.equals(DEFAULT_NULL) && lexLabel.contains(this.lemma)){
-            this.lexLabel = this.lexLabel.replace(this.lemma, "$LEMMA$");
+            this.lexLabel = this.lexLabel.replace(this.lemma, LEMMA_PLACEHOLDER);
         } else if (!form.equals(DEFAULT_NULL)  && lexLabel.contains(this.form)){
-            this.lexLabel = this.lexLabel.replace(this.form, "$FORM$");
+            this.lexLabel = this.lexLabel.replace(this.form, FORM_PLACEHOLDER);
         } else if (!replacement.equals(DEFAULT_NULL)  && lexLabel.contains(this.replacement)){
-            this.lexLabel = this.lexLabel.replace(this.replacement, "$REPL$");
+            this.lexLabel = this.lexLabel.replace(this.replacement, REPL_PLACEHOLDER);
         }
         
         if (!pos.equals(DEFAULT_NULL) && lexLabel.contains(pos)){
-            this.lexLabel = this.lexLabel.replace(pos, "$POS$");
+            this.lexLabel = this.lexLabel.replace(pos, POS_PLACEHOLDER);
         }
     }
     
@@ -244,21 +248,22 @@ public class AmConllEntry {
     public String getReLexLabel() {
         String label = this.lexLabel;
         
-        if (!lemma.equals(DEFAULT_NULL) && label.contains("$LEMMA$")){
-            label = label.replace("$LEMMA$", this.lemma);
+        if (!lemma.equals(DEFAULT_NULL) && label.contains(LEMMA_PLACEHOLDER)){
+            label = label.replace(LEMMA_PLACEHOLDER, this.lemma);
         }
-        if (!form.equals(DEFAULT_NULL)  && label.contains("$FORM$")){
-            label = label.replace("$FORM$", this.form);
+        if (!form.equals(DEFAULT_NULL)  && label.contains(FORM_PLACEHOLDER)){
+            label = label.replace(FORM_PLACEHOLDER, this.form);
         }
-        if (!replacement.equals(DEFAULT_NULL)  && label.contains("$REPL$")){
-            label = label.replace("$REPL$", this.replacement);
+        if (!replacement.equals(DEFAULT_NULL)  && label.contains(REPL_PLACEHOLDER)){
+            label = label.replace(REPL_PLACEHOLDER, this.replacement);
         }
-        if (!pos.equals(DEFAULT_NULL)  && label.contains("$POS$")){
-            label = label.replace("$POS$", this.pos);
+        if (!pos.equals(DEFAULT_NULL)  && label.contains(POS_PLACEHOLDER)){
+            label = label.replace(POS_PLACEHOLDER, this.pos);
         }
         
         return label;
     }
+
 
     /**
      * @return the type

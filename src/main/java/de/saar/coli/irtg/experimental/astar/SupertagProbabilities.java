@@ -126,7 +126,7 @@ public class SupertagProbabilities {
     }
 
     public void prettyprint(Int2ObjectMap<Pair<SGraph, Type>> idToSupertag, PrintStream out) {
-        for (int pos = 0; pos < getLength(); pos++) {
+        for (int pos = 1; pos <= getLength(); pos++) {
             String prefix = String.format("[%2d] ", pos);
             String blank = String.format("%" + prefix.length() + "s", " ");
             MutableInteger x = new MutableInteger(0);
