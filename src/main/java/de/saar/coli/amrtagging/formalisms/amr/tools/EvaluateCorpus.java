@@ -165,13 +165,18 @@ public class EvaluateCorpus {
                             node.setLabel(nodeNameToPosition.get(nodeName) + AL_LABEL_SEP + node.getLabel());
                         }
 
+                        //iterate over all nodes in the graph for which we didn't get an alignment in the previous step
 //                        for (GraphNode node : evaluatedGraph.getGraph().vertexSet()) {
 //                            if (!nodeNameToPosition.containsKey(node.getName())) {
+                                  // make sure there is exactly one incident edge.
 //                                Set<GraphEdge> edges = evaluatedGraph.getGraph().edgesOf(node);
 //                                if (edges.size() == 1) {
+                                      // get node label of the unique neighbour
 //                                    String otherLabel = BlobUtils.otherNode(node, edges.iterator().next()).getLabel();
+                                      //make sure that label has an alignment marker
 //                                    if (otherLabel.contains(AL_LABEL_SEP)) {
-//                                        String alignment = otherLabel.substring(otherLabel.indexOf(AL_LABEL_SEP));
+                                          // copy that alignment marker over.
+//                                        String alignment = otherLabel.substring(0, otherLabel.indexOf(AL_LABEL_SEP));
 //                                        node.setLabel(alignment+AL_LABEL_SEP+node.getLabel());
 //                                    } else {
 //                                        System.err.println("Warning: cannot find unique alignment for a node with no inherent alignment.");

@@ -55,7 +55,7 @@ public class AlignedAMDependencyTree {
      *
      * @param sent
      * @return
-     * @throws de.saar.coli.amrtagging.AMDependencyTree.ConllParserException
+     * @throws de.saar.coli.amrtagging.AlignedAMDependencyTree.ConllParserException
      */
     public static AlignedAMDependencyTree fromSentence(AmConllSentence sent) throws ConllParserException {
         ArrayList<ArrayList<Integer>> trees = new ArrayList();
