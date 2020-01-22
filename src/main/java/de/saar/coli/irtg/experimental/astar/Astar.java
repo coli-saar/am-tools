@@ -113,15 +113,15 @@ public class Astar {
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
 
-        if (this.outsideEstimatorString.equals("supertagonly")) {
-            this.outside = new SupertagOnlyOutsideEstimator(tagp);
-        } else {
-            this.outside = new StaticOutsideEstimator(edgep, tagp);
-        }
+        // if (this.outsideEstimatorString.equals("supertagonly")) {
+        //     this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        // } else {
+        //     this.outside = new StaticOutsideEstimator(edgep, tagp);
+        // }
         //this.outside = new SupertagOnlyOutsideEstimator(tagp);
         //this.outside = new StaticOutsideEstimator(edgep, tagp);
 //        this.outside = new SupertagOnlyOutsideEstimator(tagp);
-//        this.outside = new TrivialOutsideEstimator();
+        this.outside = new TrivialOutsideEstimator();
 
         w.record();
         // precompute supertag types
@@ -218,8 +218,8 @@ public class Astar {
             });
         }
 
-        //tagp.prettyprint(idToSupertag, System.err);
-        //edgep.prettyprint(edgeLabelLexicon, System.err);
+        // tagp.prettyprint(idToSupertag, System.err);
+        // edgep.prettyprint(edgeLabelLexicon, System.err);
 
         // iterate over agenda
         //
@@ -343,7 +343,6 @@ public class Astar {
             
             // add ROOT edge from 0
             if( isAlmostGoal(it) ) {
-                //System.err.println(" --> almost goal");
                 Item goalItem = makeGoalItem(it);
                 //System.err.println(" --> goal: " + goalItem);
                 agenda.enqueue(goalItem);

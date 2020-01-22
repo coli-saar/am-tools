@@ -109,7 +109,11 @@ public class SupertagProbabilities {
             }
         }
 
-        return new Pair<Double, Double>(nullProb, max);
+        if (nullProb > max) {
+            return new Pair<Double, Double>(nullProb, max);
+        }
+
+        return new Pair<Double, Double>(Double.NEGATIVE_INFINITY, max);
     }
     
     public Pair<Integer,Double> getBestSupertag(int pos) {

@@ -110,10 +110,18 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             // TODO more fine-grained interaction of IGNORE and NULL
             
             // assign NULL if IGNORE is the best edgep and null prob exists. then we assign 0 to root difference because this node cannot be root anymore
-            if (ignoreProbIfHighest[i] != Double.NEGATIVE_INFINITY && nullProb[i] != Double.NEGATIVE_INFINITY) {
+            // if (ignoreProbIfHighest[i] != Double.NEGATIVE_INFINITY && nullProb[i] != Double.NEGATIVE_INFINITY) {
+            //     bestIncomingEdge = ignoreProbIfHighest[i];
+            //     bestSupertag = nullProb[i];
+            //     rootDiff[i] = Double.NEGATIVE_INFINITY;
+            // }
+
+            if (ignoreProbIfHighest[i] != Double.NEGATIVE_INFINITY) {
                 bestIncomingEdge = ignoreProbIfHighest[i];
+            }
+
+            if (nullProb[i] != Double.NEGATIVE_INFINITY) {
                 bestSupertag = nullProb[i];
-                rootDiff[i] = Double.NEGATIVE_INFINITY;
             }
 
             if (fromRoot < rootDiff[i]) {
@@ -123,9 +131,9 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             sum += bestIncomingEdge + bestSupertag + bias;
         }
 
-        if (fromRoot != Double.NEGATIVE_INFINITY) {
-            sum += fromRoot;
-        }
+        // if (fromRoot != Double.NEGATIVE_INFINITY) {
+        //     sum += fromRoot;
+        // }
             
 //            
 //            
@@ -189,6 +197,12 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             nullProb[k] = res.getLeft();
             //bestTagp[k] = tagp.getMaxProb(k);
         }
+
+        // for (double elem : ignoreProbIfHighest) {
+        //     System.err.println(elem);
+        // }
+
+        // System.err.println("\n");
 
         // for (double elem : nullProb) {
         //     System.err.println(elem);
