@@ -299,6 +299,29 @@ public class EdgeProbabilities {
         return new Pair(edge, val.getValue());
     }
 
+    /**
+     * Returns the max probability of edges into this position. When calculating
+     * the max probability, edges with one of the labels specified by {@link #addIgnoredEdgeLabel(int)
+     * } will be ignored.
+     *
+     * @param to
+     * @return
+     */
+    public void checkOrder(int to, Interner<String> edgeLabelLexicon) {
+
+        for (Int2ObjectMap.Entry<Int2ObjectMap<Int2DoubleMap>> entry : probs.int2ObjectEntrySet()) {
+            Int2DoubleMap m = entry.getValue().get(to);
+            if (m != null) {
+                for (Int2DoubleMap.Entry e : m.int2DoubleEntrySet()) {
+                    if (!ignoredEdgeLabels.contains(e.getIntKey())) {
+                        System.err.println(e.getDoubleValue());
+                        System.err.println(edgeLabelLexicon.resolveId(e.getIntKey()));
+                    }
+                }
+            }
+        }
+    }
+
     public static class Edge {
 
         private int from, to, labelId;
