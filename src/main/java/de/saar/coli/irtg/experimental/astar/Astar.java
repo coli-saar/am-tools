@@ -120,8 +120,8 @@ public class Astar {
         // }
         //this.outside = new SupertagOnlyOutsideEstimator(tagp);
         //this.outside = new StaticOutsideEstimator(edgep, tagp);
-//        this.outside = new SupertagOnlyOutsideEstimator(tagp);
-        this.outside = new TrivialOutsideEstimator();
+        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+//        this.outside = new TrivialOutsideEstimator();
 
         w.record();
         // precompute supertag types
@@ -375,9 +375,9 @@ public class Astar {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
         double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
         
-        if (this.outsideEstimatorString.equals("supertagonly")) {
-            ignoreProb = 0;
-        }
+        // if (this.outsideEstimatorString.equals("supertagonly")) {
+        //     ignoreProb = 0;
+        // }
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
