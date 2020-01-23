@@ -373,8 +373,8 @@ public class Astar {
 
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
-        //double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-        double ignoreProb = 0;
+        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
+        //double ignoreProb = 0;
         
         // if (this.outsideEstimatorString.equals("supertagonly")) {
         //     ignoreProb = 0;
