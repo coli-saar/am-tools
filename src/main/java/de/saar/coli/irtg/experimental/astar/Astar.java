@@ -115,13 +115,16 @@ public class Astar {
 
         if (this.outsideEstimatorString.equals("supertagonly")) {
             this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        } else if (this.outsideEstimatorString.equals("static")) {
+            this.outside = new StaticOutsideEstimator(edgep, tagp);
+        } else if (this.outsideEstimatorString.equals("trivial")) {
+            this.outside = new TrivialOutsideEstimator();
         } else {
             this.outside = new StaticOutsideEstimator(edgep, tagp);
         }
         //this.outside = new SupertagOnlyOutsideEstimator(tagp);
         //this.outside = new StaticOutsideEstimator(edgep, tagp);
 //        this.outside = new SupertagOnlyOutsideEstimator(tagp);
-//        this.outside = new TrivialOutsideEstimator();
 
         w.record();
         // precompute supertag types
