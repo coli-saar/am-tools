@@ -7,6 +7,7 @@ package de.saar.coli.irtg.experimental.astar;
 
 import de.saar.basic.Pair;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
+import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.MutableInteger;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
@@ -109,7 +110,11 @@ public class SupertagProbabilities {
             }
         }
 
-        return new Pair<Double, Double>(nullProb, max);
+        if (nullProb > max) {
+            return new Pair<Double, Double>(nullProb, max);
+        }
+
+        return new Pair<Double, Double>(Double.NEGATIVE_INFINITY, max);
     }
     
     public Pair<Integer,Double> getBestSupertag(int pos) {
@@ -131,10 +136,21 @@ public class SupertagProbabilities {
         return new Pair(tag, max);
     }
 
+    public void checkOrder(int pos, Interner<String> supertagLexicon) {
+        Int2DoubleMap m = supertags.get(pos);
+
+        if (m != null) {
+            for (Int2DoubleMap.Entry entry : m.int2DoubleEntrySet()) {
+                System.err.println(entry.getDoubleValue());
+                System.err.println(supertagLexicon.resolveId(entry.getIntKey()));
+            }
+        }
+    }
+
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner("\n");
-        for (int i = 0; i < supertags.size(); i++) {
+        for (int i = 1; i <= supertags.size(); i++) {
             sj.add(i + "=>" + supertags.get(i).toString());
         }
         return "SupertagProbabilities:\n" + sj.toString();

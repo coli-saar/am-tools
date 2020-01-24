@@ -115,13 +115,16 @@ public class Astar {
 
         if (this.outsideEstimatorString.equals("supertagonly")) {
             this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        } else if (this.outsideEstimatorString.equals("static")) {
+            this.outside = new StaticOutsideEstimator(edgep, tagp);
+        } else if (this.outsideEstimatorString.equals("trivial")) {
+            this.outside = new TrivialOutsideEstimator();
         } else {
             this.outside = new StaticOutsideEstimator(edgep, tagp);
         }
         //this.outside = new SupertagOnlyOutsideEstimator(tagp);
         //this.outside = new StaticOutsideEstimator(edgep, tagp);
 //        this.outside = new SupertagOnlyOutsideEstimator(tagp);
-//        this.outside = new TrivialOutsideEstimator();
 
         w.record();
         // precompute supertag types
@@ -218,8 +221,8 @@ public class Astar {
             });
         }
 
-        //tagp.prettyprint(idToSupertag, System.err);
-        //edgep.prettyprint(edgeLabelLexicon, System.err);
+        // tagp.prettyprint(idToSupertag, System.err);
+        // edgep.prettyprint(edgeLabelLexicon, System.err);
 
         // iterate over agenda
         //
@@ -343,7 +346,6 @@ public class Astar {
             
             // add ROOT edge from 0
             if( isAlmostGoal(it) ) {
-                //System.err.println(" --> almost goal");
                 Item goalItem = makeGoalItem(it);
                 //System.err.println(" --> goal: " + goalItem);
                 agenda.enqueue(goalItem);
@@ -375,10 +377,11 @@ public class Astar {
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
         double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
+        //double ignoreProb = 0;
         
-        if (this.outsideEstimatorString.equals("supertagonly")) {
-            ignoreProb = 0;
-        }
+        // if (this.outsideEstimatorString.equals("supertagonly")) {
+        //     ignoreProb = 0;
+        // }
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
@@ -386,6 +389,7 @@ public class Astar {
             return null;
         }
 
+        ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());
         double newItemCost = originalItem.getLogProb() + nullProb + ignoreProb;
 
         Item itemAfterSkip = new Item(newStart, newEnd, originalItem.getRoot(), originalItem.getType(), newItemCost);
@@ -743,8 +747,8 @@ public class Astar {
             }
 
             if (arguments.parseOnly == null || x++ == arguments.parseOnly) {
-//                tagpHere.prettyprint(idToSupertag, System.err);
-//                System.err.println(tagpHere);
+            //    tagpHere.prettyprint(idToSupertag, System.err);
+            //    System.err.println(tagpHere);
             }
 
             tagp.add(tagpHere);
@@ -845,6 +849,7 @@ public class Astar {
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
             //if (tagp.get(i).getLength() == 1) {
                 final int ii = i;
+
 
 //                System.err.printf("\n[%02d] EDGES:\n", ii);
                 //edgep.get(ii).prettyprint(edgeLabelLexicon, System.err);

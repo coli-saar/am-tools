@@ -101,7 +101,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
      */
     private void sumContext(int k, int start, int end, double[] onesidedOutsides, double[] onesidedWorstIncoming) {
         double sum = 0;
-        double fromRoot = Double.NEGATIVE_INFINITY;
+        // double fromRoot = Double.NEGATIVE_INFINITY;
 //        double worst = 0;  // score of worst best in-edge
 
         for (int i = start; i < end; i++) {
@@ -110,22 +110,30 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             // TODO more fine-grained interaction of IGNORE and NULL
             
             // assign NULL if IGNORE is the best edgep and null prob exists. then we assign 0 to root difference because this node cannot be root anymore
-            if (ignoreProbIfHighest[i] != Double.NEGATIVE_INFINITY && nullProb[i] != Double.NEGATIVE_INFINITY) {
-                bestIncomingEdge = ignoreProbIfHighest[i];
-                bestSupertag = nullProb[i];
-                rootDiff[i] = Double.NEGATIVE_INFINITY;
-            }
+            // if (ignoreProbIfHighest[i] != Double.NEGATIVE_INFINITY && nullProb[i] != Double.NEGATIVE_INFINITY) {
+            //     bestIncomingEdge = ignoreProbIfHighest[i];
+            //     bestSupertag = nullProb[i];
+            //     rootDiff[i] = Double.NEGATIVE_INFINITY;
+            // }
 
-            if (fromRoot < rootDiff[i]) {
-                fromRoot = rootDiff[i];
-            }
+            // if (ignoreProbIfHighest[i] != Double.NEGATIVE_INFINITY) {
+            //     bestIncomingEdge = ignoreProbIfHighest[i];
+            // }
+
+            // if (nullProb[i] != Double.NEGATIVE_INFINITY) {
+            //     bestSupertag = nullProb[i];
+            // }
+
+            // if (fromRoot < rootDiff[i]) {
+            //     fromRoot = rootDiff[i];
+            // }
 
             sum += bestIncomingEdge + bestSupertag + bias;
         }
 
-        if (fromRoot != Double.NEGATIVE_INFINITY) {
-            sum += fromRoot;
-        }
+        // if (fromRoot != Double.NEGATIVE_INFINITY) {
+        //     sum += fromRoot;
+        // }
             
 //            
 //            
@@ -161,7 +169,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         this.tagp = tagp;
 
         // getRootId and add it into the ignore
-        edgep.addIgnoredEdgeLabel(edgep.getRootEdgeId());
+        // edgep.addIgnoredEdgeLabel(edgep.getRootEdgeId());
 
         rootDiff = new double[N+1];
         ignoreProbIfHighest = new double[N+1];
@@ -171,10 +179,10 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         bestEdgep = new double[N+1];
         for (int k = 1; k <= N; k++) {
             Triple<Double, Double, Double> res = edgep.getBestIncomingProbNoDoubleRootItemAndForceIgnoreNullTogether(k);
-            rootDiff[k] = res.getSecond();
-            ignoreProbIfHighest[k] = res.getFirst();
-            bestEdgep[k] = res.getThird();
-            //bestEdgep[k] = edgep.getBestIncomingProb(k);
+            // rootDiff[k] = res.getSecond();
+            // ignoreProbIfHighest[k] = res.getFirst();
+            // bestEdgep[k] = res.getThird();
+            bestEdgep[k] = edgep.getBestIncomingProb(k);
         }
 
         // for (double elem : rootDiff) {
@@ -184,11 +192,17 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         // calculate best supertag for each token >= 1
         bestTagp = new double[N+1];
         for (int k = 1; k <= N; k++) {
-            Pair<Double, Double> res = tagp.getMaxProbAndNull(k);
-            bestTagp[k] = res.getRight();
-            nullProb[k] = res.getLeft();
-            //bestTagp[k] = tagp.getMaxProb(k);
+            // Pair<Double, Double> res = tagp.getMaxProbAndNull(k);
+            // bestTagp[k] = res.getRight();
+            // nullProb[k] = res.getLeft();
+            bestTagp[k] = tagp.getMaxProb(k);
         }
+
+        // for (double elem : ignoreProbIfHighest) {
+        //     System.err.println(elem);
+        // }
+
+        // System.err.println("\n");
 
         // for (double elem : nullProb) {
         //     System.err.println(elem);
