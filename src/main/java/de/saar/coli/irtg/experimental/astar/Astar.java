@@ -44,12 +44,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -840,7 +835,7 @@ public class Astar {
 
         List<Integer> sentenceIndices = IntStream.rangeClosed(0, tagp.size() - 1).boxed().collect(Collectors.toList());
         if (arguments.sort) {
-            sentenceIndices.sort((a, b) -> Integer.compare(tagp.get(a).getLength(), tagp.get(b).getLength()));
+            sentenceIndices.sort(Comparator.comparingInt(a -> tagp.get(a).getLength()));
         }
 
         final ProgressBar pb = new ProgressBar("Parsing", sentenceIndices.size());

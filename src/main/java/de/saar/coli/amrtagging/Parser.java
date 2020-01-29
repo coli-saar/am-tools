@@ -55,7 +55,14 @@ public class Parser {
     private final InterpretedTreeAutomaton irtg;
     private final List<String> sentInternal;
     private final Map<String, String> ruleLabel2tag;
-    
+
+    public static Parser createNonlabellingParserWithDefaultValues(List<List<AnnotatedSupertag>> fragmentProbs,
+                                                                   Map<String, Int2ObjectMap<Int2DoubleMap>> edgeLabel2pos2pos2prob,
+                                                                    List<String> sent, int maxK) throws ParseException {
+        return new Parser(fragmentProbs, null, edgeLabel2pos2pos2prob, sent, maxK,
+                1.0, 1.0, 1.0, false, false, new StringAlgebra());
+    }
+
     /**
      * 
      * @param fragmentProbs assumed to be sorted for each word
@@ -331,7 +338,7 @@ public class Parser {
         return new Pair(Math.pow(pos2prob.get(second), exponent)*factor, true);
     }
     
-    Pair<Pair<SGraph, Tree<String>>, Double> run() throws ParserException {
+    public Pair<Pair<SGraph, Tree<String>>, Double> run() throws ParserException {
         Object input = irtg.getInterpretation("string").getAlgebra().parseString(sentInternal.stream().collect(Collectors.joining(" ")));
         TreeAutomaton<String> auto = (TreeAutomaton) irtg.parseSimple("string", input);
         auto.makeAllRulesExplicit();
@@ -353,7 +360,11 @@ public class Parser {
             }
         }
     }
-    
+
+    public InterpretedTreeAutomaton getIrtg() {
+        return irtg;
+    }
+
     void printIRTG() {
         System.err.println(irtg);
     }
