@@ -78,6 +78,9 @@ public class FindDMPSDCopula {
             sentCount++;
             List<Node> nodeListDM = dmGraph.getNodes();
             List<Node> nodeListPSD = psdGraph.getNodes();
+            if (nodeListDM.size() != nodeListPSD.size()) {
+                System.err.println("WARNING: sentences of different length");
+            }
             for (int i = 0; i< nodeListDM.size() && i<nodeListPSD.size(); i++) {
                 Node nodeDM = nodeListDM.get(i);
                 Node nodePSD = nodeListPSD.get(i);
@@ -103,6 +106,7 @@ public class FindDMPSDCopula {
                         }
                         assert psdActEdge != null;
                         assert psdPatEdge != null;
+
 
                         //check DM edge across
                         boolean hasDMEdge = false;
