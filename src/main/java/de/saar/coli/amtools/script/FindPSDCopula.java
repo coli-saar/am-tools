@@ -80,7 +80,7 @@ public class FindPSDCopula {
                     totalBe++;
                     Set<String> outgoingLabels = getOutgoingEdgeLabels(node);
                     if (outgoingLabels.size() == 2 &&
-                            outgoingLabels.contains("ACT-arg") && outgoingLabels.contains("ACT-arg")) {
+                            outgoingLabels.contains("ACT-arg") && outgoingLabels.contains("PAT-arg")) {
                         copula++;
                     }
                 }
