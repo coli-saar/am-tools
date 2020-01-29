@@ -13,22 +13,14 @@ import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.Parser;
 import de.saar.coli.amrtagging.Util;
-import de.saar.coli.irtg.experimental.astar.TypeInterner.AMAlgebraTypeInterner;
-import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.siblingfinder.SiblingFinder;
-import de.up.ling.irtg.signature.Interner;
-import de.up.ling.irtg.util.ArrayMap;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
-import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import de.up.ling.tree.TreeBottomUpVisitor;
 import it.unimi.dsi.fastutil.ints.*;
-import me.tongfei.progressbar.ProgressBar;
 
 import javax.swing.*;
 import java.io.*;
@@ -37,12 +29,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -295,7 +284,9 @@ public class ExhausiveProjectiveDecoderComparison {
     }
 
     private static Tree<String> fixLexNotation(Tree<String> amTerm) {
-        return amTerm.dfs((tree, list) -> Tree.create(tree.getLabel().replaceAll("\"LEX@[0-9]+]\"", "--LEX--"), list));
+        Tree<String> lexFixed = amTerm.dfs((tree, list) -> Tree.create(tree.getLabel().replaceAll("\"LEX@[0-9]+\"", "--LEX--"), list));
+        return lexFixed;
+        //return lexFixed.dfs((tree, list) -> Tree.create(tree.getLabel().split(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP)[0], list));
     }
 
     private static Function<String, Type> getSupertagToTypeFunction() {
