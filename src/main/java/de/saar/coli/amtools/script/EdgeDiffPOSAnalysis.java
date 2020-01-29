@@ -70,12 +70,12 @@ public class EdgeDiffPOSAnalysis {
             Set<Pair<Integer, Integer>> edges1 = sdpGraph.getEdges().stream().map(e -> encodeEdge(e)).collect(Collectors.toSet());
             Set<Pair<Integer, Integer>> edges2 = sdpGraph2.getEdges().stream().map(e -> encodeEdge(e)).collect(Collectors.toSet());
             for (Pair<Integer, Integer> edge : edges1) {
-                //undirected check
+                //use line below if you want to get edges that are in corpus 1 but not in corpus 2 (undirected check).
                 if (!edges2.contains(edge) && !edges2.contains(new Pair(edge.right, edge.left))) {
-                //flip check
+                //use line below if you want to get flipped edges
                 //if (edges2.contains(new Pair(edge.right, edge.left))) {
-                    Node sourceNode = sdpGraph.getNode(edge.left);
-                    Node targetNode = sdpGraph.getNode(edge.right);
+                    Node sourceNode = sdpGraph.getNode(edge.left);//POS is the same in both graphs, sdpGraph2 would give same result for POS tag.
+                    Node targetNode = sdpGraph.getNode(edge.right);//POS is the same in both graphs, sdpGraph2 would give same result for POS tag.
                     posPairCounter.add(new Pair(sourceNode.pos, targetNode.pos));
                     sourceNodePOSCounter.add(sourceNode.pos);
                     targetNodePOSCounter.add(targetNode.pos);
