@@ -1,5 +1,6 @@
 /.nb-gradle/
 /build/
+production/
 build.log
 /.gradle/
 /src/main/java/de/saar/coli/amrtagging/AMToolsVersion.java
@@ -14,3 +15,4 @@ build.log
 .idea/libraries/gradle_wrapper.xml
 .idea/libraries/libs.xml
 .idea/modules.xml
+.idea/uiDesigner.xml
