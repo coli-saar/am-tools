@@ -178,7 +178,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         // calculate best incoming edge for each token >= 1
         bestEdgep = new double[N+1];
         for (int k = 1; k <= N; k++) {
-            Triple<Double, Double, Double> res = edgep.getBestIncomingProbNoDoubleRootItemAndForceIgnoreNullTogether(k);
+            // Triple<Double, Double, Double> res = edgep.getBestIncomingProbNoDoubleRootItemAndForceIgnoreNullTogether(k);
             // rootDiff[k] = res.getSecond();
             // ignoreProbIfHighest[k] = res.getFirst();
             // bestEdgep[k] = res.getThird();
