@@ -22,8 +22,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- *  Create PSD training data.
- * @author jonas
+ * Find and count copula in DM graphs (e.g. 'Compromises are possible', 'Ada said that Bert has been lazy', ...)
+ * @author jonas, pia
  */
 public class FindDMCopula {
      @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")//, required = true)
@@ -55,17 +55,22 @@ public class FindDMCopula {
         //setup
         GraphReader2015 gr = new GraphReader2015(cli.corpusPath);
         Graph sdpGraph;
+        int totalGraphs = 0;
         int totalEdges = 0;
-        int totalBe = 0;
+        int totalNodes = 0;
+        int totalBe = 0;  // to-be nodes
         int copula = 0;
 
         while ((sdpGraph = gr.readGraph()) != null){
+            totalGraphs += 1;
             totalEdges += sdpGraph.getNEdges();
+            totalNodes += sdpGraph.getNNodes();
             for (Node node : sdpGraph.getNodes()) {
                 if (node.lemma.equals("be")) {
                     totalBe++;
 
                     if (node.outgoingEdges.isEmpty() && node.incomingEdges.isEmpty()) {
+                        // TODO: is copula if skipped in graph :/ Other reasons for skipping? 'Advertisers are showing interest'
                         copula++;
                     }
 
@@ -73,9 +78,11 @@ public class FindDMCopula {
             }
         }
 
-        System.err.println("total edges: "+totalEdges);
-        System.err.println("total occurrences of to be: "+totalBe);
-        System.err.println("detected as copula: "+copula);
+        System.err.println(String.format("total graphs:               %10d", totalGraphs));
+        System.err.println(String.format("total edges:                %10d", totalEdges));
+        System.err.println(String.format("total nodes:                %10d", totalNodes));
+        System.err.println(String.format("total occurrences of to be: %10d || %8.3f percent of nodes", totalBe, 100* totalBe /(float)totalNodes));
+        System.err.println(String.format("detected as copula:         %10d || %8.3f percent of to-be-occ", copula, 100*copula / (float)totalBe));
         
     }
 
