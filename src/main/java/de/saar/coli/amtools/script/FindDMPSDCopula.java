@@ -12,6 +12,7 @@ import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import se.liu.ida.nlp.sdp.toolkit.graph.Edge;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.graph.Node;
@@ -151,16 +152,37 @@ public class FindDMPSDCopula {
 
         System.err.println();
         System.err.println("sentences analyzed: "+sentCount);
-        System.err.println("PSD 'be' lemmas: "+psdBe);
+        System.err.println("PSD 'be' lemmas:    "+psdBe);
         System.err.println("Having exactly one ACT-arg and one PAT-arg as outgoing PSD edges: "+withPSDArgEdges);
-        System.err.println("Having a DM edge between these targets and no DM edge at 'be': "+alsoWithDMEdge);
+        System.err.println("Having a DM edge between these targets and no DM edge at 'be':    "+alsoWithDMEdge);
 
         //beFormAndDMLemmaCounter.printAllSorted();
-        psdPatPOSCounter.printAllSorted();
-        System.err.println();
-        psdPatPOSCounterWithDMEdge.printAllSorted();
-        System.err.println();
-        dmEdgeCounter.printAllSorted();
+        System.err.println("\n--> PSD: PoS tag of PAT-arg argument of copula:");
+        //psdPatPOSCounter.printAllSorted();
+        printCounter(psdPatPOSCounter);
+        System.err.println("\n--> PSD: PoS tag of PAT-arg argument of copula where DM has edge connecting pat and act:");
+        //psdPatPOSCounterWithDMEdge.printAllSorted();
+        printCounter(psdPatPOSCounterWithDMEdge);
+        System.err.println("\n--> DM: edge label of edge connecting PSD's PATtarget and ACTtarget node:");
+        //dmEdgeCounter.printAllSorted();
+        printCounter(dmEdgeCounter);
+    }
+
+    /**
+     * Prints keys of counter in descending frequency order, additionally prints relative frequency
+     */
+    private static void printCounter(Counter<String> counter) throws IllegalArgumentException {
+        List<Object2IntMap.Entry<String>> list = counter.getAllSorted();
+        int total = counter.sum();
+        if (total == 0) {
+            throw new IllegalArgumentException("Counter sum is 0");
+        }
+        System.err.println(String.format("%20s : %10s : %s", "Key", "Count", "Percentage of all counts"));
+        for (Object2IntMap.Entry<String> o : list) {
+            System.err.println(String.format("%20s : %10d : %8.3f", o.getKey(), o.getIntValue(), 100* o.getIntValue() / (float)total));
+        }
+        System.err.println("  -------------------------------------------");
+        System.err.println(String.format("%20s : %10d : %8.3f", "total", total, (float) 100));
     }
 
     private static Set<String> getOutgoingEdgeLabels(Node node) {
