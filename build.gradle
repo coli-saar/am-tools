@@ -9,6 +9,11 @@ plugins {
 
 mainClassName = 'de.saar.coli.irtg.experimental.astar.Astar'
 
+//to make sure we always use UTF-8 (see https://gist.github.com/rponte/d660919434d094bbd35a1aabf7ef1bf0), otherwise I got errors on Windows -- JG
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+javadoc.options.encoding = 'UTF-8'
+
 application {
     applicationDefaultJvmArgs = ['-ea']
 }
