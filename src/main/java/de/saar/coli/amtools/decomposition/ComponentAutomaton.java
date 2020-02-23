@@ -101,16 +101,11 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
 
 
             //find the node in dagComp that *must* be the target of the modify operation that connects connComp to dagComp
-            Collection<GraphNode> connectedNodesInDAG = dagComp.getNodesWithEdgeTo(connComp.getAllNodes());
-            GraphNode lowestCommonAncestor = dagComp.getLowestCommonAncestor(connectedNodesInDAG);
-            if (!connectedNodesInDAG.contains(lowestCommonAncestor)) {
-                //then the modify operation has no valid possible root in connComp
-                throw new NoEdgeToRequiredModifieeException();
-            }
+            GraphNode uniqueModifiee = dagComp.findUniqueModifiee(connComp.getAllNodes());
             
             //find possible roots in connComp
             Set<GraphNode> possibleRoots = new HashSet<>();
-            for (GraphEdge e : graph.getGraph().edgesOf(lowestCommonAncestor)) {
+            for (GraphEdge e : graph.getGraph().edgesOf(uniqueModifiee)) {
                 if (connComp.getAllNodes().contains(e.getTarget())) {
                     possibleRoots.add(e.getTarget());
                 } else if (connComp.getAllNodes().contains(e.getSource())) {

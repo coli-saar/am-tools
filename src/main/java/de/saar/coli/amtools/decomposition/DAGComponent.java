@@ -10,14 +10,11 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
+
+import de.up.ling.tree.Tree;
 import org.eclipse.collections.impl.factory.Sets;
 
 /**
@@ -27,7 +24,7 @@ import org.eclipse.collections.impl.factory.Sets;
 public class DAGComponent {
     
     private final SGraph graph;
-    private final GraphNode root;
+    private final DAGNode root;
     private final AMRBlobUtils blobUtils;
     
     private final Set<DAGNode> allNodes;
@@ -41,12 +38,12 @@ public class DAGComponent {
     public DAGComponent(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils) throws CyclicGraphException {
         
         this.graph = graph;
-        this.root = dagRoot;
+        this.root = new DAGNode(graph, dagRoot, blobUtils);
         this.blobUtils = blobUtils;
         
         allNodes = new HashSet<>();
         graphNode2DAGNode = new HashMap<>();
-        addRecursive(new DAGNode(graph, root, blobUtils));
+        addRecursive(root);
         
         node2parents = new HashMap<>();
         setParents();
@@ -107,7 +104,7 @@ public class DAGComponent {
     }
 
     
-    public GraphNode getRoot() {
+    public DAGNode getRoot() {
         return root;
     }
 
@@ -119,7 +116,7 @@ public class DAGComponent {
     
     
     
-    public Set<GraphEdge> getEdgesTo(Set<GraphNode> nodes) {
+    public Set<GraphEdge> getEdgesTo(Collection<GraphNode> nodes) {
         Set<GraphEdge> ret = new HashSet<>();
         for (DAGNode dn : getAllNodes()) {
             for (GraphEdge e : graph.getGraph().edgesOf(dn.getNode())) {
@@ -131,7 +128,7 @@ public class DAGComponent {
         return ret;
     }
 
-    public Collection<GraphNode> getNodesWithEdgeTo(Set<GraphNode> nodeSet) {
+    public Collection<GraphNode> getNodesWithEdgeTo(Collection<GraphNode> nodeSet) {
         Set<GraphNode> ret = new HashSet<>();
         for (DAGNode node : getAllNodes()) {
             for (GraphEdge e : graph.getGraph().edgesOf(node.getNode())) {
@@ -179,8 +176,28 @@ public class DAGComponent {
         return null;
     }
 
+    public GraphNode findUniqueModifiee(Collection<GraphNode> modifierNodes) {
+        Collection<GraphNode> connectedNodesInDAG = getNodesWithEdgeTo(modifierNodes);
+        GraphNode lowestCommonAncestor = getLowestCommonAncestor(connectedNodesInDAG);
+        if (!connectedNodesInDAG.contains(lowestCommonAncestor)) {
+            //then the modify operation has no valid possible root in connComp
+            throw new NoEdgeToRequiredModifieeException();
+        }
+        return lowestCommonAncestor;
+    }
+
     public Collection<GraphNode> getAllAsGraphNodes() {
         return getAllNodes().stream().map(DAGNode::getNode).collect(Collectors.toSet());
+    }
+
+    public Tree<GraphNode> toTreeWithDuplicates() {
+        return toTreeWithDuplicatesRecursive(root);
+    }
+
+    private Tree<GraphNode> toTreeWithDuplicatesRecursive(DAGNode current) {
+        List<Tree<GraphNode>> childTrees = current.getChildren().stream()
+                .map(this::toTreeWithDuplicatesRecursive).collect(Collectors.toList());
+        return Tree.create(current.getNode(), childTrees);
     }
 
     @Override
