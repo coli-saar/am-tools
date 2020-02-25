@@ -165,6 +165,8 @@ public class CreateCorpusParallel {
                         
                         AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, modified, supertagDictionary);
                         sent.setAttr("id", sdpGraphi.id);
+                        sent.setAttr("git", AMToolsVersion.GIT_SHA);
+                        sent.setAttr("framework", "psd");
                         Sentence stanfAn = new Sentence(modified.getSentence().subList(0, modified.getSentence().size()-1)); //remove artifical root "word"
 
                         List<String> posTags = SGraphConverter.extractPOS(sdpGraphi);

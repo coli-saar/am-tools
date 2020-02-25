@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.sdp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
@@ -33,6 +34,9 @@ public class PrepareDevData {
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "test_like";
+    
+    @Parameter(names={"--framework"}, description = "Framework (dm, pas, psd) to be put into amconll", required=true)
+    private String framework;
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -63,6 +67,8 @@ public class PrepareDevData {
         while ((sdpGraph = reader.readGraph()) != null){
             AmConllSentence currentSent = new AmConllSentence();
             currentSent.setAttr("id", sdpGraph.id);
+            currentSent.setAttr("git", AMToolsVersion.GIT_SHA);
+            currentSent.setAttr("framework", cli.framework);
             for (Node n : sdpGraph.getNodes()){
                 if (n.id > 0){
                     AmConllEntry e = new AmConllEntry(n.id,n.form);

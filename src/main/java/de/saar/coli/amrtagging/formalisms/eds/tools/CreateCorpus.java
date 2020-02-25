@@ -136,6 +136,7 @@ public class CreateCorpus {
                     AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
                     sent.setAttr("id", ids.get(counter));
                     sent.setAttr("raw", allSents.get(counter));
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     Sentence stanfAn = new Sentence(inst.getSentence());
 
                     List<String> posTags = new ArrayList<>(stanfAn.posTags());
