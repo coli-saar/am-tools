@@ -35,6 +35,11 @@ gversion {
   explicitType = false                      // optional. Force types to be explicitly printed
 }
 
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 project.compileJava.dependsOn(createVersionFile)
 dependencies {
     compile 'com.github.coli-saar:alto:cc71cb7'
