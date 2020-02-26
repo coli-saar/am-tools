@@ -3,6 +3,9 @@ package de.saar.coli.amtools.script;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
+import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
+import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
+import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
@@ -22,11 +25,11 @@ import java.util.stream.Collectors;
 public class FindModalsAcrossSDP {
 
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")//, required = true)
-    private String corpusPathDM = "../../data/sdp/sdp2014_2015/data/2015/en.dm.sdp";// data/corpora/semdep/
+    private String corpusPathDM = "../../data/corpora/semdep/sdp2014_2015/data/2015/en.dm.sdp";// data/sdp/
     @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")//, required = true)
-    private String corpusPathPAS = "../../data/sdp/sdp2014_2015/data/2015/en.pas.sdp";// data/corpora/semdep/
+    private String corpusPathPAS = "../../data/corpora/semdep/sdp2014_2015/data/2015/en.pas.sdp";// data/corpora/semdep/
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")//, required = true)
-    private String corpusPathPSD = "../../data/sdp/sdp2014_2015/data/2015/en.psd.sdp";// data/corpora/semdep/
+    private String corpusPathPSD = "../../data/corpora/semdep/sdp2014_2015/data/2015/en.psd.sdp";// data/corpora/semdep/
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -46,7 +49,7 @@ public class FindModalsAcrossSDP {
      * @throws ParserException
      * @throws AlignedAMDependencyTree.ConllParserException
      */
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
+    public static void main(String[] args) throws FileNotFoundException, IOException {
         //just getting command line args
         FindModalsAcrossSDP cli = new FindModalsAcrossSDP();
         JCommander commander = new JCommander(cli);
@@ -64,6 +67,9 @@ public class FindModalsAcrossSDP {
         }
 
         //setup
+        DMBlobUtils dmBlobUtils = new DMBlobUtils();
+        PASBlobUtils pasBlobUtils = new PASBlobUtils();
+        PSDBlobUtils psdBlobUtils = new PSDBlobUtils();
         GraphReader2015 grDM = new GraphReader2015(cli.corpusPathDM);
         GraphReader2015 grPAS = new GraphReader2015(cli.corpusPathPAS);
         GraphReader2015 grPSD = new GraphReader2015(cli.corpusPathPSD);
@@ -95,9 +101,9 @@ public class FindModalsAcrossSDP {
                         vPosCounter.add(psdLemma);
                     }
 
-                    lemma2patternCounterDM.get(psdLemma).add(getPattern(dmGraph, i));
-                    lemma2patternCounterPAS.get(psdLemma).add(getPattern(pasGraph, i));
-                    lemma2patternCounterPSD.get(psdLemma).add(getPattern(psdGraph, i));
+                    lemma2patternCounterDM.get(psdLemma).add(FindPatternsAcrossSDP.getPattern(dmGraph, i, dmBlobUtils));
+                    lemma2patternCounterPAS.get(psdLemma).add(FindPatternsAcrossSDP.getPattern(pasGraph, i, pasBlobUtils));
+                    lemma2patternCounterPSD.get(psdLemma).add(FindPatternsAcrossSDP.getPattern(psdGraph, i, psdBlobUtils));
 
                 }
             }
@@ -131,82 +137,8 @@ public class FindModalsAcrossSDP {
 
     }
 
-    /**
-     * 0: ignored in graph
-     * 1: 2 outgoing edges, is possible root (has inc or is root), no connection between children
-     * 2: 2 outgoing edges, is not root (no inc, not root), no connection between children
-     * 3: 2 outgoing edges, is possible root (has inc or is root), connection between children
-     * 4: 2 outgoing edges, is not root (no inc, not root), connection between children
-     * 5: 1 outgoing edge, is possible root
-     * 6: 1 outgoing edge, is not root
-     * 7: other
-     * @param graph
-     * @param i
-     * @return
-     */
-    private static int getPattern(Graph graph, int i) {
-        Node node = graph.getNode(i);
-        if (!hasInc(node) && !hasOutg(node)) {
-            return 0;
-        } else if (node.getNOutgoingEdges() == 2) {
-            if (!childrenAreConnected(graph, node)) {
-                if (isPossibleRoot(node)) {
-                    return 1;
-                } else {
-                    return 2;
-                }
-            } else {
-                if (isPossibleRoot(node)) {
-                    return 3;
-                } else {
-                    return 4;
-                }
-            }
-        } else if (node.getNOutgoingEdges() == 1) {
-            if (isPossibleRoot(node)) {
-                return 5;
-            } else {
-                return 6;
-            }
-        } else {
-            return 7;
-        }
-    }
-
-    private static boolean hasInc(Node node) {
-        return node.getNIncomingEdges() > 0;
-    }
 
 
-    private static boolean hasOutg(Node node) {
-        return node.getNOutgoingEdges() > 0;
-    }
 
-    /**
-     * assumes node has exactly 2 outgoing edges
-     * @param graph
-     * @param node
-     * @return
-     */
-    private static boolean childrenAreConnected(Graph graph, Node node) {
-        List<Edge> outgoingEdges = node.getOutgoingEdges();
-        Node child0 = graph.getNode(outgoingEdges.get(0).target);
-        Node child1 = graph.getNode(outgoingEdges.get(1).target);
-        for (Edge e : child0.getOutgoingEdges()) {
-            if (e.target == child1.id) {
-                return true;
-            }
-        }
-        for (Edge e : child1.getOutgoingEdges()) {
-            if (e.target == child0.id) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isPossibleRoot(Node node) {
-        return node.getNIncomingEdges() > 0 || node.isTop;
-    }
 
 }
