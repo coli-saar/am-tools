@@ -74,6 +74,8 @@ public class FindModalsAcrossSDP {
         Map<String, Counter<Integer>> lemma2patternCounterDM = new HashMap<>();
         Map<String, Counter<Integer>> lemma2patternCounterPAS = new HashMap<>();
         Map<String, Counter<Integer>> lemma2patternCounterPSD = new HashMap<>();
+        Counter<String> mdPosCounter = new Counter<>();
+        Counter<String> vPosCounter = new Counter<>();
 
         for (String lemma : auxLemmas) {
             lemma2patternCounterDM.put(lemma, new Counter<>());
@@ -87,6 +89,11 @@ public class FindModalsAcrossSDP {
                 String psdLemma = psdGraph.getNode(i).lemma;
                 if (auxLemmas.contains(psdLemma)) {
                     lemmaCounter.add(psdLemma);
+                    if (psdGraph.getNode(i).pos.equals("MD")) {
+                        mdPosCounter.add(psdLemma);
+                    } else if (psdGraph.getNode(i).pos.startsWith("V")) {
+                        vPosCounter.add(psdLemma);
+                    }
 
                     lemma2patternCounterDM.get(psdLemma).add(getPattern(dmGraph, i));
                     lemma2patternCounterPAS.get(psdLemma).add(getPattern(pasGraph, i));
@@ -100,14 +107,26 @@ public class FindModalsAcrossSDP {
 
 
         for (String lemma : lemmaCounter.getAllSorted().stream().map(entry -> entry.getKey()).collect(Collectors.toList())) {
-            System.err.println("\n\n");
-            System.err.println(lemma);
-            System.err.println("DM:");
-            lemma2patternCounterDM.get(lemma).printAllSorted();
-            System.err.println("PAS:");
-            lemma2patternCounterPAS.get(lemma).printAllSorted();
-            System.err.println("PSD:");
-            lemma2patternCounterPSD.get(lemma).printAllSorted();
+            System.err.println("\n");
+            System.err.println("Lemma,count,MD,V*");
+            System.err.println(lemma+","+lemmaCounter.get(lemma)+","+mdPosCounter.get(lemma)+","+vPosCounter.get(lemma));
+            System.err.println();
+            System.err.println("Pattern,P0,P1,P2,P3,P4,P5,P6,P7");
+            String dmString = "DM";
+            for (int i = 0; i<=7; i++) {
+                dmString += ","+lemma2patternCounterDM.get(lemma).get(i);
+            }
+            System.err.println(dmString);
+            String pasString = "PAS";
+            for (int i = 0; i<=7; i++) {
+                pasString += ","+lemma2patternCounterPAS.get(lemma).get(i);
+            }
+            System.err.println(pasString);
+            String psdString = "PSD";
+            for (int i = 0; i<=7; i++) {
+                psdString += ","+lemma2patternCounterPSD.get(lemma).get(i);
+            }
+            System.err.println(psdString);
         }
 
     }
