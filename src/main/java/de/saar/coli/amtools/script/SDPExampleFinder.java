@@ -2,6 +2,7 @@ package de.saar.coli.amtools.script;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.collect.Sets;
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
@@ -9,7 +10,6 @@ import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
-import edu.stanford.nlp.util.Sets;
 import se.liu.ida.nlp.sdp.toolkit.graph.Edge;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.graph.Node;
@@ -95,6 +95,7 @@ public class SDPExampleFinder {
         while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null
                 && (psdGraph = grPSD.readGraph()) != null && examplesPrinted < cli.n) {
 
+
             for (int i = 0; i < dmGraph.getNNodes() && examplesPrinted < cli.n; i++) {
                 boolean doPrint = true;
                 if (cli.pattern != null && !cli.pattern.equals(FindPatternsAcrossSDP.getPatternCombination(dmGraph, pasGraph, psdGraph, i))) {
@@ -108,6 +109,7 @@ public class SDPExampleFinder {
                 }
 
                 if (doPrint) {
+                    System.err.println(dmGraph.id);
                     printExample(dmGraph, i, dmBlobUtils, cli.full);
                     printExample(pasGraph, i, pasBlobUtils, cli.full);
                     printExample(psdGraph, i, psdBlobUtils, cli.full);

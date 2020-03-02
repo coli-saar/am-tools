@@ -132,14 +132,14 @@ public class FindPatternsAcrossSDP {
     }
 
 
-    private static String consistentIndent(String s) {
+    static String consistentIndent(String s) {
         return (s+"            ").substring(0,12);
     }
 
 
 
 
-    private static String patterns2string(int i, int j, int k) {
+    static String patterns2string(int i, int j, int k) {
         return String.valueOf(i)+String.valueOf(j)+String.valueOf(k);
     }
 

@@ -415,4 +415,24 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
     public void setId(String newId){
         setAttr("id", newId);
     }
+
+    /**
+     * Given an index i, returns all entries that have head i. Current implementation is somewhat inefficient,
+     * might need reimplementation if used in runtime-sensitive locations.
+     * @param i the index of the word who's children to get
+     * @return the children of entry i (which have i as head)
+     */
+    public List<AmConllEntry> getChildren(int i) {
+        //when called for all indices, this is quadratic. Caching and running through all entries once could make it linear, but should be ok for now.
+        return this.stream().filter(entry -> entry.getHead() == i).collect(Collectors.toList());
+    }
+
+    public AmConllEntry getParent(int i) {
+        int parentId = this.get(i).getHead();
+        if (parentId < this.size()) {
+            return this.get(parentId);
+        } else {
+            return null;
+        }
+    }
 }
