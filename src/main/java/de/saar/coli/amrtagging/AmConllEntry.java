@@ -379,6 +379,83 @@ public class AmConllEntry {
         return b.toString();
         
     }
-    
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AmConllEntry other = (AmConllEntry) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        if (this.head != other.head) {
+            return false;
+        }
+        if (this.aligned != other.aligned) {
+            return false;
+        }
+        if (!Objects.equals(this.form, other.form)) {
+            return false;
+        }
+        if (!Objects.equals(this.replacement, other.replacement)) {
+            return false;
+        }
+        if (!Objects.equals(this.lemma, other.lemma)) {
+            return false;
+        }
+        if (!Objects.equals(this.pos, other.pos)) {
+            return false;
+        }
+        if (!Objects.equals(this.ne, other.ne)) {
+            return false;
+        }
+        if (!Objects.equals(this.delexSupertag, other.delexSupertag)) {
+            return false;
+        }
+        if (!Objects.equals(this.lexLabel, other.lexLabel)) {
+            return false;
+        }
+        if (!Objects.equals(this.edgeLabel, other.edgeLabel)) {
+            return false;
+        }
+        if (!Objects.equals(this.type, other.type)) {
+            return false;
+        }
+        if (!Objects.equals(this.range, other.range)) {
+            return false;
+        }
+        if (!Objects.equals(this.furtherAttributes, other.furtherAttributes)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 37 * hash + this.id;
+        hash = 37 * hash + Objects.hashCode(this.form);
+        hash = 37 * hash + Objects.hashCode(this.replacement);
+        hash = 37 * hash + Objects.hashCode(this.lemma);
+        hash = 37 * hash + Objects.hashCode(this.pos);
+        hash = 37 * hash + Objects.hashCode(this.ne);
+        hash = 37 * hash + Objects.hashCode(this.delexSupertag);
+        hash = 37 * hash + Objects.hashCode(this.lexLabel);
+        hash = 37 * hash + Objects.hashCode(this.type);
+        hash = 37 * hash + this.head;
+        hash = 37 * hash + Objects.hashCode(this.edgeLabel);
+        hash = 37 * hash + (this.aligned ? 1 : 0);
+        hash = 37 * hash + Objects.hashCode(this.range);
+        hash = 37 * hash + Objects.hashCode(this.furtherAttributes);
+        return hash;
+    }
+    
+    
 }

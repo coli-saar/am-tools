@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +49,25 @@ public class AlignedAMDependencyTree {
 
     public Tree<AmConllEntry> getTree() {
         return tree;
+    }
+    
+    /**
+     * Returns the AM dependency tree that is rooted in the given entry.
+     * @param entry
+     * @return 
+     */
+    public AlignedAMDependencyTree getSubtree(AmConllEntry entry){
+        Tree<AmConllEntry> subtree = tree.dfs((Tree<AmConllEntry> currentSubtree, List<Tree<AmConllEntry>> list) -> {
+            if (currentSubtree.getLabel().equals(entry)) {
+                return currentSubtree;
+            }
+            for (Tree<AmConllEntry> subt : list){
+                if (subt != null) return subt;
+            }
+            return null;
+        });
+        if (subtree == null) return null;
+        return new AlignedAMDependencyTree(subtree);
     }
 
     /**
@@ -168,6 +189,34 @@ public class AlignedAMDependencyTree {
         }
         return g_;
     }
+    
+    /**
+     * Returns the type of the AM term corresponding to this AM dependency tree.
+     * @return 
+     */
+    public ApplyModifyGraphAlgebra.Type evaluateType(){
+        ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
+        try {
+            return amAl.evaluate(binarize(false, false)).getRight();
+        } catch (ParserException ex) {
+            Logger.getLogger(AlignedAMDependencyTree.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(AlignedAMDependencyTree.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+    
+    /**
+     * Returns the type of the AM term that corresponds to the AM dependency tree that is rooted in entry. Returns null if entry is not part of the AM dependency tree (also when it has no semantic contribution).
+     * @param entry
+     * @return 
+     */
+    public ApplyModifyGraphAlgebra.Type getTermTypeAt(AmConllEntry entry){
+        AlignedAMDependencyTree subt = this.getSubtree(entry);
+        if (subt == null) return null;
+        return subt.evaluateType();
+    }
+            
 
     /**
      * Extracts the alignments from an S-graph that was just produced by
