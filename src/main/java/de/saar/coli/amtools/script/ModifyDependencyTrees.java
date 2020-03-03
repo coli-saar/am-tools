@@ -11,7 +11,6 @@ import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -26,6 +25,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.saar.coli.amtools.script.FindPatternsAcrossSDP.*;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.SGraph;
 
 public class ModifyDependencyTrees {
 
@@ -41,16 +42,16 @@ public class ModifyDependencyTrees {
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "../../github/am-parser/test_output/dm/train/train.amconll";
+    private String amconllPathDM = "../../github/am-parser/example/decomposition/dm/output/train/train.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "../../github/am-parser/test_output/pas/train/train.amconll";
+    private String amconllPathPAS = "../../github/am-parser/example/decomposition/pas/output/train/train.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "../../github/am-parser/test_output/psd/train/train.amconll";
+    private String amconllPathPSD = "../../github/am-parser/example/decomposition/psd/output/train/train.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "../../github/am-parser/test_output/modified";
+    private String outputPath = "../../github/";
 
 
 
@@ -72,7 +73,7 @@ public class ModifyDependencyTrees {
      * @throws ParserException
      * @throws AlignedAMDependencyTree.ConllParserException
      */
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, AlignedAMDependencyTree.ConllParserException, ParserException, Exception {
         //just getting command line args
         ModifyDependencyTrees cli = new ModifyDependencyTrees();
         JCommander commander = new JCommander(cli);
@@ -124,18 +125,48 @@ public class ModifyDependencyTrees {
                 AmConllSentence pasDep = id2amPAS.get(id);
                 AmConllSentence psdDep = id2amPSD.get(id);
 
-                // new sentences: just take old ones to test surrounding interface
-                AmConllSentence newDMDep = dmDep;
-                AmConllSentence newPASDep = pasDep;
-                AmConllSentence newPSDDep = psdDep;
+
+                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                System.out.println(dmSGraph);
 
                 //modify new dep trees here
-                //
+                // Determiners for PSD
+                // we find all words that are determiners (have DT POS tag)
+                // and that are ignored in the PSD graph (have incoming IGNOREn edge).
+                // Then we change the PSD entry to have an empty modifier graph,
+                // and attach it to the head it has in DM.
+                
+                
+                
+                int index = 0;
+                for (AmConllEntry word : psdDep){
+                    if (word.getPos().equals("DT") && word.getEdgeLabel().equals("IGNORE")){
+                        System.err.println(index);
+                        System.err.println(dmDep.getParent(index));
+                        int head = dmDep.getParent(index).getId();// index is 0-based, head is 1-based
+                        word.setHead(head);
+                        word.setEdgeLabel("MOD_det");
+                        word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
+                        word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
+                    }
+                    index++;
+                }
+                
 
-
-                newAmDM.add(newDMDep);
-                newAmPAS.add(newPASDep);
-                newAmPSD.add(newPSDDep);
+                
+                SGraph newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                SGraph newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                SGraph newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                
+                if (!newdmSGraph.equals(dmSGraph)) throw new Exception("Difference in DM");
+                if (!newpsdSGraph.equals(psdSGraph)) throw new Exception("Difference in PSD");
+                if (!newpasSGraph.equals(pasSGraph)) throw new Exception("Difference in PAS");
+                
+                newAmDM.add(dmDep);
+                newAmPAS.add(pasDep);
+                newAmPSD.add(psdDep);
             }
         }
 

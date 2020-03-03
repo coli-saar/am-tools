@@ -427,10 +427,15 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
         return this.stream().filter(entry -> entry.getHead() == i).collect(Collectors.toList());
     }
 
+    /**
+     * Returns the AMConllEntry that is the head of i (i is 0-based).
+     * @param i
+     * @return 
+     */
     public AmConllEntry getParent(int i) {
         int parentId = this.get(i).getHead();
         if (parentId < this.size()) {
-            return this.get(parentId);
+            return this.get(parentId-1);
         } else {
             return null;
         }
