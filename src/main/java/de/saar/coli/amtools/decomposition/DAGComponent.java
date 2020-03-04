@@ -128,6 +128,11 @@ public class DAGComponent {
         return ret;
     }
 
+    /**
+     * Returns all nodes in nodeSet that are connected to this DAGComponent with a direct edge (direction doesn't matter)
+     * @param nodeSet
+     * @return
+     */
     public Collection<GraphNode> getNodesWithEdgeTo(Collection<GraphNode> nodeSet) {
         Set<GraphNode> ret = new HashSet<>();
         for (DAGNode node : getAllNodes()) {

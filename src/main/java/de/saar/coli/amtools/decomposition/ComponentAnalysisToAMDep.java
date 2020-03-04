@@ -51,6 +51,12 @@ public class ComponentAnalysisToAMDep {
         System.err.println(auto.getRuleTree(auto.viterbiRaw().getTree()));
         Tree<Rule> ruleTree = auto.getRuleTree(auto.viterbiRaw().getTree());
         Pair<AMDependencyTree, GraphNode> result = ruleTree.dfs(new TreeBottomUpVisitor<Rule, Pair<AMDependencyTree, GraphNode>>() {
+            /**
+             *
+             * @param node
+             * @param childrenValues
+             * @return
+             */
             @Override
             public Pair<AMDependencyTree, GraphNode> combine(Tree<Rule> node, List<Pair<AMDependencyTree, GraphNode>> childrenValues) {
                 Rule rule = node.getLabel();
@@ -60,8 +66,10 @@ public class ComponentAnalysisToAMDep {
                 GraphNode graphNode = graph.getNode(nodeName);
                 Iterable<GraphNode> forbiddenNodes;
                 if (state.right == null) {
+                    // if there is no parent DAG, i.e. if we are just starting, then we don't need to forbid nodes.
                     forbiddenNodes = Collections.EMPTY_SET;
                 } else {
+                    // we forbid nodes of the parent DAG when creating a new DAG, otherwise the new DAG may bleed back into the parent DAG.
                     forbiddenNodes = state.right.getAllAsGraphNodes();
                 }
                 DAGComponent dagComponent = DAGComponent.createWithoutForbiddenNodes(graph, graphNode, blobUtils, forbiddenNodes);
@@ -76,6 +84,9 @@ public class ComponentAnalysisToAMDep {
                     String modifyOperation = ApplyModifyGraphAlgebra.OP_MODIFICATION+nodeName2source(uniqueModifiee.getName());
                     System.err.println("evaluating "+modifyOperation);
                     System.err.println("child is "+child.left.evaluate().left.toIsiAmrStringWithSources());
+
+                    //ret.
+                    //the below currently does not add the edge at the right spot
                     ret.addEdge(modifyOperation, child.left);
                 }
                 System.err.println(ret.evaluate().left.toIsiAmrStringWithSources());

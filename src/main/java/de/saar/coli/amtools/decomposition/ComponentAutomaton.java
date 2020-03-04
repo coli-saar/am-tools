@@ -34,7 +34,9 @@ import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 /**
- *
+ * States are a pair of a connected component (to be turned into a DAG) and the parent DAG component, with respect
+ * to which the connected component needs to be treated. This is necessary since the answer to the question which nodes in the
+ * connected component can become DAG roots depends on the parent DAG.
  * @author JG
  */
 public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, DAGComponent>> {
