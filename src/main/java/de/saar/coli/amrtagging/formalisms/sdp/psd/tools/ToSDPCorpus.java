@@ -49,6 +49,7 @@ public class ToSDPCorpus {
     private boolean help=false;
    
     
+
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         ToSDPCorpus cli = new ToSDPCorpus();
         JCommander commander = new JCommander(cli);
@@ -80,7 +81,9 @@ public class ToSDPCorpus {
         Scorer scorer = new Scorer();
         for (AmConllSentence s : sents){
             //prepare raw output without edges
-            Graph sdpSent = new Graph("#NO-ID");
+            String id = s.getAttr("id") != null ? s.getAttr("id") : "#NO-ID";
+            if (! id.startsWith("#")) id = "#" + id;
+            Graph sdpSent = new Graph(id);
             sdpSent.addNode(Constants.WALL_FORM, Constants.WALL_LEMMA, Constants.WALL_POS, false, false, Constants.WALL_SENSE); //some weird dummy node.
 
             for (AmConllEntry word : s){ //build a SDP Graph with only the words copied from the input.

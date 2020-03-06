@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.sdp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
@@ -14,6 +15,7 @@ import edu.stanford.nlp.simple.Sentence;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,10 +30,13 @@ public class PrepareFinalTestData {
     private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/test/en.id.dm.tt";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/test/funkts";
+    private String outPath = "/tmp/dm";
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. test.id --> test.id.amconll)")//, required=true)
     private String prefix = "test.id";
+    
+    @Parameter(names={"--framework"}, description = "Framework (dm, pas, psd) to be put into amconll", required=true)
+    private String framework;
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -61,6 +66,14 @@ public class PrepareFinalTestData {
         ArrayList<AmConllSentence> out = new ArrayList<>();
         while ((para = reader.readParagraph()) != null){
             AmConllSentence currentSent = new AmConllSentence();
+            currentSent.setAttr("git", AMToolsVersion.GIT_SHA);
+            Iterator<String> idIterator = para.iterator();
+            String id = idIterator.next();
+            if (id.startsWith("#SDP")){ //first line, got #SDP 2015
+                id = idIterator.next();
+            }
+            currentSent.setAttr("id", id);
+            currentSent.setAttr("framework", cli.framework);
             para = para.stream().filter(line -> !line.startsWith("#")).collect(Collectors.toList());
             for (String info : para){
                 String[] fields = info.split("\t");

@@ -36,7 +36,7 @@ import java.util.Map;
  */
 public class EvaluateAMR {
     @Parameter(names = {"--corpus"}, description = "Path to the input amconll corpus")//, required = true)
-    private String corpusPath = "/tmp/dm/test_MRP-AMR.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/analyzers/after_deadline/dev_epoch_45.amconll";
     
     @Parameter(names = {"--wn"}, description = "Path to WordNet")//, required = true)
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
@@ -45,10 +45,10 @@ public class EvaluateAMR {
     private String conceptnet = null;// "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/conceptnet-assertions-5.7.0.csv.gz";
     
     @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
-    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/AMR/first_legal/lookup/";
+    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/data/MRP/AMR/after_deadline_corenlp/lookup/";
     
     @Parameter(names = {"--out", "-o"}, description = "where to store the MRP graphs")//, required = true)
-    private String outPath = "/tmp/dm/test_MRP-AMR.mrp";
+    private String outPath = "/home/matthias/Schreibtisch/Hiwi/am-parser/analyzers/after_deadline/dev_epoch_45.amconll.mrp";
     
     @Parameter(names = {"--input"}, description = "input.mrp file to extract input strings, only required when run on TEST data")//, required = true)
     private String input = null;
@@ -63,6 +63,7 @@ public class EvaluateAMR {
     private boolean help=false;
    
     
+
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, MalformedURLException, InterruptedException{
         EvaluateAMR cli = new EvaluateAMR();
         JCommander commander = new JCommander(cli);

@@ -7,6 +7,7 @@ package de.saar.coli.irtg.experimental.astar;
 
 import de.saar.basic.Pair;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
+import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.MutableInteger;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
@@ -92,6 +93,29 @@ public class SupertagProbabilities {
 
         return max;
     }
+
+    public Pair<Double, Double> getMaxProbAndNull(int pos) {
+        Int2DoubleMap m = supertags.get(pos);
+        double max = Double.NEGATIVE_INFINITY;
+        double nullProb = Double.NEGATIVE_INFINITY;
+
+        if (m != null) {
+            for (Int2DoubleMap.Entry entry : m.int2DoubleEntrySet()) {
+                // DON'T skip NULL
+                if (entry.getIntKey() == nullSupertagId) {
+                    nullProb = Math.max(nullProb, entry.getDoubleValue());
+                } else {
+                    max = Math.max(max, entry.getDoubleValue());
+                }
+            }
+        }
+
+        if (nullProb > max) {
+            return new Pair<Double, Double>(nullProb, max);
+        }
+
+        return new Pair<Double, Double>(Double.NEGATIVE_INFINITY, max);
+    }
     
     public Pair<Integer,Double> getBestSupertag(int pos) {
         Int2DoubleMap m = supertags.get(pos);
@@ -112,10 +136,21 @@ public class SupertagProbabilities {
         return new Pair(tag, max);
     }
 
+    public void checkOrder(int pos, Interner<String> supertagLexicon) {
+        Int2DoubleMap m = supertags.get(pos);
+
+        if (m != null) {
+            for (Int2DoubleMap.Entry entry : m.int2DoubleEntrySet()) {
+                System.err.println(entry.getDoubleValue());
+                System.err.println(supertagLexicon.resolveId(entry.getIntKey()));
+            }
+        }
+    }
+
     @Override
     public String toString() {
         StringJoiner sj = new StringJoiner("\n");
-        for (int i = 0; i < supertags.size(); i++) {
+        for (int i = 1; i <= supertags.size(); i++) {
             sj.add(i + "=>" + supertags.get(i).toString());
         }
         return "SupertagProbabilities:\n" + sj.toString();
@@ -126,7 +161,7 @@ public class SupertagProbabilities {
     }
 
     public void prettyprint(Int2ObjectMap<Pair<SGraph, Type>> idToSupertag, PrintStream out) {
-        for (int pos = 0; pos < getLength(); pos++) {
+        for (int pos = 1; pos <= getLength(); pos++) {
             String prefix = String.format("[%2d] ", pos);
             String blank = String.format("%" + prefix.length() + "s", " ");
             MutableInteger x = new MutableInteger(0);

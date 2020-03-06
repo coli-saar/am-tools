@@ -88,6 +88,7 @@ public abstract class TypeInterner<E> implements Serializable {
         public Iterable<int[]> getPartners(int stateID, int pos) {
             return () -> {
                 IntIterator it = lookup[pos][stateID-1].iterator();
+                //IntIterator it = lookup[pos][stateID].iterator();
                 int[] ret = new int[2];
                 ret[pos] = stateID;
                 int otherPos = (pos+1)%2;
@@ -119,6 +120,8 @@ public abstract class TypeInterner<E> implements Serializable {
             if (stateID >= 1) {
                 for (int partner : pos2edge2state2partners[pos][edgeLabelID-1][stateID-1]) {
                     lookup[otherPos][partner-1].add(stateID);
+                    //System.err.println(partner);
+                    //lookup[otherPos][partner].add(stateID); // NO stateId 0 is added to this object 
                 }
             }
             //else the state does not exist, and we ignore it

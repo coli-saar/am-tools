@@ -123,7 +123,7 @@ public class MakeDevData {
         }
 
         // set up NER recognizer
-        NamedEntityRecognizer nerRecognizer = stanfordNerFilename != null ? new StanfordNamedEntityRecognizer(new File(stanfordNerFilename)) : new UiucNamedEntityRecognizer(uiucNerTagset);
+        NamedEntityRecognizer nerRecognizer = stanfordNerFilename != null ? new StanfordNamedEntityRecognizer(new File(stanfordNerFilename), false) : new UiucNamedEntityRecognizer(uiucNerTagset);
         
         FileWriter sentenceW = new FileWriter(outPath+"sentences.txt");
         FileWriter posW = new FileWriter(outPath+"pos.txt");

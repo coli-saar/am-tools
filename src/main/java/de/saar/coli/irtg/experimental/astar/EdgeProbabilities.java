@@ -8,6 +8,7 @@ package de.saar.coli.irtg.experimental.astar;
 import de.saar.basic.Pair;
 import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.MutableDouble;
+import edu.illinois.cs.cogcomp.core.datastructures.Triple;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -17,6 +18,8 @@ import it.unimi.dsi.fastutil.ints.IntIterable;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.PrintStream;
+
+// import org.codehaus.groovy.runtime.powerassert.SourceText;
 
 /**
  *
@@ -132,6 +135,58 @@ public class EdgeProbabilities {
     }
 
     /**
+     * Returns the max probability of edges into this position. When calculating
+     * the max probability, edges with one of the labels specified by {@link #addIgnoredEdgeLabel(int)
+     * } will be ignored.
+     *
+     * @param to
+     * @return
+     */
+    public Triple<Double, Double, Double> getBestIncomingProbNoDoubleRootItemAndForceIgnoreNullTogether(int to) {
+        MutableDouble ret = new MutableDouble(defaultValue);
+        MutableDouble retRoot = new MutableDouble(defaultValue);
+        MutableDouble retIgnore = new MutableDouble(defaultValue);
+
+        for (Int2ObjectMap.Entry<Int2ObjectMap<Int2DoubleMap>> entry : probs.int2ObjectEntrySet()) {
+            int from = entry.getIntKey();
+            Int2DoubleMap m = entry.getValue().get(to);
+
+            if (from != 0) {
+                if (m != null) {
+                    for (Int2DoubleMap.Entry e : m.int2DoubleEntrySet()) {
+                        if (!ignoredEdgeLabels.contains(e.getIntKey())) {
+                            ret.setValue(Math.max(ret.getValue(), e.getDoubleValue()));
+                        }
+                    }
+                }
+            } else {
+                if (m != null) {
+                    for (Int2DoubleMap.Entry e : m.int2DoubleEntrySet()) {
+                        if (e.getIntKey() == rootEdgeId) {
+                            retRoot.setValue(Math.max(retRoot.getValue(), e.getDoubleValue()));
+                        } else if(e.getIntKey() == ignoreEdgeId) {
+                            retIgnore.setValue(Math.max(retIgnore.getValue(), e.getDoubleValue()));
+                        }
+                        else {
+                            ret.setValue(Math.max(ret.getValue(), e.getDoubleValue()));
+                        }
+                    }
+                }
+            }
+        }
+
+        if (retIgnore.getValue() > retRoot.getValue() && retIgnore.getValue() > ret.getValue()) {
+            return new Triple<Double, Double, Double>(retIgnore.getValue(), Double.NEGATIVE_INFINITY, ret.getValue());
+        } else if (retRoot.getValue() > retIgnore.getValue() && retRoot.getValue() > ret.getValue()) {
+            return new Triple<Double, Double, Double>(Double.NEGATIVE_INFINITY, retRoot.getValue() - ret.getValue(), ret.getValue());
+        }
+        // if (retRoot.getValue() > ret.getValue()) {
+        //     return new Pair<Double, Double>(retRoot.getValue() - ret.getValue(), ret.getValue());
+        // }
+        return new Triple<Double, Double, Double>(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, ret.getValue());//ret.getValue();
+    }
+
+    /**
      * Returns the max probability of edges into this position. Edges marked as
      * "ignored" will be ignored. Furthermore, edges that come from a position
      * in the given item except for the item's root node will also be ignored.
@@ -242,6 +297,29 @@ public class EdgeProbabilities {
         }
 
         return new Pair(edge, val.getValue());
+    }
+
+    /**
+     * Returns the max probability of edges into this position. When calculating
+     * the max probability, edges with one of the labels specified by {@link #addIgnoredEdgeLabel(int)
+     * } will be ignored.
+     *
+     * @param to
+     * @return
+     */
+    public void checkOrder(int to, Interner<String> edgeLabelLexicon) {
+
+        for (Int2ObjectMap.Entry<Int2ObjectMap<Int2DoubleMap>> entry : probs.int2ObjectEntrySet()) {
+            Int2DoubleMap m = entry.getValue().get(to);
+            if (m != null) {
+                for (Int2DoubleMap.Entry e : m.int2DoubleEntrySet()) {
+                    if (!ignoredEdgeLabels.contains(e.getIntKey())) {
+                        System.err.println(e.getDoubleValue());
+                        System.err.println(edgeLabelLexicon.resolveId(e.getIntKey()));
+                    }
+                }
+            }
+        }
     }
 
     public static class Edge {

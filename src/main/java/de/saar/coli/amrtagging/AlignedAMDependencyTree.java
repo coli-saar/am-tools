@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +50,25 @@ public class AlignedAMDependencyTree {
     public Tree<AmConllEntry> getTree() {
         return tree;
     }
+    
+    /**
+     * Returns the AM dependency tree that is rooted in the given entry.
+     * @param entry
+     * @return 
+     */
+    public AlignedAMDependencyTree getSubtree(AmConllEntry entry){
+        Tree<AmConllEntry> subtree = tree.dfs((Tree<AmConllEntry> currentSubtree, List<Tree<AmConllEntry>> list) -> {
+            if (currentSubtree.getLabel().equals(entry)) {
+                return currentSubtree;
+            }
+            for (Tree<AmConllEntry> subt : list){
+                if (subt != null) return subt;
+            }
+            return null;
+        });
+        if (subtree == null) return null;
+        return new AlignedAMDependencyTree(subtree);
+    }
 
     /**
      * Makes a Tree out of the flat representation (AmConllSentence) that might
@@ -55,7 +76,7 @@ public class AlignedAMDependencyTree {
      *
      * @param sent
      * @return
-     * @throws AlignedAMDependencyTree.ConllParserException
+     * @throws de.saar.coli.amrtagging.AlignedAMDependencyTree.ConllParserException
      */
     public static AlignedAMDependencyTree fromSentence(AmConllSentence sent) throws ConllParserException {
         ArrayList<ArrayList<Integer>> trees = new ArrayList();
@@ -168,6 +189,34 @@ public class AlignedAMDependencyTree {
         }
         return g_;
     }
+    
+    /**
+     * Returns the type of the AM term corresponding to this AM dependency tree.
+     * @return 
+     */
+    public ApplyModifyGraphAlgebra.Type evaluateType(){
+        ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
+        try {
+            return amAl.evaluate(binarize(false, false)).getRight();
+        } catch (ParserException ex) {
+            Logger.getLogger(AlignedAMDependencyTree.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParseException ex) {
+            Logger.getLogger(AlignedAMDependencyTree.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+    
+    /**
+     * Returns the type of the AM term that corresponds to the AM dependency tree that is rooted in entry. Returns null if entry is not part of the AM dependency tree (also when it has no semantic contribution).
+     * @param entry
+     * @return 
+     */
+    public ApplyModifyGraphAlgebra.Type getTermTypeAt(AmConllEntry entry){
+        AlignedAMDependencyTree subt = this.getSubtree(entry);
+        if (subt == null) return null;
+        return subt.evaluateType();
+    }
+            
 
     /**
      * Extracts the alignments from an S-graph that was just produced by
@@ -242,11 +291,11 @@ public class AlignedAMDependencyTree {
     /**
      * Binarizes an AM Dependency Tree to some AM Term that can then be used for
      * evaluation.Based on the fixed tree decoder.align tells if the word
- position (and nodenames) of each constant are to be included into the
- node labels so that the alignment information persists. If align=true,
- the format of the node labels is as follows: wordId SEP nodeName SEP
- oldNodeLabel, e.g. node u at position 12 with label "Frankenstein"
- becomes 12@@u@@Frankenstein.
+     * position (and nodenames) of each constant are to be included into the
+    * node labels so that the alignment information persists. If align=true,
+    * the format of the node labels is as follows: wordId SEP nodeName SEP
+    * oldNodeLabel, e.g. node u at position 12 with label "Frankenstein"
+    * becomes 12@@u@@Frankenstein.
      *
      * @param align
      * @param relex
@@ -263,6 +312,11 @@ public class AlignedAMDependencyTree {
         Map<Tree<AmConllEntry>, Tree<AmConllEntry>> parentMap = tree.getParentMap();
 
         int rootIndex = tree.getLabel().getId();
+        
+        if (tree.getLabel().getType() == null){
+            // \bot was selected as supertag for the root.
+            throw new IllegalArgumentException("AM dependency tree has type \\bot (meaning no semantic contribution) at the root and thus doesn't represent a graph.");
+        }
 
         for (AmConllEntry leaf : tree.getLeafLabels()) {
             String s;
@@ -333,6 +387,7 @@ public class AlignedAMDependencyTree {
                 for (int dep_i : toBeProcessed) {
                     String operation = allowedEdges.get(new Pair(curr.index, dep_i));
                     Item<String> dep = chart.get(dep_i);
+                    if (dep == null) throw new IllegalArgumentException("Couldn't find a binarization of AMDependencyTree. Couldn't find chart entry for token "+dep_i+". Perhaps different parts of your pipeline use different versions of the AM algebra?");
                     Item<String> deduced = null;
                     //System.err.println("Combine "+curr+" with " + dep); 
                     if (operation.contains(ApplyModifyGraphAlgebra.OP_APPLICATION)) {

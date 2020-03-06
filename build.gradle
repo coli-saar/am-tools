@@ -18,6 +18,10 @@ application {
     applicationDefaultJvmArgs = ['-ea']
 }
 
+shadowJar {
+  zip64 true
+}
+
 repositories {
     mavenCentral()
     maven { url 'http://akci.coli.uni-saarland.de/artifactory/external' }
@@ -36,18 +40,24 @@ gversion {
   explicitType = false                      // optional. Force types to be explicitly printed
 }
 
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
 project.compileJava.dependsOn(createVersionFile)
 dependencies {
     compile 'com.github.coli-saar:alto:4491cbc262'
     
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'
-    implementation 'edu.stanford.nlp:stanford-corenlp:3.8.0' //need this as well - ML
-    implementation 'edu.stanford.nlp:stanford-corenlp:3.8.0:models' // the ":models" ensures that the trained models are downloaded too
+    implementation 'edu.stanford.nlp:stanford-corenlp:3.9.2' //need this as well - ML
+    implementation 'edu.stanford.nlp:stanford-corenlp:3.9.2:models' // the ":models" ensures that the trained models are downloaded too
 
     testCompile 'org.hamcrest:hamcrest-all:1.3'
     testCompile 'junit:junit:4.12'
-    testCompile 'org.codehaus.groovy:groovy-all:2.4.13'
+    testCompile 'org.codehaus.groovy:groovy-all:3.0.0-rc-2'
+    //testCompile 'org.codehaus.groovy:groovy-all:2.4.13'
 
     // the following dependencies are in alto, but we need to include them here again
     // (this stuff seems to not be recursive)

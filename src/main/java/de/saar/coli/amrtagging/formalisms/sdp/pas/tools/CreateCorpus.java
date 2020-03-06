@@ -51,7 +51,7 @@ public class CreateCorpus {
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
    
-    
+
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
@@ -109,6 +109,8 @@ public class CreateCorpus {
                     //SGraphDrawer.draw(inst.getGraph(), "");
                     AmConllSentence sent = AmConllSentence.fromIndexedAMTerm(t, inst, supertagDictionary);
                     sent.setAttr("id", sdpGraph.id);
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
+                    sent.setAttr("framework", "pas");
                     Sentence stanfAn = new Sentence(inst.getSentence().subList(0, inst.getSentence().size()-1)); //remove artifical root "word"
 
                     List<String> posTags = SGraphConverter.extractPOS(sdpGraph);

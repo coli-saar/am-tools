@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.eds.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.coli.amrtagging.AMToolsVersion;
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
@@ -59,7 +60,7 @@ public class CreateCorpusParallel {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
         CreateCorpusParallel cli = new CreateCorpusParallel();
         JCommander commander = new JCommander(cli);
 
@@ -118,6 +119,7 @@ public class CreateCorpusParallel {
                     EDSUtils.checkSentence(sent); //check if something bad is happening and print if that's the case
                     sent.setAttr("id", ids.get(lineIndex));
                     sent.setAttr("raw", allSents.get(lineIndex));
+                    sent.setAttr("git", AMToolsVersion.GIT_SHA);
                     Sentence stanfAn = new Sentence(inst.getSentence());
 
                     List<String> posTags = new ArrayList<>(stanfAn.posTags());

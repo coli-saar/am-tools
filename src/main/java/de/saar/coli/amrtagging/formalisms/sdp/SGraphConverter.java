@@ -42,6 +42,7 @@ public class SGraphConverter {
     
     public static boolean READABLE_NODE_LABELS = true; //if set to true the word form will be added to the node label (instead of just using the word sense)
     
+
     private static final String[] RESERVED_SUBSTRINGS = {SENSE_SEP, AlignedAMDependencyTree.ALIGNED_SGRAPH_SEP};
     
     /**

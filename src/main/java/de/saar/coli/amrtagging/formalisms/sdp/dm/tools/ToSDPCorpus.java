@@ -82,6 +82,7 @@ public class ToSDPCorpus {
         for (AmConllSentence s : sents){
             // prepare raw output without edges
             String id = s.getAttr("id") != null ? s.getAttr("id") : "#NO-ID";
+            if (! id.startsWith("#")) id = "#" + id;
             Graph sdpSent = new Graph(id);
             sdpSent.addNode(Constants.WALL_FORM, Constants.WALL_LEMMA, Constants.WALL_POS, false, false, Constants.WALL_SENSE); //some weird dummy node.
 

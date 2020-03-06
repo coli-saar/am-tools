@@ -41,7 +41,7 @@ public class NERTagger {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
         NERTagger cli = new NERTagger();
         JCommander commander = new JCommander(cli);
 

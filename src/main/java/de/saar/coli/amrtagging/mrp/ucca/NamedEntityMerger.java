@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class NamedEntityMerger {
-    public static final String NE_SEPARATOR = " ";
+    public static final String NE_SEPARATOR = "_";
 
     private String id;
     private PreprocessedData preprocData;
