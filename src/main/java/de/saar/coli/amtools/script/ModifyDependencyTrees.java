@@ -11,6 +11,7 @@ import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
+import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -124,45 +125,55 @@ public class ModifyDependencyTrees {
                 AmConllSentence dmDep = id2amDM.get(id);
                 AmConllSentence pasDep = id2amPAS.get(id);
                 AmConllSentence psdDep = id2amPSD.get(id);
+                String originalDMDepStr = dmDep.toString();
+                String originalPSDDepStr = psdDep.toString();
+                String originalPASDepStr = pasDep.toString();
 
 
                 SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
                 SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
                 SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-                System.out.println(dmSGraph);
+                //System.out.println(dmSGraph);
 
                 //modify new dep trees here
-                // Determiners for PSD
-                // we find all words that are determiners (have DT POS tag)
-                // and that are ignored in the PSD graph (have incoming IGNOREn edge).
-                // Then we change the PSD entry to have an empty modifier graph,
-                // and attach it to the head it has in DM.
-                
-                
-                
-                int index = 0;
-                for (AmConllEntry word : psdDep){
-                    if (word.getPos().equals("DT") && word.getEdgeLabel().equals("IGNORE")){
-                        System.err.println(index);
-                        System.err.println(dmDep.getParent(index));
-                        int head = dmDep.getParent(index).getId();// index is 0-based, head is 1-based
-                        word.setHead(head);
-                        word.setEdgeLabel("MOD_det");
-                        word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
-                        word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
-                    }
-                    index++;
-                }
-                
+                fixDeterminer(psdDep, dmDep, pasDep);
+                fixNegation(psdDep, dmDep, pasDep);
 
-                
-                SGraph newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                SGraph newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                SGraph newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-                
-                if (!newdmSGraph.equals(dmSGraph)) throw new Exception("Difference in DM");
-                if (!newpsdSGraph.equals(psdSGraph)) throw new Exception("Difference in PSD");
-                if (!newpasSGraph.equals(pasSGraph)) throw new Exception("Difference in PAS");
+
+                SGraph newdmSGraph = null;
+                SGraph newpsdSGraph = null;
+                SGraph newpasSGraph = null;
+                //try {
+                newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                //} catch (IllegalArgumentException e) {
+                //    System.err.println(psdDep);
+                //    System.err.println(pasDep);
+                //    e.printStackTrace();
+                //}
+
+                if (!newdmSGraph.equals(dmSGraph)) {
+                    System.err.println(originalDMDepStr);
+                    System.err.println(dmDep);
+                    System.err.println(dmSGraph.toIsiAmrStringWithSources());
+                    System.err.println(newdmSGraph.toIsiAmrStringWithSources());
+                    throw new Exception("Difference in DM");
+                }
+                if (!newpsdSGraph.equals(psdSGraph)) {
+                    System.err.println(originalPSDDepStr);
+                    System.err.println(psdDep);
+                    System.err.println(psdSGraph.toIsiAmrStringWithSources());
+                    System.err.println(newpsdSGraph.toIsiAmrStringWithSources());
+                    throw new Exception("Difference in PSD");
+                }
+                if (!newpasSGraph.equals(pasSGraph)) {
+                    System.err.println(originalPASDepStr);
+                    System.err.println(pasDep);
+                    System.err.println(pasSGraph.toIsiAmrStringWithSources());
+                    System.err.println(newpasSGraph.toIsiAmrStringWithSources());
+                    throw new Exception("Difference in PAS");
+                }
                 
                 newAmDM.add(dmDep);
                 newAmPAS.add(pasDep);
@@ -176,5 +187,85 @@ public class ModifyDependencyTrees {
 
 
     }
+
+    public static void fixDeterminer(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
+        // Determiners for PSD
+        // we find all words that are determiners (have DT POS tag)
+        // and that are ignored in the PSD graph (have incoming IGNOREn edge).
+        // Then we change the PSD entry to have an empty modifier graph,
+        // and attach it to the head it has in DM.
+        int index = 0;
+        for (AmConllEntry word : psdDep){
+            if (word.getPos().equals("DT") && word.getEdgeLabel().equals("IGNORE")){
+                // System.err.println(index);
+                // System.err.println(dmDep.getParent(index));
+                if (dmDep.getParent(index) == null) continue; // if DM ignored determiner as well, skip this
+                int head = dmDep.getParent(index).getId();// index is 0-based, head is 1-based
+                word.setHead(head);
+                word.setEdgeLabel("MOD_det");
+                word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
+                word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
+            }
+            index++;
+        }
+    }
+    public static void fixNegation(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, AlignedAMDependencyTree.ConllParserException {
+        int index = 0;
+        for (AmConllEntry psdEntry : psdDep) {
+            AmConllEntry dmEntry = dmDep.get(index);
+            AmConllEntry pasEntry = pasDep.get(index);
+            if (psdEntry.getLemma().equals("#Neg")){ // psdEntry is Negation word
+                // find verb or thing that is negated in DM: could be none, therefore use Optional
+                // outgoing dep. edges in DM from negation: if it's an APPmod edge, its target is the negated thing
+                Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_mod")).findFirst();
+                if (potential_argument.isPresent()) {
+                    AmConllEntry dmArgument = potential_argument.get();
+                    // found DM negation
+
+                    // PSD
+                    //  - currently   --> argument --MOD_mod--> psdEntry (negation)
+                    //  - would like:   argument <--APP_mod-- psdEntry (Negation) <--
+                    //        plus changed Negation supertag (root source added at mod source place)
+                    if (psdEntry.getEdgeLabel().equals("MOD_mod") &&
+                            psdEntry.getHead() == dmArgument.getId()) {
+                        // fix PSD
+                        AlignedAMDependencyTree psdAlignedDeptree = AlignedAMDependencyTree.fromSentence(psdDep);
+                        AmConllEntry psdNegated = psdDep.getParent(index); // verb or sth else
+                        ApplyModifyGraphAlgebra.Type negatedType = psdAlignedDeptree.getTermTypeAt(psdNegated);
+
+                        SGraph supertag = new IsiAmrInputCodec().read(psdEntry.getDelexSupertag());
+                        SGraph desired_supertag = new IsiAmrInputCodec().read("(i<root> / --LEX--  :RHEM-of (j<mod>))");
+                        if (negatedType.equals(ApplyModifyGraphAlgebra.Type.EMPTY_TYPE) && desired_supertag.equals(supertag)) {
+                            // only change if negation has empty type (no upward percolation) // TODO do upward percolation
+
+                            // change head
+                            psdEntry.setHead(psdNegated.getHead());
+                            psdEntry.setEdgeLabel(psdNegated.getEdgeLabel());
+                            // flip edge
+                            psdNegated.setHead(psdEntry.getId());
+                            psdNegated.setEdgeLabel("APP_mod");
+
+                            // supertag:
+                            //   negation supertag has additional source at root!
+                            psdEntry.setDelexSupertag("(i / --LEX--  :RHEM-of (j<root, mod>))");
+                            // TODO THIS IS NOT WORKING RIGHT NOW ('Difference in PSD':
+                            // old: :RHEM (u_1590 / "3@@i_14@@~~_")  new:  :RHEM (i / "3@@i@@~~_")
+
+                            // type
+                            // TODO fix type
+                        }
+
+
+                    }
+
+                    // PAS TODO fix pas!
+                    // DEBUG TODO maybe look at what is actually negated this way? only verbs?
+                } // found negated argument
+
+            } // found #Neg lemma
+            index++;
+        } // for psdEntry
+    }
+
 
 }
