@@ -33,23 +33,23 @@ public class FindAMPatternsAcrossSDP {
 
     //SDP corpora (i.e. original graphs)
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "../../github/am-parser/example/decomposition/dm/en.dm.sdp";
+    private String corpusPathDM = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
 
     @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "../../github/am-parser/example/decomposition/pas/en.pas.sdp";
+    private String corpusPathPAS = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.pas.sdp";
 
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "../../github/am-parser/example/decomposition/psd/en.psd.sdp";
+    private String corpusPathPSD = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.psd.sdp";
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "../../github/am-parser/test_output/dm/train/train.amconll";
+    private String amconllPathDM = "../../experimentData/uniformify2020/original_decomps/dm/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "../../github/am-parser/test_output/pas/train/train.amconll";
+    private String amconllPathPAS = "../../experimentData/uniformify2020/original_decomps/pas/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "../../github/am-parser/test_output/psd/train/train.amconll";
+    private String amconllPathPSD = "../../experimentData/uniformify2020/original_decomps/psd/gold-dev/gold-dev.amconll";
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -123,7 +123,8 @@ public class FindAMPatternsAcrossSDP {
             if (decomposedIDs.contains(dmGraph.id)) {
                 //now we know the graph was decomposed in all graphbanks, and we have all three AM dep trees for it.
                 String id = dmGraph.id;
-                for (int i = 0; i < psdGraph.getNNodes(); i++) {
+                //ignore 0 in next loop, since it is the artificial root of the SDP graph
+                for (int i = 1; i < psdGraph.getNNodes(); i++) {
                     String patternCombination = getPatternCombination(id2amDM.get(id), id2amPAS.get(id), id2amPSD.get(id),
                             dmGraph, pasGraph, psdGraph, i);
                     patterns2lemmaCounter.get(patternCombination).add(psdGraph.getNode(i).lemma);
@@ -176,12 +177,15 @@ public class FindAMPatternsAcrossSDP {
      * 7: no blob edge, but part of graph
      * 8: other
      * @param amDepTree
-     * @param i
+     * @param i is 0-based for SDP graph, 1-based for AmConllEntry
      * @return
      */
     public static int getPattern(AmConllSentence amDepTree, Graph sdpGraph, int i) {
-        List<AmConllEntry> children = amDepTree.getChildren(i);
-        AmConllEntry entry = amDepTree.get(i);
+        if (i == 0) {
+            return 0;
+        }
+        List<AmConllEntry> children = amDepTree.getChildren(i-1);
+        AmConllEntry entry = amDepTree.get(i-1);
         if (entry.getDelexSupertag() == null || entry.getDelexSupertag().equals("") || entry.getDelexSupertag().equals("_")) {
             return 0;
         } else if (children.isEmpty() && entry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
@@ -204,9 +208,9 @@ public class FindAMPatternsAcrossSDP {
             }
         } else if (children.size() == 0) {
             if (isHead(amDepTree, i)) {
-                return 6;
-            } else {
                 return 7;
+            } else {
+                return 6;
             }
         } else {
             return 8;
@@ -214,17 +218,30 @@ public class FindAMPatternsAcrossSDP {
     }
 
 
+    /**
+     * i is 0-based for SDP graph, 1-based for AmConllEntry
+     * @param graph
+     * @param i
+     * @return
+     */
     private static boolean isHead(AmConllSentence graph, int i) {
-        AmConllEntry parent = graph.getParent(i);
+        AmConllEntry parent = graph.getParent(i-1);
         if (parent == null) {
             return true;
         } else if (parent.getForm().equals("ART-ROOT")) { //TODO replace with variable in code
             return true;
         } else {
-            return graph.get(i).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION);
+            return graph.get(i-1).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION);
         }
     }
 
+    /**
+     * i, j are 0-based for SDP graph, 1-based for AmConllEntry
+     * @param i
+     * @param j
+     * @param sdpGraph
+     * @return
+     */
     private static boolean areConnected(int i, int j, Graph sdpGraph) {
         Node child0 = sdpGraph.getNode(i);
         Node child1 = sdpGraph.getNode(j);

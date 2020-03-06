@@ -419,23 +419,23 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
     /**
      * Given an index i, returns all entries that have head i. Current implementation is somewhat inefficient,
      * might need reimplementation if used in runtime-sensitive locations.
-     * @param i the index of the word who's children to get
+     * @param i the index of the word who's children to get, 0-based
      * @return the children of entry i (which have i as head)
      */
     public List<AmConllEntry> getChildren(int i) {
         //when called for all indices, this is quadratic. Caching and running through all entries once could make it linear, but should be ok for now.
-        return this.stream().filter(entry -> entry.getHead() == i).collect(Collectors.toList());
+        return this.stream().filter(entry -> entry.getHead()-1 == i).collect(Collectors.toList());
     }
 
     /**
      * Returns the AMConllEntry that is the head of i (i is 0-based).
-     * @param i
+     * @param i 0-based
      * @return 
      */
     public AmConllEntry getParent(int i) {
-        int parentId = this.get(i).getHead();
-        if (parentId < this.size()) {
-            return this.get(parentId-1);
+        int parentPosition = this.get(i).getHead()-1; //getHead is 1-based, but need 0-based for this.get
+        if (parentPosition < this.size() && parentPosition >= 0) {
+            return this.get(parentPosition);
         } else {
             return null;
         }
