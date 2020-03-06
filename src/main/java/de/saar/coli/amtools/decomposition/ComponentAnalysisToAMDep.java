@@ -20,7 +20,6 @@ import de.up.ling.tree.TreeBottomUpVisitor;
 import edu.stanford.nlp.util.Sets;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import org.jgraph.JGraph;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
