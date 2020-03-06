@@ -130,9 +130,9 @@ public class ModifyDependencyTrees {
                 String originalPASDepStr = pasDep.toString();
 
 
-                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(false);
+                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(false);
+                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(false);
                 //System.out.println(dmSGraph);
 
                 //modify new dep trees here
@@ -144,9 +144,10 @@ public class ModifyDependencyTrees {
                 SGraph newpsdSGraph = null;
                 SGraph newpasSGraph = null;
                 //try {
-                newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(false);
+                newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(false);
+                newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(false);
+                
                 //} catch (IllegalArgumentException e) {
                 //    System.err.println(psdDep);
                 //    System.err.println(pasDep);
