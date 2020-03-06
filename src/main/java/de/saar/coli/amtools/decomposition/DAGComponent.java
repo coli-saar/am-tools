@@ -62,6 +62,22 @@ public class DAGComponent {
         return new DAGComponent(graphCopy, dagRoot, blobUtils);
     }
 
+
+    public static DAGComponent createFromSubset(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils,
+                                                Collection<GraphNode> subset) throws CyclicGraphException {
+        SGraph newGraph = new SGraph();
+        for (GraphNode node : subset) {
+            newGraph.addNode(node.getName(), node.getLabel());
+        }
+        for (GraphEdge edge : graph.getGraph().edgeSet()) {
+            if (subset.contains(edge.getSource()) && subset.contains(edge.getTarget())) {
+                newGraph.addEdge(newGraph.getNode(edge.getSource().getName()), newGraph.getNode(edge.getTarget().getName()), edge.getLabel());
+            }
+        }
+        return new DAGComponent(newGraph, dagRoot, blobUtils);
+    }
+
+
     private void addRecursive(DAGNode node) {
         if (!allNodes.contains(node)) {
             allNodes.add(node);
@@ -129,7 +145,8 @@ public class DAGComponent {
     }
 
     /**
-     * Returns all nodes in nodeSet that are connected to this DAGComponent with a direct edge (direction doesn't matter)
+     * Returns all nodes in this DAGComponent that are directly connected to nodeSet with an edge
+     * (edge direction doesn't matter)
      * @param nodeSet
      * @return
      */

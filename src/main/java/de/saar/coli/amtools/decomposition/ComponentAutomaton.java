@@ -118,7 +118,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             List<Rule> ret = new ArrayList<>();
             for (GraphNode root : possibleRoots) {
 
-                DAGComponent newDAG = DAGComponent.createWithoutForbiddenNodes(graph, root, blobUtils, dagComp.getAllAsGraphNodes());
+                DAGComponent newDAG = DAGComponent.createFromSubset(graph, root, blobUtils, connComp.getAllNodes());
                 // the following may be possible to do more efficiently via some sort of automaton-wide dynamic programming
                 Set<GraphNode> removedNodes = new HashSet<>();
                 removedNodes.addAll(graph.getGraph().vertexSet());

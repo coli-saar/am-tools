@@ -7,8 +7,8 @@ package de.saar.coli.amrtagging.formalisms.sdp.psd.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
-import static de.saar.coli.amrtagging.AMDependencyTree.ALIGNED_SGRAPH_SEP;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
+import static de.saar.coli.amrtagging.AlignedAMDependencyTree.ALIGNED_SGRAPH_SEP;
 
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
@@ -47,7 +47,7 @@ public class CheckPreprocessing {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         CheckPreprocessing cli = new CheckPreprocessing();
         JCommander commander = new JCommander(cli);
 

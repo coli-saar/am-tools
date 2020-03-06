@@ -1,24 +1,31 @@
 package de.saar.coli.amtools.decomposition;
 
+import com.google.common.collect.Multiset;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
-import de.up.ling.irtg.algebra.graph.*;
+import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
+import de.up.ling.irtg.algebra.ParserException;
+import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.GraphNode;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.AMDependencyTree;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
 import de.up.ling.tree.Tree;
 import de.up.ling.tree.TreeBottomUpVisitor;
+import edu.stanford.nlp.util.Sets;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import org.jgraph.JGraph;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ComponentAnalysisToAMDep {
 
@@ -31,25 +38,79 @@ public class ComponentAnalysisToAMDep {
     }
 
     public static void main(String[] args) throws Exception {
-        String corpusPath = "C://Users/Jonas/Documents/Work/data/sdp/2015/psd/train.sdp";
-        //"/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.psd.sdp";
-        PSDBlobUtils blobUtils = new PSDBlobUtils();
+        String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
+                //"C://Users/Jonas/Documents/Work/data/sdp/2015/dm/train.sdp";
+        DMBlobUtils blobUtils = new DMBlobUtils();
         GraphReader2015 gr = new GraphReader2015(corpusPath);
-        Graph sdpGraph = gr.readGraph();
 
-        MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
+        Graph sdpGraph;
 
-        SGraph graph = inst.getGraph();
-        System.err.println(graph.toIsiAmrString());
+        int index = 0;
+        int fails = 0;
+        int nondecomposeable = 0;
+        while ((sdpGraph = gr.readGraph()) != null) {
+            if (index % 100 == 0) {
+                System.err.println(index);
+            }
+            if (true) { //index == 1268
 
-        ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, blobUtils);
+                try {
+                    MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
+                    SGraph graph = inst.getGraph();
 
-        ConcreteTreeAutomaton<Pair<ConnectedComponent, DAGComponent>> auto =
-                new ComponentAutomaton(graph, blobUtils).asConcreteTreeAutomatonTopDown();
 
-        System.err.println(auto.viterbi());
-        System.err.println(auto.getRuleTree(auto.viterbiRaw().getTree()));
-        Tree<Rule> ruleTree = auto.getRuleTree(auto.viterbiRaw().getTree());
+                    try {
+
+                        ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, blobUtils);
+
+                        ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
+
+                        AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph, blobUtils);
+
+                        try {
+                            SGraph resultGraph = result.evaluate().left;
+                            resultGraph.removeNode("ART-ROOT");
+
+                            if (!graph.equals(resultGraph)) {
+                                System.err.println(index);
+                                System.err.println(graph.toIsiAmrStringWithSources());
+                                System.err.println(resultGraph.toIsiAmrStringWithSources());
+                                fails++;
+                            }
+                        } catch (java.lang.Exception ex) {
+                            System.err.println(index);
+                            System.err.println(graph.toIsiAmrStringWithSources());
+                            System.err.println(result);
+                            ex.printStackTrace();
+                            fails++;
+                        }
+                    } catch (java.lang.Exception ex) {
+                        System.err.println(index);
+                        System.err.println(graph.toIsiAmrStringWithSources());
+                        ex.printStackTrace();
+                        fails++;
+                    }
+
+                } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
+                    nondecomposeable++;
+                }
+            }
+
+            index++;
+        }
+        System.err.println("Fails: "+fails);
+        System.err.println("Non-decomposeable: "+nondecomposeable);
+    }
+
+    private AMDependencyTree componentAnalysis2AMDep(ComponentAutomaton componentAutomaton, SGraph graph, AMRBlobUtils blobUtils) throws IllegalArgumentException {
+        ConcreteTreeAutomaton<Pair<ConnectedComponent, DAGComponent>> auto = componentAutomaton.asConcreteTreeAutomatonTopDown();
+        Tree<Rule> ruleTree;
+        try {
+            ruleTree = auto.getRuleTree(auto.viterbiRaw().getTree());
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("ComponentAutomaton provided to componentAnalysis2AMDep does" +
+                    "not resolve tree uniquely (or, possibly, a different error occured: "+ex.getMessage());
+        }
         Pair<AMDependencyTree, GraphNode> result = ruleTree.dfs(new TreeBottomUpVisitor<Rule, Pair<AMDependencyTree, GraphNode>>() {
             /**
              *
@@ -64,73 +125,123 @@ public class ComponentAnalysisToAMDep {
 //                System.err.println(state);
                 String nodeName = node.getLabel().getLabel(auto).split("/")[0];
                 GraphNode graphNode = graph.getNode(nodeName);
-                Iterable<GraphNode> forbiddenNodes;
-                if (state.right == null) {
-                    // if there is no parent DAG, i.e. if we are just starting, then we don't need to forbid nodes.
-                    forbiddenNodes = Collections.EMPTY_SET;
-                } else {
-                    // we forbid nodes of the parent DAG when creating a new DAG, otherwise the new DAG may bleed back into the parent DAG.
-                    forbiddenNodes = state.right.getAllAsGraphNodes();
+                //get all nodes in connected component
+                Set<GraphNode> allowedNodes = state.left.getAllNodes();
+                //add all nodes that are direct targets of edges coming from those nodes (we need to percolate them up later, so put them in the DAG now)
+                Set<GraphNode> boundaryNodes = new HashSet<>();
+                for (GraphEdge e : graph.getGraph().edgeSet()) {
+                    if (blobUtils.isOutbound(e)) {
+                        if (allowedNodes.contains(e.getSource())) {
+                            boundaryNodes.add(e.getTarget());
+                        }
+                    } else {
+                        if (allowedNodes.contains(e.getTarget())) {
+                            boundaryNodes.add(e.getSource());
+                        }
+                    }
                 }
-                DAGComponent dagComponent = DAGComponent.createWithoutForbiddenNodes(graph, graphNode, blobUtils, forbiddenNodes);
-                System.err.println(nodeName);
-                System.err.println(dagComponent);
+                boundaryNodes.removeAll(allowedNodes);
+                DAGComponent coreDAGComponent = DAGComponent.createFromSubset(graph, graphNode, blobUtils, allowedNodes);
+                DAGComponent dagComponentWithBoundary = DAGComponent.createFromSubset(graph, graphNode, blobUtils, Sets.union(allowedNodes, boundaryNodes));
+//                System.err.println(nodeName);
+//                System.err.println(dagComponent);
 
-                AMDependencyTree ret = converter.dag2AMDep(dagComponent);
+                AMDependencyTree ret = dag2AMDep(dagComponentWithBoundary, boundaryNodes);//non-static method call
                 for (int i = 0; i<rule.getArity(); i++) {
                     Pair<AMDependencyTree, GraphNode> child = childrenValues.get(i);
                     Pair<ConnectedComponent, DAGComponent> childState = auto.getStateForId(rule.getChildren()[i]);
-                    GraphNode uniqueModifiee = dagComponent.findUniqueModifiee(childState.left.getAllNodes());
+                    GraphNode uniqueModifiee = coreDAGComponent.findUniqueModifiee(childState.left.getAllNodes());
                     String modifyOperation = ApplyModifyGraphAlgebra.OP_MODIFICATION+nodeName2source(uniqueModifiee.getName());
-                    System.err.println("evaluating "+modifyOperation);
-                    System.err.println("child is "+child.left.evaluate().left.toIsiAmrStringWithSources());
-
-                    //ret.
-                    //the below currently does not add the edge at the right spot
-                    ret.addEdge(modifyOperation, child.left);
+//                    System.err.println("evaluating "+modifyOperation);
+//                    System.err.println("child is "+child.left.evaluate().left.toIsiAmrStringWithSources());
+                    AMDependencyTree addEdgeHere = findSubtreeForNodename(ret, uniqueModifiee.getName());
+                    if (addEdgeHere == null) {
+                        throw new IllegalArgumentException();
+                    }
+                    addEdgeHere.addEdge(modifyOperation, child.left);
                 }
-                System.err.println(ret.evaluate().left.toIsiAmrStringWithSources());
+//                System.err.println(ret.evaluate().left.toIsiAmrStringWithSources());
 
                 return new Pair(ret, graphNode);
             }
         });
-        SGraph resultGraph = result.left.evaluate().left;
-        resultGraph.removeNode("ART-ROOT");
-        System.err.println(resultGraph.toIsiAmrStringWithSources());
-        System.err.println(graph.toIsiAmrStringWithSources());
-        System.err.println(resultGraph.isIdenticalExceptSources(graph));
-
-//        auto.viterbi().dfs(new TreeBottomUpVisitor<String, Void>() {
-//            @Override
-//            public Void combine(Tree<String> node, List<Void> childrenValues) {
-//                String nodeName = node.getLabel().split("/")[0];
-//                System.err.println(nodeName);
-//                GraphNode graphNode = graph.getNode(nodeName);
-//                DAGComponent dagComponent = new DAGComponent(graph, graphNode, blobUtils);
-//                System.err.println(blobUtils.getBlobEdges(graph, graphNode));
-//                System.err.println(dagComponent);
-//
-//                return null;
-//            }
-//        });
-
+        return result.left;
     }
 
-    private AMDependencyTree dag2AMDep(DAGComponent dagComponent) {
-        Pair<AMDependencyTree, GraphNode> ret = dagComponent.toTreeWithDuplicates()
-                .dfs(new TreeBottomUpVisitor<GraphNode, Pair<AMDependencyTree, GraphNode>>() {
+
+    private AMDependencyTree dag2AMDep(DAGComponent dagComponent, Set<GraphNode> boundaryNodes) {
+        //turn DAGComponent into AMDependencyTree with possible duplicate nodes
+        AMDependencyTree ret = dagComponent.toTreeWithDuplicates()
+                .dfs(new TreeBottomUpVisitor<GraphNode, AMDependencyTree>() {
             @Override
-            public Pair<AMDependencyTree, GraphNode> combine(Tree<GraphNode> node, List<Pair<AMDependencyTree, GraphNode>> childrenValues) {
+            public AMDependencyTree combine(Tree<GraphNode> node, List<AMDependencyTree> childrenValues) {
                 GraphNode graphNode = node.getLabel();
-                AMDependencyTree ret = new AMDependencyTree(node2Constant(graphNode, graph));
-                for (Pair<AMDependencyTree, GraphNode> child : childrenValues) {
-                    String operation = ApplyModifyGraphAlgebra.OP_APPLICATION+nodeName2source(child.right.getName()); // root of child is app source at this stage
-                    ret.addEdge(operation, child.left);
+                AMDependencyTree ret;
+                try {
+                    Pair<SGraph, ApplyModifyGraphAlgebra.Type> asGraph = new ApplyModifyGraphAlgebra().parseString(node2Constant(graphNode, graph));
+                    asGraph.left.setEqualsMeansIsomorphy(false);//so that the AM dependency trees we use here keep track of node identity, which we need.
+                    ret = new AMDependencyTree(asGraph);
+                } catch (ParserException e) {
+                    e.printStackTrace();
+                    ret=null;
                 }
-                return new Pair(ret, graphNode);
+                for (AMDependencyTree child : childrenValues) {
+                    String operation = ApplyModifyGraphAlgebra.OP_APPLICATION+nodeName2source(getHeadRootNode(child)); // root of child is app source at this stage
+                    ret.addEdge(operation, child);
+                }
+                return ret;
             }
         });
-        return ret.left;
+        //resolve duplicates with upwards percolation
+        Set<String> boundaryNodeNames = boundaryNodes.stream().map(GraphNode::getName).collect(Collectors.toSet());
+        executeForcedPercolates(ret, boundaryNodeNames);
+        //now that percolates are executed, we can remove boundary nodes again
+        removeRecursive(ret, boundaryNodeNames);
+        return ret;
+    }
+
+    /**
+     * assumes we don't have to remove the head
+     * @param dep
+     * @param headNodesToBeRemoved
+     */
+    private static void removeRecursive(AMDependencyTree dep, Set<String> headNodeNamesToBeRemoved) {
+        List<Pair<String, AMDependencyTree>> removeThis = new ArrayList<>();
+        for (Pair<String, AMDependencyTree> opAndChild : dep.getOperationsAndChildren()) {
+            if (headNodeNamesToBeRemoved.contains(getHeadRootNode(opAndChild.right))) {
+                removeThis.add(opAndChild);
+            } else {
+                removeRecursive(opAndChild.right, headNodeNamesToBeRemoved);
+            }
+        }
+        for (Pair<String, AMDependencyTree> opAndChild : removeThis) {
+            dep.removeEdge(opAndChild.left, opAndChild.right);
+        }
+    }
+
+    /**
+     * If dep has a unique subtree where the head graph's root has node name rootNodeName, that unique subtree
+     * is returned. Otherwise, returns null.
+     * @param dep
+     * @param rootNodeName
+     * @return
+     */
+    private static AMDependencyTree findSubtreeForNodename(AMDependencyTree dep, String rootNodeName) {
+        List<AMDependencyTree> matches = new ArrayList<>();
+        for (AMDependencyTree subTree : dep.getAllSubtrees()) {
+            if (rootNodeName.equals(subTree.getHeadGraph().left.getNodeForSource("root"))) {
+                matches.add(subTree);
+            }
+        }
+        if (matches.size() == 1) {
+            return matches.get(0);
+        } else {
+            System.err.println(dep);
+            System.err.println();
+            System.err.println(matches);
+            System.err.println();
+            return null;
+        }
     }
 
     private String node2Constant(GraphNode node, SGraph graph) {
@@ -152,5 +263,216 @@ public class ComponentAnalysisToAMDep {
     private static String nodeName2source(String nodeName) {
         return nodeName.replaceAll("_", "");
     }
+
+    /**
+     * modifies dep by resolving necessary percolations.
+     * @param dep
+     */
+    private static void executeForcedPercolates(AMDependencyTree dep, Collection<String> boundaryNodeNames) {
+
+        IntList path = new IntArrayList();
+
+        Multiset<AMDependencyTree> subtrees = dep.getAllSubtrees();
+
+
+        // map node names to depth of lowest common ancester
+        Map<String, Integer> nn2lcaDepth = mapNodeNamesToDepthOfLowestCommonAncestor(dep);
+
+        List<String> allRootNodenames = new ArrayList<>(getRootNodeNames(dep));
+        allRootNodenames.sort((o1, o2) -> {
+            return -Integer.compare(nn2lcaDepth.get(o1), nn2lcaDepth.get(o2));// '-' for reverse order
+        });
+
+        // iterate over the sorted list, so things don't get in each others way.
+        for (String nn : allRootNodenames) {
+            int lcaDepth = nn2lcaDepth.get(nn);
+            List<PercolationPackage> pps;
+            //System.err.println(getPercolationPackagesRecursive(dep, nn, null, 0));
+            while ((pps = getPercolationPackagesRecursive(dep, nn, null, 0)).size() > 1) {
+                for (PercolationPackage pp : pps) {
+                    if (pp.depth > lcaDepth) {
+                        boolean addDependencyToGrandparent = !(boundaryNodeNames.contains(getHeadRootNode(pp.movingChild))
+                                && boundaryNodeNames.contains(getHeadRootNode(pp.parent)));
+                        percolate(pp, addDependencyToGrandparent);
+                    }
+                }
+            }
+
+        }
+
+    }
+
+    private static void percolate(PercolationPackage perc, boolean addDependencyToGrandparent) {
+        if (perc.grandParent == null) {
+            throw new IllegalArgumentException("This should never happen. Something is probably wrong. ComponentAnalysisToAMDep#percolate");
+        }
+        //remove child from parent
+        perc.parent.removeEdge(perc.getOperation(), perc.movingChild);
+        //figure out if grandparent has a matching child already
+        AMDependencyTree matchingChildAtGrandParent = null;
+        for (Pair<String, AMDependencyTree> opAndChild : perc.grandParent.getOperationsAndChildren()) {
+            if (getHeadRootNode(perc.movingChild).equals(getHeadRootNode(opAndChild.right))) {
+                matchingChildAtGrandParent = opAndChild.right;
+                break;// should only ever have one, and if not, this is the least of our problems (TODO maybe double check)
+            }
+        }
+        if (matchingChildAtGrandParent == null) {
+            // no matching child found, so we add child to grandparent
+            perc.grandParent.addEdge(perc.getOperation(), perc.movingChild);
+            ApplyModifyGraphAlgebra.Type t = perc.grandParent.getHeadGraph().right;
+            t = t.addSource(perc.getMovingChildSource());
+            if (addDependencyToGrandparent) {
+                t = t.setDependency(perc.getParentSource(), perc.getMovingChildSource(), perc.getMovingChildSource());
+            }
+            perc.grandParent.setHeadGraph(new Pair(perc.grandParent.getHeadGraph().left, t));
+        } else {
+            ApplyModifyGraphAlgebra.Type t = perc.grandParent.getHeadGraph().right;
+            //don't have to add the source here (is already there), but have to add the dependency.
+            if (addDependencyToGrandparent) {
+                t = t.setDependency(perc.getParentSource(), perc.getMovingChildSource(), perc.getMovingChildSource());
+            }
+            perc.grandParent.setHeadGraph(new Pair(perc.grandParent.getHeadGraph().left, t));
+            //matching child found, so we transfer children of moving child over to the matching child
+            for (Pair<String, AMDependencyTree> opAndChild : perc.movingChild.getOperationsAndChildren()) {
+                matchingChildAtGrandParent.addEdge(opAndChild.left, opAndChild.right);
+            }
+        }
+    }
+
+    private static class PercolationPackage {
+
+        private final AMDependencyTree movingChild;
+        private final AMDependencyTree parent;
+        private final AMDependencyTree grandParent;
+        private final int depth;
+
+        private PercolationPackage(AMDependencyTree movingChild, AMDependencyTree parent,
+                                   AMDependencyTree grandParent, int depth) {
+            this.parent = parent;
+            this.movingChild = movingChild;
+            this.grandParent = grandParent;
+            this.depth = depth;
+        }
+
+        private String getOperation() {
+            return ApplyModifyGraphAlgebra.OP_APPLICATION+getMovingChildSource();
+        }
+
+        private String getMovingChildSource() {
+            return nodeName2source(getHeadRootNode(movingChild));
+        }
+
+        private String getParentSource() {
+            return nodeName2source(getHeadRootNode(parent));
+        }
+
+        @Override
+        public String toString() {
+            String gpString = grandParent == null ? "null" : getHeadRootNode(grandParent);
+            return gpString+"->"+getHeadRootNode(parent)+"->"+getHeadRootNode(movingChild)+" depth "+depth;
+        }
+    }
+
+    private static String getHeadRootNode(AMDependencyTree dep) {
+        String ret = dep.getHeadGraph().left.getNodeForSource("root");
+        if (ret == null) {
+            System.err.println("Graph "+dep.getHeadGraph().left.toIsiAmrStringWithSources()+" has no root!! This will probably cause a null pointer exception.");
+        }
+        String nodeLabel = dep.getHeadGraph().left.getNode(ret).getLabel();
+        if (nodeLabel == null || nodeLabel.equals("")) {
+            System.err.println("Graph "+dep.getHeadGraph().left.toIsiAmrStringWithSources()+" has root at unlabeled node. This may not be right at this point (cf ComponentAnalysisToAMDep).");
+        }
+        return ret;
+    }
+
+    /**
+     * for the full dependency tree, call with grandParent = null and currentDepth = 0
+     * @param parent
+     * @param nn
+     * @param grandParent
+     * @param currentDepth
+     * @return
+     */
+    private static List<PercolationPackage> getPercolationPackagesRecursive(AMDependencyTree parent, String nn,
+                                                                            AMDependencyTree grandParent, int currentDepth) {
+        List<PercolationPackage> ret = new ArrayList<>();
+        for (Pair<String, AMDependencyTree> opAndChild : parent.getOperationsAndChildren()) {
+            if (nn.equals(getHeadRootNode(opAndChild.right))) {
+                ret.add(new PercolationPackage(opAndChild.right, parent, grandParent, currentDepth));
+            }
+            ret.addAll(getPercolationPackagesRecursive(opAndChild.right, nn, parent, currentDepth+1));
+        }
+        return ret;
+    }
+
+    private static Set<String> getRootNodeNames(AMDependencyTree dep) {
+        Multiset<AMDependencyTree> subtrees = dep.getAllSubtrees();
+        Set<String> allRootNodenames = subtrees.stream().map(ComponentAnalysisToAMDep::getHeadRootNode)
+                .collect(Collectors.toSet());
+        allRootNodenames.remove(null);//just in case
+        return allRootNodenames;
+    }
+
+    private static Map<String, Integer> mapNodeNamesToDepthOfLowestCommonAncestor(AMDependencyTree dep) {
+        // create a map that maps each node name to all paths to graphs with that node as root
+        // (order of children is somewhat arbitrary, but consistent across all paths we build here)
+        Map<String, Set<IntList>> nodeName2Paths = new HashMap<>();
+        Set<String> allRootNodeNames = getRootNodeNames(dep);
+        for (String nn : allRootNodeNames) {
+            nodeName2Paths.put(nn, new HashSet<>());
+        }
+        mapNN2LCADepthRecursive(dep, new IntArrayList(), nodeName2Paths);
+
+        Map<String, Integer> ret = new HashMap<>();
+        for (String nn : allRootNodeNames) {
+            ret.put(nn, mapPathsToCommonDepth(nodeName2Paths.get(nn)));
+        }
+        return ret;
+    }
+
+    private static void mapNN2LCADepthRecursive(AMDependencyTree dep, IntList prefix,
+                                                Map<String, Set<IntList>> nodeName2Paths) {
+        //add root of dep to map
+        String rootNodeName = dep.getHeadGraph().left.getNodeForSource("root");
+        if (rootNodeName != null) {
+            nodeName2Paths.get(rootNodeName).add(prefix);
+        }
+        //recursively call on children, each with its respective path
+        int childPosition = 0;
+        for (Pair<String, AMDependencyTree> opAndChild : dep.getOperationsAndChildren()) {
+            IntList childPath = new IntArrayList();
+            childPath.addAll(prefix);
+            childPath.add(childPosition);
+            mapNN2LCADepthRecursive(opAndChild.right, childPath, nodeName2Paths);
+            childPosition++;
+        }
+    }
+
+    /**
+     * Maps a set of paths to the largest value d, such that for all i < d, the paths agree (p(i)=p'(i) for all p, p')
+     * That is, returns 0 if paths do not agree at all (then head is last common point on paths).
+     * @param paths a set of paths encoded as IntLists. Head is empth list, from there on the next integer always gives
+     *              the index of the next child to go to.
+     * @return
+     */
+    private static int mapPathsToCommonDepth(Set<IntList> paths) {
+        if (paths.isEmpty()) {
+            throw new IllegalArgumentException("Empty set of paths when computing common depth! This should never happen, probably something is wrong.");
+        }
+        //now we can "get" in the statement below without worry.
+        int minPathLength = paths.stream().map(list -> list.size()).collect(Collectors.minBy(Comparator.naturalOrder())).get();
+        for (int depth = 0; depth < minPathLength; depth++) {
+            int baseValue = paths.iterator().next().getInt(depth);
+            for (IntList path : paths) {
+                if (path.getInt(depth) != baseValue) {
+                    return depth;
+                }
+            }
+        }
+        return minPathLength;
+    }
+
+
+
 
 }

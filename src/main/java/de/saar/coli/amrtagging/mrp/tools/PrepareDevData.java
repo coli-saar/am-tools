@@ -70,7 +70,7 @@ public class PrepareDevData {
     private boolean mergeNamedEntities = false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, ClassNotFoundException, PreprocessingException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, ClassNotFoundException, PreprocessingException{
         PrepareDevData cli = new PrepareDevData();
         JCommander commander = new JCommander(cli);
 

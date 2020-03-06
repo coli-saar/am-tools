@@ -7,7 +7,7 @@ package de.saar.coli.amrtagging.mrp.amr;
 
 import com.google.common.collect.Sets;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,9 +103,9 @@ public class AMR implements Formalism{
         
         SGraph evaluatedGraph;
         try {
-            AMDependencyTree amdep = AMDependencyTree.fromSentence(amconll);
+            AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(amconll);
             evaluatedGraph = amdep.evaluateWithoutRelex(true);
-        } catch (ParserException | AMDependencyTree.ConllParserException  | ParseException ex ) {
+        } catch (ParserException | AlignedAMDependencyTree.ConllParserException  | ParseException ex ) {
             ex.printStackTrace();
             System.err.println("Returning empty graph");
             return MRPUtils.getDummy("amr", amconll.getId(), amconll.getAttr("raw"), amconll.getAttr("time"), amconll.getAttr("version"));
@@ -115,11 +114,11 @@ public class AMR implements Formalism{
         List<String> labels = amconll.lemmas();
         for (String n : evaluatedGraph.getAllNodeNames()){
             if (evaluatedGraph.getNode(n).getLabel().contains("LEX")){
-                Pair<Integer,Pair<String,String>> info = AMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
+                Pair<Integer,Pair<String,String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
                 labels.set(info.left-1, amconll.get(info.left-1).getReLexLabel());
                 evaluatedGraph.getNode(n).setLabel("LEX@"+(info.left-1));
             } else {
-                Pair<Integer,Pair<String,String>> info = AMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
+                Pair<Integer,Pair<String,String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
                 evaluatedGraph.getNode(n).setLabel(info.right.right);
             }
         }

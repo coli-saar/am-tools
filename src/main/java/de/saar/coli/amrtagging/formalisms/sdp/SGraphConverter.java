@@ -6,7 +6,7 @@
 package de.saar.coli.amrtagging.formalisms.sdp;
 
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.Util;
@@ -42,7 +42,7 @@ public class SGraphConverter {
     
     public static boolean READABLE_NODE_LABELS = true; //if set to true the word form will be added to the node label (instead of just using the word sense)
     
-    private static final String[] RESERVED_SUBSTRINGS = {SENSE_SEP,AMDependencyTree.ALIGNED_SGRAPH_SEP};
+    private static final String[] RESERVED_SUBSTRINGS = {SENSE_SEP, AlignedAMDependencyTree.ALIGNED_SGRAPH_SEP};
     
     /**
      * Takes an SDP graph and returns an MRInstance.
@@ -140,7 +140,7 @@ public class SGraphConverter {
        HashMap<Integer,GraphNode> int2node = new HashMap<>();
        for (GraphNode n : sg.getGraph().vertexSet()){
            if (! n.equals(artRoot)){
-               Pair<Integer,Pair<String,String>> triple = AMDependencyTree.decodeNode(n);
+               Pair<Integer,Pair<String,String>> triple = AlignedAMDependencyTree.decodeNode(n);
                 int2node.put(triple.getLeft(),n);
                 
            }
@@ -149,7 +149,7 @@ public class SGraphConverter {
        for (Node n: sentence.getNodes()){ //add all nodes
            if (int2node.containsKey(n.id)){
                GraphNode correspondingGraphNode = int2node.get(n.id);
-               Pair<Integer,Pair<String,String>> triple = AMDependencyTree.decodeNode(correspondingGraphNode);
+               Pair<Integer,Pair<String,String>> triple = AlignedAMDependencyTree.decodeNode(correspondingGraphNode);
                String[] wordPlusSense = triple.getRight().getRight().split(SENSE_SEP);
                Node currentNode = sentence.getNode(triple.getLeft());
                //isTop is theoretically independent of being a predicate but the vast majority of top nodes is are also predicate nodes.
@@ -167,8 +167,8 @@ public class SGraphConverter {
 
         for (GraphEdge edg : sg.getGraph().edgeSet()){ //add all edges
             if (! edg.getSource().getLabel().contains(ARTIFICAL_ROOT_LABEL) && ! edg.getTarget().getLabel().contains(ARTIFICAL_ROOT_LABEL)){
-                Pair<Integer,Pair<String,String>> tripleSource = AMDependencyTree.decodeNode(edg.getSource());
-                Pair<Integer,Pair<String,String>> tripleTarget = AMDependencyTree.decodeNode(edg.getTarget());
+                Pair<Integer,Pair<String,String>> tripleSource = AlignedAMDependencyTree.decodeNode(edg.getSource());
+                Pair<Integer,Pair<String,String>> tripleTarget = AlignedAMDependencyTree.decodeNode(edg.getTarget());
                 output.addEdge(tripleSource.getLeft(), tripleTarget.getLeft(), edg.getLabel());
             }
         }

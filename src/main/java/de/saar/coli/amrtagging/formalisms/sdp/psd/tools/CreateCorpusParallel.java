@@ -72,7 +72,7 @@ public class CreateCorpusParallel {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, InterruptedException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, InterruptedException{
         CreateCorpusParallel cli = new CreateCorpusParallel();
         JCommander commander = new JCommander(cli);
 
@@ -190,7 +190,7 @@ public class CreateCorpusParallel {
                                 }
                             }
                         }
-                        AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
+                        AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(sent);
                         //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
                         //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
 

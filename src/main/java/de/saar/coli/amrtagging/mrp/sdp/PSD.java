@@ -5,7 +5,7 @@
  */
 package de.saar.coli.amrtagging.mrp.sdp;
 
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AlignmentTrackingAutomaton;
 import de.saar.coli.amrtagging.ConcreteAlignmentTrackingAutomaton;
@@ -76,13 +76,13 @@ public class PSD extends SDPs {
     @Override
     public MRPGraph evaluate(AmConllSentence s) throws IllegalArgumentException {
          try {
-            AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
+            AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
             SGraph evaluatedGraph = amdep.evaluate(true);
             evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils());
             MRPGraph output = sGraphToMRP(evaluatedGraph, s);
             output.setFramework("psd");
             return output;
-         } catch (ParseException | ParserException | AMDependencyTree.ConllParserException e){
+         } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e){
              throw new IllegalArgumentException(e);
          }
     }

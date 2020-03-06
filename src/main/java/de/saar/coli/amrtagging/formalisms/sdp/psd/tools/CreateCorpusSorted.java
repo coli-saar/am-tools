@@ -73,7 +73,7 @@ public class CreateCorpusSorted {
         }
     }
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException, InterruptedException, ExecutionException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, InterruptedException, ExecutionException{
         CreateCorpusSorted cli = new CreateCorpusSorted();
         JCommander commander = new JCommander(cli);
 

@@ -47,12 +47,12 @@ public class DM extends SDPs {
     @Override
     public MRPGraph evaluate(AmConllSentence s) {
         try {
-            AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
+            AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
             SGraph evaluatedGraph = amdep.evaluate(true);
             MRPGraph output = sGraphToMRP(evaluatedGraph, s);
             output.setFramework("dm");
             return output;
-         } catch (ParseException | ParserException | AMDependencyTree.ConllParserException e){
+         } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e){
              throw new IllegalArgumentException(e);
          }
     }

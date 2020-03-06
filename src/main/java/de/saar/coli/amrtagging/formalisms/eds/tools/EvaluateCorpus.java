@@ -8,7 +8,7 @@ package de.saar.coli.amrtagging.formalisms.eds.tools;
 import de.saar.coli.amrtagging.AmConllSentence;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.coli.amrtagging.AMDependencyTree;
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.AnchoredSGraph;
 import de.saar.coli.amrtagging.formalisms.eds.EDSConverter;
 
@@ -43,7 +43,7 @@ public class EvaluateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         EvaluateCorpus cli = new EvaluateCorpus();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("EDS evaluator");

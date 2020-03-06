@@ -257,7 +257,7 @@ public class ToAMConll {
                 }
             }
             try {
-                AMDependencyTree amdep = AMDependencyTree.fromSentence(o);
+                AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(o);
                 amdep.evaluate(false); //sanity check
 
                 output.add(o);

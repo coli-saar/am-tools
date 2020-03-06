@@ -155,7 +155,7 @@ public class CreateCorpus {
                     SGraph amr = EDSConverter.undoExplicitAnon(EDSConverter.makeNodeNamesExplicit(allGraphs.get(counter))).stripLnks();
                     goldAMR.println(amr.toIsiAmrString());
                     goldAMR.println();
-                    AMDependencyTree amdep = AMDependencyTree.fromSentence(sent);
+                    AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(sent);
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
 
