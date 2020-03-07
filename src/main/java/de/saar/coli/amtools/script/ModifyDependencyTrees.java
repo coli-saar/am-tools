@@ -4,6 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
+import static de.saar.coli.amrtagging.AlignedAMDependencyTree.decodeNode;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
@@ -28,28 +29,29 @@ import java.util.stream.Collectors;
 import static de.saar.coli.amtools.script.FindPatternsAcrossSDP.*;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 
 public class ModifyDependencyTrees {
 
     //SDP corpora (i.e. original graphs)
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "../../github/am-parser/example/decomposition/dm/en.dm.sdp";
+    private String corpusPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/dev/dev.sdp";
 
     @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "../../github/am-parser/example/decomposition/pas/en.pas.sdp";
+    private String corpusPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/dev/dev.sdp";
 
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "../../github/am-parser/example/decomposition/psd/en.psd.sdp";
+    private String corpusPathPSD = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/psd/dev/dev.sdp";
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "../../github/am-parser/example/decomposition/dm/output/train/train.amconll";
+    private String amconllPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "../../github/am-parser/example/decomposition/pas/output/train/train.amconll";
+    private String amconllPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "../../github/am-parser/example/decomposition/psd/output/train/train.amconll";
+    private String amconllPathPSD = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/psd/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
     private String outputPath = "../../github/";
@@ -130,9 +132,12 @@ public class ModifyDependencyTrees {
                 String originalPASDepStr = pasDep.toString();
 
 
-                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(false);
-                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(false);
-                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(false);
+                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                onlyIndicesAsLabels(dmSGraph);
+                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                onlyIndicesAsLabels(psdSGraph);
+                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                onlyIndicesAsLabels(pasSGraph);
                 //System.out.println(dmSGraph);
 
                 //modify new dep trees here
@@ -144,9 +149,12 @@ public class ModifyDependencyTrees {
                 SGraph newpsdSGraph = null;
                 SGraph newpasSGraph = null;
                 //try {
-                newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(false);
-                newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(false);
-                newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(false);
+                newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                onlyIndicesAsLabels(newdmSGraph);
+                newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                onlyIndicesAsLabels(newpsdSGraph);
+                newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                onlyIndicesAsLabels(newpasSGraph);
                 
                 //} catch (IllegalArgumentException e) {
                 //    System.err.println(psdDep);
@@ -159,6 +167,9 @@ public class ModifyDependencyTrees {
                     System.err.println(dmDep);
                     System.err.println(dmSGraph.toIsiAmrStringWithSources());
                     System.err.println(newdmSGraph.toIsiAmrStringWithSources());
+                    SGraphDrawer.draw(dmSGraph, "original");
+                    SGraphDrawer.draw(newdmSGraph,"modified");
+                    
                     throw new Exception("Difference in DM");
                 }
                 if (!newpsdSGraph.equals(psdSGraph)) {
@@ -166,6 +177,8 @@ public class ModifyDependencyTrees {
                     System.err.println(psdDep);
                     System.err.println(psdSGraph.toIsiAmrStringWithSources());
                     System.err.println(newpsdSGraph.toIsiAmrStringWithSources());
+                    SGraphDrawer.draw(psdSGraph, "original");
+                    SGraphDrawer.draw(newpsdSGraph,"modified");
                     throw new Exception("Difference in PSD");
                 }
                 if (!newpasSGraph.equals(pasSGraph)) {
@@ -173,6 +186,8 @@ public class ModifyDependencyTrees {
                     System.err.println(pasDep);
                     System.err.println(pasSGraph.toIsiAmrStringWithSources());
                     System.err.println(newpasSGraph.toIsiAmrStringWithSources());
+                    SGraphDrawer.draw(pasSGraph, "original");
+                    SGraphDrawer.draw(newpasSGraph,"modified");
                     throw new Exception("Difference in PAS");
                 }
                 
@@ -187,6 +202,18 @@ public class ModifyDependencyTrees {
         AmConllSentence.write(new FileWriter(cli.outputPath+"/psd.amconll"), newAmPSD);
 
 
+    }
+    
+    /**
+     * Takes an s-graph in which node names and labels are encoded into the labels and strips off the node names
+     * and only keeps the alignment
+     * @param sg 
+     */
+    private static void onlyIndicesAsLabels(SGraph sg){
+         for (String nodeName : sg.getAllNodeNames()) {
+            Pair<Integer, Pair<String, String>> infos = decodeNode(sg.getNode(nodeName));
+            sg.getNode(nodeName).setLabel(Integer.toString(infos.left));
+        }
     }
 
     public static void fixDeterminer(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
@@ -212,6 +239,9 @@ public class ModifyDependencyTrees {
     }
     public static void fixNegation(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, AlignedAMDependencyTree.ConllParserException {
         int index = 0;
+        
+        SGraph desiredPSDSupertag = new IsiAmrInputCodec().read("(i<root> / --LEX--  :RHEM-of (j<mod>))");
+        
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
@@ -235,8 +265,7 @@ public class ModifyDependencyTrees {
                         ApplyModifyGraphAlgebra.Type negatedType = psdAlignedDeptree.getTermTypeAt(psdNegated);
 
                         SGraph supertag = new IsiAmrInputCodec().read(psdEntry.getDelexSupertag());
-                        SGraph desired_supertag = new IsiAmrInputCodec().read("(i<root> / --LEX--  :RHEM-of (j<mod>))");
-                        if (negatedType.equals(ApplyModifyGraphAlgebra.Type.EMPTY_TYPE) && desired_supertag.equals(supertag)) {
+                        if (negatedType.equals(ApplyModifyGraphAlgebra.Type.EMPTY_TYPE) && desiredPSDSupertag.equals(supertag)) {
                             // only change if negation has empty type (no upward percolation) // TODO do upward percolation
 
                             // change head
