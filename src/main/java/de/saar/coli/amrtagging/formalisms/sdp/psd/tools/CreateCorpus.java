@@ -88,7 +88,7 @@ public class CreateCorpus {
 //        
 //    }
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         CreateCorpus cli = new CreateCorpus();
         JCommander commander = new JCommander(cli);
 

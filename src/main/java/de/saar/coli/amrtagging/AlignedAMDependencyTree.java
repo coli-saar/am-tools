@@ -291,11 +291,11 @@ public class AlignedAMDependencyTree {
     /**
      * Binarizes an AM Dependency Tree to some AM Term that can then be used for
      * evaluation.Based on the fixed tree decoder.align tells if the word
- position (and nodenames) of each constant are to be included into the
- node labels so that the alignment information persists. If align=true,
- the format of the node labels is as follows: wordId SEP nodeName SEP
- oldNodeLabel, e.g. node u at position 12 with label "Frankenstein"
- becomes 12@@u@@Frankenstein.
+     * position (and nodenames) of each constant are to be included into the
+    * node labels so that the alignment information persists. If align=true,
+    * the format of the node labels is as follows: wordId SEP nodeName SEP
+    * oldNodeLabel, e.g. node u at position 12 with label "Frankenstein"
+    * becomes 12@@u@@Frankenstein.
      *
      * @param align
      * @param relex
@@ -398,7 +398,7 @@ public class AlignedAMDependencyTree {
                             ArrayList<Tree<String>> children = new ArrayList();
                             children.add(curr.term);
                             children.add(dep.term);
-                            deduced = new Item<>(curr.index, copied, curr.tau.simulateApply(source), Tree.create(operation, children));
+                            deduced = new Item<>(curr.index, copied, curr.tau.performApply(source), Tree.create(operation, children));
 
                         }
                     } else if (operation.contains(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {

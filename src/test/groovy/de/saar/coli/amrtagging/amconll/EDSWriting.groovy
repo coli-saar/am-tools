@@ -85,12 +85,12 @@ class EDSWriting {
     }
 
 
-    final String eds1 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(o(), s())\t12\tAPP_art-snt1\ttrue'''
+    final String eds1 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(s(), o())\t12\tAPP_art-snt1\ttrue'''
 
-    final String eds2 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(o(), s())\t12\tAPP_art-snt1\ttrue\t11:17'''
+    final String eds2 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(s(), o())\t12\tAPP_art-snt1\ttrue\t11:17'''
 
-    final String eds3 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(o(), s())\t12\tAPP_art-snt1\ttrue\tSomething=blub|TokenRange=11:17'''
+    final String eds3 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(s(), o())\t12\tAPP_art-snt1\ttrue\tSomething=blub|TokenRange=11:17'''
 
-    final String eds4 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(o(), s())\t12\tAPP_art-snt1\ttrue\tSomething=blub'''
+    final String eds4 = '''3\tearned\t_\tearn\tVBD\t_\t(n3<root> / --LEX--  :lnk (an3 / SIMPLE)  :ARG2 (n8<o>)  :ARG1 (n2<s>))\t_$LEMMA$_v_1\t(s(), o())\t12\tAPP_art-snt1\ttrue\tSomething=blub'''
 
 }

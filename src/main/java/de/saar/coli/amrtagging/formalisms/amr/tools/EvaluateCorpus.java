@@ -55,7 +55,7 @@ public class EvaluateCorpus {
    
    @Parameter(names = {"--th"}, description = "Threshold for relabeler. Default: 10")
     private int threshold = 10;
-    
+
     @Parameter(names = {"--wn"}, description = "Path to WordNet")
     private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
     

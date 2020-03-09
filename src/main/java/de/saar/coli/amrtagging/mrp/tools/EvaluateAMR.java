@@ -63,7 +63,8 @@ public class EvaluateAMR {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, MalformedURLException, InterruptedException{      
+
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, MalformedURLException, InterruptedException{
         EvaluateAMR cli = new EvaluateAMR();
         JCommander commander = new JCommander(cli);
 

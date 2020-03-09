@@ -18,9 +18,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Separates train and dev data of DM and PSD (and EDS). Uses the same split as in the SemEval 2015 shared task.
@@ -34,7 +31,8 @@ public class SeparateTrainDev {
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
+
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         SeparateTrainDev cli = new SeparateTrainDev();
         JCommander commander = new JCommander(cli);
 

@@ -20,8 +20,6 @@ import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
-import de.up.ling.tree.Tree;
-import de.up.ling.tree.TreeBottomUpVisitor;
 import edu.stanford.nlp.simple.Sentence;
 import java.util.ArrayList;
 import java.util.Collections;

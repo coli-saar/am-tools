@@ -43,7 +43,7 @@ public class EvaluateCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         EvaluateCorpus cli = new EvaluateCorpus();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("EDS evaluator");

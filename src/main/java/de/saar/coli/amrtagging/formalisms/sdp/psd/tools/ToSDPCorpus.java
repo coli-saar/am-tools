@@ -49,7 +49,8 @@ public class ToSDPCorpus {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
+
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         ToSDPCorpus cli = new ToSDPCorpus();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("constraint_extractor");
