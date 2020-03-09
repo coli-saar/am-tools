@@ -72,8 +72,9 @@ public class CreateCorpusSorted {
             System.out.println(e.source+" --"+e.label+"--> "+e.target);
         }
     }
-    
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, InterruptedException, ExecutionException{      
+
+
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, InterruptedException, ExecutionException{
         CreateCorpusSorted cli = new CreateCorpusSorted();
         JCommander commander = new JCommander(cli);
 

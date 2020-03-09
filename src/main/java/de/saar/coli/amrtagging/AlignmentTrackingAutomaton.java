@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * 
  * @author jonas
  */
-public class AlignmentTrackingAutomaton extends TreeAutomaton<Pair<Pair<BoundaryRepresentation, AMDecompositionAutomaton.Type>, Integer>> {
+public class AlignmentTrackingAutomaton extends TreeAutomaton<Pair<Pair<BoundaryRepresentation, ApplyModifyGraphAlgebra.Type>, Integer>> {
     // BoundaryRepresentation = s-graph state, AMDecompositionAutomaton.Type = AM type, both together are as-graph. Integer: position in string (head index)
     
     public static final String SEPARATOR = "__@@__";
@@ -124,7 +124,7 @@ public class AlignmentTrackingAutomaton extends TreeAutomaton<Pair<Pair<Boundary
         }
     }
     
-    protected int makeState(Pair<BoundaryRepresentation, AMDecompositionAutomaton.Type> left, int right) {
+    protected int makeState(Pair<BoundaryRepresentation, ApplyModifyGraphAlgebra.Type> left, int right) {
         int leftID = decomp.getIdForState(left);
         int stateID = addState(new Pair(left, right));
         state2decompstate.put(stateID, leftID);
@@ -222,7 +222,7 @@ public class AlignmentTrackingAutomaton extends TreeAutomaton<Pair<Pair<Boundary
         }
         
         private boolean headMatches(int stateID, int pos) {
-            Pair<Pair<BoundaryRepresentation, AMDecompositionAutomaton.Type>, Integer> state = getStateForId(stateID);
+            Pair<Pair<BoundaryRepresentation, ApplyModifyGraphAlgebra.Type>, Integer> state = getStateForId(stateID);
             switch(pos) {
                 case 0: return state.right == leftHead;
                 case 1: return state.right == rightHead;

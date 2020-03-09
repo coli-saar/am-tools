@@ -9,6 +9,11 @@ plugins {
 
 mainClassName = 'de.saar.coli.irtg.experimental.astar.Astar'
 
+//to make sure we always use UTF-8 (see https://gist.github.com/rponte/d660919434d094bbd35a1aabf7ef1bf0), otherwise I got errors on Windows -- JG
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+javadoc.options.encoding = 'UTF-8'
+
 application {
     applicationDefaultJvmArgs = ['-ea']
 }
@@ -42,7 +47,7 @@ tasks.withType(JavaCompile) {
 
 project.compileJava.dependsOn(createVersionFile)
 dependencies {
-    compile 'com.github.coli-saar:alto:cc71cb7'
+    compile 'com.github.coli-saar:alto:4491cbc262'
     
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'
@@ -72,12 +77,12 @@ dependencies {
 }
 
 //for debugging, works e.g. in NetBeans. You can change the main class and the arguments here --JG
-task debug(dependsOn: classes, type: JavaExec) {
-    main = "de.saar.coli.amrtagging.Parser2ExtFormat"
-    classpath = sourceSets.main.runtimeClasspath
-    standardInput = System.in
-    args '-c', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/evalInput.corpus', '-p', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/', '-rep', 'false', '--shift'
-    ignoreExitValue = true
-    debug = true
-}
+//task debug(dependsOn: classes, type: JavaExec) {
+//    main = "de.saar.coli.amrtagging.Parser2ExtFormat"
+//    classpath = sourceSets.main.runtimeClasspath
+//    standardInput = System.in
+//    args '-c', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/evalInput.corpus', '-p', '/Users/jonas/Documents/experimentData/astar_replication_2019/toy/', '-rep', 'false', '--shift'
+//    ignoreExitValue = true
+//    debug = true
+//}
 

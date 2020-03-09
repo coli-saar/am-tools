@@ -35,7 +35,8 @@ public class Tagger {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
+
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         Tagger cli = new Tagger();
         JCommander commander = new JCommander(cli);
 

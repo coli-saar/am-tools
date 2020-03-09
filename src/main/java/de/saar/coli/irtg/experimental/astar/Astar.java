@@ -354,7 +354,7 @@ public class Astar {
     }
     
     private boolean isAlmostGoal(Item it) {
-        return it.getStart() == 1 && it.getEnd()-1 == N && typeLexicon.resolveID(it.getType()).keySet().isEmpty();
+        return it.getStart() == 1 && it.getEnd()-1 == N && typeLexicon.resolveID(it.getType()).getOrigins().isEmpty();
     }
     
     private Item makeGoalItem(Item almostGoalItem) {
@@ -485,7 +485,7 @@ public class Astar {
 
     // check whether the item is a goal item
     private boolean isGoal(Item item) {
-        return item.getStart() == 0 && item.getEnd() == N && typeLexicon.resolveID(item.getType()).keySet().isEmpty();  
+        return item.getStart() == 0 && item.getEnd() == N && typeLexicon.resolveID(item.getType()).getOrigins().isEmpty();
     }
 
     // combine functor with an argument on the right

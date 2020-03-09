@@ -184,7 +184,7 @@ public class Core {
             String s = sources.iterator().next(); // currently ignoring the possibility of multiple sources
             System.err.println(type);
             System.err.println(s);
-            String retS = s + toStringWithUnify(type.getTargetType(s), type.getUnifications(s), false);
+            String retS = s + type.toString();//toStringWithUnify(type.getRequest(s), type.getUnifications(s), false);
             ret += "<FONT COLOR=\"red\">"+retS+"</FONT>";
         }
         if (bold) {
@@ -211,23 +211,25 @@ public class Core {
         ret += "];\n";
         return ret;
     }
-    
-    private String toStringWithUnify(Type type, Map<String, String> id4Unif, boolean withBrackets) {
-        List<String> roleStrings = new ArrayList();
-        for (String role : type.keySet()) {
-            System.err.println(type);
-            System.err.println(role);
-            System.err.println(type.getTargetType(role));
-            System.err.println(type.getUnifications(role));
-            roleStrings.add(role + "--" + id4Unif.get(role) + toStringWithUnify(type.getTargetType(role), type.getUnifications(role), true));
-        }
-        roleStrings.sort(Comparator.naturalOrder());
-        if (withBrackets) {
-            return "[" + roleStrings.stream().collect(Collectors.joining(", ")) + "]";
-        } else {
-            return roleStrings.stream().collect(Collectors.joining(", "));
-        }
-    }
+
+    // this function doesn't work properly since the type rework. Some functions are replaced with new functions,
+    // some are not, so it's all a bit of a mess. Currently using type.toString() instead, no idea if that's good. --JG
+//    private String toStringWithUnify(Type type, Map<String, String> id4Unif, boolean withBrackets) {
+//        List<String> roleStrings = new ArrayList();
+//        for (String role : type.keySet()) {
+//            System.err.println(type);
+//            System.err.println(role);
+//            System.err.println(type.getRequest(role));
+//            System.err.println(type.getUnifications(role));
+//            roleStrings.add(role + "--" + id4Unif.get(role) + toStringWithUnify(type.getRequest(role), type.getUnifications(role), true));
+//        }
+//        roleStrings.sort(Comparator.naturalOrder());
+//        if (withBrackets) {
+//            return "[" + roleStrings.stream().collect(Collectors.joining(", ")) + "]";
+//        } else {
+//            return roleStrings.stream().collect(Collectors.joining(", "));
+//        }
+//    }
     
     
     public static void main(String[] args) throws ParserException {

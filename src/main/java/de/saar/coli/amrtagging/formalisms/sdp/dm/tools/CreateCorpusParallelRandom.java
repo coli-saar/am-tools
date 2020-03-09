@@ -51,7 +51,7 @@ public class CreateCorpusParallelRandom {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{      
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
         CreateCorpusParallelRandom cli = new CreateCorpusParallelRandom();
         JCommander commander = new JCommander(cli);
 

@@ -72,7 +72,8 @@ public class CreateCorpusParallel {
     private boolean help=false;
    
     
-    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, InterruptedException{      
+
+    public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, InterruptedException{
         CreateCorpusParallel cli = new CreateCorpusParallel();
         JCommander commander = new JCommander(cli);
 
