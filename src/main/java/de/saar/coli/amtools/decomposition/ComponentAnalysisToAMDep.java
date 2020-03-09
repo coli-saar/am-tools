@@ -51,47 +51,46 @@ public class ComponentAnalysisToAMDep {
             if (index % 100 == 0) {
                 System.err.println(index);
             }
-            if (true) { //index == 1268
+            if (index == 23523) { //index == 1268
+                System.err.println(index);
+                MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
+                SGraph graph = inst.getGraph();
+
 
                 try {
-                    MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
-                    SGraph graph = inst.getGraph();
 
+                    ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, blobUtils);
+
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
+
+                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph, blobUtils);
 
                     try {
+                        SGraph resultGraph = result.evaluate().left;
+                        resultGraph.removeNode("ART-ROOT");
 
-                        ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, blobUtils);
+                        graph.setEqualsMeansIsomorphy(false);
 
-                        ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
-
-                        AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph, blobUtils);
-
-                        try {
-                            SGraph resultGraph = result.evaluate().left;
-                            resultGraph.removeNode("ART-ROOT");
-
-                            if (!graph.equals(resultGraph)) {
-                                System.err.println(index);
-                                System.err.println(graph.toIsiAmrStringWithSources());
-                                System.err.println(resultGraph.toIsiAmrStringWithSources());
-                                fails++;
-                            }
-                        } catch (java.lang.Exception ex) {
+                        if (!graph.equals(resultGraph)) {
                             System.err.println(index);
                             System.err.println(graph.toIsiAmrStringWithSources());
-                            System.err.println(result);
-                            ex.printStackTrace();
+                            System.err.println(resultGraph.toIsiAmrStringWithSources());
                             fails++;
                         }
                     } catch (java.lang.Exception ex) {
                         System.err.println(index);
                         System.err.println(graph.toIsiAmrStringWithSources());
+                        System.err.println(result);
                         ex.printStackTrace();
                         fails++;
                     }
-
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
+                } catch (java.lang.Exception ex) {
+                    System.err.println(index);
+                    System.err.println(graph.toIsiAmrStringWithSources());
+                    ex.printStackTrace();
+                    fails++;
                 }
             }
 
