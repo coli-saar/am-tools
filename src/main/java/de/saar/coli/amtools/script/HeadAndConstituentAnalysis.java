@@ -56,8 +56,6 @@ public class HeadAndConstituentAnalysis {
     private static PSDBlobUtils psdBlobUtils = new PSDBlobUtils();
 
     /**
-     * prints CSV tables for all auxiliary verbs according to wikipedia. Information includes total counts, and counts of
-     * edge patterns.
      * @param args
      * @throws FileNotFoundException
      * @throws IOException
