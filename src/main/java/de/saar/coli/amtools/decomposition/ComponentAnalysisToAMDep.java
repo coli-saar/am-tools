@@ -51,8 +51,7 @@ public class ComponentAnalysisToAMDep {
             if (index % 100 == 0) {
                 System.err.println(index);
             }
-            if (index == 23523) { //index == 1268
-                System.err.println(index);
+            if (true) { //index == 1268 //index == 23523
                 MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
                 SGraph graph = inst.getGraph();
 
