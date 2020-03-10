@@ -128,7 +128,17 @@ public class SGraphConverter {
      */
     public static Graph toSDPGraph(SGraph sg, Graph sentence){
        Graph output = new Graph(sentence.id);
-       GraphNode artRoot = sg.getNode(ARTIFICAL_ROOT_LABEL);
+       
+       // find artificial root:
+       GraphNode artRoot = null;
+       for (GraphNode n : sg.getGraph().vertexSet()){ 
+          Pair<Integer,Pair<String,String>> triple = AlignedAMDependencyTree.decodeNode(n);
+          if (triple.left == sentence.getNNodes()) { // the artifical root is the node with index n+1
+              artRoot = n;
+              break;
+          }
+       }
+       //GraphNode artRoot = sg.getNode(ARTIFICAL_ROOT_LABEL);
        ArrayList<GraphNode> realRoots = new ArrayList<>();
        HashSet<GraphNode> predicates = new HashSet<>();
        for (GraphEdge edg : sg.getGraph().edgeSet()){ //find real roots and predicates
@@ -167,7 +177,7 @@ public class SGraphConverter {
        }
 
         for (GraphEdge edg : sg.getGraph().edgeSet()){ //add all edges
-            if (! edg.getSource().getLabel().contains(ARTIFICAL_ROOT_LABEL) && ! edg.getTarget().getLabel().contains(ARTIFICAL_ROOT_LABEL)){
+            if (! edg.getSource().equals(artRoot) && ! edg.getTarget().equals(artRoot)){
                 Pair<Integer,Pair<String,String>> tripleSource = AlignedAMDependencyTree.decodeNode(edg.getSource());
                 Pair<Integer,Pair<String,String>> tripleTarget = AlignedAMDependencyTree.decodeNode(edg.getTarget());
                 output.addEdge(tripleSource.getLeft(), tripleTarget.getLeft(), edg.getLabel());
