@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static de.saar.coli.amtools.script.FindPatternsAcrossSDP.*;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 
@@ -249,11 +250,15 @@ public class ModifyDependencyTrees {
             index++;
         }
     }
+    
+   
+    
     public void fixNegation(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, AlignedAMDependencyTree.ConllParserException {
         int index = 0;
         
         SGraph desiredPSDSupertag = new IsiAmrInputCodec().read("(i<root> / --LEX--  :RHEM-of (j<mod>))");
         SGraph desiredPASSupertag = new IsiAmrInputCodec().read("(i_2<root> / --LEX--  :adj_ARG1 (i_3<mod>))");
+        SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_13<root> / --LEX--  :neg (i_12<mod>))");
         
         //TODO: "never"?
         
@@ -269,6 +274,16 @@ public class ModifyDependencyTrees {
                     AmConllEntry dmArgument = potential_argument.get();
                     // found DM negation
                     
+                    // DM: rename mod source to neg source
+                    if (new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag)) {
+                        dmArgument.setEdgeLabel("APP_neg");
+                        dmEntry.setDelexSupertag("(i_13<root> / --LEX--  :neg (i_12<neg>))");
+                        Type negationType = Type.EMPTY_TYPE;
+                        negationType = negationType.addSource("neg");
+                        dmEntry.setType(negationType);
+                    
+                    }
+                    
                     // PSD
                     //  - currently   --> argument --MOD_mod--> psdEntry (negation)
                     //  - would like:   argument <--APP_mod-- psdEntry (Negation) <--
@@ -278,26 +293,36 @@ public class ModifyDependencyTrees {
                         // fix PSD
                         AlignedAMDependencyTree psdAlignedDeptree = AlignedAMDependencyTree.fromSentence(psdDep);
                         AmConllEntry psdNegated = psdDep.getParent(index); // verb or sth else
-                        ApplyModifyGraphAlgebra.Type negatedType = psdAlignedDeptree.getTermTypeAt(psdNegated);
+                        ApplyModifyGraphAlgebra.Type negatedType = psdAlignedDeptree.getTermTypeAt(psdNegated); // type of the negated thing
 
                         SGraph supertag = new IsiAmrInputCodec().read(psdEntry.getDelexSupertag());
-                        if (negatedType.equals(ApplyModifyGraphAlgebra.Type.EMPTY_TYPE) && desiredPSDSupertag.equals(supertag)) {
-                            // only change if negation has empty type (no upward percolation) // TODO do upward percolation
+                        
+                        if (desiredPSDSupertag.equals(supertag)) {
+                            // only change if negated element doesn't have a mod source
+                            try {
+                                // take term type of negated element, add neg source and create dependencies such that the requirement 
+                                // at the neg source is the type of the negated element.
+                                Set<String> origins = negatedType.getOrigins();
+                                Type negationType = negatedType.addSource("neg");
+                                for (String orignalOrigin : origins){
+                                    negationType = negationType.setDependency("neg", orignalOrigin, orignalOrigin);
+                                }
+                                // change head
+                                psdEntry.setHead(psdNegated.getHead());
+                                psdEntry.setEdgeLabel(psdNegated.getEdgeLabel());
+                                // flip edge
+                                psdNegated.setHead(psdEntry.getId());
+                                psdNegated.setEdgeLabel("APP_neg");
 
-                            // change head
-                            psdEntry.setHead(psdNegated.getHead());
-                            psdEntry.setEdgeLabel(psdNegated.getEdgeLabel());
-                            // flip edge
-                            psdNegated.setHead(psdEntry.getId());
-                            psdNegated.setEdgeLabel("APP_mod");
+                                psdEntry.setType(negationType);
 
-                            // supertag:
-                            //   negation supertag has additional source at root!
-                            psdEntry.setDelexSupertag("(i / --LEX--  :RHEM-of (j<root, mod>))");
-                            
-                            negationsFixedPSD++;
-                            // type
-                            // TODO fix type
+                                // supertag:
+                                //   negation supertag has additional source at root!
+                                psdEntry.setDelexSupertag("(i / --LEX--  :RHEM-of (j<root, neg>))");
+                                negationsFixedPSD++;
+                             } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
+                             }
+
                         }
 
 
@@ -316,28 +341,35 @@ public class ModifyDependencyTrees {
                         ApplyModifyGraphAlgebra.Type negatedType = pasAlignedDeptree.getTermTypeAt(pasNegated);
 
                         SGraph supertag = new IsiAmrInputCodec().read(pasEntry.getDelexSupertag());
-                        if (negatedType.equals(ApplyModifyGraphAlgebra.Type.EMPTY_TYPE) && desiredPASSupertag.equals(supertag)) {
-                            // only change if negation has empty type (no upward percolation) // TODO do upward percolation
+                        if (desiredPASSupertag.equals(supertag)) {
+                            try {
+                                // see PSD
+                                Set<String> origins = negatedType.getOrigins();
+                                Type negationType = negatedType.addSource("neg");
+                                for (String orignalOrigin : origins){
+                                    negationType = negationType.setDependency("neg", orignalOrigin, orignalOrigin);
+                                }
 
-                            // change head
-                            pasEntry.setHead(pasNegated.getHead());
-                            pasEntry.setEdgeLabel(pasNegated.getEdgeLabel());
-                            // flip edge
-                            pasNegated.setHead(pasEntry.getId());
-                            pasNegated.setEdgeLabel("APP_mod");
+                                // change head
+                                pasEntry.setHead(pasNegated.getHead());
+                                pasEntry.setEdgeLabel(pasNegated.getEdgeLabel());
+                                // flip edge
+                                pasNegated.setHead(pasEntry.getId());
+                                pasNegated.setEdgeLabel("APP_neg");
 
-                            // supertag:
-                            //   negation supertag has additional source at root!
-                            pasEntry.setDelexSupertag("(i / --LEX--  :adj_ARG1 (j<root, mod>))");
-
-                            // type
-                            // TODO fix type
-                            negationsFixedPAS++;
+                                // supertag:
+                                //   negation supertag has additional source at root!
+                                pasEntry.setDelexSupertag("(i / --LEX--  :adj_ARG1 (j<root, neg>))");
+                                pasEntry.setType(negationType);
+                                
+                                negationsFixedPAS++;
+                            } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
+                            }
+                            
                         }
 
 
                     }
-                    
                     
                     // DEBUG TODO maybe look at what is actually negated this way? only verbs?
                 } // found negated argument
