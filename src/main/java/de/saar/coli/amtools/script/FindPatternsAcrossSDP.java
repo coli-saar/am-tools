@@ -157,7 +157,7 @@ public class FindPatternsAcrossSDP {
      * 7: no blob edge, but part of graph
      * 8: other
      * @param graph
-     * @param i
+     * @param i is 0 based of SDP graphs, 1 based for AM dependency trees
      * @return
      */
     public static int getPattern(Graph graph, int i, AMRBlobUtils blobUtils) {
@@ -193,6 +193,14 @@ public class FindPatternsAcrossSDP {
         }
     }
 
+    /**
+     *
+     * @param dmGraph
+     * @param pasGraph
+     * @param psdGraph
+     * @param i  is 0 based of SDP graphs, 1 based for AM dependency trees
+     * @return
+     */
     public static String getPatternCombination(Graph dmGraph, Graph pasGraph, Graph psdGraph, int i) {
         int patternDM = getPattern(dmGraph, i, dmBlobUtils);
         int patternPAS = getPattern(pasGraph, i, pasBlobUtils);
