@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 public class HeadAndConstituentAnalysis {
 
@@ -38,13 +39,13 @@ public class HeadAndConstituentAnalysis {
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "../../experimentData/uniformify2020/original_decomps/dm/gold-dev/gold-dev.amconll";
+    private String amconllPathDM = "../../data/corpora/semDep/uniformify2020/original_decompositions/dm/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "../../experimentData/uniformify2020/original_decomps/pas/gold-dev/gold-dev.amconll";
+    private String amconllPathPAS = "../../data/corpora/semDep/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "../../experimentData/uniformify2020/original_decomps/psd/gold-dev/gold-dev.amconll";
+    private String amconllPathPSD = "../../data/corpora/semDep/uniformify2020/original_decompositions/psd/gold-dev/gold-dev.amconll";
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -105,6 +106,8 @@ public class HeadAndConstituentAnalysis {
         int completeDMMatchCoord = 0;
         int someDMMatchCoord = 0;
         Counter<Integer> genereousSubtreeCheckEdgeCounterCoord = new Counter<>();
+        Counter<Integer> constituencyMatchEdgeCounterCoord = new Counter<>();
+        Counter<Integer> headMatchEdgeCounterCoord = new Counter<>();
 
         int totalPrep = 0;
         int dmPasCompleteMatchPrep = 0;
@@ -113,6 +116,8 @@ public class HeadAndConstituentAnalysis {
         int dmPasRightMatchPrep = 0;
         int somePSDMatchPrep = 0;
         Counter<Integer> genereousSubtreeCheckEdgeCounterPrep = new Counter<>();
+        Counter<Integer> constituencyMatchEdgeCounterPrep = new Counter<>();
+        Counter<Integer> headMatchEdgeCounterPrep = new Counter<>();
 
         while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null && (psdGraph = grPSD.readGraph()) != null) {
             if (decomposedIDs.contains(dmGraph.id)) {
@@ -139,6 +144,10 @@ public class HeadAndConstituentAnalysis {
                         }
                         genereousSubtreeCheckEdgeCounterCoord.add(getGenerousSubtreeEdgeCount(dmDep, pasDep, psdDep,
                                 pasChildren.left, pasChildren.right, psdChildren.left, psdChildren.right));
+                        constituencyMatchEdgeCounterCoord.add(getConstituentMatchEdgeCount(dmDep, pasDep, psdDep,
+                                pasChildren.left, pasChildren.right, psdChildren.left, psdChildren.right));
+                        headMatchEdgeCounterCoord.add(getHeadMatchEdgeCount(psdDep, pasDep, dmDep,
+                                pasChildren.left, pasChildren.right, psdChildren.left, psdChildren.right));
                     }
 
                     if (isDMPASPreposition(dmDep, pasDep, psdDep, i)) {
@@ -161,7 +170,11 @@ public class HeadAndConstituentAnalysis {
                                 Arrays.asList(pasChildren.right, dmChildren.right))) {
                             somePSDMatchPrep++;
                         }
-                        genereousSubtreeCheckEdgeCounterCoord.add(getGenerousSubtreeEdgeCount(psdDep, pasDep, dmDep,
+                        genereousSubtreeCheckEdgeCounterPrep.add(getGenerousSubtreeEdgeCount(psdDep, pasDep, dmDep,
+                                pasChildren.left, pasChildren.right, dmChildren.left, dmChildren.right));
+                        constituencyMatchEdgeCounterPrep.add(getConstituentMatchEdgeCount(psdDep, pasDep, dmDep,
+                                pasChildren.left, pasChildren.right, dmChildren.left, dmChildren.right));
+                        headMatchEdgeCounterPrep.add(getHeadMatchEdgeCount(psdDep, pasDep, dmDep,
                                 pasChildren.left, pasChildren.right, dmChildren.left, dmChildren.right));
                     }
                 }
@@ -175,7 +188,12 @@ public class HeadAndConstituentAnalysis {
         System.err.println(completeDMMatchCoord/(float)totalCoord);
         System.err.println("DM heads contained: "+someDMMatchCoord);
         System.err.println(someDMMatchCoord/(float)totalCoord);
+        System.err.println("subtree edge counts:");
         genereousSubtreeCheckEdgeCounterCoord.printAllSorted();
+        System.err.println("constituency match edge counts:");
+        constituencyMatchEdgeCounterCoord.printAllSorted();
+        System.err.println("head match edge counts:");
+        headMatchEdgeCounterCoord.printAllSorted();
         System.err.println();
         System.err.println("Total Prep: "+totalPrep);
         System.err.println("complete DM PAS head match: "+dmPasCompleteMatchPrep);
@@ -188,7 +206,12 @@ public class HeadAndConstituentAnalysis {
         System.err.println(dmPasRightMatchPrep/(float)totalPrep);
         System.err.println("PSD heads contained: "+somePSDMatchPrep);
         System.err.println(somePSDMatchPrep/(float)totalPrep);
+        System.err.println("subtree edge counts:");
         genereousSubtreeCheckEdgeCounterPrep.printAllSorted();
+        System.err.println("constituency match edge counts:");
+        constituencyMatchEdgeCounterPrep.printAllSorted();
+        System.err.println("head match edge counts:");
+        headMatchEdgeCounterPrep.printAllSorted();
 
     }
 
@@ -246,16 +269,56 @@ public class HeadAndConstituentAnalysis {
         for (AmConllEntry word : dep1) {
             int id = word.getId();
             int head = word.getHead();
-            if ((symmetricSubtreeContainmentCheck(dep1, id, dep2, left2) && symmetricSubtreeContainmentCheck(dep1, head, dep2, right2))
-                    || (symmetricSubtreeContainmentCheck(dep1, id, dep2, right2) && symmetricSubtreeContainmentCheck(dep1, head, dep2, left2))
-                    || (symmetricSubtreeContainmentCheck(dep1, id, dep3, left3) && symmetricSubtreeContainmentCheck(dep1, head, dep3, right3))
-                    || (symmetricSubtreeContainmentCheck(dep1, id, dep3, right3) && symmetricSubtreeContainmentCheck(dep1, head, dep3, left3))
-            ) {
+            if (edgeSatisfiesAny(dep1, dep2, dep3, id, head, left2, right2, left3, right3,
+                    d1 -> d2 -> i1 -> i2 -> symmetricSubtreeContainmentCheck(d1, i1, d2, i2))) {
                ret++;
             }
         }
         return ret;
     }
+
+    private static boolean edgeSatisfiesAny(AmConllSentence dep1, AmConllSentence dep2, AmConllSentence dep3,
+                                            int id, int head, int left2, int right2, int left3, int right3,
+                                            Function<AmConllSentence, Function<AmConllSentence, Function<Integer, Function<Integer, Boolean>>>> function) {
+        int left1 = Math.min(id, head);
+        int right1 = Math.max(id, head);
+        boolean leftMatch = function.apply(dep1).apply(dep2).apply(left1).apply(left2)
+                || function.apply(dep1).apply(dep3).apply(left1).apply(left3);
+        boolean rightMatch = function.apply(dep1).apply(dep2).apply(right1).apply(right2)
+                || function.apply(dep1).apply(dep3).apply(right1).apply(right3);
+        return leftMatch && rightMatch;
+    }
+
+
+    private static int getConstituentMatchEdgeCount(AmConllSentence dep1, AmConllSentence dep2, AmConllSentence dep3,
+                                                   int left2, int right2, int left3, int right3) {
+        int ret = 0;
+        for (AmConllEntry word : dep1) {
+            int id = word.getId();
+            int head = word.getHead();
+            if (edgeSatisfiesAny(dep1, dep2, dep3, id, head, left2, right2, left3, right3,
+                    d1 -> d2 -> i1 -> i2 -> constituentIdentityCheck(d1, i1, d2, i2))) {
+                ret++;
+            }
+        }
+        return ret;
+    }
+
+
+    private static int getHeadMatchEdgeCount(AmConllSentence dep1, AmConllSentence dep2, AmConllSentence dep3,
+                                                    int left2, int right2, int left3, int right3) {
+        int ret = 0;
+        for (AmConllEntry word : dep1) {
+            int id = word.getId();
+            int head = word.getHead();
+            if (edgeSatisfiesAny(dep1, dep2, dep3, id, head, left2, right2, left3, right3,
+                    d1 -> d2 -> i1 -> i2 -> (i1 == i2))) {
+                ret++;
+            }
+        }
+        return ret;
+    }
+
 
     /**
      * i is in dep1, j is in dep2, checks if subtree of i contains j or subtree of j contains i.
@@ -269,12 +332,15 @@ public class HeadAndConstituentAnalysis {
         return subtreeContains(dep1, i, j) || subtreeContains(dep2, j, i);
     }
 
+    private static boolean constituentIdentityCheck(AmConllSentence dep1, int i, AmConllSentence dep2, int j) {
+        return getConstituent(dep1, i).equals(getConstituent(dep2, j));
+    }
 
     private static boolean subtreeContains(AmConllSentence dep, int subtreeHead, int doesItContainThis) {
         return getSubtreeIds(dep, subtreeHead).contains(doesItContainThis);
     }
 
-    private static IntSet getSubtreeIds(AmConllSentence dep, int subtreeHead) {
+    static IntSet getSubtreeIds(AmConllSentence dep, int subtreeHead) {
         IntSet ret = new IntOpenHashSet();
         ret.add(subtreeHead);
         for (AmConllEntry child : dep.getChildren(subtreeHead-1)) {
@@ -284,4 +350,10 @@ public class HeadAndConstituentAnalysis {
     }
 
 
+    static Pair<Integer, Integer> getConstituent(AmConllSentence dep, int id) {
+        IntSet subtreeIds = getSubtreeIds(dep, id);
+        int start = subtreeIds.stream().min(Comparator.naturalOrder()).get();
+        int end = subtreeIds.stream().max(Comparator.naturalOrder()).get()+1;
+        return new Pair<>(start, end);
+    }
 }

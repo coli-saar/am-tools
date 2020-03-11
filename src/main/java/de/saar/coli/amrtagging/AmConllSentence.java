@@ -420,7 +420,7 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * Given an index i, returns all entries that have head i. Current implementation is somewhat inefficient,
      * might need reimplementation if used in runtime-sensitive locations.
      * @param i the index of the word who's children to get, 0-based
-     * @return the children of entry i (which have i as head)
+     * @return the children of entry i (which have i as head), in sentence order
      */
     public List<AmConllEntry> getChildren(int i) {
         //when called for all indices, this is quadratic. Caching and running through all entries once could make it linear, but should be ok for now.
