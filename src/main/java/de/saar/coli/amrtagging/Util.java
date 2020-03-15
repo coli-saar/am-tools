@@ -278,6 +278,20 @@ public class Util {
     }
 
     /**
+     * Converts a string of format label[headID,childID] into a nested pair structure [label, [headID, ChildID]].
+     * @param edgeString
+     * @return
+     */
+    public Pair<String, Pair<Integer, Integer>> edgeString2Edge(String edgeString) {
+        String label = edgeString.split("\\[")[0];
+        //NOTE in earlier supertagger output, first and second was swapped. To properly evaluate that old output, maybe switch it here temporarily.
+        Integer first = Integer.valueOf(edgeString.split("\\[")[1].split(",")[0]);
+        Integer second = Integer.valueOf(edgeString.split(",")[1].split("\\]")[0]);
+        return new Pair(label, new Pair(first, second));
+    }
+
+
+    /**
      * Returns the type part of the string representation of an as-graph.
      *
      * @param graph
