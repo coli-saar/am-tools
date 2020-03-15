@@ -8,6 +8,7 @@ import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
+import de.up.ling.irtg.algebra.StringAlgebra.Span;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -182,23 +183,23 @@ public class HeadednessExperiments {
                     chainLengths.add(chain.size());
                 }
 
-                Map<Pair<Integer, Integer>, AmConllEntry> pasConstituents2HeadMap = getConstituent2HeadMap(pasDep);
-                Map<Pair<Integer, Integer>, AmConllEntry> psdConstituents2HeadMap = getConstituent2HeadMap(psdDep);
+                Map<Span, AmConllEntry> pasConstituents2HeadMap = getConstituent2HeadMap(pasDep);
+                Map<Span, AmConllEntry> psdConstituents2HeadMap = getConstituent2HeadMap(psdDep);
                 totalConstituents += pasConstituents2HeadMap.size();
-                Set<Pair<Integer, Integer>> matching = Sets.intersect(pasConstituents2HeadMap.keySet(), psdConstituents2HeadMap.keySet());
+                Set<Span> matching = Sets.intersect(pasConstituents2HeadMap.keySet(), psdConstituents2HeadMap.keySet());
                 matchingConstituents += matching.size();
-                for (Pair<Integer, Integer> constituent : pasConstituents2HeadMap.keySet()) {
-                    if (constituent.left == constituent.right-1) {
+                for (Span constituent : pasConstituents2HeadMap.keySet()) {
+                    if (constituent.start == constituent.end-1) {
                         singletonConstituentsPAS++;
                     }
                 }
-                for (Pair<Integer, Integer> constituent : psdConstituents2HeadMap.keySet()) {
-                    if (constituent.left == constituent.right-1) {
+                for (Span constituent : psdConstituents2HeadMap.keySet()) {
+                    if (constituent.start == constituent.end-1) {
                         singletonConstituentsPSD++;
                     }
                 }
-                for (Pair<Integer, Integer> constituent : matching) {
-                    if (constituent.left == constituent.right-1) {
+                for (Span constituent : matching) {
+                    if (constituent.start == constituent.end-1) {
                         singletonConstituentsBoth++;
                     }
                     if (pasConstituents2HeadMap.get(constituent).getId() == psdConstituents2HeadMap.get(constituent).getId()) {
@@ -295,8 +296,8 @@ public class HeadednessExperiments {
         return false;
     }
 
-    private static Map<Pair<Integer, Integer>, AmConllEntry> getConstituent2HeadMap(AmConllSentence dep) {
-        Map<Pair<Integer, Integer>, AmConllEntry> ret = new HashMap<>();
+    private static Map<Span, AmConllEntry> getConstituent2HeadMap(AmConllSentence dep) {
+        Map<Span, AmConllEntry> ret = new HashMap<>();
         for (AmConllEntry word : dep) {
             ret.put(HeadAndConstituentAnalysis.getConstituent(dep, word.getId()), word);
         }
