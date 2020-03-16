@@ -1,24 +1,23 @@
 package de.saar.coli.amtools.decomposition;
 
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AmConllEntry;
-import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.Util;
+import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.graph.AMDependencyTree;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.simple.Sentence;
+import org.eclipse.collections.impl.factory.Sets;
+import org.jetbrains.annotations.NotNull;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.graph.Node;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CreateDatasetWithSyntaxSources {
@@ -71,14 +70,6 @@ public class CreateDatasetWithSyntaxSources {
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph, blobUtils);
 
                     System.err.println(result);
-                    List<Pair<String, Double>> syntaxEdges = syntaxEdgeScoresIterator.next();
-                    for (Pair<String, Double> edgeAndScore : syntaxEdges) {
-                        if (edgeAndScore.right > 0.1) {
-                            System.err.println(edgeAndScore);
-                        }
-                    }
-                    AmConllSentence amConllSentence = dep2amConll(result, sdpGraph, syntaxEdges);
-                    System.err.println(amConllSentence);
 
                     try {
                         SGraph resultGraph = result.evaluate().left;
@@ -86,7 +77,12 @@ public class CreateDatasetWithSyntaxSources {
 
                         graph.setEqualsMeansIsomorphy(false);
 
-                        if (!graph.equals(resultGraph)) {
+                        if (graph.equals(resultGraph)) {
+                            List<Pair<String, Double>> syntaxEdges = syntaxEdgeScoresIterator.next();
+                            AmConllSentence amConllSentence = dep2amConll(result, sdpGraph, syntaxEdges);
+                            System.err.println(amConllSentence);
+                            System.err.println(AlignedAMDependencyTree.fromSentence(amConllSentence).evaluate(false));
+                        } else {
                             System.err.println(index);
                             System.err.println(graph.toIsiAmrStringWithSources());
                             System.err.println(resultGraph.toIsiAmrStringWithSources());
@@ -147,8 +143,23 @@ public class CreateDatasetWithSyntaxSources {
 //        neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
 //        sent.addNEs(neTags);
 
+        // get best edge labels
+        //TODO edge direction is iffy, maybe just use Set<Integer> instead of <Pair<Integer, Integer>
+        Map<Set<Integer>, String> edge2bestLabel = new HashMap<>();
+        Map<Set<Integer>, Double> bestScorePerEdge = new HashMap<>();
+        for (Pair<String, Double> edgeAndScore : syntaxEdges) {
+            Pair<String, Pair<Integer, Integer>> labelSourceTarget = Util.edgeString2Edge(edgeAndScore.left);
+            Set<Integer> nodes = new HashSet<>();
+            nodes.add(labelSourceTarget.right.left);
+            nodes.add(labelSourceTarget.right.right);
+            if (edgeAndScore.right > bestScorePerEdge.getOrDefault(nodes, 0.0)) {
+                edge2bestLabel.put(nodes, syntaxRole2Source(labelSourceTarget.left));
+                bestScorePerEdge.put(nodes, edgeAndScore.right);
+            }
+        }
+
         // go through AM dependency tree, adding delexicalized supertags, lex labels, and edges.
-        addDepToAmConll(dep, sdpGraph, sent);
+        addDepToAmConll(dep, sdpGraph, sent, edge2bestLabel, new HashMap<>());
 
         return sent;
     }
@@ -158,7 +169,8 @@ public class CreateDatasetWithSyntaxSources {
      * @param dep
      * @param sent
      */
-    private static void addDepToAmConll(AMDependencyTree dep, Graph sdpGraph, AmConllSentence sent) {
+    private static void addDepToAmConll(AMDependencyTree dep, Graph sdpGraph, AmConllSentence sent,
+                                        Map<Set<Integer>, String> edge2bestLabel, Map<String, String> old2newSource) {
         String rootNodeName = dep.getHeadGraph().left.getNodeForSource("root");
         GraphNode rootNode = dep.getHeadGraph().left.getNode(rootNodeName);
         int id = getIdFromGraph(dep.getHeadGraph().left, sent);
@@ -167,16 +179,74 @@ public class CreateDatasetWithSyntaxSources {
             headEntry.setLexLabel(sdpGraph.getNode(id).sense);
         }
         rootNode.setLabel(AmConllEntry.LEX_MARKER);//modifies the label in the original graph!
+        //sort children by word order in sentence
+        List<Pair<String, AMDependencyTree>> sortedOpsAndChildren = dep.getOperationsAndChildren().stream().sorted(new Comparator<Pair<String, AMDependencyTree>>() {
+            @Override
+            public int compare(Pair<String, AMDependencyTree> o1, Pair<String, AMDependencyTree> o2) {
+                return Integer.compare(getIdFromGraph(o1.right.getHeadGraph().left, sent), getIdFromGraph(o2.right.getHeadGraph().left, sent));
+            }
+        }).collect(Collectors.toList());
+        for (Pair<String, AMDependencyTree> opAndChild : sortedOpsAndChildren) {
+            int childId = getIdFromGraph(opAndChild.right.getHeadGraph().left, sent);
+            String newSource;
+            if (rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
+                newSource = SGraphConverter.ROOT_EDGE_LABEL;
+            } else {
+                Set<Integer> nodes = new HashSet<>();
+                nodes.add(id);
+                nodes.add(childId);
+                newSource = edge2bestLabel.getOrDefault(nodes, "NULL");
+            }
+            AmConllEntry childEntry = sent.get(childId - 1);
+            if (opAndChild.left.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
+                String fixedNewSource = newSource;
+                int addition = 1;
+                while (dep.getHeadGraph().left.getAllSources().contains(fixedNewSource)) {
+                    addition++;
+                    fixedNewSource = newSource+addition;
+                }
+                newSource = fixedNewSource;
+
+                //change the source in s-graph and type
+                String oldSource = opAndChild.left.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
+                changeSourceInHeadGraph(dep, oldSource, newSource);
+
+                //store the change for later use
+                old2newSource.put(oldSource, newSource);
+
+                //set edge label in dependency tree
+                childEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+newSource);
+            } else {
+                // don't need to fix the source here like in the apply case, because we only need to check for duplicates
+                // in the child, which will happen in the apply case of the recursive call
+                //change the source in s-graph and type
+                String oldSource = opAndChild.left.substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+                changeSourceInHeadGraph(opAndChild.right, oldSource, newSource);
+
+                //store the change for later use
+                old2newSource.put(oldSource, newSource);
+
+                //set edge label in dependency tree
+                childEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+newSource);
+            }
+            childEntry.setHead(id);
+            addDepToAmConll(opAndChild.right, sdpGraph, sent, edge2bestLabel, old2newSource);
+        }
+        // fix remaining sources that are not filled by an apply (e.g. sources that are unified through a modify above)
+        for (String oldSource : Sets.intersect(dep.getHeadGraph().right.getAllSources(), old2newSource.keySet())) {
+            String newSource = old2newSource.get(oldSource);
+            changeSourceInHeadGraph(dep, oldSource, newSource);
+        }
         headEntry.setDelexSupertag(dep.getHeadGraph().left.toIsiAmrStringWithSources());
         headEntry.setType(dep.getHeadGraph().right);
-        for (Pair<String, AMDependencyTree> opAndChild : dep.getOperationsAndChildren()) {
-            int childId = getIdFromGraph(opAndChild.right.getHeadGraph().left, sent);
-            AmConllEntry childEntry = sent.get(childId - 1);
-            childEntry.setEdgeLabel(opAndChild.left);
-            childEntry.setHead(id);
-            addDepToAmConll(opAndChild.right, sdpGraph, sent);
-        }
     }
+
+    private static void changeSourceInHeadGraph(AMDependencyTree dep, String oldSource, String newSource) {
+        SGraph newHeadGraph = dep.getHeadGraph().left.renameSource(oldSource, newSource);
+        Type newHeadType = changeSource(dep.getHeadGraph().right, oldSource, newSource);
+        dep.setHeadGraph(new Pair<>(newHeadGraph, newHeadType));
+    }
+
 
     private static int getIdFromGraph(SGraph graph, AmConllSentence sent) {
         String rootNodeName = graph.getNodeForSource("root");
@@ -187,6 +257,41 @@ public class CreateDatasetWithSyntaxSources {
             id = Integer.parseInt(rootNodeName.substring(2));// maps i_x to x
         }
         return id;
+    }
+
+    private static String syntaxRole2Source(String syntaxRole) {
+        return syntaxRole.split(":")[0];//TODO
+    }
+
+    /**
+     * Returns a copy of Type with oldSource replaced by newSource. All incoming edges of that source now
+     * also have the label newSource (i.e. this deletes all renames).
+     * @param type
+     * @param oldSource
+     * @param newSource
+     * @return
+     */
+    private static Type changeSource(Type type, String oldSource, String newSource) {
+        Type ret = Type.EMPTY_TYPE;
+        for (String source : type.getAllSources()) {
+            if (source.equals(oldSource)) {
+                ret = ret.addSource(newSource);
+            } else {
+                ret = ret.addSource(source);
+            }
+        }
+        for (Type.Edge edge : type.getAllEdges()) {
+            if (edge.getSource().equals(oldSource)) {
+                ret = ret.setDependency(newSource, edge.getTarget(), edge.getLabel());
+            } else if (edge.getTarget().equals(oldSource)) {
+                // also need to change the edge label here, since otherwise it will appear as a rename
+                // (this assumes there is no rename before).
+                ret = ret.setDependency(edge.getSource(), newSource, newSource);
+            } else {
+                ret = ret.setDependency(edge.getSource(), edge.getTarget(), edge.getLabel());
+            }
+        }
+        return ret;
     }
 
 }

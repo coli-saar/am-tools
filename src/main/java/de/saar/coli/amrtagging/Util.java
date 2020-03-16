@@ -282,7 +282,7 @@ public class Util {
      * @param edgeString
      * @return
      */
-    public Pair<String, Pair<Integer, Integer>> edgeString2Edge(String edgeString) {
+    public static Pair<String, Pair<Integer, Integer>> edgeString2Edge(String edgeString) {
         String label = edgeString.split("\\[")[0];
         //NOTE in earlier supertagger output, first and second was swapped. To properly evaluate that old output, maybe switch it here temporarily.
         Integer first = Integer.valueOf(edgeString.split("\\[")[1].split(",")[0]);
