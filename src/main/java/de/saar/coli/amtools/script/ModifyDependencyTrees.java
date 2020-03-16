@@ -75,6 +75,9 @@ public class ModifyDependencyTrees {
     private int neverFixedPSD = 0;
     private int neverFixedPAS = 0;
 
+    private int copula = 0;
+    private int copulaFixedDM = 0;
+
     /**
      * prints CSV tables for all auxiliary verbs according to wikipedia. Information includes total counts, and counts of
      * edge patterns.
@@ -153,6 +156,8 @@ public class ModifyDependencyTrees {
                 //modify new dep trees here
                 fixDeterminer(psdDep, dmDep, pasDep);
                 treeModifier.fixNegation(psdDep, dmDep, pasDep);
+                treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
+                treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
 
 
                 SGraph newdmSGraph = null;
@@ -217,6 +222,10 @@ public class ModifyDependencyTrees {
         System.out.println(treeModifier.negationsFixedPSD);
         System.out.println("Fixed in PAS:");
         System.out.println(treeModifier.negationsFixedPAS);
+
+        System.out.println("Copula found: "+treeModifier.copula
+                + " fixed: " + treeModifier.copulaFixedDM
+                + " : %fixed " + (treeModifier.copula == 0 ? 100 : 100*treeModifier.copulaFixedDM / (float)treeModifier.copula));
 
 
     }
@@ -432,6 +441,134 @@ public class ModifyDependencyTrees {
             } // found #Neg lemma
             index++;
         } // for psdEntry
+    }
+
+
+    public void fixPunctuation(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
+        // Punctuation
+        // in PAS sometimes punctuation integrated in graph, but not in psd and dm:
+        // fix: DM, psd create one-node blob with pnct and root source for them
+        // todo avoid magic strings if possible (import static strings from elsewhere?)
+        String ignore_edge = "IGNORE";
+        String mod_punct = "MOD_pnct";
+        int index = 0;
+        for (AmConllEntry word : pasDep){
+            if (word.getEdgeLabel().equals(mod_punct)){
+                //assert (pasDep.getParent(index) != null) // parent should be head of the MOD_punct relation
+                int parentID_pas = pasDep.getParent(index).getId(); // index is 0-based, parentID_pas is 1-based
+
+                // A. PSD if ignored, change to pas like structure
+                AmConllEntry psdWord = psdDep.get(index);
+                //assert psdWord != null; // same sentence , same size
+                if (psdWord.getEdgeLabel().equals(ignore_edge)
+                        && !psdDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
+                    // second term: skip if parent in PAS is ignored in PSD??? todo should i do this?
+                    // delete ignore edge, create edge parent-punctuation
+                    // create supertag for punctuation
+                    psdWord.setEdgeLabel(mod_punct); // was previously ignore
+                    psdWord.setHead(parentID_pas); // was previously artificial root
+                    psdWord.setDelexSupertag("(u<root, pnct>)");// empty modifier graph: one unlabeled node with root and det source.
+                    psdWord.setType(new ApplyModifyGraphAlgebra.Type("(pnct)"));
+                }
+
+                // B. DM if ignored, change to pas like structure
+                // todo copy pasted code, but what is the best way in java here to avoid it?
+                AmConllEntry dmWord = psdDep.get(index);
+                if (dmWord.getEdgeLabel().equals(ignore_edge) && !dmDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
+                    // second term: skip if parent in PAS is ignored in DM??? todo should i do this?
+                    // delete ignore edge, create edge parent-punctuation
+                    // create supertag for punctuation
+                    dmWord.setEdgeLabel(mod_punct); // was previously ignore
+                    dmWord.setHead(parentID_pas); // was previously artificial root
+                    dmWord.setDelexSupertag("(u<root, pnct>)");// empty modifier graph: one unlabeled node with root and det source.
+                    word.setType(new ApplyModifyGraphAlgebra.Type("(pnct)"));
+                }
+            }
+            index++;
+        }
+    }
+
+
+    public void fixAdjCopula(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
+        // Adjective copula
+        // DM
+        // - APPs from adjective to subject, adjective is root
+        // - ignore the to-be, directly connects adjective and subject (like in adnominal case)
+        // PSD
+        // - APPs from to-be to subject, APPo from to-be to object, to-be is root
+        // - treats this construction like a transitive verb one (to-be with ACT-arg and PAT-arg edge)
+        // PAS
+        // - (same as PSD: but control-structure forces more complicated type for to-be: o(mod_UNIFY_s), s
+        // - uses control-like structure (kind of DM and PSD merged) verb_ARG1/2 edges from to-be, adj_ARG1 edge from adjective to subject
+        // solution:
+        // o[s] blob for to-be in DM, so that PSD dep tree structure works
+        // todo change only if all frameworks show pattern (might miss some instances), is this the pattern we quantified (how frequent was it?)
+        ApplyModifyGraphAlgebra.Type unproblematic_adj_type = new ApplyModifyGraphAlgebra.Type("(s)");
+
+        String apps = "APP_s";
+        String appo = "APP_o";
+        String ignore = "IGNORE";
+        int index = 0;
+        for (AmConllEntry word : psdDep){
+            // word lemma be
+            if (word.getLemma().equals("be")){ // todo choose other framework for lemma - does this make a difference?
+                AmConllEntry subjectPAS = null;
+                AmConllEntry adjectivePAS = null;
+                // 1.find arguments of to be
+                for (AmConllEntry child: pasDep.getChildren(index)) {
+                    if (child.getEdgeLabel().equals(apps)) {
+                        subjectPAS = child;
+                    }
+                    else if (child.getEdgeLabel().equals(appo) && child.getPos().startsWith("JJ")) {
+                        adjectivePAS = child;
+                    }
+                }
+                if (subjectPAS == null || adjectivePAS == null) continue; // at least one argument not found -> skip
+                int subj0pas = subjectPAS.getId()-1; // 0-based
+                int adj0pas = adjectivePAS.getId()-1;
+
+                // 2. check if psd and dm have expected structure
+                // 2.1 PSD:   verb--APPs->subject and verb--APPo->adjective
+                AmConllEntry verbPSD = psdDep.get(index);
+                AmConllEntry subjPSD = psdDep.get(subj0pas);
+                AmConllEntry adjPSD = psdDep.get(adj0pas);
+                if (subjPSD.getHead() != verbPSD.getId() || !subjPSD.getEdgeLabel().equals(apps)) continue;
+                if (adjPSD.getHead() != verbPSD.getId() || !adjPSD.getEdgeLabel().equals(appo)) continue;
+                // todo check 0-based, 1-based not confused? getHead, getId comparable?
+
+                // 2.2 DM:    verb ignored,   adjective--APPs-> subject
+                AmConllEntry verbDM = dmDep.get(index);
+                AmConllEntry subjDM = dmDep.get(subj0pas);
+                AmConllEntry adjDM = dmDep.get(adj0pas);
+                if (!verbDM.getEdgeLabel().equals(ignore)) continue;
+                if (!subjDM.getEdgeLabel().equals(apps) || subjDM.getHead() != adjDM.getId()) continue;
+                // todo check 0-based, 1-based not confused? getHead, getId comparable?
+                // todo check if incoming edge is the same across PSD, DM, PAS? -> other phenomena?
+
+                copula++;
+                if (!adjDM.getType().equals(unproblematic_adj_type)) { // TODO: skip for now, but maybe find better solution?
+                    //System.err.println("Can't fix copula for now: problematic adjective type: " + adjDM.getType().toString() + " for adjective " + adjDM.getForm());
+                    continue;
+                }
+
+                // 3. change DM
+                // 3.1. heads (from h-->adj-->subj  to  h-->to-be-->adj and to-be-->subj )
+                int headDM = adjDM.getHead();
+                verbDM.setHead(headDM);
+                adjDM.setHead(verbDM.getId());
+                subjDM.setHead(verbDM.getId());
+                // 3.2 incoming dependency edges
+                verbDM.setEdgeLabel(adjDM.getEdgeLabel()); // todo side effects?
+                adjDM.setEdgeLabel(appo);
+                // subjDM.setEdgeLabel(apps); // already the case
+                // 3.3. types - only need to change verb
+                verbDM.setType(new ApplyModifyGraphAlgebra.Type("(o(s))"));
+                // 3.4 delex supertags - only need to change verb
+                verbDM.setDelexSupertag("(u<root, o>)"); // one node  s-annotation not part of supertag
+                copulaFixedDM++;
+            }
+            index++;
+        }
     }
 
 

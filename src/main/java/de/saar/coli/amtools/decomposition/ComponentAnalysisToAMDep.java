@@ -100,7 +100,7 @@ public class ComponentAnalysisToAMDep {
         System.err.println("Non-decomposeable: "+nondecomposeable);
     }
 
-    private AMDependencyTree componentAnalysis2AMDep(ComponentAutomaton componentAutomaton, SGraph graph, AMRBlobUtils blobUtils) throws IllegalArgumentException {
+    public AMDependencyTree componentAnalysis2AMDep(ComponentAutomaton componentAutomaton, SGraph graph, AMRBlobUtils blobUtils) throws IllegalArgumentException {
         ConcreteTreeAutomaton<Pair<ConnectedComponent, DAGComponent>> auto = componentAutomaton.asConcreteTreeAutomatonTopDown();
         Tree<Rule> ruleTree;
         try {
