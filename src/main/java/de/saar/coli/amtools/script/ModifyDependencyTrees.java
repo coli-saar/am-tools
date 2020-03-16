@@ -70,6 +70,10 @@ public class ModifyDependencyTrees {
     private int negations = 0;
     private int negationsFixedPSD = 0;
     private int negationsFixedPAS = 0;
+    
+    private int never = 0;
+    private int neverFixedPSD = 0;
+    private int neverFixedPAS = 0;
 
     /**
      * prints CSV tables for all auxiliary verbs according to wikipedia. Information includes total counts, and counts of
@@ -251,7 +255,60 @@ public class ModifyDependencyTrees {
         }
     }
     
+    
+    /**
+     * if we have MOD_x(oldHead, oldDependent) we can turn that into
+     * APP_source(oldDependent, oldHead)
+     * @param deptree
+     * @param oldDependent
+     * @param oldHead
+     * @param source 
+     */
+    public void swapHead(AlignedAMDependencyTree deptree, AmConllEntry oldDependent, AmConllEntry oldHead, String source){
+        if (!oldDependent.getEdgeLabel().startsWith("MOD")) throw new IllegalArgumentException("Dependent must be attached with MOD");
+        
+        String modifierSource = oldDependent.getEdgeLabel().split("_")[1]; 
+        
+        int incomingEdge = oldHead.getHead();
+        String incomingLabel = oldHead.getEdgeLabel();
+        
+        // Manipulate the type of the dependent to contain the new source and require the type at the head
+        
+        Type oldHeadType = deptree.getTermTypeAt(oldHead);
+        Set<String> origins = oldHeadType.getOrigins();
+        Type newHeadType = oldHeadType.addSource(source);
+        for (String o : origins){
+            newHeadType = newHeadType.setDependency(source, o, o);
+        }
+        
+        // Take the original s-graph, rename the x-source (corresponding to MOD_x) to the new source name
+        // and move the root source to the node that we used to modify with.
+        
+        SGraph oldDependentFragment = new IsiAmrInputCodec().read(oldDependent.getDelexSupertag());
+        String modifierNode = oldDependentFragment.getNodeForSource(modifierSource);
+        
+        oldDependentFragment = oldDependentFragment.renameSource(modifierSource, source);
+        
+        Set<String> sources = oldDependentFragment.getAllSources();
+        sources.remove("root");
+        oldDependentFragment = oldDependentFragment.forgetSourcesExcept(sources);
+        
+        oldDependentFragment.addSource("root", modifierNode);
+        
+        // make old head an APP dependent
+        oldHead.setHead(oldDependent.getId());
+        oldHead.setEdgeLabel("APP_"+source);
+        
+        //make old dependent the head
+        oldDependent.setHead(incomingEdge);
+        oldDependent.setEdgeLabel(incomingLabel);
+        oldDependent.setType(newHeadType);
+        oldDependent.setDelexSupertag(oldDependentFragment.toIsiAmrStringWithSources());
+        
+        
+    }
    
+    
     
     public void fixNegation(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, AlignedAMDependencyTree.ConllParserException {
         int index = 0;
@@ -260,16 +317,36 @@ public class ModifyDependencyTrees {
         SGraph desiredPASSupertag = new IsiAmrInputCodec().read("(i_2<root> / --LEX--  :adj_ARG1 (i_3<mod>))");
         SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_13<root> / --LEX--  :neg (i_12<mod>))");
         
-        //TODO: "never"?
+        
+        AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
         
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
             if (psdEntry.getLemma().equals("#Neg")){ // psdEntry is Negation word
+                this.negations ++;
+                // In DM we can be in the situation that the negation word is the head with outgoing APP_mod edge
+                // or - in relative clauses - , the negation would be the depndent of the verb and we have an incoming MOD_mod edge
+                
+                if (dmDep.getChildren(index).isEmpty() && new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag) && dmEntry.getEdgeLabel().equals("MOD_mod")){
+                    // we are probably in a relative clause
+                    // so we first make DM consistent that the negation word is the head, then we can apply the transformation for PSD and PAS
+                    
+                    // let's make sure that we are in a relative clause and see what the clause modifies
+                    AmConllEntry negatedDMverb = dmDep.getParent(index);
+                    Type termTypeofNegatedDMverb = dmTree.getTermTypeAt(negatedDMverb);
+                    if (negatedDMverb.getEdgeLabel().equals("MOD_s") || negatedDMverb.getEdgeLabel().equals("MOD_o")) {
+                        // subject or object relative clause
+                        // make negation child of what the clause modifies
+                        swapHead(dmTree, dmEntry, negatedDMverb, "neg");
+                    }
+                    
+                }
+                
                 // find verb or thing that is negated in DM: could be none, therefore use Optional
                 // outgoing dep. edges in DM from negation: if it's an APPmod edge, its target is the negated thing
-                this.negations ++;
-                Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_mod")).findFirst();
+                
+                Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_mod") || child.getEdgeLabel().equals("APP_neg")).findFirst();
                 if (potential_argument.isPresent()) {
                     AmConllEntry dmArgument = potential_argument.get();
                     // found DM negation
@@ -293,7 +370,6 @@ public class ModifyDependencyTrees {
                         // fix PSD
                         AlignedAMDependencyTree psdAlignedDeptree = AlignedAMDependencyTree.fromSentence(psdDep);
                         AmConllEntry psdNegated = psdDep.getParent(index); // verb or sth else
-                        ApplyModifyGraphAlgebra.Type negatedType = psdAlignedDeptree.getTermTypeAt(psdNegated); // type of the negated thing
 
                         SGraph supertag = new IsiAmrInputCodec().read(psdEntry.getDelexSupertag());
                         
@@ -302,30 +378,19 @@ public class ModifyDependencyTrees {
                             try {
                                 // take term type of negated element, add neg source and create dependencies such that the requirement 
                                 // at the neg source is the type of the negated element.
-                                Set<String> origins = negatedType.getOrigins();
-                                Type negationType = negatedType.addSource("neg");
-                                for (String orignalOrigin : origins){
-                                    negationType = negationType.setDependency("neg", orignalOrigin, orignalOrigin);
-                                }
-                                // change head
-                                psdEntry.setHead(psdNegated.getHead());
-                                psdEntry.setEdgeLabel(psdNegated.getEdgeLabel());
-                                // flip edge
-                                psdNegated.setHead(psdEntry.getId());
-                                psdNegated.setEdgeLabel("APP_neg");
-
-                                psdEntry.setType(negationType);
-
-                                // supertag:
-                                //   negation supertag has additional source at root!
-                                psdEntry.setDelexSupertag("(i / --LEX--  :RHEM-of (j<root, neg>))");
+                                swapHead(psdAlignedDeptree, psdEntry, psdNegated, "neg");
                                 negationsFixedPSD++;
                              } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
                              }
 
+                        } else { //PSD has unexpected supertag, no case in dev data.
+
                         }
 
 
+                    } else { //PSD doesn't have MOD_mod edge in right place:
+
+                        
                     }
 
                     // PAS
@@ -338,41 +403,31 @@ public class ModifyDependencyTrees {
                         // fix PAS
                         AlignedAMDependencyTree pasAlignedDeptree = AlignedAMDependencyTree.fromSentence(pasDep);
                         AmConllEntry pasNegated = pasDep.getParent(index); // verb or sth else
-                        ApplyModifyGraphAlgebra.Type negatedType = pasAlignedDeptree.getTermTypeAt(pasNegated);
 
                         SGraph supertag = new IsiAmrInputCodec().read(pasEntry.getDelexSupertag());
                         if (desiredPASSupertag.equals(supertag)) {
                             try {
-                                // see PSD
-                                Set<String> origins = negatedType.getOrigins();
-                                Type negationType = negatedType.addSource("neg");
-                                for (String orignalOrigin : origins){
-                                    negationType = negationType.setDependency("neg", orignalOrigin, orignalOrigin);
-                                }
-
-                                // change head
-                                pasEntry.setHead(pasNegated.getHead());
-                                pasEntry.setEdgeLabel(pasNegated.getEdgeLabel());
-                                // flip edge
-                                pasNegated.setHead(pasEntry.getId());
-                                pasNegated.setEdgeLabel("APP_neg");
-
-                                // supertag:
-                                //   negation supertag has additional source at root!
-                                pasEntry.setDelexSupertag("(i / --LEX--  :adj_ARG1 (j<root, neg>))");
-                                pasEntry.setType(negationType);
+                                swapHead(pasAlignedDeptree, pasEntry, pasNegated, "neg");
                                 
                                 negationsFixedPAS++;
                             } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
                             }
                             
+                        } else { //PAS uses unexpected supertag, no cases in gold dev.
+                          
                         }
 
+
+                    } else { //PAS doesn't have MOD_mod edge in expected place:
 
                     }
                     
                     // DEBUG TODO maybe look at what is actually negated this way? only verbs?
-                } // found negated argument
+                } // found negated argument 
+                else {
+                   // System.err.println(dmDep.getId());
+                   // System.err.println(dmDep);
+                }
 
             } // found #Neg lemma
             index++;
