@@ -124,24 +124,24 @@ public class CreateDatasetWithSyntaxSources {
                             AmConllSentence amConllSentence = dep2amConll(result, sdpGraph, syntaxEdges, supertagDictionary);
                             amConllSentenceList.add(amConllSentence);
                         } else {
-//                            System.err.println(index);
-//                            System.err.println(graph.toIsiAmrStringWithSources());
-//                            System.err.println(resultGraph.toIsiAmrStringWithSources());
+                            System.err.println(index);
+                            System.err.println(graph.toIsiAmrStringWithSources());
+                            System.err.println(resultGraph.toIsiAmrStringWithSources());
                             fails++;
                         }
                     } catch (java.lang.Exception ex) {
-//                        System.err.println(index);
+                        System.err.println(index);
 //                        System.err.println(graph.toIsiAmrStringWithSources());
 //                        System.err.println(result);
-//                        ex.printStackTrace();
+                        ex.printStackTrace();
                         fails++;
                     }
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
                 } catch (java.lang.Exception ex) {
-//                    System.err.println(index);
+                    System.err.println(index);
 //                    System.err.println(graph.toIsiAmrStringWithSources());
-//                    ex.printStackTrace();
+                    ex.printStackTrace();
                     fails++;
                 }
             }
@@ -190,10 +190,14 @@ public class CreateDatasetWithSyntaxSources {
         sent.add(artRoot);
 
         //add NE tags
-        List<String> forms = sdpGraph.getNodes().subList(1, sdpGraph.getNEdges()).stream().map(word -> word.form).collect(Collectors.toList());
+        List<String> forms = sdpGraph.getNodes().subList(1, sdpGraph.getNNodes()).stream().map(word -> word.form).collect(Collectors.toList());
         Sentence stanfAn = new Sentence(forms);
         List<String> neTags = new ArrayList<>(stanfAn.nerTags());
         neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
+        System.err.println(sent);
+        System.err.println(sent.size());
+        System.err.println(neTags);
+        System.err.println(neTags.size());
         sent.addNEs(neTags);
 
         // get best edge labels
