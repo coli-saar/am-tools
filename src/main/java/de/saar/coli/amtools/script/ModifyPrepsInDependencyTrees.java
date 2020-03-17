@@ -23,6 +23,8 @@ import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static de.saar.coli.amrtagging.AlignedAMDependencyTree.decodeNode;
@@ -50,7 +52,7 @@ public class ModifyPrepsInDependencyTrees {
     private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";;
+    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_devs_intersected\\";
 
 
 
@@ -147,7 +149,7 @@ public class ModifyPrepsInDependencyTrees {
                 //System.out.println(dmSGraph);
 
                 //modify new dep trees here
-                treeModifier.fixPreps220(psdDep, dmDep, pasDep);
+//                treeModifier.fixPreps220(psdDep, dmDep, pasDep);
 
 
                 SGraph newdmSGraph = null;
@@ -202,9 +204,9 @@ public class ModifyPrepsInDependencyTrees {
             }
         }
 
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/dm.amconll"), newAmDM);
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/pas.amconll"), newAmPAS);
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/psd.amconll"), newAmPSD);
+        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(cli.outputPath+"/dm.amconll"), StandardCharsets.UTF_8.newEncoder()), newAmDM);
+        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(cli.outputPath+"/pas.amconll"), StandardCharsets.UTF_8.newEncoder()), newAmPAS);
+        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(cli.outputPath+"/psd.amconll"), StandardCharsets.UTF_8.newEncoder()), newAmPSD);
 
         System.out.println("Prepositions (220):");
         System.out.println(treeModifier.preps220);
