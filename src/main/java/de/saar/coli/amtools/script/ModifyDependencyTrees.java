@@ -386,11 +386,14 @@ public class ModifyDependencyTrees {
         
         for (AmConllEntry dmEntry : dmDep) {
             
-            if (dmEntry.getLemma().equals("never") && (new IsiAmrInputCodec().read(dmEntry.getDelexSupertag())).equals(desiredDMSupertag)) {
+            if (dmEntry.getLemma().equals("never")){
+                this.never++;
+                
+                if ((new IsiAmrInputCodec().read(dmEntry.getDelexSupertag())).equals(desiredDMSupertag)) {
                 Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_s")).findFirst();
                 if (potential_argument.isPresent()) {
                     AmConllEntry dmArgument = potential_argument.get();
-                    this.never++;
+                    
                     
                     // now dmEntry is "never"
                     // there is an APP_s edge to the dmArgument
@@ -432,7 +435,7 @@ public class ModifyDependencyTrees {
                     
                 }
                 
-            }
+            }}
             index++;
          
         }
