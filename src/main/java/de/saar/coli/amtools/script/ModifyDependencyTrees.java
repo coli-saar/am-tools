@@ -36,13 +36,13 @@ public class ModifyDependencyTrees {
 
     //SDP corpora (i.e. original graphs)
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/dev/dev.sdp";
+    private String corpusPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.dm.sdp";
 
     @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/dev/dev.sdp";
+    private String corpusPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.pas.sdp";
 
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/psd/dev/dev.sdp";
+    private String corpusPathPSD = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.psd.sdp";
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
@@ -70,11 +70,13 @@ public class ModifyDependencyTrees {
     private int negations = 0;
     private int negationsFixedPSD = 0;
     private int negationsFixedPAS = 0;
+    private int negationsAllFixed = 0;
     
     private int never = 0;
     private int neverFixedPSD = 0;
     private int neverFixedPAS = 0;
-
+    private int neverAllFixed = 0;
+   
     private int copula = 0;
     private int copulaFixedDM = 0;
 
@@ -144,71 +146,77 @@ public class ModifyDependencyTrees {
                 String originalPSDDepStr = psdDep.toString();
                 String originalPASDepStr = pasDep.toString();
 
-
-                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                onlyIndicesAsLabels(dmSGraph);
-                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                onlyIndicesAsLabels(psdSGraph);
-                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-                onlyIndicesAsLabels(pasSGraph);
-                //System.out.println(dmSGraph);
-
-                //modify new dep trees here
-                fixDeterminer(psdDep, dmDep, pasDep);
-                treeModifier.fixNegation(psdDep, dmDep, pasDep);
-                treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
-                treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
+                try {
+                    SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                    onlyIndicesAsLabels(dmSGraph);
+                    SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                    onlyIndicesAsLabels(psdSGraph);
+                    SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                    onlyIndicesAsLabels(pasSGraph);
+                    //System.out.println(dmSGraph);
 
 
-                SGraph newdmSGraph = null;
-                SGraph newpsdSGraph = null;
-                SGraph newpasSGraph = null;
+                    //modify new dep trees here
+                    fixDeterminer(psdDep, dmDep, pasDep);
+                    treeModifier.fixNegation(psdDep, dmDep, pasDep);
+                    treeModifier.fixNever(psdDep, dmDep, pasDep);
+                    treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
+                    treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
+
+
+                    SGraph newdmSGraph = null;
+                    SGraph newpsdSGraph = null;
+                    SGraph newpasSGraph = null;
                 //try {
-                newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                onlyIndicesAsLabels(newdmSGraph);
-                newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                onlyIndicesAsLabels(newpsdSGraph);
-                newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-                onlyIndicesAsLabels(newpasSGraph);
-                
+                    newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                    onlyIndicesAsLabels(newdmSGraph);
+                    newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                    onlyIndicesAsLabels(newpsdSGraph);
+                    newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                    onlyIndicesAsLabels(newpasSGraph);
+
                 //} catch (IllegalArgumentException e) {
                 //    System.err.println(psdDep);
                 //    System.err.println(pasDep);
                 //    e.printStackTrace();
                 //}
 
-                if (!newdmSGraph.equals(dmSGraph)) {
-                    System.err.println(originalDMDepStr);
-                    System.err.println(dmDep);
-                    System.err.println(dmSGraph.toIsiAmrStringWithSources());
-                    System.err.println(newdmSGraph.toIsiAmrStringWithSources());
-                    SGraphDrawer.draw(dmSGraph, "original");
-                    SGraphDrawer.draw(newdmSGraph,"modified");
-                    
-                    throw new Exception("Difference in DM");
+                    if (!newdmSGraph.equals(dmSGraph)) {
+                        System.err.println(originalDMDepStr);
+                        System.err.println(dmDep);
+                        System.err.println(dmSGraph.toIsiAmrStringWithSources());
+                        System.err.println(newdmSGraph.toIsiAmrStringWithSources());
+                        SGraphDrawer.draw(dmSGraph, "original");
+                        SGraphDrawer.draw(newdmSGraph,"modified");
+
+                        throw new Exception("Difference in DM");
+                    }
+                    if (!newpsdSGraph.equals(psdSGraph)) {
+                        System.err.println(originalPSDDepStr);
+                        System.err.println(psdDep);
+                        System.err.println(psdSGraph.toIsiAmrStringWithSources());
+                        System.err.println(newpsdSGraph.toIsiAmrStringWithSources());
+                        SGraphDrawer.draw(psdSGraph, "original");
+                        SGraphDrawer.draw(newpsdSGraph,"modified");
+                        throw new Exception("Difference in PSD");
+                    }
+                    if (!newpasSGraph.equals(pasSGraph)) {
+                        System.err.println(originalPASDepStr);
+                        System.err.println(pasDep);
+                        System.err.println(pasSGraph.toIsiAmrStringWithSources());
+                        System.err.println(newpasSGraph.toIsiAmrStringWithSources());
+                        SGraphDrawer.draw(pasSGraph, "original");
+                        SGraphDrawer.draw(newpasSGraph,"modified");
+                        throw new Exception("Difference in PAS");
+                    }
+
+                    newAmDM.add(dmDep);
+                    newAmPAS.add(pasDep);
+                    newAmPSD.add(psdDep);
+                } catch (IllegalArgumentException ex){ // evaluation of orignal AM dep tree failed
+                    System.err.println("Skipping sentence because:");
+                    ex.printStackTrace();
                 }
-                if (!newpsdSGraph.equals(psdSGraph)) {
-                    System.err.println(originalPSDDepStr);
-                    System.err.println(psdDep);
-                    System.err.println(psdSGraph.toIsiAmrStringWithSources());
-                    System.err.println(newpsdSGraph.toIsiAmrStringWithSources());
-                    SGraphDrawer.draw(psdSGraph, "original");
-                    SGraphDrawer.draw(newpsdSGraph,"modified");
-                    throw new Exception("Difference in PSD");
-                }
-                if (!newpasSGraph.equals(pasSGraph)) {
-                    System.err.println(originalPASDepStr);
-                    System.err.println(pasDep);
-                    System.err.println(pasSGraph.toIsiAmrStringWithSources());
-                    System.err.println(newpasSGraph.toIsiAmrStringWithSources());
-                    SGraphDrawer.draw(pasSGraph, "original");
-                    SGraphDrawer.draw(newpasSGraph,"modified");
-                    throw new Exception("Difference in PAS");
-                }
-                
-                newAmDM.add(dmDep);
-                newAmPAS.add(pasDep);
-                newAmPSD.add(psdDep);
             }
         }
 
@@ -222,6 +230,15 @@ public class ModifyDependencyTrees {
         System.out.println(treeModifier.negationsFixedPSD);
         System.out.println("Fixed in PAS:");
         System.out.println(treeModifier.negationsFixedPAS);
+        System.out.println("Cases where all could be fixed "+treeModifier.negationsAllFixed);
+        
+        System.out.println("\nNever");
+        System.out.println(treeModifier.never);
+        System.out.println("Fixed in PSD:");
+        System.out.println(treeModifier.neverFixedPSD);
+        System.out.println("Fixed in PAS:");
+        System.out.println(treeModifier.neverFixedPAS);
+        System.out.println("Cases where all could be fixed "+treeModifier.neverAllFixed);
 
         System.out.println("Copula found: "+treeModifier.copula
                 + " fixed: " + treeModifier.copulaFixedDM
@@ -316,6 +333,111 @@ public class ModifyDependencyTrees {
         
         
     }
+    
+    /**
+     * Renames a source in a type.
+     * @param t
+     * @param oldName
+     * @param newName
+     * @return 
+     */
+    public Type renameSource(Type t, String oldName, String newName){
+        Type ret = Type.EMPTY_TYPE;
+        
+        
+        if (t.getAllSources().contains(newName)) throw new IllegalArgumentException("Couldn't rename source because new source name is already in use");
+        
+        for (String node : t.getAllSources()){
+            if (! node.equals(oldName)){
+                ret = ret.addSource(node);
+            } else {
+                ret = ret.addSource(newName);
+            }
+        }
+        for (Type.Edge e : t.getAllEdges()){
+            String source = e.getSource();
+            if (source.equals(oldName)) source = newName;
+
+            String target = e.getTarget();
+            if (target.equals(oldName)) target = newName;
+
+            String label = e.getLabel();
+            if (label.equals(oldName)) label = newName;
+
+            ret = ret.setDependency(source, target, label);
+        }
+
+        return ret;
+        
+    }
+    
+    public void fixNever(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, AlignedAMDependencyTree.ConllParserException {
+        int index = 0;
+        
+        SGraph desiredPSDSupertag = new IsiAmrInputCodec().read("(i_8<root> / --LEX--  :TWHEN-of (i_2<mod>))");
+        SGraph desiredPASSupertag = new IsiAmrInputCodec().read("(i_6<root> / --LEX--  :adj_ARG1 (i_8<mod>))");
+        SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_3<root> / --LEX--  :ARG1 (i_2<s>))");
+        
+        
+        AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
+        AlignedAMDependencyTree psdTree = AlignedAMDependencyTree.fromSentence(psdDep);
+        AlignedAMDependencyTree pasTree = AlignedAMDependencyTree.fromSentence(pasDep);
+        
+        boolean fixedPSD = false;
+        
+        for (AmConllEntry dmEntry : dmDep) {
+            
+            if (dmEntry.getLemma().equals("never") && (new IsiAmrInputCodec().read(dmEntry.getDelexSupertag())).equals(desiredDMSupertag)) {
+                Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_s")).findFirst();
+                if (potential_argument.isPresent()) {
+                    AmConllEntry dmArgument = potential_argument.get();
+                    this.never++;
+                    
+                    // now dmEntry is "never"
+                    // there is an APP_s edge to the dmArgument
+                    
+                    // rename s source to neg
+                    dmArgument.setEdgeLabel("APP_neg");
+                    dmEntry.setType(renameSource(dmEntry.getType(), "s", "neg"));
+                    dmEntry.setDelexSupertag("(i_3<root> / --LEX--  :ARG1 (i_2<neg>))");
+                    
+                    fixedPSD = false;
+                    
+                    //fix PSD where we have head -- MOD_mod --> never
+                    
+                    AmConllEntry psdEntry = psdDep.get(index);
+                    if (psdEntry.getEdgeLabel().equals("MOD_mod") && desiredPSDSupertag.equals(new IsiAmrInputCodec().read(psdEntry.getDelexSupertag()))
+                            && psdEntry.getHead() == dmArgument.getId() // do we want this condition? Perhaps, we should systematically swap?
+                            ){
+                        // we indeed have the situation as described above in PSD
+                        
+                        swapHead(psdTree, psdEntry, psdDep.getParent(index), "neg");
+                        neverFixedPSD++;
+                        fixedPSD = true;
+                        
+                    }
+                    
+                    // fix PAS, same situation as in PSD
+                    AmConllEntry pasEntry = pasDep.get(index);
+                    if (pasEntry.getEdgeLabel().equals("MOD_mod") && desiredPASSupertag.equals(new IsiAmrInputCodec().read(pasEntry.getDelexSupertag()))
+                            && pasEntry.getHead() == dmArgument.getId() // do we want this condition?
+                            ){
+                        
+                        swapHead(pasTree, pasEntry, pasDep.getParent(index), "neg");
+                        neverFixedPAS++;
+                        
+                        if (fixedPSD) neverAllFixed++; 
+                        
+                    }
+                    
+                    
+                }
+                
+            }
+            index++;
+         
+        }
+    }
    
     
     
@@ -329,11 +451,13 @@ public class ModifyDependencyTrees {
         
         AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
         
+        boolean fixedPSD = false;
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
             if (psdEntry.getLemma().equals("#Neg")){ // psdEntry is Negation word
                 this.negations ++;
+                fixedPSD = false;
                 // In DM we can be in the situation that the negation word is the head with outgoing APP_mod edge
                 // or - in relative clauses - , the negation would be the depndent of the verb and we have an incoming MOD_mod edge
                 
@@ -389,6 +513,7 @@ public class ModifyDependencyTrees {
                                 // at the neg source is the type of the negated element.
                                 swapHead(psdAlignedDeptree, psdEntry, psdNegated, "neg");
                                 negationsFixedPSD++;
+                                fixedPSD = true;
                              } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
                              }
 
@@ -419,6 +544,7 @@ public class ModifyDependencyTrees {
                                 swapHead(pasAlignedDeptree, pasEntry, pasNegated, "neg");
                                 
                                 negationsFixedPAS++;
+                                if (fixedPSD) negationsAllFixed++;
                             } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
                             }
                             
