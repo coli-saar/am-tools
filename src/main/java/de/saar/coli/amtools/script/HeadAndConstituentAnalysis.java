@@ -387,7 +387,7 @@ public class HeadAndConstituentAnalysis {
      * @param right3
      * @return
      */
-    private static IntList getHeadMatchEdges(AmConllSentence dep1, AmConllSentence dep2, AmConllSentence dep3,
+    public static IntList getHeadMatchEdges(AmConllSentence dep1, AmConllSentence dep2, AmConllSentence dep3,
                                              int left2, int right2, int left3, int right3) {
         IntList ret = new IntArrayList();
         for (AmConllEntry word : dep1) {
