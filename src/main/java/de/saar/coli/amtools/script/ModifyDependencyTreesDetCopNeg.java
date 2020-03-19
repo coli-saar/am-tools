@@ -59,7 +59,10 @@ public class ModifyDependencyTreesDetCopNeg {
     private static DMBlobUtils dmBlobUtils = new DMBlobUtils();
     private static PASBlobUtils pasBlobUtils = new PASBlobUtils();
     private static PSDBlobUtils psdBlobUtils = new PSDBlobUtils();
-    
+
+    //private int determiner = 0;
+    //private int determinerFixedPSD = 0;
+
     private int negations = 0;
     private int negationsFixedPSD = 0;
     private int negationsFixedPAS = 0;
@@ -112,6 +115,11 @@ public class ModifyDependencyTreesDetCopNeg {
     public int getCopulaFixedDM() {
         return copulaFixedDM;
     }
+	
+    private int punctuation = 0;
+    private int punctuationFixedPSD = 0;
+    private int punctuationFixedDM = 0;
+    private int punctuationAllFixed = 0;
 
     /**
      *
@@ -166,10 +174,14 @@ public class ModifyDependencyTreesDetCopNeg {
         
         ModifyDependencyTreesDetCopNeg treeModifier = new ModifyDependencyTreesDetCopNeg();
 
+        int decomposableGraphs = 0;
         while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null && (psdGraph = grPSD.readGraph()) != null) {
             if (decomposedIDs.contains(dmGraph.id)) {
                 //now we know the graph was decomposed in all graphbanks, and we have all three AM dep trees for it.
                 // we can also look at the original graphs (dmGraph etc) if we need to.
+                decomposableGraphs++;
+                if (decomposableGraphs % 2000 == 1) System.out.print(".");
+
                 String id = dmGraph.id;
                 AmConllSentence dmDep = id2amDM.get(id);
                 AmConllSentence pasDep = id2amPAS.get(id);
@@ -189,6 +201,7 @@ public class ModifyDependencyTreesDetCopNeg {
 
 
                     //modify new dep trees here
+                    //treeModifier.fixDeterminer(psdDep, dmDep, pasDep);
                     fixDeterminer(psdDep, dmDep, pasDep);
                     treeModifier.fixNegation(psdDep, dmDep, pasDep);
                     treeModifier.fixNever(psdDep, dmDep, pasDep);
@@ -245,8 +258,8 @@ public class ModifyDependencyTreesDetCopNeg {
                     newAmDM.add(dmDep);
                     newAmPAS.add(pasDep);
                     newAmPSD.add(psdDep);
-                } catch (IllegalArgumentException ex){ // evaluation of orignal AM dep tree failed
-                    System.err.println("Skipping sentence because:");
+                } catch (IllegalArgumentException ex){ // evaluation of original AM dep tree failed
+                    System.err.println("(Graph ID "+ id + "): Skipping sentence because:");
                     ex.printStackTrace();
                 }
             }
@@ -255,7 +268,11 @@ public class ModifyDependencyTreesDetCopNeg {
         AmConllSentence.write(new FileWriter(cli.outputPath+"/dm.amconll"), newAmDM);
         AmConllSentence.write(new FileWriter(cli.outputPath+"/pas.amconll"), newAmPAS);
         AmConllSentence.write(new FileWriter(cli.outputPath+"/psd.amconll"), newAmPSD);
-        
+
+        System.out.println("Decomposable graphs: " + decomposableGraphs);
+
+        //System.out.println("Determiner: " + treeModifier.determiner + " found, " + treeModifier.determinerFixedPSD + " fixed (all)");
+
         System.out.println("Negations:");
         System.out.println(treeModifier.negations);
         System.out.println("Fixed in PSD:");
@@ -272,9 +289,22 @@ public class ModifyDependencyTreesDetCopNeg {
         System.out.println(treeModifier.neverFixedPAS);
         System.out.println("Cases where all could be fixed "+treeModifier.neverAllFixed);
 
-        System.out.println("Copula found: "+treeModifier.copula
+        System.out.println("\nCopula found: "+treeModifier.copula
                 + " fixed: " + treeModifier.copulaFixedDM
                 + " : %fixed " + (treeModifier.copula == 0 ? 100 : 100*treeModifier.copulaFixedDM / (float)treeModifier.copula));
+
+        System.out.println("\nPunctuations:");
+        System.out.println(treeModifier.punctuation);
+        System.out.println("Fixed in PSD:");
+        System.out.println(treeModifier.punctuationFixedPSD
+                + "\t\tin percent: " + (treeModifier.punctuation == 0 ? 100 : 100*treeModifier.punctuationFixedPSD / (float)treeModifier.punctuation));
+        System.out.println("Fixed in DM:");
+        System.out.println(treeModifier.punctuationFixedDM
+                + "\t\tin percent: " + (treeModifier.punctuation == 0 ? 100 : 100*treeModifier.punctuationFixedDM / (float)treeModifier.punctuation));
+        System.out.println("Cases where all could be fixed " + treeModifier.punctuationAllFixed
+                + "\t\tin percent: " + (treeModifier.punctuation == 0 ? 100 : 100*treeModifier.punctuationAllFixed / (float)treeModifier.punctuation));
+
+
 
 
     }
@@ -300,6 +330,7 @@ public class ModifyDependencyTreesDetCopNeg {
         int index = 0;
         for (AmConllEntry word : psdDep){
             if (word.getPos().equals("DT") && word.getEdgeLabel().equals("IGNORE")){
+                // determiner++;
                 // System.err.println(index);
                 // System.err.println(dmDep.getParent(index));
                 if (dmDep.getParent(index) == null) continue; // if DM ignored determiner as well, skip this
@@ -308,6 +339,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 word.setEdgeLabel("MOD_det");
                 word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
                 word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
+                // determinerFixedPSD++;
             }
             index++;
         }
@@ -607,19 +639,23 @@ public class ModifyDependencyTreesDetCopNeg {
 
     public void fixPunctuation(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
         // Punctuation
-        // in PAS sometimes punctuation integrated in graph, but not in psd and dm:
-        // fix: DM, psd create one-node blob with pnct and root source for them
+        // in PAS sometimes punctuation integrated in graph, but not in PSD and DM:
+        // fix: DM, PSD create one-node blob with pnct and root source for them
         // todo avoid magic strings if possible (import static strings from elsewhere?)
         String ignore_edge = "IGNORE";
         String mod_punct = "MOD_pnct";
         int index = 0;
         for (AmConllEntry word : pasDep){
-            if (word.getEdgeLabel().equals(mod_punct)){
+            if (word.getEdgeLabel().equals(mod_punct)){ // TODO maybe check if APPpnct exists?
+                punctuation++;
+                boolean fixedPSD = false;
+                boolean fixedDM = false;
+                // variable index now points to punctuation symbol, AmConnlEntry word is punctuation entry
                 //assert (pasDep.getParent(index) != null) // parent should be head of the MOD_punct relation
                 int parentID_pas = pasDep.getParent(index).getId(); // index is 0-based, parentID_pas is 1-based
 
-                // A. PSD if ignored, change to pas like structure
-                AmConllEntry psdWord = psdDep.get(index);
+                // A. PSD if ignored, change to PAS like structure
+                AmConllEntry psdWord = psdDep.get(index); // punctuation is PSD
                 //assert psdWord != null; // same sentence , same size
                 if (psdWord.getEdgeLabel().equals(ignore_edge)
                         && !psdDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
@@ -627,23 +663,30 @@ public class ModifyDependencyTreesDetCopNeg {
                     // delete ignore edge, create edge parent-punctuation
                     // create supertag for punctuation
                     psdWord.setEdgeLabel(mod_punct); // was previously ignore
-                    psdWord.setHead(parentID_pas); // was previously artificial root
+                    psdWord.setHead(parentID_pas); // was previously artificial root probably
                     psdWord.setDelexSupertag("(u<root, pnct>)");// empty modifier graph: one unlabeled node with root and det source.
                     psdWord.setType(new ApplyModifyGraphAlgebra.Type("(pnct)"));
+                    punctuationFixedPSD++;
+                    fixedPSD = true;
                 }
 
                 // B. DM if ignored, change to pas like structure
                 // todo copy pasted code, but what is the best way in java here to avoid it?
-                AmConllEntry dmWord = psdDep.get(index);
+                AmConllEntry dmWord = dmDep.get(index);
                 if (dmWord.getEdgeLabel().equals(ignore_edge) && !dmDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
-                    // second term: skip if parent in PAS is ignored in DM??? todo should i do this?
+                    // second term: skip if parent in PAS is ignored in DM???
                     // delete ignore edge, create edge parent-punctuation
                     // create supertag for punctuation
                     dmWord.setEdgeLabel(mod_punct); // was previously ignore
                     dmWord.setHead(parentID_pas); // was previously artificial root
                     dmWord.setDelexSupertag("(u<root, pnct>)");// empty modifier graph: one unlabeled node with root and det source.
-                    word.setType(new ApplyModifyGraphAlgebra.Type("(pnct)"));
+                    dmWord.setType(new ApplyModifyGraphAlgebra.Type("(pnct)"));
+                    punctuationFixedDM++;
+                    fixedDM = true;
                 }
+
+                // if both DM and PSD fixed : increment counter
+                if (fixedDM && fixedPSD) punctuationAllFixed++;
             }
             index++;
         }
