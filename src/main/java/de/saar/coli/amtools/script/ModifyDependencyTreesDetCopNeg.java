@@ -7,32 +7,25 @@ import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import static de.saar.coli.amrtagging.AlignedAMDependencyTree.decodeNode;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.codec.IsiAmrInputCodec;
-import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.eclipse.collections.impl.factory.Sets;
-import se.liu.ida.nlp.sdp.toolkit.graph.Edge;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
-import se.liu.ida.nlp.sdp.toolkit.graph.Node;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static de.saar.coli.amtools.script.FindPatternsAcrossSDP.*;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 
-public class ModifyDependencyTrees {
+public class ModifyDependencyTreesDetCopNeg {
 
     //SDP corpora (i.e. original graphs)
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
@@ -80,6 +73,46 @@ public class ModifyDependencyTrees {
     private int copula = 0;
     private int copulaFixedDM = 0;
 
+    public int getNegations() {
+        return negations;
+    }
+
+    public int getNegationsFixedPSD() {
+        return negationsFixedPSD;
+    }
+
+    public int getNegationsFixedPAS() {
+        return negationsFixedPAS;
+    }
+
+    public int getNegationsAllFixed() {
+        return negationsAllFixed;
+    }
+
+    public int getNever() {
+        return never;
+    }
+
+    public int getNeverFixedPSD() {
+        return neverFixedPSD;
+    }
+
+    public int getNeverFixedPAS() {
+        return neverFixedPAS;
+    }
+
+    public int getNeverAllFixed() {
+        return neverAllFixed;
+    }
+
+    public int getCopula() {
+        return copula;
+    }
+
+    public int getCopulaFixedDM() {
+        return copulaFixedDM;
+    }
+
     /**
      *
      * @param args
@@ -91,7 +124,7 @@ public class ModifyDependencyTrees {
      */
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, AlignedAMDependencyTree.ConllParserException, ParserException, Exception {
         //just getting command line args
-        ModifyDependencyTrees cli = new ModifyDependencyTrees();
+        ModifyDependencyTreesDetCopNeg cli = new ModifyDependencyTreesDetCopNeg();
         JCommander commander = new JCommander(cli);
         try {
             commander.parse(args);
@@ -131,7 +164,7 @@ public class ModifyDependencyTrees {
         List<AmConllSentence> newAmPAS = new ArrayList<>();
         List<AmConllSentence> newAmPSD = new ArrayList<>();
         
-        ModifyDependencyTrees treeModifier = new ModifyDependencyTrees();
+        ModifyDependencyTreesDetCopNeg treeModifier = new ModifyDependencyTreesDetCopNeg();
 
         while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null && (psdGraph = grPSD.readGraph()) != null) {
             if (decomposedIDs.contains(dmGraph.id)) {
@@ -251,7 +284,7 @@ public class ModifyDependencyTrees {
      * and only keeps the alignment
      * @param sg 
      */
-    private static void onlyIndicesAsLabels(SGraph sg){
+    public static void onlyIndicesAsLabels(SGraph sg){
          for (String nodeName : sg.getAllNodeNames()) {
             Pair<Integer, Pair<String, String>> infos = decodeNode(sg.getNode(nodeName));
             sg.getNode(nodeName).setLabel(Integer.toString(infos.left));

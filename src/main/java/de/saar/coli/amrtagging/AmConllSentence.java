@@ -440,4 +440,23 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
             return null;
         }
     }
+
+    /**
+     * clones this sentence by cloning each entry and copying each attribute.
+     * @Author JG
+     * @return
+     */
+    @Override
+    public Object clone() {
+        AmConllSentence clone = new AmConllSentence();
+        // clone each entry
+        clone.addAll(this.stream().map(entry -> (AmConllEntry)entry.clone()).collect(Collectors.toList()));
+        for (String key : this.attributes.keySet()) {
+            clone.setAttr(key, this.attributes.get(key));
+        }
+        clone.lineNr = this.lineNr;
+        //modCount is some weird list thing, may as well copy I suppose
+        clone.modCount = this.modCount;
+        return clone;
+    }
 }
