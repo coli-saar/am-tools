@@ -194,10 +194,6 @@ public class CreateDatasetWithSyntaxSources {
         Sentence stanfAn = new Sentence(forms);
         List<String> neTags = new ArrayList<>(stanfAn.nerTags());
         neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        System.err.println(sent);
-        System.err.println(sent.size());
-        System.err.println(neTags);
-        System.err.println(neTags.size());
         sent.addNEs(neTags);
 
         // get best edge labels

@@ -2,7 +2,6 @@ package de.saar.coli.amtools.script;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
@@ -133,7 +132,7 @@ public class HeadednessExperiments {
                 AmConllSentence psdDep = id2amPSD.get(id);
 
                 //fix determiners, to get better constituency estimates below
-                ModifyDependencyTrees.fixDeterminer(psdDep, dmDep, pasDep);
+                ModifyDependencyTreesDetCopNeg.fixDeterminer(psdDep, dmDep, pasDep);
 
                 //ignore 0 in next loop, since it is the artificial root of the SDP graph
                 Set<IntList> chains = new HashSet<>();

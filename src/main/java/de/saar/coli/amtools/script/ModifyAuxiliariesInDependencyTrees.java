@@ -14,7 +14,6 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.SGraphDrawer;
-import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.tree.ParseException;
 import org.eclipse.collections.impl.factory.Sets;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
@@ -29,26 +28,26 @@ public class ModifyAuxiliariesInDependencyTrees {
 
     //SDP corpora (i.e. original graphs)
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
+    private String corpusPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\dev\\dev.sdp";
 
     @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.pas.sdp";
+    private String corpusPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\dev\\dev.sdp";
 
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.psd.sdp";
+    private String corpusPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\dev\\dev.sdp";
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "../../data/corpora/semDep/uniformify2020/original_decompositions/dm/gold-dev/gold-dev.amconll";
+    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "../../data/corpora/semDep/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
+    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "../../data/corpora/semDep/uniformify2020/original_decompositions/psd/gold-dev/gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "../../experimentData/uniformify2020/";
+    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
 
 
 
@@ -61,8 +60,8 @@ public class ModifyAuxiliariesInDependencyTrees {
     private static PSDBlobUtils psdBlobUtils = new PSDBlobUtils();
 
     private int temporalAuxiliaries = 0;
-    private int temporalAuxiliariesFixedDM = 0;
-    private int temporalAuxiliariesFixedPSD = 0;
+    private int unusualType = 0;
+    private int temporalAuxiliariesFixed = 0;
 
     /**
      * @param args
@@ -138,7 +137,7 @@ public class ModifyAuxiliariesInDependencyTrees {
                 //System.out.println(dmSGraph);
 
                 //modify new dep trees here
-                treeModifier.fixTimeAuxiliaries(psdDep, dmDep, pasDep, psdGraph, dmGraph, pasGraph);
+                treeModifier.fixTemporalAuxiliaries(psdDep, dmDep, pasDep);
 
 
                 SGraph newdmSGraph = null;
@@ -199,10 +198,10 @@ public class ModifyAuxiliariesInDependencyTrees {
 
         System.out.println("temp aux:");
         System.out.println(treeModifier.temporalAuxiliaries);
-        System.out.println("Fixed in DM:");
-        System.out.println(treeModifier.temporalAuxiliariesFixedDM);
-        System.out.println("Fixed in PSD:");
-        System.out.println(treeModifier.temporalAuxiliariesFixedPSD);
+        System.out.println("unusual types:");
+        System.out.println(treeModifier.unusualType);
+        System.out.println("Fixed (in both DM and PSD):");
+        System.out.println(treeModifier.temporalAuxiliariesFixed);
 
 
     }
@@ -220,8 +219,8 @@ public class ModifyAuxiliariesInDependencyTrees {
     }
 
 
-    public void fixTimeAuxiliaries(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep,
-                                   Graph psdGraph, Graph dmGraph, Graph pasGraph)throws ParseException, AlignedAMDependencyTree.ConllParserException {
+    public void fixTemporalAuxiliaries(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep)
+            throws ParseException {
         int index = 0;
 
         String desiredSupertagTemplate = "(i<root, --SOURCE-->)";
@@ -230,12 +229,19 @@ public class ModifyAuxiliariesInDependencyTrees {
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
-            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmGraph, pasGraph, psdGraph, psdEntry.getId()).equals("040")
-                    && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
+//            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmGraph, pasGraph, psdGraph, psdEntry.getId()).equals("040")
+//                    && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
+            if (pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)
+                && psdEntry.getEdgeLabel().equals(AmConllEntry.IGNORE) && dmEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)
+                && pasEntry.getPos().startsWith("V")) {
                 this.temporalAuxiliaries ++;
+                if (!new Type("(s,o)").equals(pasEntry.getType())) {
+                    this.unusualType++;
+//                    System.err.println(pasEntry.getId());
+//                    System.err.println(pasDep);
+                }
 
                 String source = pasEntry.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                System.err.println(source);
                 String desiredSupertag = desiredSupertagTemplate.replace("--SOURCE--", source);
                 Type desiredType = new Type("("+source+")");
 
@@ -243,13 +249,12 @@ public class ModifyAuxiliariesInDependencyTrees {
                 psdEntry.setType(desiredType);
                 psdEntry.setHead(pasEntry.getHead());
                 psdEntry.setEdgeLabel(pasEntry.getEdgeLabel());
-                temporalAuxiliariesFixedPSD++;
 
                 dmEntry.setDelexSupertag(desiredSupertag);
                 dmEntry.setType(desiredType);
                 dmEntry.setHead(pasEntry.getHead());
                 dmEntry.setEdgeLabel(pasEntry.getEdgeLabel());
-                temporalAuxiliariesFixedDM++;
+                temporalAuxiliariesFixed++;
 
             }
             index++;
