@@ -47,6 +47,8 @@ public class AllDependencyChanges {
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
     private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
 
+    @Parameter(names = {"--onlyDeterminers"}, description = "only fix determiners (for testing purposes)")
+    private boolean onlyDeterminers=false;
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -116,9 +118,12 @@ public class AllDependencyChanges {
 //        Graph pasGraph;
 //        Graph psdGraph;
         //TODO move this to constructor
-        List<AmConllSentence> amDM = AmConllSentence.read(new FileReader(changer.amconllPathDM));
-        List<AmConllSentence> amPSD = AmConllSentence.read(new FileReader(changer.amconllPathPSD));
-        List<AmConllSentence> amPAS = AmConllSentence.read(new FileReader(changer.amconllPathPAS));
+        List<AmConllSentence> amDM = AmConllSentence.read(new InputStreamReader(
+                new FileInputStream(changer.amconllPathDM), StandardCharsets.UTF_8));
+        List<AmConllSentence> amPAS = AmConllSentence.read(new InputStreamReader(
+                new FileInputStream(changer.amconllPathPAS), StandardCharsets.UTF_8));
+        List<AmConllSentence> amPSD = AmConllSentence.read(new InputStreamReader(
+                new FileInputStream(changer.amconllPathPSD), StandardCharsets.UTF_8));
         // add the read files to our changer object
         changer.addData(amDM, amPAS, amPSD);
         System.out.println("Before modifications");
@@ -140,64 +145,65 @@ public class AllDependencyChanges {
         });
         changer.printComparisons();
 
-        //punctuation
-        System.out.println("fixing punctuation");
-        changer.applyFix(dm -> pas -> psd -> {
-            try {
-                treeModifier.fixPunctuation(psd, dm, pas);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        changer.printComparisons();
+        if (!changer.onlyDeterminers) {
+            //punctuation
+            System.out.println("fixing punctuation");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    treeModifier.fixPunctuation(psd, dm, pas);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
 
-        //temporal auxiliaries
-        System.out.println("Fixing temporal auxiliaries");
-        ModifyAuxiliariesInDependencyTrees auxTreeFixer = new ModifyAuxiliariesInDependencyTrees();
-        changer.applyFix(dm -> pas -> psd -> {
-            try {
-                auxTreeFixer.fixTemporalAuxiliaries(psd, dm, pas);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        changer.printComparisons();
+            //temporal auxiliaries
+            System.out.println("Fixing temporal auxiliaries");
+            ModifyAuxiliariesInDependencyTrees auxTreeFixer = new ModifyAuxiliariesInDependencyTrees();
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    auxTreeFixer.fixTemporalAuxiliaries(psd, dm, pas);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
 
-        //prepositions
-        System.out.println("Fixing prepositions (220 pattern)");
-        ModifyPrepsInDependencyTrees prepTreeFixer = new ModifyPrepsInDependencyTrees();
-        changer.applyFix(dm -> pas -> psd -> {
-            try {
-                prepTreeFixer.fixPreps220(psd, dm, pas);
-            } catch (ParserException | ParseException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        changer.printComparisons();
+            //prepositions
+            System.out.println("Fixing prepositions (220 pattern)");
+            ModifyPrepsInDependencyTrees prepTreeFixer = new ModifyPrepsInDependencyTrees();
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    prepTreeFixer.fixPreps220(psd, dm, pas);
+                } catch (ParserException | ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
 
-        //negation
-        System.out.println("Fixing negations");
-        changer.applyFix(dm -> pas -> psd -> {
-            try {
-                treeModifier.fixNegation(psd, dm, pas);
-                treeModifier.fixNever(psd, dm, pas);
-            } catch (ParseException | AlignedAMDependencyTree.ConllParserException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        changer.printComparisons();
+            //negation
+            System.out.println("Fixing negations");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    treeModifier.fixNegation(psd, dm, pas);
+                    treeModifier.fixNever(psd, dm, pas);
+                } catch (ParseException | AlignedAMDependencyTree.ConllParserException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
 
-        //adjective copula
-        System.out.println("Fixing adjective copula");
-        changer.applyFix(dm -> pas -> psd -> {
-            try {
-                treeModifier.fixAdjCopula(psd, dm, pas);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        changer.printComparisons();
-
+            //adjective copula
+            System.out.println("Fixing adjective copula");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    treeModifier.fixAdjCopula(psd, dm, pas);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
+        }
         System.out.println("DM fails: "+changer.dmFails);
         System.out.println("PAS fails: "+changer.pasFails);
         System.out.println("PSD fails: "+changer.psdFails);
