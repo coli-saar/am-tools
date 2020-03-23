@@ -17,6 +17,7 @@ import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,23 +26,23 @@ public class AllDependencyChanges {
 
     //SDP corpora (i.e. original graphs)
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\dev\\dev.sdp";
+    private String corpusPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.dm.sdp";
 
     @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\dev\\dev.sdp";
+    private String corpusPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.pas.sdp";
 
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\dev\\dev.sdp";
+    private String corpusPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.psd.sdp";
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\gold-dev\\gold-dev.amconll";
+    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\train\\train.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\train\\train.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\train\\train.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
     private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
@@ -197,10 +198,14 @@ public class AllDependencyChanges {
         });
         changer.printComparisons();
 
+        System.out.println("DM fails: "+changer.dmFails);
+        System.out.println("PAS fails: "+changer.pasFails);
+        System.out.println("PSD fails: "+changer.psdFails);
 
-        AmConllSentence.write(new FileWriter(changer.outputPath+"/dm.amconll"), changer.intersectedDepsDM);
-        AmConllSentence.write(new FileWriter(changer.outputPath+"/pas.amconll"), changer.intersectedDepsPAS);
-        AmConllSentence.write(new FileWriter(changer.outputPath+"/psd.amconll"), changer.intersectedDepsPSD);
+
+        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/dm.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsDM);
+        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/pas.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsPAS);
+        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/psd.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsPSD);
     }
 
     private void applyFix(Function<AmConllSentence, Function<AmConllSentence, Consumer<AmConllSentence>>> fixingFunction)
@@ -217,22 +222,36 @@ public class AllDependencyChanges {
             AmConllSentence psdBackup = (AmConllSentence)psdDep.clone();
 
             //save original evaluation results for later checking
-            SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(dmSGraph);
-            SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(psdSGraph);
-            SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(pasSGraph);
+//            SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+//            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(dmSGraph);
+//            SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+//            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(psdSGraph);
+//            SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+//            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(pasSGraph);
 
             //modify new dep trees here
-            fixingFunction.apply(dmDep).apply(pasDep).accept(psdDep);
+            try {
+                fixingFunction.apply(dmDep).apply(pasDep).accept(psdDep);
+            } catch (Exception ex) {
+                //restore backups
+                intersectedDepsDM.remove(i);
+                intersectedDepsDM.add(i, dmBackup);
+                intersectedDepsPAS.remove(i);
+                intersectedDepsPAS.add(i, pasBackup);
+                intersectedDepsPSD.remove(i);
+                intersectedDepsPSD.add(i, psdBackup);
+                dmFails++;
+                pasFails++;
+                psdFails++;
+            }
 
             // try to evaluate new graph, and use backup if it fails or if result differs
             //DM
             try {
                 SGraph newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
                 ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newdmSGraph);
-                if (!newdmSGraph.equals(dmSGraph)) {
+                //if (!newdmSGraph.equals(dmSGraph)) {
+                if (newdmSGraph == null) {
                     //restore backup
                     intersectedDepsDM.remove(i);
                     intersectedDepsDM.add(i, dmBackup);
@@ -251,7 +270,8 @@ public class AllDependencyChanges {
             try {
                 SGraph newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
                 ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newpasSGraph);
-                if (!newpasSGraph.equals(pasSGraph)) {
+                //if (!newpasSGraph.equals(pasSGraph)) {
+                if (newpasSGraph == null) {
                     //restore backup
                     intersectedDepsPAS.remove(i);
                     intersectedDepsPAS.add(i, pasBackup);
@@ -270,7 +290,8 @@ public class AllDependencyChanges {
             try {
                 SGraph newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
                 ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newpsdSGraph);
-                if (!newpsdSGraph.equals(psdSGraph)) {
+                //if (!newpsdSGraph.equals(psdSGraph)) {
+                if (newpsdSGraph == null) {
                     //restore backup
                     intersectedDepsPSD.remove(i);
                     intersectedDepsPSD.add(i, psdBackup);
