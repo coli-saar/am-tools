@@ -11,6 +11,7 @@ import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
+import de.up.ling.irtg.algebra.graph.*;
 import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.tree.ParseException;
 import org.eclipse.collections.impl.factory.Sets;
@@ -20,10 +21,7 @@ import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 import java.io.*;
 import java.util.*;
 
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
-import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.algebra.graph.SGraphDrawer;
 
 public class ModifyDependencyTreesDetCopNeg {
 
@@ -121,6 +119,9 @@ public class ModifyDependencyTreesDetCopNeg {
     private int punctuationFixedDM = 0;
     private int punctuationAllFixed = 0;
 
+    private int binaryconjunction = 0;
+    private int binaryconjunctionFixedDM = 0;
+
     /**
      *
      * @param args
@@ -207,6 +208,7 @@ public class ModifyDependencyTreesDetCopNeg {
                     treeModifier.fixNever(psdDep, dmDep, pasDep);
                     treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
                     treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
+                    treeModifier.fixBinaryConjuction(psdDep, dmDep, pasDep);
 
 
                     SGraph newdmSGraph = null;
@@ -305,6 +307,10 @@ public class ModifyDependencyTreesDetCopNeg {
                 + "\t\tin percent: " + (treeModifier.punctuation == 0 ? 100 : 100*treeModifier.punctuationAllFixed / (float)treeModifier.punctuation));
 
 
+        System.out.println("Binary coordination");
+        System.out.println(treeModifier.binaryconjunction);
+        System.out.println("Fixed in DM");
+        System.out.println(treeModifier.binaryconjunctionFixedDM);
 
 
     }
@@ -775,5 +781,166 @@ public class ModifyDependencyTreesDetCopNeg {
         }
     }
 
+    /**
+     * Fixing Binary conjunction:
+     * detection pattern:
+     * - CC pos tag in PSD with APP_op and APP_op2 (and no other APP_opX edges) +
+     * DM ignores the conjunction and conjuncts are connected directly using MOD_coord +
+     * the head of PSD's conjunction is the same as that of DM's first conjunct
+     * Changes:
+     * - DM MOD_coord structure changed to APP_op1, APP_op2 structure like PSD/PAS (conjunction no longer ignored)
+     * - PSD's APP_op changed to APP_op1 (plus subsequent changes in the types and supertags)
+     * TODO: APP_coord (not only MOD_coord); order (op, op2 vs op2,op) shouldn't matter?;
+     * */
+    public void fixBinaryConjuction(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, ParserException {
+        ApplyModifyGraphAlgebra.Type unproblematic_coord_type = new ApplyModifyGraphAlgebra.Type("(coord)");
+
+        String appop = "APP_op";
+        String appop1 = "APP_op1";
+        String appop2 = "APP_op2";
+        String modcoord = "MOD_coord";
+        String ignore = "IGNORE";
+        // todo avoid magic strings for edge labels and also sources? maybe import sources from BlobUtils?
+        int index = 0;
+        for (AmConllEntry word : psdDep){
+            // CC postag (conjunction)
+            if (word.getPos().equals("CC")){
+                // PSD 2 APP children (APP_op and APP_op1)
+                // DM 1 coord edge
+
+                AmConllEntry firstConjunctPSD = null;
+                AmConllEntry secondConjunctPSD = null;
+                boolean multiconj = false;
+
+                // 1.find arguments of conjunction in PSD
+                for (AmConllEntry child: psdDep.getChildren(index)) {
+                    if (child.getEdgeLabel().equals(appop)) {
+                        firstConjunctPSD = child;
+                    }
+                    else if (child.getEdgeLabel().equals(appop2)) {
+                        secondConjunctPSD = child;
+                    }
+                    else if (child.getEdgeLabel().startsWith(appop)) {  // more conjuncts?
+                        multiconj = true;
+                    }
+                }
+                if (multiconj) continue;  // skip multiconj for now  // maybe count them still?
+
+                if (firstConjunctPSD == null || secondConjunctPSD == null) continue; // skip if not two conjuncts found
+                int psdconj1idx = firstConjunctPSD.getId()-1; // 0-based
+                int psdconj2idx = secondConjunctPSD.getId()-1;
+                // do we need to check the type of PSD's conjunction? e.g. equals (op,op2) or related
+                // todo maybe verify if also same structure in PAS?
+
+                // 2. Find DM structure
+                // coord edge between conjuncts?
+                AmConllEntry firstConjunctDM = dmDep.get(psdconj1idx);
+                AmConllEntry secondConjunctDM = dmDep.get(psdconj2idx);
+                AmConllEntry conjunctionDM = dmDep.get(index);
+                // a) conjunction node ignored in DM
+                if (!conjunctionDM.getEdgeLabel().equals(ignore)) continue;
+                // b) MOD_coord edge between first and second // todo check reverse direction of op, op2 ! and app coord!
+                if (!secondConjunctDM.getEdgeLabel().equals(modcoord) || secondConjunctDM.getHead() != firstConjunctDM.getId()) continue;
+                // c) head of firstConjunctDM is same as head of PSD conjunction node
+                if (firstConjunctDM.getHead() != word.getHead()) continue;
+
+                binaryconjunction++;
+                /*if (!secondConjunctDM.getType().equals(unproblematic_coord_type)) {
+                    // skip for now, but maybe find better solution?  (source percolation)
+                    // when these instances are no longer excluded, also change the setType for secondConjunct (further down) accordingly
+                    System.err.println("Can't fix coordination for now: problematic type in DM: "
+                            + secondConjunctDM.getType().toString() + " for second conjunct " + secondConjunctDM.getForm());
+                    continue;
+                }*/
+
+                // 3. change DM (and PSD source names...
+                // - [DM] change head from first conjunct to conjunction
+                int headDM = firstConjunctDM.getHead();
+                String toconjlabel = firstConjunctDM.getEdgeLabel();
+                conjunctionDM.setHead(headDM);
+                conjunctionDM.setEdgeLabel(toconjlabel); // was previously ignore
+                // - [DM] conjuncts receive incoming edge from conjunction node
+                firstConjunctDM.setHead(conjunctionDM.getId());
+                secondConjunctDM.setHead(conjunctionDM.getId());
+                firstConjunctDM.setEdgeLabel(appop1);
+                secondConjunctDM.setEdgeLabel(appop2); // was previously MODcoord
+                // - [DM] change supertag of second conjunct (delete conjunction edge in supertag plus incident coord node)
+                Pair<SGraph, SGraph> supertags =  prepareNewDMSupertags(secondConjunctDM.delexGraph());
+                secondConjunctDM.setDelexSupertag(supertags.left.toIsiAmrStringWithSources());
+                // - [DM] change type of second conjunct from coord, to nothing
+                //secondConjunctDM.setType(new ApplyModifyGraphAlgebra.Type("()")); // was  "(coord)"  previously
+                secondConjunctDM.setType(secondConjunctDM.getType().performApply("coord"));// todo is this the right way to remove the coord source?
+                // - [DM] create supertag for conjunction in DM (use edge deleted from secondConj supertag) plus type
+                conjunctionDM.setDelexSupertag(supertags.right.toIsiAmrStringWithSources());
+                // something like conjunctionDM.setDelexSupertag("(u<root, op1> :_and_c (v<op2>))");  but not just for :_and_c edge,
+                // not sure about directionaly (_and_c or _and_c-of ?)
+                conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type("(op1, op2)"));// todo is this problematic?
+                // - [PSD] change APP_op to APP_op1 and corresponding type change
+                firstConjunctPSD.setEdgeLabel(appop1); // was previously APP_op  note the absence of the number 1
+                String oldsupertag = word.getDelexSupertag();
+                String newsupertag = oldsupertag.replaceFirst("<op>", "<op1>");
+                // todo this is kind of a hack and a bit dangerous: we assume that there is only one <op> in the supertag
+                word.setDelexSupertag(newsupertag);
+                word.setType(renameSource(word.getType(), "op", "op1"));
+
+                binaryconjunctionFixedDM++;
+            }
+            index++;
+        }
+    }
+
+    /**
+     * (copied and modified from ModifyPrepsInDependencyTrees.java)
+     *
+     * @param secondConjunctGraph Supertag for second conjunct (that one with the coord source)
+     * @return Pair of modified supertag graph for second conjunct and supertag for conjunction
+     */
+    private static Pair<SGraph, SGraph> prepareNewDMSupertags(SGraph secondConjunctGraph) {
+        String sourceNameToGetRidOf = "coord";
+        SGraph newSecondConjunctGraph = new SGraph();
+        SGraph ConjunctionGraph = new SGraph();
+        // todo what about --LEX-- for new conjunction supertag?
+        // todo avoid magic strings
+
+        String slotNode = secondConjunctGraph.getNodeForSource(sourceNameToGetRidOf);
+        for (GraphNode node : secondConjunctGraph.getGraph().vertexSet()) {
+            Collection<String> sources = secondConjunctGraph.getSourcesAtNode(node.getName());
+            if (sources.contains("root")) {
+                // not checked whether also contains coord, but assume that this never happens? maybe worth checking with assert..
+                newSecondConjunctGraph.addNode(node.getName(), node.getLabel());
+                ConjunctionGraph.addNode(node.getName(), null); // todo label for root node of conjunction graph?
+                for (String source : sources) {
+                    newSecondConjunctGraph.addSource(source, node.getName());
+                }
+                //ConjunctionGraph.addSource("root", node.getName());
+                ConjunctionGraph.addSource("op2", node.getName());
+            } else if (sources.contains(sourceNameToGetRidOf)) {
+                if (sources.size() > 1) {
+                    System.err.println("More than one source on coord node!");
+                }
+                if (node.getLabel() != null) {
+                    System.err.println("non-null label found: "+node.getLabel());
+                }
+                ConjunctionGraph.addNode(node.getName(), null);
+                ConjunctionGraph.addSource("root", node.getName());
+                ConjunctionGraph.addSource("op1", node.getName());
+            } else {
+                newSecondConjunctGraph.addNode(node.getName(), node.getLabel());
+                for (String source : sources) {
+                    newSecondConjunctGraph.addSource(source, node.getName());
+                }
+            }
+        }
+        // add edges either to retGraph or retEdge graph:
+        // all edges with slotNode as incident node are added to retEdge, all others to retGraph
+        for (GraphEdge edge : secondConjunctGraph.getGraph().edgeSet()) {
+            if (edge.getSource().getName().equals(slotNode) || edge.getTarget().getName().equals(slotNode)) {
+                ConjunctionGraph.addEdge(edge.getSource(), edge.getTarget(), edge.getLabel());
+            } else {
+                newSecondConjunctGraph.addEdge(edge.getSource(), edge.getTarget(), edge.getLabel());
+            }
+        }
+        return new Pair<>(newSecondConjunctGraph, ConjunctionGraph);
+    }
 
 }

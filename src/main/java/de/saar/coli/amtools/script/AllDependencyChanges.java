@@ -203,6 +203,18 @@ public class AllDependencyChanges {
                 }
             });
             changer.printComparisons();
+
+            //binary coordination
+            System.out.println("Fixing binary coordination ");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    treeModifier.fixBinaryConjuction(psd, dm, pas);
+                } catch (ParseException | ParserException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
+
         }
         System.out.println("DM fails: "+changer.dmFails);
         System.out.println("PAS fails: "+changer.pasFails);
