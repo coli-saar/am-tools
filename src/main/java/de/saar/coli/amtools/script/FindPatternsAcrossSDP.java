@@ -133,7 +133,7 @@ public class FindPatternsAcrossSDP {
 
 
     static String consistentIndent(String s) {
-        return (s+"            ").substring(0,12);
+        return (s+"                    ").substring(0,20);
     }
 
 

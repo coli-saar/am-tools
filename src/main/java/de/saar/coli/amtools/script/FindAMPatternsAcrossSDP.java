@@ -21,9 +21,8 @@ import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.graph.Node;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,34 +30,21 @@ import static de.saar.coli.amtools.script.FindPatternsAcrossSDP.*;
 
 public class FindAMPatternsAcrossSDP {
 
-    //SDP corpora (i.e. original graphs)
-    @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
-
-    @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.pas.sdp";
-
-    @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "../../data/corpora/semDep/sdp2014_2015/data/2015/en.psd.sdp";
-
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "../../experimentData/uniformify2020/original_decomps/dm/gold-dev/gold-dev.amconll";
+    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\train\\train.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "../../experimentData/uniformify2020/original_decomps/pas/gold-dev/gold-dev.amconll";
+    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\train\\train.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "../../experimentData/uniformify2020/original_decomps/psd/gold-dev/gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\train\\train.amconll";
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
 
-    private static DMBlobUtils dmBlobUtils = new DMBlobUtils();
-    private static PASBlobUtils pasBlobUtils = new PASBlobUtils();
-    private static PSDBlobUtils psdBlobUtils = new PSDBlobUtils();
 
     /**
      * prints CSV tables for all auxiliary verbs according to wikipedia. Information includes total counts, and counts of
@@ -89,15 +75,16 @@ public class FindAMPatternsAcrossSDP {
 
 
         //setup
-        GraphReader2015 grDM = new GraphReader2015(cli.corpusPathDM);
-        GraphReader2015 grPAS = new GraphReader2015(cli.corpusPathPAS);
-        GraphReader2015 grPSD = new GraphReader2015(cli.corpusPathPSD);
-        Graph dmGraph;
-        Graph pasGraph;
-        Graph psdGraph;
-        List<AmConllSentence> amDM = AmConllSentence.read(new FileReader(cli.amconllPathDM));
-        List<AmConllSentence> amPSD = AmConllSentence.read(new FileReader(cli.amconllPathPSD));
-        List<AmConllSentence> amPAS = AmConllSentence.read(new FileReader(cli.amconllPathPAS));
+        System.err.println("reading amDM");
+        List<AmConllSentence> amDM = AmConllSentence.read(new InputStreamReader(
+                new FileInputStream(cli.amconllPathDM), StandardCharsets.UTF_8));
+        System.err.println("reading amPAS");
+        List<AmConllSentence> amPAS = AmConllSentence.read(new InputStreamReader(
+                new FileInputStream(cli.amconllPathPAS), StandardCharsets.UTF_8));
+        System.err.println("reading amPSD");
+        List<AmConllSentence> amPSD = AmConllSentence.read(new InputStreamReader(
+                new FileInputStream(cli.amconllPathPSD), StandardCharsets.UTF_8));
+        System.err.println("done reading");
         // map IDs to AmConllSentences so we can look the AmConllSentences up
         Map<String, AmConllSentence> id2amDM = new HashMap<>();
         amDM.stream().forEach(sent -> id2amDM.put(sent.getId(), sent));
@@ -109,6 +96,13 @@ public class FindAMPatternsAcrossSDP {
 
         Map<String, Counter<String>> patterns2lemmaCounter = new HashMap<>();
         Map<String, Counter<String>> patterns2posCounter = new HashMap<>();
+        int totalNodes = 0;
+        int totalDiffs = 0;
+        Set<String> equalPatterns = new HashSet<>();
+        for (int i = 0; i <= MAX_PATTERN; i++) {
+            String iString = String.valueOf(i);
+            equalPatterns.add(iString+iString+iString);
+        }
 
         for (int i = 0; i<=MAX_PATTERN; i++) {
             for (int j = 0; j<=MAX_PATTERN; j++) {
@@ -119,16 +113,17 @@ public class FindAMPatternsAcrossSDP {
             }
         }
 
-        while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null && (psdGraph = grPSD.readGraph()) != null) {
-            if (decomposedIDs.contains(dmGraph.id)) {
-                //now we know the graph was decomposed in all graphbanks, and we have all three AM dep trees for it.
-                String id = dmGraph.id;
-                //ignore 0 in next loop, since it is the artificial root of the SDP graph
-                for (int i = 1; i < psdGraph.getNNodes(); i++) {
-                    String patternCombination = getPatternCombination(id2amDM.get(id), id2amPAS.get(id), id2amPSD.get(id),
-                            dmGraph, pasGraph, psdGraph, i);
-                    patterns2lemmaCounter.get(patternCombination).add(psdGraph.getNode(i).lemma);
-                    patterns2posCounter.get(patternCombination).add(psdGraph.getNode(i).pos);
+        for (String sentenceID : decomposedIDs) {
+            //ignore 0 in next loop, since it is the artificial root of the SDP graph
+            AmConllSentence dmDep = id2amDM.get(sentenceID);
+            for (int i = 0; i < dmDep.size(); i++) {
+                String patternCombination = getPatternCombination(id2amDM.get(sentenceID),
+                        id2amPAS.get(sentenceID), id2amPSD.get(sentenceID), i+1);
+                patterns2lemmaCounter.get(patternCombination).add(dmDep.get(i).getLemma());
+                patterns2posCounter.get(patternCombination).add(dmDep.get(i).getPos());
+                totalNodes++;
+                if (!equalPatterns.contains(patternCombination)) {
+                    totalDiffs++;
                 }
             }
         }
@@ -136,6 +131,9 @@ public class FindAMPatternsAcrossSDP {
         List<String> sortedPatterns = patterns2lemmaCounter.keySet().stream()
                 .sorted((o1, o2) -> patterns2lemmaCounter.get(o2).sum()-patterns2lemmaCounter.get(o1).sum())
                 .collect(Collectors.toList());
+
+        System.err.println("Total nodes: "+totalNodes);
+        System.err.println("Total diffs: "+totalDiffs);
 
         for (int i = 0; i<50; i++) {
             String pattern = sortedPatterns.get(i);
@@ -164,6 +162,11 @@ public class FindAMPatternsAcrossSDP {
             System.err.println("\n");
         }
 
+
+        for (String pattern : sortedPatterns) {
+            System.err.println(patterns2lemmaCounter.get(pattern).sum());
+        }
+
     }
 
     /**
@@ -177,44 +180,54 @@ public class FindAMPatternsAcrossSDP {
      * 7: no blob edge, but part of graph
      * 8: other
      * @param amDepTree
-     * @param i is 0-based for SDP graph, 1-based for AmConllEntry
+     * @param id is 0-based for SDP graph, 1-based for AmConllEntry
      * @return
      */
-    public static int getPattern(AmConllSentence amDepTree, Graph sdpGraph, int i) {
-        if (i == 0) {
-            return 0;
+    public static int getPattern(AmConllSentence amDepTree, int id) {
+        if (id == 0) {
+            return 0; // id is 1-based
         }
-        List<AmConllEntry> children = amDepTree.getChildren(i-1);
-        AmConllEntry entry = amDepTree.get(i-1);
-        if (entry.getDelexSupertag() == null || entry.getDelexSupertag().equals("") || entry.getDelexSupertag().equals("_")) {
-            return 0;
-        } else if (children.isEmpty() && entry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
-            return 7;
-        } else if (children.size() == 2 && isHead(amDepTree, i)) {
-            if (!areConnected(children.get(0).getId(), children.get(1).getId(), sdpGraph)) {
-                return 1;
-            } else {
-                return 3;
+        AmConllEntry entry = amDepTree.get(id-1);
+        String edgeLabel = entry.getEdgeLabel();
+        List<AmConllEntry> children = amDepTree.getChildren(id-1);
+        Set<String> childAppSources = new HashSet<>();
+        for (AmConllEntry child : children) {
+            if (child.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
+                childAppSources.add(child.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
             }
-        } else if (children.size() == 1) {
-            if (isHead(amDepTree, i)) {
+        }
+        int numAppChildren = childAppSources.size();
+        ApplyModifyGraphAlgebra.Type type = entry.getType();
+        if (edgeLabel.equals(AmConllEntry.IGNORE)) {
+            return 0;
+        } else if (edgeLabel.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
+            // this works also for the case where the parent is the artificial root. So this is true iff our entry is a head.
+            if (numAppChildren == 0) {
+                return 7;
+            } else if (numAppChildren == 1) {
                 return 5;
-            } else {
-                if (!areConnected(entry.getHead(), children.get(0).getId(), sdpGraph)) {
-                    return 2;
-                } else {
+            } else if (numAppChildren == 2) {
+                boolean hasTypeEdge = false;
+                for (ApplyModifyGraphAlgebra.Type.Edge edge : type.getAllEdges()) {
+                    if (childAppSources.contains(edge.getSource()) || childAppSources.contains(edge.getTarget())) {
+                        // the above line is a bit of a roundabout way of checking this, but should work
+                        hasTypeEdge = true;
+                    }
+                }
+                return hasTypeEdge ? 3 : 1;
+            }
+        } else if (edgeLabel.startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
+            if (numAppChildren == 0) {
+                if (type.getAllSources().size() == 1) {
+                    return 6;
+                } else if (type.getAllSources().size() == 2) {
                     return 4;
                 }
+            } else if (numAppChildren == 1) {
+                return 2;
             }
-        } else if (children.size() == 0) {
-            if (isHead(amDepTree, i)) {
-                return 7;
-            } else {
-                return 6;
-            }
-        } else {
-            return 8;
         }
+        return 8;
     }
 
 
@@ -260,11 +273,10 @@ public class FindAMPatternsAcrossSDP {
 
 
     public static String getPatternCombination(AmConllSentence dmAMDepTree, AmConllSentence pasAMDepTree,
-                                               AmConllSentence psdAMDepTree, Graph dmGraph, Graph pasGraph,
-                                               Graph psdGraph, int i) {
-        int patternDM = getPattern(dmAMDepTree, dmGraph, i);
-        int patternPAS = getPattern(pasAMDepTree, pasGraph, i);
-        int patternPSD = getPattern(psdAMDepTree, psdGraph, i);
+                                               AmConllSentence psdAMDepTree, int i) {
+        int patternDM = getPattern(dmAMDepTree, i);
+        int patternPAS = getPattern(pasAMDepTree, i);
+        int patternPSD = getPattern(psdAMDepTree, i);
         return patterns2string(patternDM, patternPAS, patternPSD);
     }
 
