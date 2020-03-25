@@ -98,6 +98,9 @@ public class FindAMPatternsAcrossSDP {
         Map<String, Counter<String>> patterns2posCounter = new HashMap<>();
         int totalNodes = 0;
         int totalDiffs = 0;
+        int alreadyUnifiedDiffs = 0;
+        String equivalentControl = "13";//indicating that the AM algebra already makes 1 and 3 equivalent
+        String equivalentMod = "46";//indicating that the AM algebra already makes 4 and 6 equivalent
         Set<String> equalPatterns = new HashSet<>();
         for (int i = 0; i <= MAX_PATTERN; i++) {
             String iString = String.valueOf(i);
@@ -124,6 +127,14 @@ public class FindAMPatternsAcrossSDP {
                 totalNodes++;
                 if (!equalPatterns.contains(patternCombination)) {
                     totalDiffs++;
+                    if ((equivalentControl.contains(patternCombination.substring(0,1))
+                        && equivalentControl.contains(patternCombination.substring(1,2))
+                        && equivalentControl.contains(patternCombination.substring(2,3)))
+                        || (equivalentMod.contains(patternCombination.substring(0,1))
+                            && equivalentMod.contains(patternCombination.substring(1,2))
+                            && equivalentMod.contains(patternCombination.substring(2,3)))) {
+                        alreadyUnifiedDiffs++;
+                    }
                 }
             }
         }
@@ -134,6 +145,7 @@ public class FindAMPatternsAcrossSDP {
 
         System.err.println("Total nodes: "+totalNodes);
         System.err.println("Total diffs: "+totalDiffs);
+        System.err.println("Already unified by AM algebra: "+totalDiffs);
 
         for (int i = 0; i<50; i++) {
             String pattern = sortedPatterns.get(i);
@@ -164,9 +176,15 @@ public class FindAMPatternsAcrossSDP {
 
 
         for (String pattern : sortedPatterns) {
-            System.err.println(patterns2lemmaCounter.get(pattern).sum());
+            System.err.println(pattern+","+patterns2lemmaCounter.get(pattern).sum());
         }
 
+        System.err.println("DIFFERENCES:");
+        for (String pattern : sortedPatterns) {
+            if (!equalPatterns.contains(pattern)) {
+                System.err.println(pattern + "," + patterns2lemmaCounter.get(pattern).sum());
+            }
+        }
     }
 
     /**
