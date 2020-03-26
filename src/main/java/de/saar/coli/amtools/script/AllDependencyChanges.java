@@ -208,7 +208,7 @@ public class AllDependencyChanges {
             System.out.println("Fixing binary coordination ");
             changer.applyFix(dm -> pas -> psd -> {
                 try {
-                    treeModifier.fixBinaryConjuction(psd, dm, pas);
+                    treeModifier.fixBinaryConjunction(psd, dm, pas);
                 } catch (ParseException | ParserException e) {
                     throw new RuntimeException(e);
                 }
