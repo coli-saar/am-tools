@@ -869,16 +869,16 @@ public class ModifyDependencyTreesDetCopNeg {
                 int psdconj2idx = secondConjunctPSD.getId()-1;
                 // do we need to check the type of PSD's conjunction? e.g. equals (op,op2) or related
 
-                // 2. Find DM structure
-                // coord edge between conjuncts?
+                // 2. Find DM structure - coord edge between conjuncts?
                 AmConllEntry firstConjunctDM = dmDep.get(psdconj1idx);
                 AmConllEntry secondConjunctDM = dmDep.get(psdconj2idx);
                 AmConllEntry conjunctionDM = dmDep.get(index);
                 // a) conjunction node ignored in DM
                 if (!conjunctionDM.getEdgeLabel().equals(ignore)) continue;
                 // b) APPcoord or MODcoord egde between the two conjuncts
-                // PW: at least on the SDP2015 dev set it seems like only one structure is used firstConjunct is Head + MODcoord?
-                if (!secondConjunctDM.getEdgeLabel().equals(modcoord) || secondConjunctDM.getHead() != firstConjunctDM.getId()) continue;
+                // Most frequent structure is MODcoord with first conjunct as head, but others are possible too.
+                // Depending on the structure (MOD or APP, first or second as head), the new DM supertag for the
+                // conjunction looks slightly different.
                 boolean usesModCoord = false;
                 boolean coordEdgeInFirstConjunct = false;
                 if (secondConjunctDM.getEdgeLabel().equals(modcoord) && secondConjunctDM.getHead() == firstConjunctDM.getId()) {
@@ -906,17 +906,19 @@ public class ModifyDependencyTreesDetCopNeg {
                     assert(firstConjunctDM.getType().getAllSources().contains(coordsource));
                 }
                 else {
-                    // no APP/MOD coord edge between conjuncts in DM
+                    // no APP/MOD coord edge between conjuncts in DM -> not a DM coordination
                     continue;
                 }
                 boolean firstConjunctIsHead = usesModCoord ^ coordEdgeInFirstConjunct; // ^ is logical XOR
-                // c) if we would like to be conservative: head of PSD conjunction node is the same as head of the DM conjunct with the outgoing APP/MODcoord edge
+                // c) if we would like to be conservative: head of PSD conjunction node is the same as head of the
+                // DM conjunct with the outgoing APP/MODcoord edge
                 //if (firstConjunctIsHead && firstConjunctDM.getHead() != word.getHead()) continue;
                 //if (!firstConjunctIsHead && secondConjunctDM.getHead() != word.getHead()) continue;
                 AmConllEntry headConjunctDM = firstConjunctIsHead ? firstConjunctDM : secondConjunctDM;
                 AmConllEntry coordSrcConjunctDM = coordEdgeInFirstConjunct ? firstConjunctDM : secondConjunctDM;
 
                 binaryconjunction++;
+                
                 // 3. change DM (and PSD source names...
                 // get term types of DM conjuncts:
                 System.err.println(dmDep.getId()+" : " + firstConjunctDM.getId());
@@ -924,6 +926,8 @@ public class ModifyDependencyTreesDetCopNeg {
 
                 Type conjunctDMTermType = dmDepTree.getTermTypeAt(headConjunctDM);
                 
+                // 3. actual fix: change DM (and PSD source names)...
+
                 // - [DM] change head from first conjunct to conjunction
                 int headDM = headConjunctDM.getHead();
                 String toconjlabel = headConjunctDM.getEdgeLabel();
@@ -943,6 +947,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 coordSrcConjunctDM.setType(secondConjunctDM.getType().performApply(coordsource));// todo is this the right way to remove the coord source?
                 // - [DM] create supertag for conjunction in DM (use edge deleted from secondConj supertag) plus type
                 conjunctionDM.setDelexSupertag(supertags.right.toIsiAmrStringWithSources());
+
                 // something like conjunctionDM.setDelexSupertag("(u<root, op1> :_and_c (v<op2>))");  but not just for :_and_c edge,
                 // not sure about directionaly (_and_c or _and_c-of ?)
                 
@@ -952,8 +957,15 @@ public class ModifyDependencyTreesDetCopNeg {
                 
                 //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type("(op1, op2)"));
                 conjunctionDM.setType(conjunctionTypeDM);
+
+                // Type firsttype = firstConjunctDM.getType();
+                // Type secondtype = secondConjunctDM.getType();
+                // String conjtype = "(op1" + firsttype + ", op2" + secondtype + ")" ;  // dirty hack and only an approximation of the desired solution
+                //String conjtype = "(op1, op2)";
+                //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type(conjtype));
+
                 // todo [BUG] the previous line is problematic if the type should be something like (op1(mod), op2(mod)
-                // - [PSD] change APP_op to APP_op1 and corresponding type change
+                // - [PSD] change APP_op to APP_op1 and corresponding type & supertag change
                 firstConjunctPSD.setEdgeLabel(appop1); // was previously APP_op  note the absence of the number 1
                 String oldsupertag = word.getDelexSupertag();
                 String newsupertag = oldsupertag.replaceFirst("<op>", "<op1>");
