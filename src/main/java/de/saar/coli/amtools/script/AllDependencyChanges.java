@@ -209,7 +209,7 @@ public class AllDependencyChanges {
             changer.applyFix(dm -> pas -> psd -> {
                 try {
                     treeModifier.fixBinaryConjuction(psd, dm, pas);
-                } catch (ParseException | ParserException e) {
+                } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e) {
                     throw new RuntimeException(e);
                 }
             });

@@ -22,6 +22,7 @@ import java.io.*;
 import java.util.*;
 
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type.Edge;
 
 public class ModifyDependencyTreesDetCopNeg {
 
@@ -37,7 +38,7 @@ public class ModifyDependencyTreesDetCopNeg {
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/gold-dev/gold-dev.amconll";
+    private String amconllPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/gold-dev/toy.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
     private String amconllPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
@@ -176,6 +177,7 @@ public class ModifyDependencyTreesDetCopNeg {
         ModifyDependencyTreesDetCopNeg treeModifier = new ModifyDependencyTreesDetCopNeg();
 
         int decomposableGraphs = 0;
+        int problems = 0;
         while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null && (psdGraph = grPSD.readGraph()) != null) {
             if (decomposedIDs.contains(dmGraph.id)) {
                 //now we know the graph was decomposed in all graphbanks, and we have all three AM dep trees for it.
@@ -203,11 +205,11 @@ public class ModifyDependencyTreesDetCopNeg {
 
                     //modify new dep trees here
                     //treeModifier.fixDeterminer(psdDep, dmDep, pasDep);
-                    fixDeterminer(psdDep, dmDep, pasDep);
-                    treeModifier.fixNegation(psdDep, dmDep, pasDep);
-                    treeModifier.fixNever(psdDep, dmDep, pasDep);
-                    treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
-                    treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
+                    //fixDeterminer(psdDep, dmDep, pasDep);
+                    //treeModifier.fixNegation(psdDep, dmDep, pasDep);
+                    //treeModifier.fixNever(psdDep, dmDep, pasDep);
+                    //treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
+                    //treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
                     treeModifier.fixBinaryConjuction(psdDep, dmDep, pasDep);
 
 
@@ -266,6 +268,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 } catch (IllegalArgumentException ex){ // evaluation of original AM dep tree failed
                     System.err.println("(Graph ID "+ id + "): Skipping sentence because:");
                     ex.printStackTrace();
+                    problems++;
                 }
             }
         }
@@ -275,6 +278,7 @@ public class ModifyDependencyTreesDetCopNeg {
         AmConllSentence.write(new FileWriter(cli.outputPath+"/psd.amconll"), newAmPSD);
 
         System.out.println("Decomposable graphs: " + decomposableGraphs);
+        System.out.println("Problems "+ problems);
 
         //System.out.println("Determiner: " + treeModifier.determiner + " found, " + treeModifier.determinerFixedPSD + " fixed (all)");
 
@@ -784,6 +788,28 @@ public class ModifyDependencyTreesDetCopNeg {
         }
     }
 
+    
+    
+    private Type addSourceWithRequest(Type t, String source, Type request){
+        
+        Set<String> oldSources = t.getAllSources();
+        if (oldSources.contains(source)) throw new IllegalArgumentException("source already there");
+        
+        Type r = t.addSource(source);
+        for (String s : request.getAllSources()){
+            r = r.addSource(s);
+        }
+        for (Edge reqDep : request.getAllEdges()){
+            r = r.setDependency(reqDep.getSource(), reqDep.getTarget(), reqDep.getLabel());
+        }
+        // add edges from source to request
+        for (String origin : request.getOrigins()){
+            r = r.setDependency(source, origin, origin);
+        }
+        
+        return r;
+    }
+    
     /**
      * Fixing Binary conjunction:
      * detection pattern:
@@ -797,7 +823,7 @@ public class ModifyDependencyTreesDetCopNeg {
      * - DM MOD_coord structure changed to APP_op1, APP_op2 structure like PSD/PAS (conjunction no longer ignored)
      * - PSD's APP_op changed to APP_op1 (plus subsequent changes in the types and supertags)
      * */
-    public void fixBinaryConjuction(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, ParserException {
+    public void fixBinaryConjuction(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, ParserException, AlignedAMDependencyTree.ConllParserException {
         String op1source = "op1";
         String op2source = "op2";
         String coordsource = "coord";
@@ -809,6 +835,9 @@ public class ModifyDependencyTreesDetCopNeg {
         String ignore = "IGNORE";
         // todo avoid magic strings for edge labels and also sources? maybe import sources from BlobUtils?
         int index = 0;
+        
+        AlignedAMDependencyTree dmDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
+        
         for (AmConllEntry word : psdDep){
             // CC postag (conjunction)
             if (word.getPos().equals("CC")){
@@ -889,6 +918,12 @@ public class ModifyDependencyTreesDetCopNeg {
 
                 binaryconjunction++;
                 // 3. change DM (and PSD source names...
+                // get term types of DM conjuncts:
+                System.err.println(dmDep.getId()+" : " + firstConjunctDM.getId());
+                System.err.println(dmDep);
+
+                Type conjunctDMTermType = dmDepTree.getTermTypeAt(headConjunctDM);
+                
                 // - [DM] change head from first conjunct to conjunction
                 int headDM = headConjunctDM.getHead();
                 String toconjlabel = headConjunctDM.getEdgeLabel();
@@ -910,7 +945,13 @@ public class ModifyDependencyTreesDetCopNeg {
                 conjunctionDM.setDelexSupertag(supertags.right.toIsiAmrStringWithSources());
                 // something like conjunctionDM.setDelexSupertag("(u<root, op1> :_and_c (v<op2>))");  but not just for :_and_c edge,
                 // not sure about directionaly (_and_c or _and_c-of ?)
-                conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type("(op1, op2)"));
+                
+                
+                Type conjunctionTypeDM = addSourceWithRequest(Type.EMPTY_TYPE, "op1", conjunctDMTermType);
+                conjunctionTypeDM = addSourceWithRequest(conjunctionTypeDM, "op2", conjunctDMTermType); //TODO: secondConjunct?
+                
+                //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type("(op1, op2)"));
+                conjunctionDM.setType(conjunctionTypeDM);
                 // todo [BUG] the previous line is problematic if the type should be something like (op1(mod), op2(mod)
                 // - [PSD] change APP_op to APP_op1 and corresponding type change
                 firstConjunctPSD.setEdgeLabel(appop1); // was previously APP_op  note the absence of the number 1
