@@ -32,13 +32,13 @@ public class FindAMPatternsAcrossSDP {
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\train\\train.amconll";
+    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dm.amconll";//data\\sdp\\uniformify2020\\original_decompositions\dm\train\train
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\train\\train.amconll";
+    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\pas.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\train\\train.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\psd.amconll";
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -145,7 +145,7 @@ public class FindAMPatternsAcrossSDP {
 
         System.err.println("Total nodes: "+totalNodes);
         System.err.println("Total diffs: "+totalDiffs);
-        System.err.println("Already unified by AM algebra: "+totalDiffs);
+        System.err.println("Already unified by AM algebra: "+alreadyUnifiedDiffs);
 
         for (int i = 0; i<50; i++) {
             String pattern = sortedPatterns.get(i);
