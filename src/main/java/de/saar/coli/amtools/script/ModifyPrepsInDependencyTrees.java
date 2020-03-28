@@ -31,16 +31,6 @@ import static de.saar.coli.amrtagging.AlignedAMDependencyTree.decodeNode;
 
 public class ModifyPrepsInDependencyTrees {
 
-    //SDP corpora (i.e. original graphs)
-    @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\dev\\dev.sdp";
-
-    @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\dev\\dev.sdp";
-
-    @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\dev\\dev.sdp";
-
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
     private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\gold-dev\\gold-dev.amconll";
@@ -52,7 +42,7 @@ public class ModifyPrepsInDependencyTrees {
     private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_devs_intersected\\";
+    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
 
 
 
@@ -67,6 +57,16 @@ public class ModifyPrepsInDependencyTrees {
     private int preps220 = 0;
     private int preps220Fixed = 0;
     private int failedPreps220Fixes = 0;
+    private int preps020 = 0;
+    private int preps020FixedDM = 0;
+    private int preps020FixedPSD = 0;
+    private int failedPreps020Fixes = 0;
+    private int noUniqueEdgeDM020 = 0;
+    private int needToPercolateSourcesDM020 = 0;
+    private int sourceNotInGraphDM020 = 0;
+    private int noUniqueEdgePSD020 = 0;
+    private int needToPercolateSourcesPSD020 = 0;
+    private int sourceNotInGraphPSD020 = 0;
     private int mods = 0;
     private int apps = 0;
     private int noUniqueEdge = 0;
@@ -103,12 +103,6 @@ public class ModifyPrepsInDependencyTrees {
 
         //setup
         new File(cli.outputPath).mkdirs();
-        GraphReader2015 grDM = new GraphReader2015(cli.corpusPathDM);
-        GraphReader2015 grPAS = new GraphReader2015(cli.corpusPathPAS);
-        GraphReader2015 grPSD = new GraphReader2015(cli.corpusPathPSD);
-        Graph dmGraph;
-        Graph pasGraph;
-        Graph psdGraph;
         List<AmConllSentence> amDM = AmConllSentence.read(new FileReader(cli.amconllPathDM));
         List<AmConllSentence> amPSD = AmConllSentence.read(new FileReader(cli.amconllPathPSD));
         List<AmConllSentence> amPAS = AmConllSentence.read(new FileReader(cli.amconllPathPAS));
@@ -127,81 +121,77 @@ public class ModifyPrepsInDependencyTrees {
 
         ModifyPrepsInDependencyTrees treeModifier = new ModifyPrepsInDependencyTrees();
 
-        while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null && (psdGraph = grPSD.readGraph()) != null) {
-            if (decomposedIDs.contains(dmGraph.id)) {
-                //now we know the graph was decomposed in all graphbanks, and we have all three AM dep trees for it.
-                // we can also look at the original graphs (dmGraph etc) if we need to.
-                String id = dmGraph.id;
-                AmConllSentence dmDep = id2amDM.get(id);
-                AmConllSentence pasDep = id2amPAS.get(id);
-                AmConllSentence psdDep = id2amPSD.get(id);
-                String originalDMDepStr = dmDep.toString();
-                String originalPSDDepStr = psdDep.toString();
-                String originalPASDepStr = pasDep.toString();
+        for (String id : decomposedIDs) {
+            AmConllSentence dmDep = id2amDM.get(id);
+            AmConllSentence pasDep = id2amPAS.get(id);
+            AmConllSentence psdDep = id2amPSD.get(id);
+            String originalDMDepStr = dmDep.toString();
+            String originalPSDDepStr = psdDep.toString();
+            String originalPASDepStr = pasDep.toString();
 
 
-                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                onlyIndicesAsLabels(dmSGraph);
-                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                onlyIndicesAsLabels(psdSGraph);
-                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-                onlyIndicesAsLabels(pasSGraph);
-                //System.out.println(dmSGraph);
+            SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+            onlyIndicesAsLabels(dmSGraph);
+            SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+            onlyIndicesAsLabels(psdSGraph);
+            SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+            onlyIndicesAsLabels(pasSGraph);
+            //System.out.println(dmSGraph);
 
-                //modify new dep trees here
-//                treeModifier.fixPreps220(psdDep, dmDep, pasDep);
+            //modify new dep trees here
+            treeModifier.fixPreps220(psdDep, dmDep, pasDep);
+            treeModifier.fixPreps020(psdDep, dmDep, pasDep);
 
 
-                SGraph newdmSGraph = null;
-                SGraph newpsdSGraph = null;
-                SGraph newpasSGraph = null;
-                try {
-                    newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                    onlyIndicesAsLabels(newdmSGraph);
-                    newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                    onlyIndicesAsLabels(newpsdSGraph);
-                    newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-                    onlyIndicesAsLabels(newpasSGraph);
-                    if (!newdmSGraph.equals(dmSGraph)) {
-                        System.err.println(originalDMDepStr);
-                        System.err.println(dmDep);
-                        System.err.println(dmSGraph.toIsiAmrStringWithSources());
-                        System.err.println(newdmSGraph.toIsiAmrStringWithSources());
-                        SGraphDrawer.draw(dmSGraph, "original");
-                        SGraphDrawer.draw(newdmSGraph,"modified");
+            SGraph newdmSGraph = null;
+            SGraph newpsdSGraph = null;
+            SGraph newpasSGraph = null;
+            try {
+                newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                onlyIndicesAsLabels(newdmSGraph);
+                newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                onlyIndicesAsLabels(newpsdSGraph);
+                newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                onlyIndicesAsLabels(newpasSGraph);
+                if (!newdmSGraph.equals(dmSGraph)) {
+                    System.err.println(originalDMDepStr);
+                    System.err.println(dmDep);
+                    System.err.println(dmSGraph.toIsiAmrStringWithSources());
+                    System.err.println(newdmSGraph.toIsiAmrStringWithSources());
+                    SGraphDrawer.draw(dmSGraph, "original");
+                    SGraphDrawer.draw(newdmSGraph,"modified");
 
-                        throw new Exception("Difference in DM");
-                    }
-                    if (!newpsdSGraph.equals(psdSGraph)) {
-                        System.err.println(originalPSDDepStr);
-                        System.err.println(psdDep);
-                        System.err.println(psdSGraph.toIsiAmrStringWithSources());
-                        System.err.println(newpsdSGraph.toIsiAmrStringWithSources());
-                        SGraphDrawer.draw(psdSGraph, "original");
-                        SGraphDrawer.draw(newpsdSGraph,"modified");
-                        throw new Exception("Difference in PSD");
-                    }
-                    if (!newpasSGraph.equals(pasSGraph)) {
-                        System.err.println(originalPASDepStr);
-                        System.err.println(pasDep);
-                        System.err.println(pasSGraph.toIsiAmrStringWithSources());
-                        System.err.println(newpasSGraph.toIsiAmrStringWithSources());
-                        SGraphDrawer.draw(pasSGraph, "original");
-                        SGraphDrawer.draw(newpasSGraph,"modified");
-                        throw new Exception("Difference in PAS");
-                    }
-                } catch (Exception e) {
-                    treeModifier.failedPreps220Fixes++;
-                    System.err.println(psdDep);
-                    e.printStackTrace();
+                    throw new Exception("Difference in DM");
                 }
-
-
-
-                newAmDM.add(dmDep);
-                newAmPAS.add(pasDep);
-                newAmPSD.add(psdDep);
+                if (!newpsdSGraph.equals(psdSGraph)) {
+                    System.err.println(originalPSDDepStr);
+                    System.err.println(psdDep);
+                    System.err.println(psdSGraph.toIsiAmrStringWithSources());
+                    System.err.println(newpsdSGraph.toIsiAmrStringWithSources());
+                    SGraphDrawer.draw(psdSGraph, "original");
+                    SGraphDrawer.draw(newpsdSGraph,"modified");
+                    throw new Exception("Difference in PSD");
+                }
+                if (!newpasSGraph.equals(pasSGraph)) {
+                    System.err.println(originalPASDepStr);
+                    System.err.println(pasDep);
+                    System.err.println(pasSGraph.toIsiAmrStringWithSources());
+                    System.err.println(newpasSGraph.toIsiAmrStringWithSources());
+                    SGraphDrawer.draw(pasSGraph, "original");
+                    SGraphDrawer.draw(newpasSGraph,"modified");
+                    throw new Exception("Difference in PAS");
+                }
+            } catch (Exception e) {
+                treeModifier.failedPreps220Fixes++;
+                System.err.println(psdDep);
+                e.printStackTrace();
             }
+
+
+
+            newAmDM.add(dmDep);
+            newAmPAS.add(pasDep);
+            newAmPSD.add(psdDep);
         }
 
         AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(cli.outputPath+"/dm.amconll"), StandardCharsets.UTF_8.newEncoder()), newAmDM);
@@ -223,9 +213,28 @@ public class ModifyPrepsInDependencyTrees {
         System.out.println(treeModifier.sourceNotInGraph);
         System.out.println("Would need to percolate sources:");
         System.out.println(treeModifier.needToPercolateSources);
+
+        System.out.println("Prepositions (020):");
+        System.out.println(treeModifier.preps020);
+        System.out.println("Fixed (in PSD):");
+        System.out.println(treeModifier.preps020FixedPSD-treeModifier.failedPreps220Fixes);
+        System.out.println("Could not identify edge:");
+        System.out.println(treeModifier.noUniqueEdgePSD020);
+        System.out.println("Source not in graph:");
+        System.out.println(treeModifier.sourceNotInGraphPSD020);
+        System.out.println("Would need to percolate sources:");
+        System.out.println(treeModifier.needToPercolateSourcesPSD020);
+        
+        System.out.println("Fixed (in DM):");
+        System.out.println(treeModifier.preps020FixedDM-treeModifier.failedPreps220Fixes);
+        System.out.println("Could not identify edge:");
+        System.out.println(treeModifier.noUniqueEdgeDM020);
+        System.out.println("Source not in graph:");
+        System.out.println(treeModifier.sourceNotInGraphDM020);
+        System.out.println("Would need to percolate sources:");
+        System.out.println(treeModifier.needToPercolateSourcesDM020);
+
         treeModifier.typesToPercolate.printAllSorted();
-
-
     }
 
     /**
@@ -287,7 +296,7 @@ public class ModifyPrepsInDependencyTrees {
 
 
                                     psdEdgeTarget.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
-                                    psdEdgeTarget.setType(psdEdgeTarget.getType().performApply(modSourcePSD));
+                                    psdEdgeTarget.setType(psdEdgeTarget.getType().performApply(modSourcePSD));//TODO this may cause error
                                     psdEdgeTarget.setHead(psdEntry.getId());
                                     psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
                                     preps220Fixed++;
@@ -315,7 +324,7 @@ public class ModifyPrepsInDependencyTrees {
 
                                     psdEdgeOrigin.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
                                     psdEdgeOrigin.setType(psdEdgeOrigin.getType().performApply(appSourcePSD));// this only works as long as we don't have to percolate types
-
+                                    //TODO line above may cause error
                                     psdEdgeTarget.setHead(psdEntry.getId());
                                     preps220Fixed++;
                                 } else {
@@ -336,6 +345,187 @@ public class ModifyPrepsInDependencyTrees {
 
             index++;
         }
+    }
+
+    public void fixPreps020(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParserException, ParseException {
+        int index = 0;
+        for (AmConllEntry psdEntry : psdDep) {
+            AmConllEntry dmEntry = dmDep.get(index);
+            AmConllEntry pasEntry = pasDep.get(index);
+
+            if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
+                List<AmConllEntry> pasChildren = pasDep.getChildren(index);
+                if (dmEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)
+                        && pasChildren.size()==1 && pasChildren.get(0).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)
+                        && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)
+                        && psdEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+
+                    //we count all of these as matching the preposition pattern
+                    preps020++;
+
+                    // now we try to fix them
+                    // first find edge
+                    int pasLeft = Math.min(pasEntry.getHead(), pasChildren.get(0).getId());
+                    int pasRight = Math.max(pasEntry.getHead(), pasChildren.get(0).getId());
+                    AmConllEntry dmEdgeTarget = getMatchingEdge(dmDep, pasLeft, pasRight);
+                    AmConllEntry psdEdgeTarget = getMatchingEdge(psdDep, pasLeft, pasRight);
+
+                    if (psdEdgeTarget != null && !psdDep.get(psdEdgeTarget.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+                        AmConllEntry psdEdgeOrigin = psdDep.get(psdEdgeTarget.getHead() - 1);
+
+                        if (psdEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
+                            String modSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+                            if (Type.EMPTY_TYPE.equals(psdEdgeTarget.getType().getRequest(modSourcePSD))) {
+                                if (psdEdgeTarget.delexGraph().getNodeForSource(modSourcePSD) != null) {
+                                    Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeTarget.delexGraph(), modSourcePSD);
+                                    //TODO get DM sources -- EDIT: for now keep psd sources
+
+                                    psdEntry.setHead(psdEdgeOrigin.getId());
+                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + modSourcePSD);
+                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
+                                    psdEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
+                                    psdEntry.setType(new Type("(prep," + modSourcePSD + ")"));
+
+
+                                    psdEdgeTarget.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
+                                    psdEdgeTarget.setType(psdEdgeTarget.getType().performApply(modSourcePSD));
+                                    psdEdgeTarget.setHead(psdEntry.getId());
+                                    psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
+                                    preps020FixedPSD++;
+                                } else {
+                                    sourceNotInGraphPSD020++;
+                                }
+                            } else {
+                                typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
+                                needToPercolateSourcesPSD020++;
+                            }
+                        } else {
+                            String appSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
+                            if (psdEdgeOrigin.getType() == null) {
+                                System.err.println(psdDep);
+                                System.err.println(pasDep);
+                                System.err.println(pasLeft);
+                                System.err.println(pasRight);
+                            }
+                            if (Type.EMPTY_TYPE.equals(psdEdgeOrigin.getType().getRequest(appSourcePSD))) {
+                                if (psdEdgeOrigin.delexGraph().getNodeForSource(appSourcePSD) != null) {
+                                    Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeOrigin.delexGraph(), appSourcePSD);
+                                    //TODO get DM sources -- EDIT: for now keep psd sources
+
+                                    psdEntry.setHead(psdEdgeOrigin.getId());
+                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + "prep");
+                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
+                                    psdEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
+                                    psdEntry.setType(new Type("(prep," + appSourcePSD + ")"));
+
+                                    psdEdgeOrigin.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
+                                    psdEdgeOrigin.setType(psdEdgeOrigin.getType().performApply(appSourcePSD));// this only works as long as we don't have to percolate types
+
+                                    psdEdgeTarget.setHead(psdEntry.getId());
+                                    preps020FixedPSD++;
+                                } else {
+                                    sourceNotInGraphPSD020++;
+                                }
+                            } else {
+                                typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
+                                needToPercolateSourcesPSD020++;
+                            }
+                        }
+
+                    } else {
+                        noUniqueEdgePSD020++;
+                    }
+
+
+                    if (dmEdgeTarget != null && !dmDep.get(dmEdgeTarget.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+                        AmConllEntry dmEdgeOrigin = dmDep.get(dmEdgeTarget.getHead() - 1);
+
+                        if (dmEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
+                            String modSourceDM = dmEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+                            if (Type.EMPTY_TYPE.equals(dmEdgeTarget.getType().getRequest(modSourceDM))) {
+                                if (dmEdgeTarget.delexGraph().getNodeForSource(modSourceDM) != null) {
+                                    Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(dmEdgeTarget.delexGraph(), modSourceDM);
+                                    //TODO get DM sources -- EDIT: for now keep dm sources
+
+                                    dmEntry.setHead(dmEdgeOrigin.getId());
+                                    dmEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + modSourceDM);
+                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
+                                    dmEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
+                                    dmEntry.setType(new Type("(prep," + modSourceDM + ")"));
+
+
+                                    dmEdgeTarget.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
+                                    dmEdgeTarget.setType(dmEdgeTarget.getType().performApply(modSourceDM));
+                                    dmEdgeTarget.setHead(dmEntry.getId());
+                                    dmEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
+                                    preps020FixedDM++;
+                                } else {
+                                    sourceNotInGraphDM020++;
+                                }
+                            } else {
+                                typesToPercolate.add(dmEdgeOrigin.getType().getRequest(modSourceDM));
+                                needToPercolateSourcesDM020++;
+                            }
+                        } else {
+                            String appSourceDM = dmEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
+                            if (dmEdgeOrigin.getType() == null) {
+                                System.err.println(dmDep);
+                                System.err.println(pasDep);
+                                System.err.println(pasLeft);
+                                System.err.println(pasRight);
+                            }
+                            if (Type.EMPTY_TYPE.equals(dmEdgeOrigin.getType().getRequest(appSourceDM))) {
+                                if (dmEdgeOrigin.delexGraph().getNodeForSource(appSourceDM) != null) {
+                                    Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(dmEdgeOrigin.delexGraph(), appSourceDM);
+                                    //TODO get DM sources -- EDIT: for now keep dm sources
+
+                                    dmEntry.setHead(dmEdgeOrigin.getId());
+                                    dmEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + "prep");
+                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
+                                    dmEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
+                                    dmEntry.setType(new Type("(prep," + appSourceDM + ")"));
+
+                                    dmEdgeOrigin.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
+                                    dmEdgeOrigin.setType(dmEdgeOrigin.getType().performApply(appSourceDM));// this only works as long as we don't have to percolate types
+
+                                    dmEdgeTarget.setHead(dmEntry.getId());
+                                    preps020FixedDM++;
+                                } else {
+                                    sourceNotInGraphDM020++;
+                                }
+                            } else {
+                                typesToPercolate.add(dmEdgeOrigin.getType().getRequest(appSourceDM));
+                                needToPercolateSourcesDM020++;
+                            }
+                        }
+
+                    } else {
+                        noUniqueEdgeDM020++;
+                    }
+                }
+            }
+
+            index++;
+        }
+    }
+
+    /**
+     * returns entry that is target of edge between given IDs. Returns null if no such edge exists.
+     * @param depWithEdge
+     * @param leftID
+     * @param rightID
+     * @return
+     */
+    private static AmConllEntry getMatchingEdge(AmConllSentence depWithEdge, int leftID, int rightID) {
+        AmConllEntry leftEntry = depWithEdge.get(leftID-1);
+        if (leftEntry.getHead() == rightID) {
+            return leftEntry;
+        }
+        AmConllEntry rightEntry = depWithEdge.get(rightID-1);
+        if (rightEntry.getHead() == leftID) {
+            return rightEntry;
+        }
+        return null;
     }
 
     /**
