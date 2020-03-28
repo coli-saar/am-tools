@@ -23,6 +23,7 @@ import java.util.*;
 
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type.Edge;
+import java.util.stream.Collectors;
 
 public class ModifyDependencyTreesDetCopNeg {
 
@@ -494,6 +495,7 @@ public class ModifyDependencyTreesDetCopNeg {
                         swapHead(psdTree, psdEntry, psdDep.getParent(index), "neg");
                         neverFixedPSD++;
                         fixedPSD = true;
+                        psdTree = AlignedAMDependencyTree.fromSentence(psdDep);
                         
                     }
                     
@@ -505,6 +507,7 @@ public class ModifyDependencyTreesDetCopNeg {
                         
                         swapHead(pasTree, pasEntry, pasDep.getParent(index), "neg");
                         neverFixedPAS++;
+                        pasTree = AlignedAMDependencyTree.fromSentence(pasDep);
                         
                         if (fixedPSD) neverAllFixed++; 
                         
@@ -529,7 +532,6 @@ public class ModifyDependencyTreesDetCopNeg {
         SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_13<root> / --LEX--  :neg (i_12<mod>))");
         
         
-        AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
         
         boolean fixedPSD = false;
         for (AmConllEntry psdEntry : psdDep) {
@@ -547,6 +549,9 @@ public class ModifyDependencyTreesDetCopNeg {
                     
                     // let's make sure that we are in a relative clause and see what the clause modifies
                     AmConllEntry negatedDMverb = dmDep.getParent(index);
+                    
+                    AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
+                    
                     Type termTypeofNegatedDMverb = dmTree.getTermTypeAt(negatedDMverb);
                     if (negatedDMverb.getEdgeLabel().equals("MOD_s") || negatedDMverb.getEdgeLabel().equals("MOD_o")) {
                         // subject or object relative clause
@@ -920,13 +925,19 @@ public class ModifyDependencyTreesDetCopNeg {
                 binaryconjunction++;
                 
                 // 3. change DM (and PSD source names...
-                // get term types of DM conjuncts:
-                System.err.println(dmDep.getId()+" : " + firstConjunctDM.getId());
-                System.err.println(dmDep);
 
-                Type conjunctDMTermType = dmDepTree.getTermTypeAt(headConjunctDM);
                 
                 // 3. actual fix: change DM (and PSD source names)...
+                
+                if (usesModCoord){
+                    //Matthias' part
+                    
+                    
+                } else { //APP_coord
+                    // Jonas' part
+                    
+                }
+                
 
                 // - [DM] change head from first conjunct to conjunction
                 int headDM = headConjunctDM.getHead();
@@ -951,12 +962,15 @@ public class ModifyDependencyTreesDetCopNeg {
                 // something like conjunctionDM.setDelexSupertag("(u<root, op1> :_and_c (v<op2>))");  but not just for :_and_c edge,
                 // not sure about directionaly (_and_c or _and_c-of ?)
                 
-                
-                Type conjunctionTypeDM = addSourceWithRequest(Type.EMPTY_TYPE, "op1", conjunctDMTermType);
-                conjunctionTypeDM = addSourceWithRequest(conjunctionTypeDM, "op2", conjunctDMTermType); //TODO: secondConjunct?
+
+                //Type conjunctionTypeDM = addSourceWithRequest(Type.EMPTY_TYPE, "op1", conjunctDMTermType);
+                //conjunctionTypeDM = addSourceWithRequest(conjunctionTypeDM, "op2", conjunctDMTermType); //TODO: secondConjunct?
                 
                 //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type("(op1, op2)"));
-                conjunctionDM.setType(conjunctionTypeDM);
+                //conjunctionDM.setType(conjunctionTypeDM);
+                
+                //reload dependency tree, we might make other changes to tree:
+                dmDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
 
                 // Type firsttype = firstConjunctDM.getType();
                 // Type secondtype = secondConjunctDM.getType();
