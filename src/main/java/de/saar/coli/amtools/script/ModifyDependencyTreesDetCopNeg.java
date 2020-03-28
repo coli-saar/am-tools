@@ -935,7 +935,9 @@ public class ModifyDependencyTreesDetCopNeg {
                     
                 } else { //APP_coord
                     // Jonas' part
+                    Type request = headConjunctDM.getType().getRequest(coordsource);
                     
+
                 }
                 
 
