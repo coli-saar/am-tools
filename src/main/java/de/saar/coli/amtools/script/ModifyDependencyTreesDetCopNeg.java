@@ -115,14 +115,18 @@ public class ModifyDependencyTreesDetCopNeg {
     public int getCopulaFixedDM() {
         return copulaFixedDM;
     }
-	
-    private int punctuation = 0;
-    private int punctuationFixedPSD = 0;
-    private int punctuationFixedDM = 0;
-    private int punctuationAllFixed = 0;
+
+    //TODO fix inconsitent access / getters
+    public int punctuation = 0;
+    public int punctuationFixedPSD = 0;
+    public int punctuationFixedDM = 0;
+    public int punctuationAllFixed = 0;
 
     private int binaryconjunction = 0;
     private int binaryconjunctionFixedDM = 0;
+
+    private int determiner = 0;
+    private int determinerFixedPSD = 0;
 
     /**
      *
@@ -336,7 +340,7 @@ public class ModifyDependencyTreesDetCopNeg {
         }
     }
 
-    public static void fixDeterminer(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
+    public void fixDeterminer(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
         // Determiners for PSD
         // we find all words that are determiners (have DT POS tag)
         // and that are ignored in the PSD graph (have incoming IGNOREn edge).
@@ -345,7 +349,7 @@ public class ModifyDependencyTreesDetCopNeg {
         int index = 0;
         for (AmConllEntry word : psdDep){
             if (word.getPos().equals("DT") && word.getEdgeLabel().equals("IGNORE")){
-                // determiner++;
+                determiner++;
                 // System.err.println(index);
                 // System.err.println(dmDep.getParent(index));
                 if (dmDep.getParent(index) == null) continue; // if DM ignored determiner as well, skip this
@@ -354,7 +358,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 word.setEdgeLabel("MOD_det");
                 word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
                 word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
-                // determinerFixedPSD++;
+                determinerFixedPSD++;
             }
             index++;
         }
@@ -656,22 +660,23 @@ public class ModifyDependencyTreesDetCopNeg {
     }
 
 
-    public void fixPunctuation(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
+    public void fixPASOnlyModifiers(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException{
         // Punctuation
         // in PAS sometimes punctuation integrated in graph, but not in PSD and DM:
         // fix: DM, PSD create one-node blob with pnct and root source for them
         // todo avoid magic strings if possible (import static strings from elsewhere?)
         String ignore_edge = "IGNORE";
-        String mod_punct = "MOD_pnct";
         int index = 0;
         for (AmConllEntry word : pasDep){
-            if (word.getEdgeLabel().equals(mod_punct)){ // TODO maybe check if APPpnct exists?
+            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId()).equals("060")) {
+            //if (word.getEdgeLabel().equals(mod_punct)){ // TODO maybe check if APPpnct exists?
                 punctuation++;
                 boolean fixedPSD = false;
                 boolean fixedDM = false;
                 // variable index now points to punctuation symbol, AmConnlEntry word is punctuation entry
                 //assert (pasDep.getParent(index) != null) // parent should be head of the MOD_punct relation
                 int parentID_pas = pasDep.getParent(index).getId(); // index is 0-based, parentID_pas is 1-based
+                String pasSource = word.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
 
                 // A. PSD if ignored, change to PAS like structure
                 AmConllEntry psdWord = psdDep.get(index); // punctuation is PSD
@@ -681,10 +686,10 @@ public class ModifyDependencyTreesDetCopNeg {
                     // second term: skip if parent in PAS is ignored in PSD??? todo should i do this?
                     // delete ignore edge, create edge parent-punctuation
                     // create supertag for punctuation
-                    psdWord.setEdgeLabel(mod_punct); // was previously ignore
+                    psdWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+pasSource); // was previously ignore
                     psdWord.setHead(parentID_pas); // was previously artificial root probably
-                    psdWord.setDelexSupertag("(u<root, pnct>)");// empty modifier graph: one unlabeled node with root and det source.
-                    psdWord.setType(new ApplyModifyGraphAlgebra.Type("(pnct)"));
+                    psdWord.setDelexSupertag("(u<root, "+pasSource+">)");// empty modifier graph: one unlabeled node with root and det source.
+                    psdWord.setType(new ApplyModifyGraphAlgebra.Type("("+pasSource+")"));
                     punctuationFixedPSD++;
                     fixedPSD = true;
                 }
@@ -696,10 +701,10 @@ public class ModifyDependencyTreesDetCopNeg {
                     // second term: skip if parent in PAS is ignored in DM???
                     // delete ignore edge, create edge parent-punctuation
                     // create supertag for punctuation
-                    dmWord.setEdgeLabel(mod_punct); // was previously ignore
+                    dmWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+pasSource); // was previously ignore
                     dmWord.setHead(parentID_pas); // was previously artificial root
-                    dmWord.setDelexSupertag("(u<root, pnct>)");// empty modifier graph: one unlabeled node with root and det source.
-                    dmWord.setType(new ApplyModifyGraphAlgebra.Type("(pnct)"));
+                    dmWord.setDelexSupertag("(u<root, "+pasSource+">)");// empty modifier graph: one unlabeled node with root and det source.
+                    dmWord.setType(new ApplyModifyGraphAlgebra.Type("("+pasSource+")"));
                     punctuationFixedDM++;
                     fixedDM = true;
                 }
@@ -813,6 +818,28 @@ public class ModifyDependencyTreesDetCopNeg {
             r = r.setDependency(source, origin, origin);
         }
         
+        return r;
+    }
+
+    private Type addSourceWithRequestAndRenames(Type typeToAddTo, String sourceToAdd, Type oldType, String oldSource){
+
+        Set<String> oldSources = typeToAddTo.getAllSources();
+        if (oldSources.contains(sourceToAdd)) throw new IllegalArgumentException("source already there");
+
+        Type r = typeToAddTo.addSource(sourceToAdd);
+        Type request = oldType.getRequest(oldSource);
+        if (request == null) throw new IllegalArgumentException("oldSource not in oldType");
+        //add all new sources, including renames
+        for (String s : request.getAllSources()){
+            String sAfterRename = oldType.getRenameTarget(oldSource, s);
+            r = r.addSource(sAfterRename);
+            r = r.setDependency(sourceToAdd, sAfterRename, s);
+        }
+        for (Edge reqDep : request.getAllEdges()){
+            r = r.setDependency(oldType.getRenameTarget(oldSource, reqDep.getSource()),
+                    oldType.getRenameTarget(oldSource, reqDep.getTarget()), reqDep.getLabel());
+        }
+
         return r;
     }
     
@@ -955,9 +982,12 @@ public class ModifyDependencyTreesDetCopNeg {
                     
                 } else { //APP_coord
                     // Jonas' part
-                    Type request = headConjunctDM.getType().getRequest(coordsource);
-                    
+                    Type headRequest = headConjunctDM.getType().getRequest(coordsource);
 
+                    Type coordinationType = addSourceWithRequest(Type.EMPTY_TYPE, "op1", headRequest);
+                    coordinationType = addSourceWithRequestAndRenames(coordinationType, "op2", headConjunctDM.getType(), coordsource);
+                    //TODO get op1 and op2 right
+                    conjunctionDM.setType(coordinationType);
                 }
                 
 
@@ -1074,4 +1104,11 @@ public class ModifyDependencyTreesDetCopNeg {
         return new Pair<>(newConjunctGraph, ConjunctionGraph);
     }
 
+    public int getDeterminerFixedPSD() {
+        return determinerFixedPSD;
+    }
+
+    public int getDeterminer() {
+        return determiner;
+    }
 }

@@ -32,13 +32,13 @@ public class FindAMPatternsAcrossSDP {
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\dm.amconll";//data\\sdp\\uniformify2020\\original_decompositions\dm\train\train
+    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_devs_intersected\\dm.amconll";//data\\sdp\\uniformify2020\\original_decompositions\dm\train\train
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\pas.amconll";
+    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_devs_intersected\\pas.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\psd.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_devs_intersected\\psd.amconll";
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -304,10 +304,10 @@ public class FindAMPatternsAcrossSDP {
 
 
     public static String getPatternCombination(AmConllSentence dmAMDepTree, AmConllSentence pasAMDepTree,
-                                               AmConllSentence psdAMDepTree, int i) {
-        int patternDM = getPattern(dmAMDepTree, i);
-        int patternPAS = getPattern(pasAMDepTree, i);
-        int patternPSD = getPattern(psdAMDepTree, i);
+                                               AmConllSentence psdAMDepTree, int id) {
+        int patternDM = getPattern(dmAMDepTree, id);
+        int patternPAS = getPattern(pasAMDepTree, id);
+        int patternPSD = getPattern(psdAMDepTree, id);
         return patterns2string(patternDM, patternPAS, patternPSD);
     }
 

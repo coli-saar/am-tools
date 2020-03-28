@@ -138,24 +138,16 @@ public class AllDependencyChanges {
         System.out.println("Fixing determiners");
         changer.applyFix(dm -> pas -> psd -> {
             try {
-                ModifyDependencyTreesDetCopNeg.fixDeterminer(psd, dm, pas);
+                treeModifier.fixDeterminer(psd, dm, pas);
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
         });
         changer.printComparisons();
-
+        System.err.println(treeModifier.getDeterminer());
+        System.err.println(treeModifier.getDeterminerFixedPSD());
         if (!changer.onlyDeterminers) {
-            //punctuation
-            System.out.println("fixing punctuation");
-            changer.applyFix(dm -> pas -> psd -> {
-                try {
-                    treeModifier.fixPunctuation(psd, dm, pas);
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            changer.printComparisons();
+
 
             //temporal auxiliaries
             System.out.println("Fixing temporal auxiliaries");
@@ -224,6 +216,22 @@ public class AllDependencyChanges {
             });
             changer.printComparisons();
 
+            //PAS-only modifiers
+            System.out.println("fixing PAS-only modifiers");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    treeModifier.fixPASOnlyModifiers(psd, dm, pas);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            System.err.println(treeModifier.punctuation);
+            System.err.println(treeModifier.punctuationAllFixed);
+            System.err.println(treeModifier.punctuationFixedDM);
+            System.err.println(treeModifier.punctuationFixedPSD);
+            changer.printComparisons();
+
+            //TODO check equality!
         }
         System.out.println("DM fails: "+changer.dmFails);
         System.out.println("PAS fails: "+changer.pasFails);

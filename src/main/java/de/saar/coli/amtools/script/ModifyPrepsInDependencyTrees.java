@@ -140,7 +140,7 @@ public class ModifyPrepsInDependencyTrees {
 
             //modify new dep trees here
             treeModifier.fixPreps220(psdDep, dmDep, pasDep);
-            treeModifier.fixPreps020(psdDep, dmDep, pasDep);
+            //treeModifier.fixPreps020(psdDep, dmDep, pasDep);
 
 
             SGraph newdmSGraph = null;
@@ -301,6 +301,8 @@ public class ModifyPrepsInDependencyTrees {
                                     psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
                                     preps220Fixed++;
                                 } else {
+                                    System.err.println(psdDep);
+                                    System.err.println(psdEdgeTarget.getId());
                                     sourceNotInGraph++;
                                 }
                             } else {

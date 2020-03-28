@@ -117,6 +117,8 @@ public class HeadednessExperiments {
         int singletonConstituentsBoth = 0;
         int alsoHeadMatch = 0;
 
+        ModifyDependencyTreesDetCopNeg treeModifier = new ModifyDependencyTreesDetCopNeg();
+
         int count = 0;
         while ((dmGraph = grDM.readGraph()) != null && (pasGraph = grPAS.readGraph()) != null && (psdGraph = grPSD.readGraph()) != null) {
             count++;
@@ -132,7 +134,7 @@ public class HeadednessExperiments {
                 AmConllSentence psdDep = id2amPSD.get(id);
 
                 //fix determiners, to get better constituency estimates below
-                ModifyDependencyTreesDetCopNeg.fixDeterminer(psdDep, dmDep, pasDep);
+                treeModifier.fixDeterminer(psdDep, dmDep, pasDep);
 
                 //ignore 0 in next loop, since it is the artificial root of the SDP graph
                 Set<IntList> chains = new HashSet<>();
