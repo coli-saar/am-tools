@@ -39,7 +39,7 @@ public class ModifyDependencyTreesDetCopNeg {
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/gold-dev/toy.amconll";
+    private String amconllPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
     private String amconllPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
@@ -266,9 +266,10 @@ public class ModifyDependencyTreesDetCopNeg {
                     newAmDM.add(dmDep);
                     newAmPAS.add(pasDep);
                     newAmPSD.add(psdDep);
-                } catch (IllegalArgumentException ex){ // evaluation of original AM dep tree failed
+                } catch (IllegalArgumentException | NullPointerException ex){ // evaluation of original AM dep tree failed
                     System.err.println("(Graph ID "+ id + "): Skipping sentence because:");
                     ex.printStackTrace();
+                    //System.err.println(psdDep); //TODO REMOVE
                     problems++;
                 }
             }
@@ -931,7 +932,26 @@ public class ModifyDependencyTreesDetCopNeg {
                 
                 if (usesModCoord){
                     //Matthias' part
+                    Type depTermType = dmDepTree.getTermTypeAt(coordSrcConjunctDM);
+                    Type headLexType = headConjunctDM.getType();
                     
+                    Type coordinationType = addSourceWithRequest(Type.EMPTY_TYPE, "op2", depTermType.performApply("coord"));
+                    
+                    //find common arguments:
+                    Set<AmConllEntry> commonArgumentChildren = dmDep.getChildren(headConjunctDM.getId()-1).stream().filter(child -> child.getEdgeLabel().startsWith("APP_")) //get apply edges
+                                .filter(child -> depTermType.getOrigins().contains(child.getEdgeLabel().split("_")[1])).collect(Collectors.toSet());
+                    
+                    //make common arguments children of coordination
+                    for (AmConllEntry commonChild : commonArgumentChildren){
+                        commonChild.setHead(conjunctionDM.getId());
+                    }
+                    
+                    // retrieve Type of head when common arguments are removed (that subtree is well-typed but the entire tree is not at this point!)
+                    Type headTermType = AlignedAMDependencyTree.fromSentence(dmDep).getTermTypeAt(headConjunctDM);
+                    
+                    coordinationType = addSourceWithRequest(coordinationType, "op1", headTermType);
+                    
+                    conjunctionDM.setType(coordinationType); 
                     
                 } else { //APP_coord
                     // Jonas' part
@@ -981,10 +1001,9 @@ public class ModifyDependencyTreesDetCopNeg {
                 // todo [BUG] the previous line is problematic if the type should be something like (op1(mod), op2(mod)
                 // - [PSD] change APP_op to APP_op1 and corresponding type & supertag change
                 firstConjunctPSD.setEdgeLabel(appop1); // was previously APP_op  note the absence of the number 1
-                String oldsupertag = word.getDelexSupertag();
-                String newsupertag = oldsupertag.replaceFirst("<op>", "<op1>");
-                // todo [FIX THIS] this is kind of a hack and a bit dangerous: we assume that there is only one <op> in the supertag and there is no additional source at the op-node.
-                word.setDelexSupertag(newsupertag);
+                SGraph oldSupertag = new IsiAmrInputCodec().read(word.getDelexSupertag());
+                oldSupertag = oldSupertag.renameSource("op", "op1");
+                word.setDelexSupertag(oldSupertag.toIsiAmrStringWithSources());
                 word.setType(renameSource(word.getType(), "op", "op1"));
 
                 binaryconjunctionFixedDM++;
