@@ -330,14 +330,19 @@ public class AllDependencyChanges {
 
     private void printComparisons() {
         System.out.println("DM-PAS DM-PSD PAS-PSD");
-        double dmPasUnlabeledF = AmConllComparator.getUnlabeledF(intersectedDepsDM, intersectedDepsPAS);
-        double dmPsdUnlabeledF = AmConllComparator.getUnlabeledF(intersectedDepsDM, intersectedDepsPSD);
-        double psdPasUnlabeledF = AmConllComparator.getUnlabeledF(intersectedDepsPSD, intersectedDepsPAS);
+        double dmPasUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, false, false);
+        double dmPsdUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, false, false);
+        double psdPasUnlabeledF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, false, false);
         System.out.println(String.format("%.0f",dmPasUnlabeledF*100)+"     "+String.format("%.0f",dmPsdUnlabeledF*100)
                 +"     "+String.format("%.0f",psdPasUnlabeledF*100)+ "   unlabeled F");
-        double dmPasLabeledF = AmConllComparator.getLabeledF(intersectedDepsDM, intersectedDepsPAS);
-        double dmPsdLabeledF = AmConllComparator.getLabeledF(intersectedDepsDM, intersectedDepsPSD);
-        double psdPasLabeledF = AmConllComparator.getLabeledF(intersectedDepsPSD, intersectedDepsPAS);
+        double dmPasAMF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, true, false);
+        double dmPsdAMF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, true, false);
+        double psdPasAMF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, true, false);
+        System.out.println(String.format("%.0f",dmPasAMF*100)+"     "+String.format("%.0f",dmPsdAMF*100)
+                +"     "+String.format("%.0f",psdPasAMF*100)+ "   APP/MOD F");
+        double dmPasLabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, false, true);
+        double dmPsdLabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, false, true);
+        double psdPasLabeledF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, false, true);
         System.out.println(String.format("%.0f",dmPasLabeledF*100)+"     "+String.format("%.0f",dmPsdLabeledF*100)
                 +"     "+String.format("%.0f",psdPasLabeledF*100)+ "   labeled F");
     }
