@@ -217,8 +217,8 @@ public class AllDependencyChanges {
             System.out.println("Fixing binary coordination ");
             changer.applyFix(dm -> pas -> psd -> {
                 try {
-                    treeModifier.fixBinaryConjunction(psd, dm, pas);
-                } catch (ParseException | ParserException e) {
+                    treeModifier.fixBinaryConjuction(psd, dm, pas);
+                } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e) {
                     throw new RuntimeException(e);
                 }
             });
