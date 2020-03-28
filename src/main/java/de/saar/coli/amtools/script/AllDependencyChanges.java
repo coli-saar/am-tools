@@ -45,7 +45,7 @@ public class AllDependencyChanges {
     private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
+    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\";
 
     @Parameter(names = {"--onlyDeterminers"}, description = "only fix determiners (for testing purposes)")
     private boolean onlyDeterminers=false;
@@ -175,6 +175,15 @@ public class AllDependencyChanges {
             changer.applyFix(dm -> pas -> psd -> {
                 try {
                     prepTreeFixer.fixPreps220(psd, dm, pas);
+                } catch (ParserException | ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
+            System.out.println("Fixing prepositions (020 pattern)");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    prepTreeFixer.fixPreps020(psd, dm, pas);
                 } catch (ParserException | ParseException e) {
                     throw new RuntimeException(e);
                 }

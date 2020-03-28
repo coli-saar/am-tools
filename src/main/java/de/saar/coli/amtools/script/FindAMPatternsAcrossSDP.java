@@ -32,13 +32,13 @@ public class FindAMPatternsAcrossSDP {
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dm.amconll";//data\\sdp\\uniformify2020\\original_decompositions\dm\train\train
+    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\dm.amconll";//data\\sdp\\uniformify2020\\original_decompositions\dm\train\train
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\pas.amconll";
+    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\pas.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\psd.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\psd.amconll";
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -147,7 +147,8 @@ public class FindAMPatternsAcrossSDP {
         System.err.println("Total diffs: "+totalDiffs);
         System.err.println("Already unified by AM algebra: "+alreadyUnifiedDiffs);
 
-        for (int i = 0; i<50; i++) {
+        int maxDetails = 0;
+        for (int i = 0; i<maxDetails; i++) {
             String pattern = sortedPatterns.get(i);
             Counter<String> lemmaC = patterns2lemmaCounter.get(pattern);
             Counter<String> posC = patterns2posCounter.get(pattern);
@@ -175,14 +176,26 @@ public class FindAMPatternsAcrossSDP {
         }
 
 
+        int maxNumbers = 0;
+        int i = 0;
         for (String pattern : sortedPatterns) {
+            if (i>maxNumbers) {
+                break;
+            }
             System.err.println(pattern+","+patterns2lemmaCounter.get(pattern).sum());
+            i++;
         }
 
         System.err.println("DIFFERENCES:");
+        i=0;
+        maxNumbers = 20;
         for (String pattern : sortedPatterns) {
             if (!equalPatterns.contains(pattern)) {
+                if (i>maxNumbers) {
+                    break;
+                }
                 System.err.println(pattern + "," + patterns2lemmaCounter.get(pattern).sum());
+                i++;
             }
         }
     }
