@@ -13,6 +13,7 @@ import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.*;
 import de.up.ling.irtg.codec.IsiAmrInputCodec;
+import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import org.eclipse.collections.impl.factory.Sets;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
@@ -29,10 +30,12 @@ public class ModifyDependencyTreesDetCopNeg {
 
     //SDP corpora (i.e. original graphs)
     @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.dm.sdp";
+    private String corpusPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_2015\\data\\2015\\en.dm.sdp";
+    // "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.dm.sdp";
 
     @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.pas.sdp";
+    private String corpusPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_2015\\data\\2015\\en.pas.sdp";
+    //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.pas.sdp";
 
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
     private String corpusPathPSD = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.psd.sdp";
@@ -67,11 +70,17 @@ public class ModifyDependencyTreesDetCopNeg {
     private int negationsFixedPSD = 0;
     private int negationsFixedPAS = 0;
     private int negationsAllFixed = 0;
+    private Counter<String> negationPatterns = new Counter<>();
+    private Counter<String> fixedNegationPatterns = new Counter<>();
     
     private int never = 0;
     private int neverFixedPSD = 0;
     private int neverFixedPAS = 0;
     private int neverAllFixed = 0;
+    private Counter<String> neverPatterns = new Counter<>();
+
+    private Counter<String> pos566 = new Counter<>();
+    private Counter<String> lemma566 = new Counter<>();
    
     private int copula = 0;
     private int copulaFixedDM = 0;
@@ -124,6 +133,7 @@ public class ModifyDependencyTreesDetCopNeg {
 
     private int binaryconjunction = 0;
     private int binaryconjunctionFixedDM = 0;
+    private Counter<String> binaryConjunctionPatterns = new Counter<>();
 
     private int determiner = 0;
     private int determinerFixedPSD = 0;
@@ -208,6 +218,13 @@ public class ModifyDependencyTreesDetCopNeg {
                     //System.out.println(dmSGraph);
 
 
+                    for (AmConllEntry psdEntry : psdDep) {
+                        if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId()).equals("566")) {
+                            treeModifier.pos566.add(psdEntry.getPos());
+                            treeModifier.lemma566.add(psdEntry.getLemma()+"_"+psdEntry.getPos());
+                        }
+                    }
+
                     //modify new dep trees here
                     //treeModifier.fixDeterminer(psdDep, dmDep, pasDep);
                     //fixDeterminer(psdDep, dmDep, pasDep);
@@ -216,6 +233,8 @@ public class ModifyDependencyTreesDetCopNeg {
                     //treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
                     //treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
                     treeModifier.fixBinaryConjuction(psdDep, dmDep, pasDep);
+
+
 
 
                     SGraph newdmSGraph = null;
@@ -325,6 +344,19 @@ public class ModifyDependencyTreesDetCopNeg {
         System.out.println("Fixed in DM");
         System.out.println(treeModifier.binaryconjunctionFixedDM);
 
+
+        System.err.println("Negation patterns:");
+        treeModifier.negationPatterns.printAllSorted();
+        System.err.println("Fixed negation patterns:");
+        treeModifier.fixedNegationPatterns.printAllSorted();
+        System.err.println("Never patterns:");
+        treeModifier.neverPatterns.printAllSorted();
+        System.err.println("566 pos:");
+        treeModifier.pos566.printAllSorted();
+        System.err.println("566 lemmas:");
+        treeModifier.lemma566.printAllSorted();
+        System.err.println("binary coord patterns:");
+        treeModifier.binaryConjunctionPatterns.printAllSorted();
 
     }
     
@@ -472,6 +504,7 @@ public class ModifyDependencyTreesDetCopNeg {
             
             if (dmEntry.getLemma().equals("never")){
                 this.never++;
+                neverPatterns.add(FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmEntry.getId()));
                 
                 if ((new IsiAmrInputCodec().read(dmEntry.getDelexSupertag())).equals(desiredDMSupertag)) {
                 Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_s")).findFirst();
@@ -544,6 +577,8 @@ public class ModifyDependencyTreesDetCopNeg {
             AmConllEntry pasEntry = pasDep.get(index);
             if (psdEntry.getLemma().equals("#Neg")){ // psdEntry is Negation word
                 this.negations ++;
+                String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+                negationPatterns.add(pattern);
                 fixedPSD = false;
                 // In DM we can be in the situation that the negation word is the head with outgoing APP_mod edge
                 // or - in relative clauses - , the negation would be the depndent of the verb and we have an incoming MOD_mod edge
@@ -634,7 +669,18 @@ public class ModifyDependencyTreesDetCopNeg {
                                 swapHead(pasAlignedDeptree, pasEntry, pasNegated, "neg");
                                 
                                 negationsFixedPAS++;
-                                if (fixedPSD) negationsAllFixed++;
+                                if (fixedPSD) {
+                                    String afterFixPattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+                                    if (!afterFixPattern.equals("555")) {
+                                        System.err.println(afterFixPattern);
+                                        System.err.println(psdEntry.getId());
+                                        System.err.println(dmDep);
+                                        System.err.println(pasDep);
+                                        System.err.println(psdDep);
+                                    }
+                                    fixedNegationPatterns.add(pattern+"|"+afterFixPattern);
+                                    negationsAllFixed++;
+                                }
                             } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
                             }
                             
@@ -898,6 +944,17 @@ public class ModifyDependencyTreesDetCopNeg {
                 if (multiconj) continue;  // skip multiconj for now  // maybe count them still?
 
                 if (firstConjunctPSD == null || secondConjunctPSD == null) continue; // skip if not two conjuncts found
+                String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
+                binaryConjunctionPatterns.add(pattern);
+                if (pattern.equals("018")) {
+                    System.err.println(pattern);
+                    System.err.println(word.getId());
+                    System.err.println(pasDep);
+                    System.err.println(psdDep);
+                }
+
+
+
                 int psdconj1idx = firstConjunctPSD.getId()-1; // 0-based
                 int psdconj2idx = secondConjunctPSD.getId()-1;
                 // do we need to check the type of PSD's conjunction? e.g. equals (op,op2) or related
