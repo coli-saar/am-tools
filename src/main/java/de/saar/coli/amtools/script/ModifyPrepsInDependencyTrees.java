@@ -258,6 +258,7 @@ public class ModifyPrepsInDependencyTrees {
             if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
                 List<AmConllEntry> dmChildren = dmDep.getChildren(index);
                 List<AmConllEntry> pasChildren = pasDep.getChildren(index);
+                //TODO make below check the pattern check
                 if (dmChildren.size()==1 && dmChildren.get(0).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)
                     && pasChildren.size()==1 && pasChildren.get(0).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)
                     && dmEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)

@@ -38,20 +38,25 @@ public class ModifyDependencyTreesDetCopNeg {
     //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.pas.sdp";
 
     @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.psd.sdp";
+    private String corpusPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_2015\\data\\2015\\en.psd.sdp";
+    //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/en.psd.sdp";
 
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathDM = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/gold-dev/gold-dev.amconll";
+    private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_decompositions\\dm\\gold-dev\\gold-dev.amconll";
+    //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/dm/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPAS", "-ampas"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPAS = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
+    private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
+    //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/psd/gold-dev/gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/psd/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "../../github/";
+    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
+    //"../../github/";
 
 
 
@@ -134,6 +139,9 @@ public class ModifyDependencyTreesDetCopNeg {
     private int binaryconjunction = 0;
     private int binaryconjunctionFixedDM = 0;
     private Counter<String> binaryConjunctionPatterns = new Counter<>();
+
+    public Counter<String> patternLogger = new Counter<>();
+    public Counter<String> failLogger = new Counter<>();
 
     private int determiner = 0;
     private int determinerFixedPSD = 0;
@@ -380,12 +388,19 @@ public class ModifyDependencyTreesDetCopNeg {
         // and attach it to the head it has in DM.
         int index = 0;
         for (AmConllEntry word : psdDep){
-            if (word.getPos().equals("DT") && word.getEdgeLabel().equals("IGNORE")){
+            if (word.getPos().equals("DT") && FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId()).equals("660")){
                 determiner++;
                 // System.err.println(index);
                 // System.err.println(dmDep.getParent(index));
-                if (dmDep.getParent(index) == null) continue; // if DM ignored determiner as well, skip this
+                if (dmDep.getParent(index) == null) {
+                    failLogger.add("det ignored in DM");
+                    continue; // if DM ignored determiner as well, skip this
+                }
                 int head = dmDep.getParent(index).getId();// index is 0-based, head is 1-based
+                if (AmConllEntry.IGNORE.equals(psdDep.get(head-1).getEdgeLabel())) {
+                    failLogger.add("det head ignored in PSD");
+                    continue;
+                }
                 word.setHead(head);
                 word.setEdgeLabel("MOD_det");
                 word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
@@ -575,9 +590,9 @@ public class ModifyDependencyTreesDetCopNeg {
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
-            if (psdEntry.getLemma().equals("#Neg")){ // psdEntry is Negation word
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+            if (psdEntry.getLemma().equals("#Neg") && pattern.equals("566")) { // psdEntry is Negation word
                 this.negations ++;
-                String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
                 negationPatterns.add(pattern);
                 fixedPSD = false;
                 // In DM we can be in the situation that the negation word is the head with outgoing APP_mod edge
@@ -671,13 +686,6 @@ public class ModifyDependencyTreesDetCopNeg {
                                 negationsFixedPAS++;
                                 if (fixedPSD) {
                                     String afterFixPattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
-                                    if (!afterFixPattern.equals("555")) {
-                                        System.err.println(afterFixPattern);
-                                        System.err.println(psdEntry.getId());
-                                        System.err.println(dmDep);
-                                        System.err.println(pasDep);
-                                        System.err.println(psdDep);
-                                    }
                                     fixedNegationPatterns.add(pattern+"|"+afterFixPattern);
                                     negationsAllFixed++;
                                 }
@@ -712,9 +720,12 @@ public class ModifyDependencyTreesDetCopNeg {
         // fix: DM, PSD create one-node blob with pnct and root source for them
         // todo avoid magic strings if possible (import static strings from elsewhere?)
         String ignore_edge = "IGNORE";
+        List<String> allowedPOS = Arrays.asList(",","``","''",":","-RRB-","LRB-","TO","IN","RP");
         int index = 0;
         for (AmConllEntry word : pasDep){
-            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId()).equals("060")) {
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
+            AmConllEntry psdWord = psdDep.get(index); // punctuation is PSD
+            if (pattern.equals("060") && allowedPOS.contains(psdWord.getPos())) {
             //if (word.getEdgeLabel().equals(mod_punct)){ // TODO maybe check if APPpnct exists?
                 punctuation++;
                 boolean fixedPSD = false;
@@ -725,7 +736,6 @@ public class ModifyDependencyTreesDetCopNeg {
                 String pasSource = word.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
 
                 // A. PSD if ignored, change to PAS like structure
-                AmConllEntry psdWord = psdDep.get(index); // punctuation is PSD
                 //assert psdWord != null; // same sentence , same size
                 if (psdWord.getEdgeLabel().equals(ignore_edge)
                         && !psdDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
@@ -785,7 +795,12 @@ public class ModifyDependencyTreesDetCopNeg {
         int index = 0;
         for (AmConllEntry word : psdDep){
             // word lemma be
-            if (word.getLemma().equals("be")){ // todo choose other framework for lemma - does this make a difference?
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
+            if (word.getLemma().equals("be") && pattern.equals("031")) {
+                //todo check examples for patterns 038 and 033?
+                copula++;
+                patternLogger.add("copula "+pattern);
+
                 AmConllEntry subjectPAS = null;
                 AmConllEntry adjectivePAS = null;
                 // 1.find arguments of to be
@@ -793,11 +808,19 @@ public class ModifyDependencyTreesDetCopNeg {
                     if (child.getEdgeLabel().equals(apps)) {
                         subjectPAS = child;
                     }
-                    else if (child.getEdgeLabel().equals(appo) && child.getPos().startsWith("JJ")) {
+                    else if (child.getEdgeLabel().equals(appo)) {
                         adjectivePAS = child;
                     }
                 }
-                if (subjectPAS == null || adjectivePAS == null) continue; // at least one argument not found -> skip
+                if (subjectPAS == null || adjectivePAS == null) {
+                    failLogger.add("copula missing PAS arg");
+                    continue; // at least one argument not found -> skip
+                }
+                if (!adjectivePAS.getPos().startsWith("JJ")) {
+                    System.err.println(adjectivePAS.getPos());
+                    failLogger.add("copula not JJ");
+                    continue; // only do adjectives for now
+                }
                 int subj0pas = subjectPAS.getId()-1; // 0-based
                 int adj0pas = adjectivePAS.getId()-1;
 
@@ -806,22 +829,34 @@ public class ModifyDependencyTreesDetCopNeg {
                 AmConllEntry verbPSD = psdDep.get(index);
                 AmConllEntry subjPSD = psdDep.get(subj0pas);
                 AmConllEntry adjPSD = psdDep.get(adj0pas);
-                if (subjPSD.getHead() != verbPSD.getId() || !subjPSD.getEdgeLabel().equals(apps)) continue;
-                if (adjPSD.getHead() != verbPSD.getId() || !adjPSD.getEdgeLabel().equals(appo)) continue;
+                if (subjPSD.getHead() != verbPSD.getId() || !subjPSD.getEdgeLabel().equals(apps)) {
+                    failLogger.add("copula PSD bad subject");
+                    continue;
+                }
+                if (adjPSD.getHead() != verbPSD.getId() || !adjPSD.getEdgeLabel().equals(appo)) {
+                    failLogger.add("copula PSD bad object");
+                    continue;
+                }
                 // todo check 0-based, 1-based not confused? getHead, getId comparable?
 
                 // 2.2 DM:    verb ignored,   adjective--APPs-> subject
                 AmConllEntry verbDM = dmDep.get(index);
                 AmConllEntry subjDM = dmDep.get(subj0pas);
                 AmConllEntry adjDM = dmDep.get(adj0pas);
-                if (!verbDM.getEdgeLabel().equals(ignore)) continue;
-                if (!subjDM.getEdgeLabel().equals(apps) || subjDM.getHead() != adjDM.getId()) continue;
+                if (!verbDM.getEdgeLabel().equals(ignore)) {
+                    failLogger.add("copula DM not ignored");
+                    continue;
+                }
+                if (!subjDM.getEdgeLabel().equals(apps) || subjDM.getHead() != adjDM.getId()) {
+                    failLogger.add("copula no good DM edge");
+                    continue;
+                }
                 // todo check 0-based, 1-based not confused? getHead, getId comparable?
                 // todo check if incoming edge is the same across PSD, DM, PAS? -> other phenomena?
 
-                copula++;
                 if (!adjDM.getType().equals(unproblematic_adj_type)) { // TODO: skip for now, but maybe find better solution?
                     //System.err.println("Can't fix copula for now: problematic adjective type: " + adjDM.getType().toString() + " for adjective " + adjDM.getForm());
+                    failLogger.add("copula bad DM type");
                     continue;
                 }
 
@@ -840,6 +875,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 // 3.4 delex supertags - only need to change verb
                 verbDM.setDelexSupertag("(u<root, o>)"); // one node  s-annotation not part of supertag
                 copulaFixedDM++;
+                failLogger.add("copula success");
             }
             index++;
         }
@@ -918,8 +954,9 @@ public class ModifyDependencyTreesDetCopNeg {
         AlignedAMDependencyTree dmDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
         
         for (AmConllEntry word : psdDep){
-            // CC postag (conjunction)
-            if (word.getPos().equals("CC")){
+            // CC postag (conjunction) and pattern
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
+            if (word.getPos().equals("CC") && (pattern.equals("011") || pattern.equals("088"))) {
                 // PSD 2 APP children (APP_op and APP_op1)
                 // DM 1 coord edge
 
@@ -944,14 +981,11 @@ public class ModifyDependencyTreesDetCopNeg {
                 if (multiconj) continue;  // skip multiconj for now  // maybe count them still?
 
                 if (firstConjunctPSD == null || secondConjunctPSD == null) continue; // skip if not two conjuncts found
-                String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
-                binaryConjunctionPatterns.add(pattern);
-                if (pattern.equals("018")) {
-                    System.err.println(pattern);
-                    System.err.println(word.getId());
-                    System.err.println(pasDep);
-                    System.err.println(psdDep);
-                }
+
+
+                // now we have coordination
+                patternLogger.add("coord "+pattern);
+                binaryconjunction++;
 
 
 
@@ -964,7 +998,10 @@ public class ModifyDependencyTreesDetCopNeg {
                 AmConllEntry secondConjunctDM = dmDep.get(psdconj2idx);
                 AmConllEntry conjunctionDM = dmDep.get(index);
                 // a) conjunction node ignored in DM
-                if (!conjunctionDM.getEdgeLabel().equals(ignore)) continue;
+                if (!conjunctionDM.getEdgeLabel().equals(ignore)) {
+                    failLogger.add("coord no DM IGNORE");
+                    continue;
+                }
                 // b) APPcoord or MODcoord egde between the two conjuncts
                 // Most frequent structure is MODcoord with first conjunct as head, but others are possible too.
                 // Depending on the structure (MOD or APP, first or second as head), the new DM supertag for the
@@ -997,6 +1034,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 }
                 else {
                     // no APP/MOD coord edge between conjuncts in DM -> not a DM coordination
+                    failLogger.add("coord no DM _c edge");
                     continue;
                 }
                 boolean firstConjunctIsHead = usesModCoord ^ coordEdgeInFirstConjunct; // ^ is logical XOR
@@ -1007,8 +1045,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 AmConllEntry headConjunctDM = firstConjunctIsHead ? firstConjunctDM : secondConjunctDM;
                 AmConllEntry coordSrcConjunctDM = coordEdgeInFirstConjunct ? firstConjunctDM : secondConjunctDM;
 
-                binaryconjunction++;
-                
+
                 // 3. change DM (and PSD source names...
 
                 
@@ -1096,6 +1133,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 word.setType(renameSource(word.getType(), "op", "op1"));
 
                 binaryconjunctionFixedDM++;
+                failLogger.add("coord success");
             }
             index++;
         }

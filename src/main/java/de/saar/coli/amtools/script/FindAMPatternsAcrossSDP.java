@@ -38,7 +38,7 @@ public class FindAMPatternsAcrossSDP {
     private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_devs_intersected\\pas.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_devs_intersected\\psd.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\new_psd_preprocessing\\gold-dev\\gold-dev.amconll";
 
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -119,11 +119,12 @@ public class FindAMPatternsAcrossSDP {
         for (String sentenceID : decomposedIDs) {
             //ignore 0 in next loop, since it is the artificial root of the SDP graph
             AmConllSentence dmDep = id2amDM.get(sentenceID);
+            AmConllSentence pasDep = id2amPAS.get(sentenceID);
+            AmConllSentence psdDep = id2amPSD.get(sentenceID);
             for (int i = 0; i < dmDep.size(); i++) {
-                String patternCombination = getPatternCombination(id2amDM.get(sentenceID),
-                        id2amPAS.get(sentenceID), id2amPSD.get(sentenceID), i+1);
-                patterns2lemmaCounter.get(patternCombination).add(dmDep.get(i).getLemma());
-                patterns2posCounter.get(patternCombination).add(dmDep.get(i).getPos());
+                String patternCombination = getPatternCombination(id2amDM.get(sentenceID), pasDep, psdDep, i+1);
+                patterns2lemmaCounter.get(patternCombination).add(psdDep.get(i).getLemma());
+                patterns2posCounter.get(patternCombination).add(psdDep.get(i).getPos());
                 totalNodes++;
                 if (!equalPatterns.contains(patternCombination)) {
                     totalDiffs++;
@@ -179,7 +180,7 @@ public class FindAMPatternsAcrossSDP {
         int maxNumbers = 0;
         int i = 0;
         for (String pattern : sortedPatterns) {
-            if (i>maxNumbers) {
+            if (i>=maxNumbers) {
                 break;
             }
             System.err.println(pattern+","+patterns2lemmaCounter.get(pattern).sum());
@@ -188,16 +189,20 @@ public class FindAMPatternsAcrossSDP {
 
         System.err.println("DIFFERENCES:");
         i=0;
-        maxNumbers = 20;
+        maxNumbers = 0;
         for (String pattern : sortedPatterns) {
             if (!equalPatterns.contains(pattern)) {
-                if (i>maxNumbers) {
+                if (i>=maxNumbers) {
                     break;
                 }
                 System.err.println(pattern + "," + patterns2lemmaCounter.get(pattern).sum());
                 i++;
             }
         }
+
+        patterns2posCounter.get("060").printAllSorted();
+        patterns2lemmaCounter.get("060").printAllSorted();
+
     }
 
     /**

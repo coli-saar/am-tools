@@ -24,16 +24,6 @@ import java.util.function.Function;
 
 public class AllDependencyChanges {
 
-    //SDP corpora (i.e. original graphs)
-    @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.dm.sdp";
-
-    @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.pas.sdp";
-
-    @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.psd.sdp";
-
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
     private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\gold-dev\\gold-dev.amconll";
@@ -42,10 +32,10 @@ public class AllDependencyChanges {
     private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\new_psd_preprocessing\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\";
+    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
 
     @Parameter(names = {"--onlyDeterminers"}, description = "only fix determiners (for testing purposes)")
     private boolean onlyDeterminers=false;
@@ -54,10 +44,6 @@ public class AllDependencyChanges {
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
-
-    private static DMBlobUtils dmBlobUtils = new DMBlobUtils();
-    private static PASBlobUtils pasBlobUtils = new PASBlobUtils();
-    private static PSDBlobUtils psdBlobUtils = new PSDBlobUtils();
 
     private int dmFails = 0;
     private int pasFails = 0;
@@ -144,8 +130,6 @@ public class AllDependencyChanges {
             }
         });
         changer.printComparisons();
-        System.err.println(treeModifier.getDeterminer());
-        System.err.println(treeModifier.getDeterminerFixedPSD());
         if (!changer.onlyDeterminers) {
 
 
@@ -236,6 +220,9 @@ public class AllDependencyChanges {
         System.out.println("DM fails: "+changer.dmFails);
         System.out.println("PAS fails: "+changer.pasFails);
         System.out.println("PSD fails: "+changer.psdFails);
+
+        treeModifier.patternLogger.printAllSorted();
+        treeModifier.failLogger.printAllSorted();
 
 
         AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/dm.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsDM);
