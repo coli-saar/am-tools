@@ -107,15 +107,15 @@ public class AMExampleFinder {
                     System.out.println(index+1);
                     if (cli.printDM) {
                         System.out.println("DM");
-                        cli.print(dmDep, index);
+                        cli.printExample(dmDep, index+1, cli.range);
                     }
                     if (cli.printPAS) {
                         System.out.println("PAS");
-                        cli.print(pasDep, index);
+                        cli.printExample(pasDep, index+1, cli.range);
                     }
                     if (cli.printPSD) {
                         System.out.println("PSD");
-                        cli.print(psdDep, index);
+                        cli.printExample(psdDep, index+1, cli.range);
                     }
                 }
 
@@ -125,8 +125,8 @@ public class AMExampleFinder {
 
     }
 
-    private void print(AmConllSentence dep, int index) {
-        for (int i = Math.max(0, index-range); i<Math.min(dep.size(), index+range+1); i++) {
+    public static void printExample(AmConllSentence dep, int id, int range) {
+        for (int i = Math.max(0, id-1-range); i<Math.min(dep.size(), id+range); i++) {
             System.out.println(dep.get(i).toString());
         }
     }

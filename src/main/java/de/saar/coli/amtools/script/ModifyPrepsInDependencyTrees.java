@@ -39,7 +39,7 @@ public class ModifyPrepsInDependencyTrees {
     private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\new_psd_preprocessing\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
     private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
@@ -73,6 +73,7 @@ public class ModifyPrepsInDependencyTrees {
     private int needToPercolateSources = 0;
     private int sourceNotInGraph = 0;
     private Counter<Type> typesToPercolate = new Counter<>();
+    public Counter<String> failLogger = new Counter<>();
 
     /**
      *
@@ -274,8 +275,11 @@ public class ModifyPrepsInDependencyTrees {
                     int dmRight = Math.max(dmEntry.getHead(), dmChildren.get(0).getId());
                     int pasLeft = Math.min(pasEntry.getHead(), pasChildren.get(0).getId());
                     int pasRight = Math.max(pasEntry.getHead(), pasChildren.get(0).getId());
-                    IntList matchingEdges = HeadAndConstituentAnalysis.getHeadMatchEdges(psdDep, dmDep, pasDep,
-                            dmLeft, dmRight, pasLeft, pasRight);
+//                    IntList matchingEdges = HeadAndConstituentAnalysis.getHeadMatchEdges(psdDep, dmDep, pasDep,
+//                            dmLeft, dmRight, pasLeft, pasRight);
+                    // just look at PAS structures for simplicity
+                    IntList matchingEdges = HeadAndConstituentAnalysis.getHeadMatchEdges(psdDep, pasDep, pasDep,
+                            pasLeft, pasRight, pasLeft, pasRight);
 
                     if (matchingEdges.size() == 1) {
                         AmConllEntry psdEdgeTarget = psdDep.get(matchingEdges.getInt(0) - 1);
@@ -301,14 +305,17 @@ public class ModifyPrepsInDependencyTrees {
                                     psdEdgeTarget.setHead(psdEntry.getId());
                                     psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
                                     preps220Fixed++;
+                                    failLogger.add("220 success");
                                 } else {
                                     System.err.println(psdDep);
                                     System.err.println(psdEdgeTarget.getId());
                                     sourceNotInGraph++;
+                                    failLogger.add("220 source not in graph");
                                 }
                             } else {
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSources++;
+                                failLogger.add("220 need to percolate sources");
                             }
                         } else {
                             apps++;
@@ -317,7 +324,6 @@ public class ModifyPrepsInDependencyTrees {
                                 if (psdEdgeOrigin.delexGraph().getNodeForSource(appSourcePSD) != null) {
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeOrigin.delexGraph(), appSourcePSD);
                                     //TODO get DM sources -- EDIT: for now keep psd sources
-
 
                                     psdEntry.setHead(psdEdgeOrigin.getId());
                                     psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + "prep");
@@ -330,17 +336,21 @@ public class ModifyPrepsInDependencyTrees {
                                     //TODO line above may cause error
                                     psdEdgeTarget.setHead(psdEntry.getId());
                                     preps220Fixed++;
+                                    failLogger.add("220 success");
                                 } else {
                                     sourceNotInGraph++;
+                                    failLogger.add("220 source not in graph");
                                 }
                             } else {
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSources++;
+                                failLogger.add("220 need to percolate sources");
                             }
                         }
 
                     } else {
                         noUniqueEdge++;
+                        failLogger.add("220 no unique edge");
                     }
 
                 }
@@ -395,12 +405,15 @@ public class ModifyPrepsInDependencyTrees {
                                     psdEdgeTarget.setHead(psdEntry.getId());
                                     psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
                                     preps020FixedPSD++;
+                                    failLogger.add("020 success PSD");
                                 } else {
                                     sourceNotInGraphPSD020++;
+                                    failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSourcesPSD020++;
+                                failLogger.add("020 need to percolate sources PSD");
                             }
                         } else {
                             String appSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
@@ -426,17 +439,21 @@ public class ModifyPrepsInDependencyTrees {
 
                                     psdEdgeTarget.setHead(psdEntry.getId());
                                     preps020FixedPSD++;
+                                    failLogger.add("020 success PSD");
                                 } else {
                                     sourceNotInGraphPSD020++;
+                                    failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSourcesPSD020++;
+                                failLogger.add("020 need to percolate sources PSD");
                             }
                         }
 
                     } else {
                         noUniqueEdgePSD020++;
+                        failLogger.add("020 no unique edge PSD");
                     }
 
 
@@ -462,12 +479,15 @@ public class ModifyPrepsInDependencyTrees {
                                     dmEdgeTarget.setHead(dmEntry.getId());
                                     dmEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
                                     preps020FixedDM++;
+                                    failLogger.add("020 success DM");
                                 } else {
                                     sourceNotInGraphDM020++;
+                                    failLogger.add("020 source not in graph DM");
                                 }
                             } else {
                                 typesToPercolate.add(dmEdgeOrigin.getType().getRequest(modSourceDM));
                                 needToPercolateSourcesDM020++;
+                                failLogger.add("020 need to percolate sources DM");
                             }
                         } else {
                             String appSourceDM = dmEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
@@ -493,16 +513,20 @@ public class ModifyPrepsInDependencyTrees {
 
                                     dmEdgeTarget.setHead(dmEntry.getId());
                                     preps020FixedDM++;
+                                    failLogger.add("020 success DM");
                                 } else {
                                     sourceNotInGraphDM020++;
+                                    failLogger.add("020 source not in graph DM");
                                 }
                             } else {
                                 typesToPercolate.add(dmEdgeOrigin.getType().getRequest(appSourceDM));
                                 needToPercolateSourcesDM020++;
+                                failLogger.add("020 need to percolate sources DM");
                             }
                         }
 
                     } else {
+                        failLogger.add("020 no unique edge DM");
                         noUniqueEdgeDM020++;
                     }
                 }

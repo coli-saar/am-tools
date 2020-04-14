@@ -116,6 +116,8 @@ public class AllDependencyChanges {
         changer.printComparisons();
 
         ModifyDependencyTreesDetCopNeg treeModifier = new ModifyDependencyTreesDetCopNeg();
+        ModifyAuxiliariesInDependencyTrees auxTreeFixer = new ModifyAuxiliariesInDependencyTrees();
+        ModifyPrepsInDependencyTrees prepTreeFixer = new ModifyPrepsInDependencyTrees();
 
 
         //error handling below could maybe be done better, but Java is weird about exceptions and lambdas...
@@ -135,7 +137,6 @@ public class AllDependencyChanges {
 
             //temporal auxiliaries
             System.out.println("Fixing temporal auxiliaries");
-            ModifyAuxiliariesInDependencyTrees auxTreeFixer = new ModifyAuxiliariesInDependencyTrees();
             changer.applyFix(dm -> pas -> psd -> {
                 try {
                     auxTreeFixer.fixTemporalAuxiliaries(psd, dm, pas);
@@ -147,7 +148,6 @@ public class AllDependencyChanges {
 
             //prepositions
             System.out.println("Fixing prepositions (220 pattern)");
-            ModifyPrepsInDependencyTrees prepTreeFixer = new ModifyPrepsInDependencyTrees();
             changer.applyFix(dm -> pas -> psd -> {
                 try {
                     prepTreeFixer.fixPreps220(psd, dm, pas);
@@ -166,17 +166,6 @@ public class AllDependencyChanges {
             });
             changer.printComparisons();
 
-            //negation
-            System.out.println("Fixing negations");
-            changer.applyFix(dm -> pas -> psd -> {
-                try {
-                    treeModifier.fixNegation(psd, dm, pas);
-                    treeModifier.fixNever(psd, dm, pas);
-                } catch (ParseException | AlignedAMDependencyTree.ConllParserException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            changer.printComparisons();
 
             //adjective copula
             System.out.println("Fixing adjective copula");
@@ -195,6 +184,18 @@ public class AllDependencyChanges {
                 try {
                     treeModifier.fixBinaryConjuction(psd, dm, pas);
                 } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
+
+            //negation
+            System.out.println("Fixing negations");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    treeModifier.fixNegation(psd, dm, pas);
+                    treeModifier.fixNever(psd, dm, pas);
+                } catch (ParseException | AlignedAMDependencyTree.ConllParserException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -223,6 +224,8 @@ public class AllDependencyChanges {
 
         treeModifier.patternLogger.printAllSorted();
         treeModifier.failLogger.printAllSorted();
+        prepTreeFixer.failLogger.printAllSorted();
+        auxTreeFixer.failLogger.printAllSorted();
 
 
         AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/dm.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsDM);

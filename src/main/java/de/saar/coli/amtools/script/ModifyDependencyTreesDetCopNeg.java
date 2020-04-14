@@ -406,6 +406,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
                 word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
                 determinerFixedPSD++;
+                failLogger.add("det success");
             }
             index++;
         }
@@ -431,6 +432,9 @@ public class ModifyDependencyTreesDetCopNeg {
         // Manipulate the type of the dependent to contain the new source and require the type at the head
         
         Type oldHeadType = deptree.getTermTypeAt(oldHead);
+        if (!oldHeadType.equals(Type.EMPTY_TYPE)) {
+            failLogger.add("neg percolating sources");
+        }
         Set<String> origins = oldHeadType.getOrigins();
         Type newHeadType = oldHeadType.addSource(source);
         for (String o : origins){
@@ -516,8 +520,8 @@ public class ModifyDependencyTreesDetCopNeg {
         boolean fixedPSD = false;
         
         for (AmConllEntry dmEntry : dmDep) {
-            
-            if (dmEntry.getLemma().equals("never")){
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmEntry.getId());
+            if (dmEntry.getLemma().equals("never") && pattern.equals("566")){
                 this.never++;
                 neverPatterns.add(FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmEntry.getId()));
                 
@@ -655,16 +659,23 @@ public class ModifyDependencyTreesDetCopNeg {
                                 negationsFixedPSD++;
                                 fixedPSD = true;
                              } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
+                                failLogger.add("neg cycle PSD");
                              }
 
                         } else { //PSD has unexpected supertag, no case in dev data.
-
+                            failLogger.add("neg unexpected supertag PSD");
                         }
 
 
                     } else { //PSD doesn't have MOD_mod edge in right place:
-
-                        
+                        failLogger.add("neg missing MOD_mod PSD");
+//                        System.out.println(dmEntry.getId());
+//                        System.out.println("DM");
+//                        AMExampleFinder.printExample(dmDep, dmEntry.getId(), 3);
+//                        System.out.println("PSD");
+//                        AMExampleFinder.printExample(psdDep, dmEntry.getId(), 3);
+//                        System.out.println("PAS");
+//                        AMExampleFinder.printExample(pasDep, dmEntry.getId(), 3);
                     }
 
                     // PAS
@@ -688,22 +699,25 @@ public class ModifyDependencyTreesDetCopNeg {
                                     String afterFixPattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
                                     fixedNegationPatterns.add(pattern+"|"+afterFixPattern);
                                     negationsAllFixed++;
+                                    failLogger.add("neg success");
                                 }
                             } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
+                                failLogger.add("neg cycle PAS");
                             }
                             
                         } else { //PAS uses unexpected supertag, no cases in gold dev.
-                          
+                            failLogger.add("neg unexpected supertag PAS");
                         }
 
 
                     } else { //PAS doesn't have MOD_mod edge in expected place:
-
+                        failLogger.add("neg missing MOD_mod PAS");
                     }
                     
                     // DEBUG TODO maybe look at what is actually negated this way? only verbs?
                 } // found negated argument 
                 else {
+                    failLogger.add("neg no potential argument");
                    // System.err.println(dmDep.getId());
                    // System.err.println(dmDep);
                 }
@@ -748,6 +762,8 @@ public class ModifyDependencyTreesDetCopNeg {
                     psdWord.setType(new ApplyModifyGraphAlgebra.Type("("+pasSource+")"));
                     punctuationFixedPSD++;
                     fixedPSD = true;
+                } else {
+                    failLogger.add("punct PSD fail");
                 }
 
                 // B. DM if ignored, change to pas like structure
@@ -763,10 +779,15 @@ public class ModifyDependencyTreesDetCopNeg {
                     dmWord.setType(new ApplyModifyGraphAlgebra.Type("("+pasSource+")"));
                     punctuationFixedDM++;
                     fixedDM = true;
+                } else {
+                    failLogger.add("punct DM fail");
                 }
 
                 // if both DM and PSD fixed : increment counter
-                if (fixedDM && fixedPSD) punctuationAllFixed++;
+                if (fixedDM && fixedPSD) {
+                    failLogger.add("punct success");
+                    punctuationAllFixed++;
+                }
             }
             index++;
         }

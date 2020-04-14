@@ -14,6 +14,7 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.SGraphDrawer;
+import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import org.eclipse.collections.impl.factory.Sets;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
@@ -62,6 +63,8 @@ public class ModifyAuxiliariesInDependencyTrees {
     private int temporalAuxiliaries = 0;
     private int unusualType = 0;
     private int temporalAuxiliariesFixed = 0;
+
+    Counter<String> failLogger = new Counter<>();
 
     /**
      * @param args
@@ -231,9 +234,8 @@ public class ModifyAuxiliariesInDependencyTrees {
             AmConllEntry pasEntry = pasDep.get(index);
 //            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmGraph, pasGraph, psdGraph, psdEntry.getId()).equals("040")
 //                    && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
-            if (pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)
-                && psdEntry.getEdgeLabel().equals(AmConllEntry.IGNORE) && dmEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)
-                && pasEntry.getPos().startsWith("V")) {
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+            if (pattern.equals("040") && pasEntry.getPos().startsWith("V")) {
                 this.temporalAuxiliaries ++;
                 if (!new Type("(s,o)").equals(pasEntry.getType())) {
                     this.unusualType++;
@@ -245,6 +247,12 @@ public class ModifyAuxiliariesInDependencyTrees {
                 String desiredSupertag = desiredSupertagTemplate.replace("--SOURCE--", source);
                 Type desiredType = new Type("("+source+")");
 
+                if (psdDep.get(pasEntry.getHead()-1).getEdgeLabel().equals(AmConllEntry.IGNORE)
+                    || dmDep.get(pasEntry.getHead()-1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+                    failLogger.add("aux head ignored");
+                    continue;
+                }
+
                 psdEntry.setDelexSupertag(desiredSupertag);
                 psdEntry.setType(desiredType);
                 psdEntry.setHead(pasEntry.getHead());
@@ -254,6 +262,7 @@ public class ModifyAuxiliariesInDependencyTrees {
                 dmEntry.setType(desiredType);
                 dmEntry.setHead(pasEntry.getHead());
                 dmEntry.setEdgeLabel(pasEntry.getEdgeLabel());
+                failLogger.add("aux success");
                 temporalAuxiliariesFixed++;
 
             }
