@@ -40,6 +40,9 @@ public class CreateDatasetWithSyntaxSources {
     @Parameter(names = {"--vocab", "-v"}, description = "existing vocab file containing supertags (e.g. points to training vocab when doing dev/test files). Using this flag means dev set mode, don't use it for the training set")
     private String vocab = null;
 
+    @Parameter(names = {"--debug"}, description = "maxes things run faster for debugging (skips NER tags)")
+    private boolean debug=true;
+
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
@@ -47,8 +50,8 @@ public class CreateDatasetWithSyntaxSources {
 
     public static void main(String[] args) throws Exception {
 
-        CreateDatasetWithSyntaxSources cli = new CreateDatasetWithSyntaxSources();
-        JCommander commander = new JCommander(cli);
+        CreateDatasetWithSyntaxSources datasetCreator = new CreateDatasetWithSyntaxSources();
+        JCommander commander = new JCommander(datasetCreator);
 
         try {
             commander.parse(args);
@@ -59,16 +62,16 @@ public class CreateDatasetWithSyntaxSources {
             return;
         }
 
-        if (cli.help) {
+        if (datasetCreator.help) {
             commander.usage();
             return;
         }
 
 
         DMBlobUtils blobUtils = new DMBlobUtils();
-        GraphReader2015 gr = new GraphReader2015(cli.corpusPath);
+        GraphReader2015 gr = new GraphReader2015(datasetCreator.corpusPath);
 
-        List<List<List<Pair<String, Double>>>> syntaxEdgeScores = Util.readEdgeProbs(new FileReader(cli.syntaxEdgeScoresPath),
+        List<List<List<Pair<String, Double>>>> syntaxEdgeScores = Util.readEdgeProbs(new FileReader(datasetCreator.syntaxEdgeScoresPath),
                 true, 0, 5, false);//indices are 1-based, like in the am-dependency tree
         //work around weird legacy issue for edge scores
         Iterator<List<Pair<String, Double>>> syntaxEdgeScoresIterator = new Iterator<List<Pair<String, Double>>>() {
@@ -85,8 +88,8 @@ public class CreateDatasetWithSyntaxSources {
 
         //make supertag dictionary; if a starting dictionary was given (i.e. if we are in the dev set case), read it.
         SupertagDictionary supertagDictionary = new SupertagDictionary();;
-        if (cli.vocab != null) {
-            supertagDictionary.readFromFile(cli.vocab);
+        if (datasetCreator.vocab != null) {
+            supertagDictionary.readFromFile(datasetCreator.vocab);
         }
 
         Graph sdpGraph;
@@ -121,7 +124,7 @@ public class CreateDatasetWithSyntaxSources {
                         graph.setEqualsMeansIsomorphy(false);
 
                         if (graph.equals(resultGraph)) {
-                            AmConllSentence amConllSentence = dep2amConll(result, sdpGraph, syntaxEdges, supertagDictionary);
+                            AmConllSentence amConllSentence = datasetCreator.dep2amConll(result, sdpGraph, syntaxEdges, supertagDictionary);
                             amConllSentenceList.add(amConllSentence);
                         } else {
                             System.err.println(index);
@@ -131,8 +134,8 @@ public class CreateDatasetWithSyntaxSources {
                         }
                     } catch (java.lang.Exception ex) {
                         System.err.println(index);
-//                        System.err.println(graph.toIsiAmrStringWithSources());
-//                        System.err.println(result);
+                        System.err.println(graph.toIsiAmrStringWithSources());
+                        System.err.println(result);
                         ex.printStackTrace();
                         fails++;
                     }
@@ -149,12 +152,12 @@ public class CreateDatasetWithSyntaxSources {
             index++;
         }
 
-        Path outPath = Paths.get(cli.outPath);
-        Path amconllOutPath = outPath.resolve(cli.prefix+".amconll");
+        Path outPath = Paths.get(datasetCreator.outPath);
+        Path amconllOutPath = outPath.resolve(datasetCreator.prefix+".amconll");
         AmConllSentence.writeToFile(amconllOutPath.toString(), amConllSentenceList);
         // only write supertag dictionary if no starting dictionary was given (i.e. if we are in the training set case)
-        if (cli.vocab == null) {
-            Path supertagLexOutPath = outPath.resolve(cli.prefix + "_supertags.txt");
+        if (datasetCreator.vocab == null) {
+            Path supertagLexOutPath = outPath.resolve(datasetCreator.prefix + "_supertags.txt");
             supertagDictionary.writeToFile(supertagLexOutPath.toString());
         }
 
@@ -163,7 +166,7 @@ public class CreateDatasetWithSyntaxSources {
         supertagCounter.printAllSorted();
     }
 
-    static AmConllSentence dep2amConll(AMDependencyTree dep, Graph sdpGraph, List<Pair<String, Double>> syntaxEdges,
+    AmConllSentence dep2amConll(AMDependencyTree dep, Graph sdpGraph, List<Pair<String, Double>> syntaxEdges,
                                        SupertagDictionary supertagDictionary) {
         AmConllSentence sent = new AmConllSentence();
 
@@ -190,11 +193,13 @@ public class CreateDatasetWithSyntaxSources {
         sent.add(artRoot);
 
         //add NE tags
-        List<String> forms = sdpGraph.getNodes().subList(1, sdpGraph.getNNodes()).stream().map(word -> word.form).collect(Collectors.toList());
-        Sentence stanfAn = new Sentence(forms);
-        List<String> neTags = new ArrayList<>(stanfAn.nerTags());
-        neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        sent.addNEs(neTags);
+        if (!debug) {
+            List<String> forms = sdpGraph.getNodes().subList(1, sdpGraph.getNNodes()).stream().map(word -> word.form).collect(Collectors.toList());
+            Sentence stanfAn = new Sentence(forms);
+            List<String> neTags = new ArrayList<>(stanfAn.nerTags());
+            neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
+            sent.addNEs(neTags);
+        }
 
         // get best edge labels
         Map<Set<Integer>, String> edge2bestLabel = new HashMap<>();
@@ -211,7 +216,7 @@ public class CreateDatasetWithSyntaxSources {
         }
 
         // go through AM dependency tree, adding delexicalized supertags, lex labels, and edges.
-        addDepToAmConll(dep, sdpGraph, sent, edge2bestLabel, new HashMap<>(), supertagDictionary);
+        addDepToAmConllRecursive(dep, sdpGraph, sent, edge2bestLabel, new HashMap<>(), supertagDictionary);
 
         return sent;
     }
@@ -221,9 +226,9 @@ public class CreateDatasetWithSyntaxSources {
      * @param dep
      * @param sent
      */
-    private static void addDepToAmConll(AMDependencyTree dep, Graph sdpGraph, AmConllSentence sent,
-                                        Map<Set<Integer>, String> edge2bestLabel, Map<String, String> old2newSource,
-                                        SupertagDictionary supertagDictionary) {
+    private static void addDepToAmConllRecursive(AMDependencyTree dep, Graph sdpGraph, AmConllSentence sent,
+                                                 Map<Set<Integer>, String> edge2bestLabel, Map<String, String> old2newSource,
+                                                 SupertagDictionary supertagDictionary) {
         String rootNodeName = dep.getHeadGraph().left.getNodeForSource("root");
         int id = getIdFromGraph(dep.getHeadGraph().left, sent);
         AmConllEntry headEntry = sent.get(id-1);
@@ -283,12 +288,22 @@ public class CreateDatasetWithSyntaxSources {
                 childEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+newSource);
             }
             childEntry.setHead(id);
-            addDepToAmConll(opAndChild.right, sdpGraph, sent, edge2bestLabel, old2newSource, supertagDictionary);
         }
+        // have separate loop for the recursive call, such that old2newSource has been fully updated
+        for (Pair<String, AMDependencyTree> opAndChild : sortedOpsAndChildren) {
+            addDepToAmConllRecursive(opAndChild.right, sdpGraph, sent, edge2bestLabel, old2newSource, supertagDictionary);
+        }
+
         // fix remaining sources that are not filled by an apply (e.g. sources that are unified through a modify above)
         for (String oldSource : Sets.intersect(dep.getHeadGraph().right.getAllSources(), old2newSource.keySet())) {
             String newSource = old2newSource.get(oldSource);
             changeSourceInHeadGraph(dep, oldSource, newSource);
+        }
+        for (String source : dep.getHeadGraph().right.getAllSources()) {
+            if (source.startsWith("i")) {
+                System.err.println("bad source found! "+source);
+                System.err.println(dep);
+            }
         }
         dep.getHeadGraph().left.setEqualsMeansIsomorphy(true);
         String delexSupertag = supertagDictionary.getRepr(dep.getHeadGraph().left);
