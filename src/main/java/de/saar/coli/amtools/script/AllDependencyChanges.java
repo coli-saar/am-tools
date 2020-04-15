@@ -167,16 +167,7 @@ public class AllDependencyChanges {
             changer.printComparisons();
 
 
-            //adjective copula
-            System.out.println("Fixing adjective copula");
-            changer.applyFix(dm -> pas -> psd -> {
-                try {
-                    treeModifier.fixAdjCopula(psd, dm, pas);
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            changer.printComparisons();
+
 
             //binary coordination
             System.out.println("Fixing binary coordination ");
@@ -184,6 +175,17 @@ public class AllDependencyChanges {
                 try {
                     treeModifier.fixBinaryConjuction(psd, dm, pas);
                 } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            changer.printComparisons();
+
+            //adjective copula
+            System.out.println("Fixing adjective copula");
+            changer.applyFix(dm -> pas -> psd -> {
+                try {
+                    treeModifier.fixAdjCopula(psd, dm, pas);
+                } catch (ParseException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -210,10 +212,6 @@ public class AllDependencyChanges {
                     throw new RuntimeException(e);
                 }
             });
-            System.err.println(treeModifier.punctuation);
-            System.err.println(treeModifier.punctuationAllFixed);
-            System.err.println(treeModifier.punctuationFixedDM);
-            System.err.println(treeModifier.punctuationFixedPSD);
             changer.printComparisons();
 
             //TODO check equality!
@@ -340,18 +338,18 @@ public class AllDependencyChanges {
         double dmPasUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, false, false);
         double dmPsdUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, false, false);
         double psdPasUnlabeledF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, false, false);
-        System.out.println(String.format("%.0f",dmPasUnlabeledF*100)+"     "+String.format("%.0f",dmPsdUnlabeledF*100)
-                +"     "+String.format("%.0f",psdPasUnlabeledF*100)+ "   unlabeled F");
+        System.out.println(String.format("%.2f",dmPasUnlabeledF*100)+"     "+String.format("%.2f",dmPsdUnlabeledF*100)
+                +"     "+String.format("%.2f",psdPasUnlabeledF*100)+ "   unlabeled F");
         double dmPasAMF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, true, false);
         double dmPsdAMF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, true, false);
         double psdPasAMF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, true, false);
-        System.out.println(String.format("%.0f",dmPasAMF*100)+"     "+String.format("%.0f",dmPsdAMF*100)
-                +"     "+String.format("%.0f",psdPasAMF*100)+ "   APP/MOD F");
+        System.out.println(String.format("%.2f",dmPasAMF*100)+"     "+String.format("%.2f",dmPsdAMF*100)
+                +"     "+String.format("%.2f",psdPasAMF*100)+ "   APP/MOD F");
         double dmPasLabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, false, true);
         double dmPsdLabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, false, true);
         double psdPasLabeledF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, false, true);
-        System.out.println(String.format("%.0f",dmPasLabeledF*100)+"     "+String.format("%.0f",dmPsdLabeledF*100)
-                +"     "+String.format("%.0f",psdPasLabeledF*100)+ "   labeled F");
+        System.out.println(String.format("%.2f",dmPasLabeledF*100)+"     "+String.format("%.2f",dmPsdLabeledF*100)
+                +"     "+String.format("%.2f",psdPasLabeledF*100)+ "   labeled F");
     }
 
 }

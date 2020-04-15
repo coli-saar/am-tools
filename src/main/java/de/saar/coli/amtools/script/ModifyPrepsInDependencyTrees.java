@@ -288,7 +288,15 @@ public class ModifyPrepsInDependencyTrees {
                         if (psdEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
                             mods++;
                             String modSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                            if (Type.EMPTY_TYPE.equals(psdEdgeTarget.getType().getRequest(modSourcePSD))) {
+                            AlignedAMDependencyTree psdAlignedDepTree;
+                            try {
+                                psdAlignedDepTree = AlignedAMDependencyTree.fromSentence(psdDep);
+                            } catch (AlignedAMDependencyTree.ConllParserException e) {
+                                failLogger.add("020 error getting aligned dep tree");
+                                continue;
+                            }
+
+                            if (psdAlignedDepTree.getTermTypeAt(psdEdgeTarget).getAllSources().size() == 1) {
                                 if (psdEdgeTarget.delexGraph().getNodeForSource(modSourcePSD) != null) {
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeTarget.delexGraph(), modSourcePSD);
                                     //TODO get DM sources -- EDIT: for now keep psd sources
@@ -313,6 +321,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("220 source not in graph");
                                 }
                             } else {
+                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
+                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
+                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSources++;
                                 failLogger.add("220 need to percolate sources");
@@ -342,6 +354,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("220 source not in graph");
                                 }
                             } else {
+                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
+                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
+                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSources++;
                                 failLogger.add("220 need to percolate sources");
@@ -386,9 +402,18 @@ public class ModifyPrepsInDependencyTrees {
                     if (psdEdgeTarget != null && !psdDep.get(psdEdgeTarget.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
                         AmConllEntry psdEdgeOrigin = psdDep.get(psdEdgeTarget.getHead() - 1);
 
+
                         if (psdEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
                             String modSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                            if (Type.EMPTY_TYPE.equals(psdEdgeTarget.getType().getRequest(modSourcePSD))) {
+                            AlignedAMDependencyTree psdAlignedDepTree;
+                            try {
+                                psdAlignedDepTree = AlignedAMDependencyTree.fromSentence(psdDep);
+                            } catch (AlignedAMDependencyTree.ConllParserException e) {
+                                failLogger.add("020 error getting aligned dep tree");
+                                continue;
+                            }
+
+                            if (psdAlignedDepTree.getTermTypeAt(psdEdgeTarget).getAllSources().size() == 1) {
                                 if (psdEdgeTarget.delexGraph().getNodeForSource(modSourcePSD) != null) {
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeTarget.delexGraph(), modSourcePSD);
                                     //TODO get DM sources -- EDIT: for now keep psd sources
@@ -411,6 +436,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
+                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
+                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
+                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSourcesPSD020++;
                                 failLogger.add("020 need to percolate sources PSD");
@@ -445,6 +474,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
+                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
+                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
+                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSourcesPSD020++;
                                 failLogger.add("020 need to percolate sources PSD");
@@ -460,9 +493,19 @@ public class ModifyPrepsInDependencyTrees {
                     if (dmEdgeTarget != null && !dmDep.get(dmEdgeTarget.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
                         AmConllEntry dmEdgeOrigin = dmDep.get(dmEdgeTarget.getHead() - 1);
 
+
+
                         if (dmEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
                             String modSourceDM = dmEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                            if (Type.EMPTY_TYPE.equals(dmEdgeTarget.getType().getRequest(modSourceDM))) {
+                            AlignedAMDependencyTree dmAlignedDepTree;
+                            try {
+                                dmAlignedDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
+                            } catch (AlignedAMDependencyTree.ConllParserException e) {
+                                failLogger.add("020 error getting aligned dep tree");
+                                continue;
+                            }
+
+                            if (dmAlignedDepTree.getTermTypeAt(dmEdgeTarget).getAllSources().size() == 1) {
                                 if (dmEdgeTarget.delexGraph().getNodeForSource(modSourceDM) != null) {
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(dmEdgeTarget.delexGraph(), modSourceDM);
                                     //TODO get DM sources -- EDIT: for now keep dm sources
@@ -485,6 +528,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("020 source not in graph DM");
                                 }
                             } else {
+                                System.out.println("prep 020 need percolate sources DM: "+dmEntry.getId());
+                                System.out.println(dmAlignedDepTree.getTermTypeAt(dmEdgeTarget));
+                                AMExampleFinder.printExample(dmDep, dmEntry.getId(), 15);
+                                System.out.println();
                                 typesToPercolate.add(dmEdgeOrigin.getType().getRequest(modSourceDM));
                                 needToPercolateSourcesDM020++;
                                 failLogger.add("020 need to percolate sources DM");

@@ -548,7 +548,10 @@ public class ModifyDependencyTreesDetCopNeg {
                             && psdEntry.getHead() == dmArgument.getId() // do we want this condition? Perhaps, we should systematically swap?
                             ){
                         // we indeed have the situation as described above in PSD
-                        
+                        if (!psdTree.getTermTypeAt(psdDep.getParent(index)).equals(Type.EMPTY_TYPE)) {
+                            System.out.println("Never percolation PAS: "+psdEntry.getId());
+                            AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+                        }
                         swapHead(psdTree, psdEntry, psdDep.getParent(index), "neg");
                         neverFixedPSD++;
                         fixedPSD = true;
@@ -561,7 +564,11 @@ public class ModifyDependencyTreesDetCopNeg {
                     if (pasEntry.getEdgeLabel().equals("MOD_mod") && desiredPASSupertag.equals(new IsiAmrInputCodec().read(pasEntry.getDelexSupertag()))
                             && pasEntry.getHead() == dmArgument.getId() // do we want this condition?
                             ){
-                        
+
+                        if (!pasTree.getTermTypeAt(pasDep.getParent(index)).equals(Type.EMPTY_TYPE)) {
+                            System.out.println("Never percolation PAS: "+pasEntry.getId());
+                            AMExampleFinder.printExample(pasDep, pasEntry.getId(), 5);
+                        }
                         swapHead(pasTree, pasEntry, pasDep.getParent(index), "neg");
                         neverFixedPAS++;
                         pasTree = AlignedAMDependencyTree.fromSentence(pasDep);
@@ -642,8 +649,8 @@ public class ModifyDependencyTreesDetCopNeg {
                     //  - currently   --> argument --MOD_mod--> psdEntry (negation)
                     //  - would like:   argument <--APP_mod-- psdEntry (Negation) <--
                     //        plus changed Negation supertag (root source added at mod source place)
-                    if (psdEntry.getEdgeLabel().equals("MOD_mod") &&
-                            psdEntry.getHead() == dmArgument.getId()) {
+                    if (psdEntry.getEdgeLabel().equals("MOD_mod")) {// &&
+                            //psdEntry.getHead() == dmArgument.getId()) {
                         // fix PSD
                         AlignedAMDependencyTree psdAlignedDeptree = AlignedAMDependencyTree.fromSentence(psdDep);
                         AmConllEntry psdNegated = psdDep.getParent(index); // verb or sth else
@@ -655,6 +662,10 @@ public class ModifyDependencyTreesDetCopNeg {
                             try {
                                 // take term type of negated element, add neg source and create dependencies such that the requirement 
                                 // at the neg source is the type of the negated element.
+                                if (!psdAlignedDeptree.getTermTypeAt(psdNegated).equals(Type.EMPTY_TYPE)) {
+                                    System.out.println("Negation percolation PSD: "+psdEntry.getId());
+                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+                                }
                                 swapHead(psdAlignedDeptree, psdEntry, psdNegated, "neg");
                                 negationsFixedPSD++;
                                 fixedPSD = true;
@@ -683,8 +694,8 @@ public class ModifyDependencyTreesDetCopNeg {
                     //  - would like:   argument <--APP_mod-- pasEntry (Negation) <--
                     //        plus changed Negation supertag (root source added at mod source place)
                     
-                    if (pasEntry.getEdgeLabel().equals("MOD_mod") &&
-                            pasEntry.getHead() == dmArgument.getId()) {
+                    if (pasEntry.getEdgeLabel().equals("MOD_mod")) {// &&
+                            //pasEntry.getHead() == dmArgument.getId()) {
                         // fix PAS
                         AlignedAMDependencyTree pasAlignedDeptree = AlignedAMDependencyTree.fromSentence(pasDep);
                         AmConllEntry pasNegated = pasDep.getParent(index); // verb or sth else
@@ -692,6 +703,10 @@ public class ModifyDependencyTreesDetCopNeg {
                         SGraph supertag = new IsiAmrInputCodec().read(pasEntry.getDelexSupertag());
                         if (desiredPASSupertag.equals(supertag)) {
                             try {
+                                if (!pasAlignedDeptree.getTermTypeAt(pasNegated).equals(Type.EMPTY_TYPE)) {
+                                    System.out.println("Negation percolation PAS: "+pasEntry.getId());
+                                    AMExampleFinder.printExample(pasDep, pasEntry.getId(), 5);
+                                }
                                 swapHead(pasAlignedDeptree, pasEntry, pasNegated, "neg");
                                 
                                 negationsFixedPAS++;
@@ -812,6 +827,7 @@ public class ModifyDependencyTreesDetCopNeg {
 
         String apps = "APP_s";
         String appo = "APP_o";
+        String appoo = "APP_oo";
         String ignore = "IGNORE";
         int index = 0;
         for (AmConllEntry word : psdDep){
@@ -825,20 +841,21 @@ public class ModifyDependencyTreesDetCopNeg {
                 AmConllEntry subjectPAS = null;
                 AmConllEntry adjectivePAS = null;
                 // 1.find arguments of to be
-                for (AmConllEntry child: pasDep.getChildren(index)) {
+                for (AmConllEntry child: psdDep.getChildren(index)) {
                     if (child.getEdgeLabel().equals(apps)) {
                         subjectPAS = child;
                     }
-                    else if (child.getEdgeLabel().equals(appo)) {
+                    else if (child.getEdgeLabel().equals(appo) || child.getEdgeLabel().equals(appoo)) {
                         adjectivePAS = child;
                     }
                 }
                 if (subjectPAS == null || adjectivePAS == null) {
                     failLogger.add("copula missing PAS arg");
+                    System.err.println(psdDep.get(index).getType());
                     continue; // at least one argument not found -> skip
                 }
                 if (!adjectivePAS.getPos().startsWith("JJ")) {
-                    System.err.println(adjectivePAS.getPos());
+//                    System.err.println(adjectivePAS.getPos());
                     failLogger.add("copula not JJ");
                     continue; // only do adjectives for now
                 }
@@ -850,14 +867,14 @@ public class ModifyDependencyTreesDetCopNeg {
                 AmConllEntry verbPSD = psdDep.get(index);
                 AmConllEntry subjPSD = psdDep.get(subj0pas);
                 AmConllEntry adjPSD = psdDep.get(adj0pas);
-                if (subjPSD.getHead() != verbPSD.getId() || !subjPSD.getEdgeLabel().equals(apps)) {
-                    failLogger.add("copula PSD bad subject");
-                    continue;
-                }
-                if (adjPSD.getHead() != verbPSD.getId() || !adjPSD.getEdgeLabel().equals(appo)) {
-                    failLogger.add("copula PSD bad object");
-                    continue;
-                }
+//                if (subjPSD.getHead() != verbPSD.getId() || !subjPSD.getEdgeLabel().equals(apps)) {
+//                    failLogger.add("copula PSD bad subject");
+//                    continue;
+//                }
+//                if (adjPSD.getHead() != verbPSD.getId() || !adjPSD.getEdgeLabel().equals(appo)) {
+//                    failLogger.add("copula PSD bad object");
+//                    continue;
+//                }
                 // todo check 0-based, 1-based not confused? getHead, getId comparable?
 
                 // 2.2 DM:    verb ignored,   adjective--APPs-> subject
@@ -875,11 +892,25 @@ public class ModifyDependencyTreesDetCopNeg {
                 // todo check 0-based, 1-based not confused? getHead, getId comparable?
                 // todo check if incoming edge is the same across PSD, DM, PAS? -> other phenomena?
 
-                if (!adjDM.getType().equals(unproblematic_adj_type)) { // TODO: skip for now, but maybe find better solution?
+                AlignedAMDependencyTree dmAlignedDepTree;
+                try {
+                    dmAlignedDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
+                } catch (AlignedAMDependencyTree.ConllParserException e) {
+                   failLogger.add("copula error in getting aligned dep tree");
+                   continue;
+                }
+                if (!(subjDM.getEdgeLabel().equals(ApplyModifyGraphAlgebra.OP_APPLICATION+"s")
+                        && dmAlignedDepTree.getTermTypeAt(adjDM).equals(Type.EMPTY_TYPE))) {
                     //System.err.println("Can't fix copula for now: problematic adjective type: " + adjDM.getType().toString() + " for adjective " + adjDM.getForm());
                     failLogger.add("copula bad DM type");
+                    System.out.println("Copula bad DM type: "+verbDM.getId());
+                    AMExampleFinder.printExample(dmDep, verbDM.getId(), 5);
                     continue;
                 }
+
+
+
+
 
                 // 3. change DM
                 // 3.1. heads (from h-->adj-->subj  to  h-->to-be-->adj and to-be-->subj )
