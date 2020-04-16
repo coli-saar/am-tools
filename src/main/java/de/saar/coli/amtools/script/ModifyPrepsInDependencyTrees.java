@@ -321,10 +321,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("220 source not in graph");
                                 }
                             } else {
-                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
-                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
-                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
-                                System.out.println();
+//                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSources++;
                                 failLogger.add("220 need to percolate sources");
@@ -354,10 +354,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("220 source not in graph");
                                 }
                             } else {
-                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
-                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
-                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
-                                System.out.println();
+//                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSources++;
                                 failLogger.add("220 need to percolate sources");
@@ -436,10 +436,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
-                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
-                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
-                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
-                                System.out.println();
+//                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSourcesPSD020++;
                                 failLogger.add("020 need to percolate sources PSD");
@@ -474,10 +474,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
-                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
-                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
-                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
-                                System.out.println();
+//                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSourcesPSD020++;
                                 failLogger.add("020 need to percolate sources PSD");
@@ -528,10 +528,10 @@ public class ModifyPrepsInDependencyTrees {
                                     failLogger.add("020 source not in graph DM");
                                 }
                             } else {
-                                System.out.println("prep 020 need percolate sources DM: "+dmEntry.getId());
-                                System.out.println(dmAlignedDepTree.getTermTypeAt(dmEdgeTarget));
-                                AMExampleFinder.printExample(dmDep, dmEntry.getId(), 15);
-                                System.out.println();
+//                                System.out.println("prep 020 need percolate sources DM: "+dmEntry.getId());
+//                                System.out.println(dmAlignedDepTree.getTermTypeAt(dmEdgeTarget));
+//                                AMExampleFinder.printExample(dmDep, dmEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(dmEdgeOrigin.getType().getRequest(modSourceDM));
                                 needToPercolateSourcesDM020++;
                                 failLogger.add("020 need to percolate sources DM");

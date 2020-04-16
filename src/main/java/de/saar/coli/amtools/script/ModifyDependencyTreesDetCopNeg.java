@@ -983,7 +983,6 @@ public class ModifyDependencyTreesDetCopNeg {
      * - CC pos tag in PSD with APP_op and APP_op2 (and no other APP_opX edges) +
      * DM ignores the conjunction and conjuncts are connected directly using MOD_coord
      * TODO: [enhancement] rewrite detection (DM centered, look at PAS too)
-     * TODO: [bug] more complex types for new DM conjunction supertag -not just (op1,op2)
      * - might be the source of current IllegalArgumentExceptions (Couldn't find a binarization ...) later on
      * TODO: [fix this] source change op to op1 in PSDs supertag  - do it right, not the string-find-replace way
      * Changes:
