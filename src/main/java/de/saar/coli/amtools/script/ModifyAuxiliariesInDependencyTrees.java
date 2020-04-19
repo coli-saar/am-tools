@@ -235,53 +235,43 @@ public class ModifyAuxiliariesInDependencyTrees {
 //            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmGraph, pasGraph, psdGraph, psdEntry.getId()).equals("040")
 //                    && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
-            if (pattern.equals("040") && pasEntry.getPos().startsWith("V")) {
-                this.temporalAuxiliaries ++;
+            if (pattern.equals("040")) {
+                ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("aux pattern");
+                if (pasEntry.getPos().startsWith("V")) {
+                    ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("aux restricted");
+                    this.temporalAuxiliaries++;
 
-                System.out.println("PAS "+psdEntry.getId());
-                AMExampleFinder.printExample(pasDep, psdEntry.getId(), 2);
 
-                if (!new Type("(s,o)").equals(pasEntry.getType())) {
-                    this.unusualType++;
-//                    System.err.println(pasEntry.getId());
-//                    System.err.println(pasDep);
+                    if (!new Type("(s,o)").equals(pasEntry.getType())) {
+                        this.unusualType++;
+                        //                    System.err.println(pasEntry.getId());
+                        //                    System.err.println(pasDep);
+                    }
+
+                    String source = pasEntry.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+                    String desiredSupertag = desiredSupertagTemplate.replace("--SOURCE--", source);
+                    Type desiredType = new Type("(" + source + ")");
+
+                    if (psdDep.get(pasEntry.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)
+                            || dmDep.get(pasEntry.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+                        failLogger.add("aux head ignored");
+                        continue;
+                    }
+
+
+                    psdEntry.setDelexSupertag(desiredSupertag);
+                    psdEntry.setType(desiredType);
+                    psdEntry.setHead(pasEntry.getHead());
+                    psdEntry.setEdgeLabel(pasEntry.getEdgeLabel());
+
+                    dmEntry.setDelexSupertag(desiredSupertag);
+                    dmEntry.setType(desiredType);
+                    dmEntry.setHead(pasEntry.getHead());
+                    dmEntry.setEdgeLabel(pasEntry.getEdgeLabel());
+                    failLogger.add("aux success");
+                    temporalAuxiliariesFixed++;
+
                 }
-
-                String source = pasEntry.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                String desiredSupertag = desiredSupertagTemplate.replace("--SOURCE--", source);
-                Type desiredType = new Type("("+source+")");
-
-                if (psdDep.get(pasEntry.getHead()-1).getEdgeLabel().equals(AmConllEntry.IGNORE)
-                    || dmDep.get(pasEntry.getHead()-1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
-                    failLogger.add("aux head ignored");
-                    continue;
-                }
-
-                System.out.println("PSD "+psdEntry.getId());
-                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 2);
-
-                psdEntry.setDelexSupertag(desiredSupertag);
-                psdEntry.setType(desiredType);
-                psdEntry.setHead(pasEntry.getHead());
-                psdEntry.setEdgeLabel(pasEntry.getEdgeLabel());
-
-                System.out.println("PSD after "+psdEntry.getId());
-                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 2);
-
-                System.out.println("DM "+psdEntry.getId());
-                AMExampleFinder.printExample(dmDep, psdEntry.getId(), 2);
-
-                dmEntry.setDelexSupertag(desiredSupertag);
-                dmEntry.setType(desiredType);
-                dmEntry.setHead(pasEntry.getHead());
-                dmEntry.setEdgeLabel(pasEntry.getEdgeLabel());
-                failLogger.add("aux success");
-                temporalAuxiliariesFixed++;
-
-                System.out.println("DM after "+psdEntry.getId());
-                AMExampleFinder.printExample(dmDep, psdEntry.getId(), 2);
-                System.out.println();
-
             }
             index++;
         } // for psdEntry

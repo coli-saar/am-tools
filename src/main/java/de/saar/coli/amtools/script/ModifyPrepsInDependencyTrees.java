@@ -260,7 +260,9 @@ public class ModifyPrepsInDependencyTrees {
 
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
             if (pattern.equals("220")) {
+                ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("220 pattern");
                 if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
+                    ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("220 restricted");
 
                     //we count all of these as matching the preposition pattern
                     preps220++;
@@ -421,7 +423,9 @@ public class ModifyPrepsInDependencyTrees {
 
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
             if (pattern.equals("020")) {
+                ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("020 pattern");
                 if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
+                    ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("020 restricted");
 
                     //we count all of these as matching the preposition pattern
                     preps020++;
@@ -664,7 +668,6 @@ public class ModifyPrepsInDependencyTrees {
                         failLogger.add("020 no unique edge DM");
                         noUniqueEdgeDM020++;
                     }
-                    System.out.println();
                 }
             }
 

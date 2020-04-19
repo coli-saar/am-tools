@@ -130,7 +130,7 @@ public class ModifyDependencyTreesDetCopNeg {
         return copulaFixedDM;
     }
 
-    //TODO fix inconsitent access / getters
+    //CLEANUP fix inconsitent access / getters
     public int punctuation = 0;
     public int punctuationFixedPSD = 0;
     public int punctuationFixedDM = 0;
@@ -142,6 +142,8 @@ public class ModifyDependencyTreesDetCopNeg {
 
     public Counter<String> patternLogger = new Counter<>();
     public Counter<String> failLogger = new Counter<>();
+
+    public static Counter<String> patternCoverageLogger = new Counter<>();
 
     private int determiner = 0;
     private int determinerFixedPSD = 0;
@@ -237,8 +239,8 @@ public class ModifyDependencyTreesDetCopNeg {
 //                    treeModifier.fixDeterminer(psdDep, dmDep, pasDep);
                     //fixDeterminer(psdDep, dmDep, pasDep);
 //                    treeModifier.fixNegation(psdDep, dmDep, pasDep);
-                    treeModifier.fixPASOnlyModifiers(psdDep, dmDep, pasDep);
-                    //treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
+//                    treeModifier.fixPASOnlyModifiers(psdDep, dmDep, pasDep);
+                    treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
 //                    treeModifier.fixBinaryConjuction(psdDep, dmDep, pasDep);
 
 
@@ -299,7 +301,6 @@ public class ModifyDependencyTreesDetCopNeg {
                 } catch (IllegalArgumentException | NullPointerException ex){ // evaluation of original AM dep tree failed
                     System.err.println("(Graph ID "+ id + "): Skipping sentence because:");
                     ex.printStackTrace();
-                    //System.err.println(psdDep); //TODO REMOVE
                     problems++;
                 }
             }
@@ -387,29 +388,31 @@ public class ModifyDependencyTreesDetCopNeg {
         // and attach it to the head it has in DM.
         int index = 0;
         for (AmConllEntry word : psdDep){
-            if (word.getPos().equals("DT") && FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId()).equals("660")){
-                determiner++;
-                // System.err.println(index);
-                // System.err.println(dmDep.getParent(index));
-                if (dmDep.getParent(index) == null) {
-                    failLogger.add("det ignored in DM");
-                    continue; // if DM ignored determiner as well, skip this
+            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId()).equals("660")) {
+                patternCoverageLogger.add("det pattern");
+                if (word.getPos().equals("DT")) {
+                    determiner++;
+                    patternCoverageLogger.add("det restricted");
+                    // System.err.println(index);
+                    // System.err.println(dmDep.getParent(index));
+                    if (dmDep.getParent(index) == null) {
+                        failLogger.add("det ignored in DM");
+                        continue; // if DM ignored determiner as well, skip this
+                    }
+                    int head = dmDep.getParent(index).getId();// index is 0-based, head is 1-based
+                    if (AmConllEntry.IGNORE.equals(psdDep.get(head - 1).getEdgeLabel())) {
+                        failLogger.add("det head ignored in PSD");
+                        continue;
+                    }
+
+
+                    word.setHead(head);
+                    word.setEdgeLabel("MOD_det");
+                    word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
+                    word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
+                    determinerFixedPSD++;
+                    failLogger.add("det success");
                 }
-                int head = dmDep.getParent(index).getId();// index is 0-based, head is 1-based
-                if (AmConllEntry.IGNORE.equals(psdDep.get(head-1).getEdgeLabel())) {
-                    failLogger.add("det head ignored in PSD");
-                    continue;
-                }
-
-
-
-
-                word.setHead(head);
-                word.setEdgeLabel("MOD_det");
-                word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
-                word.setType(new ApplyModifyGraphAlgebra.Type("(det)")); // the type of the DelexSupertag
-                determinerFixedPSD++;
-                failLogger.add("det success");
             }
             index++;
         }
@@ -597,151 +600,154 @@ public class ModifyDependencyTreesDetCopNeg {
         SGraph desiredPSDSupertag = new IsiAmrInputCodec().read("(i<root> / --LEX--  :RHEM-of (j<mod>))");
         SGraph desiredPASSupertag = new IsiAmrInputCodec().read("(i_2<root> / --LEX--  :adj_ARG1 (i_3<mod>))");
         SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_13<root> / --LEX--  :neg (i_12<mod>))");
-        
-        //TODO no longer use neg source
+
         
         boolean fixedPSD = false;
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
-            if ((psdEntry.getLemma().equals("#Neg") || psdEntry.getLemma().equals("never")) && pattern.equals("566")) { // psdEntry is Negation word
-                this.negations ++;
-                negationPatterns.add(pattern);
-                fixedPSD = false;
-                // In DM we can be in the situation that the negation word is the head with outgoing APP_mod edge
-                // or - in relative clauses - , the negation would be the depndent of the verb and we have an incoming MOD_mod edge
-                
-//                if (dmDep.getChildren(index).isEmpty() && new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag) && dmEntry.getEdgeLabel().equals("MOD_mod")){
-//                    // we are probably in a relative clause
-//                    // so we first make DM consistent that the negation word is the head, then we can apply the transformation for PSD and PAS
-//
-//                    // let's make sure that we are in a relative clause and see what the clause modifies
-//                    AmConllEntry negatedDMverb = dmDep.getParent(index);
-//
-//                    AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
-//
-//                    Type termTypeofNegatedDMverb = dmTree.getTermTypeAt(negatedDMverb);
-//                    if (negatedDMverb.getEdgeLabel().equals("MOD_s") || negatedDMverb.getEdgeLabel().equals("MOD_o")) {
-//                        // subject or object relative clause
-//                        // make negation child of what the clause modifies
-//                        swapHead(dmTree, dmEntry, negatedDMverb, "neg");
-//                    }
-//
-//                }
-                
-                // find verb or thing that is negated in DM: could be none, therefore use Optional
-                // outgoing dep. edges in DM from negation: if it's an APPmod edge, its target is the negated thing
-                
-                Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_mod") || child.getEdgeLabel().equals("APP_neg")).findFirst();
-                if (potential_argument.isPresent()) {
-                    AmConllEntry dmArgument = potential_argument.get();
+            if (pattern.equals("566")) {
+                patternCoverageLogger.add("neg pattern");
+                if (psdEntry.getLemma().equals("#Neg") || psdEntry.getLemma().equals("never")) {// psdEntry is Negation word
+                    patternCoverageLogger.add("neg restricted");
+                    this.negations++;
+                    negationPatterns.add(pattern);
+                    fixedPSD = false;
+                    // In DM we can be in the situation that the negation word is the head with outgoing APP_mod edge
+                    // or - in relative clauses - , the negation would be the depndent of the verb and we have an incoming MOD_mod edge
+
+                    //                if (dmDep.getChildren(index).isEmpty() && new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag) && dmEntry.getEdgeLabel().equals("MOD_mod")){
+                    //                    // we are probably in a relative clause
+                    //                    // so we first make DM consistent that the negation word is the head, then we can apply the transformation for PSD and PAS
+                    //
+                    //                    // let's make sure that we are in a relative clause and see what the clause modifies
+                    //                    AmConllEntry negatedDMverb = dmDep.getParent(index);
+                    //
+                    //                    AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
+                    //
+                    //                    Type termTypeofNegatedDMverb = dmTree.getTermTypeAt(negatedDMverb);
+                    //                    if (negatedDMverb.getEdgeLabel().equals("MOD_s") || negatedDMverb.getEdgeLabel().equals("MOD_o")) {
+                    //                        // subject or object relative clause
+                    //                        // make negation child of what the clause modifies
+                    //                        swapHead(dmTree, dmEntry, negatedDMverb, "neg");
+                    //                    }
+                    //
+                    //                }
+
+                    // find verb or thing that is negated in DM: could be none, therefore use Optional
+                    // outgoing dep. edges in DM from negation: if it's an APPmod edge, its target is the negated thing
+
+                    Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_mod") || child.getEdgeLabel().equals("APP_neg")).findFirst();
+                    if (potential_argument.isPresent()) {
+                        AmConllEntry dmArgument = potential_argument.get();
 
 
-                    // found DM negation
-                    
-                    // DM: rename mod source to neg source
-//                    if (new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag)) {
-//                        dmArgument.setEdgeLabel("APP_neg");
-//                        dmEntry.setDelexSupertag("(i_13<root> / --LEX--  :neg (i_12<neg>))");
-//                        Type negationType = Type.EMPTY_TYPE;
-//                        negationType = negationType.addSource("neg");
-//                        dmEntry.setType(negationType);
-//
-//                    }
-                    
-                    // PSD
-                    //  - currently   --> argument --MOD_mod--> psdEntry (negation)
-                    //  - would like:   argument <--APP_mod-- psdEntry (Negation) <--
-                    //        plus changed Negation supertag (root source added at mod source place)
-                    if (psdEntry.getEdgeLabel().equals("MOD_mod")) {// &&
+                        // found DM negation
+
+                        // DM: rename mod source to neg source
+                        //                    if (new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag)) {
+                        //                        dmArgument.setEdgeLabel("APP_neg");
+                        //                        dmEntry.setDelexSupertag("(i_13<root> / --LEX--  :neg (i_12<neg>))");
+                        //                        Type negationType = Type.EMPTY_TYPE;
+                        //                        negationType = negationType.addSource("neg");
+                        //                        dmEntry.setType(negationType);
+                        //
+                        //                    }
+
+                        // PSD
+                        //  - currently   --> argument --MOD_mod--> psdEntry (negation)
+                        //  - would like:   argument <--APP_mod-- psdEntry (Negation) <--
+                        //        plus changed Negation supertag (root source added at mod source place)
+                        if (psdEntry.getEdgeLabel().equals("MOD_mod")) {// &&
                             //psdEntry.getHead() == dmArgument.getId()) {
-                        // fix PSD
-                        AlignedAMDependencyTree psdAlignedDeptree = AlignedAMDependencyTree.fromSentence(psdDep);
-                        AmConllEntry psdNegated = psdDep.getParent(index); // verb or sth else
+                            // fix PSD
+                            AlignedAMDependencyTree psdAlignedDeptree = AlignedAMDependencyTree.fromSentence(psdDep);
+                            AmConllEntry psdNegated = psdDep.getParent(index); // verb or sth else
 
-                        SGraph supertag = new IsiAmrInputCodec().read(psdEntry.getDelexSupertag());
-                        
-                        if (desiredPSDSupertag.equals(supertag)) {
-                            // only change if negated element doesn't have a mod source
-                            try {
-                                // only fix if we don't have to percolate sources
-                                if (psdAlignedDeptree.getTermTypeAt(psdNegated).equals(Type.EMPTY_TYPE)) {
-                                    swapHead(psdAlignedDeptree, psdEntry, psdNegated, "mod");
-                                    negationsFixedPSD++;
-                                    fixedPSD = true;
-                                } else {
-                                    failLogger.add("neg need source percolation");
-                                }
-                             } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
-                                failLogger.add("neg cycle PSD");
-                             }
+                            SGraph supertag = new IsiAmrInputCodec().read(psdEntry.getDelexSupertag());
 
-                        } else { //PSD has unexpected supertag, no case in dev data.
-                            failLogger.add("neg unexpected supertag PSD");
-                        }
-
-
-                    } else { //PSD doesn't have MOD_mod edge in right place:
-                        failLogger.add("neg missing MOD_mod PSD");
-//                        System.out.println(dmEntry.getId());
-//                        System.out.println("DM");
-//                        AMExampleFinder.printExample(dmDep, dmEntry.getId(), 3);
-//                        System.out.println("PSD");
-//                        AMExampleFinder.printExample(psdDep, dmEntry.getId(), 3);
-//                        System.out.println("PAS");
-//                        AMExampleFinder.printExample(pasDep, dmEntry.getId(), 3);
-                    }
-
-                    // PAS
-                    //  - currently   --> argument --MOD_mod--> pasEntry (negation)
-                    //  - would like:   argument <--APP_mod-- pasEntry (Negation) <--
-                    //        plus changed Negation supertag (root source added at mod source place)
-                    
-                    if (pasEntry.getEdgeLabel().equals("MOD_mod")) {// &&
-                            //pasEntry.getHead() == dmArgument.getId()) {
-                        // fix PAS
-                        AlignedAMDependencyTree pasAlignedDeptree = AlignedAMDependencyTree.fromSentence(pasDep);
-                        AmConllEntry pasNegated = pasDep.getParent(index); // verb or sth else
-
-                        SGraph supertag = new IsiAmrInputCodec().read(pasEntry.getDelexSupertag());
-                        if (desiredPASSupertag.equals(supertag)) {
-                            try {
-                                if (pasAlignedDeptree.getTermTypeAt(pasNegated).equals(Type.EMPTY_TYPE)) {
-                                    swapHead(pasAlignedDeptree, pasEntry, pasNegated, "mod");
-                                    negationsFixedPAS++;
-                                } else {
-                                    System.out.println("Negation percolation PAS: "+pasEntry.getId());
-                                    AMExampleFinder.printExample(pasDep, pasEntry.getId(), 5);
+                            if (desiredPSDSupertag.equals(supertag)) {
+                                // only change if negated element doesn't have a mod source
+                                try {
+                                    // only fix if we don't have to percolate sources
+                                    if (psdAlignedDeptree.getTermTypeAt(psdNegated).equals(Type.EMPTY_TYPE)) {
+                                        swapHead(psdAlignedDeptree, psdEntry, psdNegated, "mod");
+                                        negationsFixedPSD++;
+                                        fixedPSD = true;
+                                    } else {
+                                        failLogger.add("neg need source percolation");
+                                    }
+                                } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
+                                    failLogger.add("neg cycle PSD");
                                 }
 
-                                if (fixedPSD) {
-//                                    String afterFixPattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
-//                                    fixedNegationPatterns.add(pattern+"|"+afterFixPattern);
-                                    negationsAllFixed++;
-                                    failLogger.add("neg success");
-                                }
-                            } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
-                                failLogger.add("neg cycle PAS");
+                            } else { //PSD has unexpected supertag, no case in dev data.
+                                failLogger.add("neg unexpected supertag PSD");
                             }
-                            
-                        } else { //PAS uses unexpected supertag, no cases in gold dev.
-                            failLogger.add("neg unexpected supertag PAS");
+
+
+                        } else { //PSD doesn't have MOD_mod edge in right place:
+                            failLogger.add("neg missing MOD_mod PSD");
+                            //                        System.out.println(dmEntry.getId());
+                            //                        System.out.println("DM");
+                            //                        AMExampleFinder.printExample(dmDep, dmEntry.getId(), 3);
+                            //                        System.out.println("PSD");
+                            //                        AMExampleFinder.printExample(psdDep, dmEntry.getId(), 3);
+                            //                        System.out.println("PAS");
+                            //                        AMExampleFinder.printExample(pasDep, dmEntry.getId(), 3);
                         }
 
+                        // PAS
+                        //  - currently   --> argument --MOD_mod--> pasEntry (negation)
+                        //  - would like:   argument <--APP_mod-- pasEntry (Negation) <--
+                        //        plus changed Negation supertag (root source added at mod source place)
 
-                    } else { //PAS doesn't have MOD_mod edge in expected place:
-                        failLogger.add("neg missing MOD_mod PAS");
+                        if (pasEntry.getEdgeLabel().equals("MOD_mod")) {// &&
+                            //pasEntry.getHead() == dmArgument.getId()) {
+                            // fix PAS
+                            AlignedAMDependencyTree pasAlignedDeptree = AlignedAMDependencyTree.fromSentence(pasDep);
+                            AmConllEntry pasNegated = pasDep.getParent(index); // verb or sth else
+
+                            SGraph supertag = new IsiAmrInputCodec().read(pasEntry.getDelexSupertag());
+                            if (desiredPASSupertag.equals(supertag)) {
+                                try {
+                                    if (pasAlignedDeptree.getTermTypeAt(pasNegated).equals(Type.EMPTY_TYPE)) {
+                                        swapHead(pasAlignedDeptree, pasEntry, pasNegated, "mod");
+                                        negationsFixedPAS++;
+                                    } else {
+//                                        System.out.println("Negation percolation PAS: " + pasEntry.getId());
+//                                        AMExampleFinder.printExample(pasDep, pasEntry.getId(), 5);
+                                        failLogger.add("neg need source percolation");
+                                    }
+
+                                    if (fixedPSD) {
+                                        //                                    String afterFixPattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+                                        //                                    fixedNegationPatterns.add(pattern+"|"+afterFixPattern);
+                                        negationsAllFixed++;
+                                        failLogger.add("neg success");
+                                    }
+                                } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
+                                    failLogger.add("neg cycle PAS");
+                                }
+
+                            } else { //PAS uses unexpected supertag, no cases in gold dev.
+                                failLogger.add("neg unexpected supertag PAS");
+                            }
+
+
+                        } else { //PAS doesn't have MOD_mod edge in expected place:
+                            failLogger.add("neg missing MOD_mod PAS");
+                        }
+
+                        // CLEANUP maybe look at what is actually negated this way? only verbs?
+                    } // found negated argument
+                    else {
+                        failLogger.add("neg no potential argument");
+                        // System.err.println(dmDep.getId());
+                        // System.err.println(dmDep);
                     }
-                    
-                    // DEBUG TODO maybe look at what is actually negated this way? only verbs?
-                } // found negated argument 
-                else {
-                    failLogger.add("neg no potential argument");
-                   // System.err.println(dmDep.getId());
-                   // System.err.println(dmDep);
                 }
-
             } // found #Neg lemma
             index++;
         } // for psdEntry
@@ -759,53 +765,57 @@ public class ModifyDependencyTreesDetCopNeg {
         for (AmConllEntry word : pasDep){
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
             AmConllEntry psdWord = psdDep.get(index); // punctuation is PSD
-            if (pattern.equals("060") && allowedPOS.contains(psdWord.getPos())) {
-                punctuation++;
-                boolean fixedPSD = false;
-                boolean fixedDM = false;
-                // variable index now points to punctuation symbol, AmConnlEntry word is punctuation entry
-                //assert (pasDep.getParent(index) != null) // parent should be head of the MOD_punct relation
-                int parentID_pas = pasDep.getParent(index).getId(); // index is 0-based, parentID_pas is 1-based
-                String pasSource = word.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+            if (pattern.equals("060")) {
+                patternCoverageLogger.add("pasM pattern");
+                if (allowedPOS.contains(psdWord.getPos())) {
+                    patternCoverageLogger.add("pasM restricted");
+                    punctuation++;
+                    boolean fixedPSD = false;
+                    boolean fixedDM = false;
+                    // variable index now points to punctuation symbol, AmConnlEntry word is punctuation entry
+                    //assert (pasDep.getParent(index) != null) // parent should be head of the MOD_punct relation
+                    int parentID_pas = pasDep.getParent(index).getId(); // index is 0-based, parentID_pas is 1-based
+                    String pasSource = word.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
 
-                // A. PSD if ignored, change to PAS like structure
-                //assert psdWord != null; // same sentence , same size
-                if (psdWord.getEdgeLabel().equals(ignore_edge)
-                        && !psdDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
-                    // second term: skip if parent in PAS is ignored in PSD
-                    // delete ignore edge, create edge parent-punctuation
-                    // create supertag for punctuation
-                    psdWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+pasSource); // was previously ignore
-                    psdWord.setHead(parentID_pas); // was previously artificial root probably
-                    psdWord.setDelexSupertag("(u<root, "+pasSource+">)");// empty modifier graph: one unlabeled node with root and det source.
-                    psdWord.setType(new ApplyModifyGraphAlgebra.Type("("+pasSource+")"));
-                    punctuationFixedPSD++;
-                    fixedPSD = true;
-                } else {
-                    failLogger.add("punct PSD fail");
-                }
+                    // A. PSD if ignored, change to PAS like structure
+                    //assert psdWord != null; // same sentence , same size
+                    if (psdWord.getEdgeLabel().equals(ignore_edge)
+                            && !psdDep.get(parentID_pas - 1).getEdgeLabel().equals(ignore_edge)) {
+                        // second term: skip if parent in PAS is ignored in PSD
+                        // delete ignore edge, create edge parent-punctuation
+                        // create supertag for punctuation
+                        psdWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasSource); // was previously ignore
+                        psdWord.setHead(parentID_pas); // was previously artificial root probably
+                        psdWord.setDelexSupertag("(u<root, " + pasSource + ">)");// empty modifier graph: one unlabeled node with root and det source.
+                        psdWord.setType(new ApplyModifyGraphAlgebra.Type("(" + pasSource + ")"));
+                        punctuationFixedPSD++;
+                        fixedPSD = true;
+                    } else {
+                        failLogger.add("punct PSD fail");
+                    }
 
-                // B. DM if ignored, change to pas like structure
-                // CLEANUP copy pasted code, but what is the best way in java here to avoid it?
-                AmConllEntry dmWord = dmDep.get(index);
-                if (dmWord.getEdgeLabel().equals(ignore_edge) && !dmDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
-                    // second term: skip if parent in PAS is ignored in DM
-                    // delete ignore edge, create edge parent-punctuation
-                    // create supertag for punctuation
-                    dmWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+pasSource); // was previously ignore
-                    dmWord.setHead(parentID_pas); // was previously artificial root
-                    dmWord.setDelexSupertag("(u<root, "+pasSource+">)");// empty modifier graph: one unlabeled node with root and det source.
-                    dmWord.setType(new ApplyModifyGraphAlgebra.Type("("+pasSource+")"));
-                    punctuationFixedDM++;
-                    fixedDM = true;
-                } else {
-                    failLogger.add("punct DM fail");
-                }
+                    // B. DM if ignored, change to pas like structure
+                    // CLEANUP copy pasted code, but what is the best way in java here to avoid it?
+                    AmConllEntry dmWord = dmDep.get(index);
+                    if (dmWord.getEdgeLabel().equals(ignore_edge) && !dmDep.get(parentID_pas - 1).getEdgeLabel().equals(ignore_edge)) {
+                        // second term: skip if parent in PAS is ignored in DM
+                        // delete ignore edge, create edge parent-punctuation
+                        // create supertag for punctuation
+                        dmWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasSource); // was previously ignore
+                        dmWord.setHead(parentID_pas); // was previously artificial root
+                        dmWord.setDelexSupertag("(u<root, " + pasSource + ">)");// empty modifier graph: one unlabeled node with root and det source.
+                        dmWord.setType(new ApplyModifyGraphAlgebra.Type("(" + pasSource + ")"));
+                        punctuationFixedDM++;
+                        fixedDM = true;
+                    } else {
+                        failLogger.add("punct DM fail");
+                    }
 
-                // if both DM and PSD fixed : increment counter
-                if (fixedDM && fixedPSD) {
-                    failLogger.add("punct success");
-                    punctuationAllFixed++;
+                    // if both DM and PSD fixed : increment counter
+                    if (fixedDM && fixedPSD) {
+                        failLogger.add("punct success");
+                        punctuationAllFixed++;
+                    }
                 }
             }
             index++;
@@ -826,7 +836,6 @@ public class ModifyDependencyTreesDetCopNeg {
         // - uses control-like structure (kind of DM and PSD merged) verb_ARG1/2 edges from to-be, adj_ARG1 edge from adjective to subject
         // solution:
         // o[s] blob for to-be in DM, so that PSD dep tree structure works
-        // todo change only if all frameworks show pattern (might miss some instances), is this the pattern we quantified (how frequent was it?)
         ApplyModifyGraphAlgebra.Type unproblematic_adj_type = new ApplyModifyGraphAlgebra.Type("(s)");
 
         String apps = "APP_s";
@@ -837,101 +846,101 @@ public class ModifyDependencyTreesDetCopNeg {
         for (AmConllEntry word : psdDep){
             // word lemma be
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
-            if (word.getLemma().equals("be") && pattern.equals("031")) {
-                //todo check examples for patterns 038 and 033?
-                copula++;
-                patternLogger.add("copula "+pattern);
+            if (pattern.equals("031")) {
+                patternCoverageLogger.add("copula pattern");
+                if (word.getLemma().equals("be")) {
+                    //CLEANUP check examples for patterns 038 and 033?
+                    copula++;
+                    patternLogger.add("copula " + pattern);
 
-                AmConllEntry subjectPAS = null;
-                AmConllEntry adjectivePAS = null;
-                // 1.find arguments of to be
-                for (AmConllEntry child: psdDep.getChildren(index)) {
-                    if (child.getEdgeLabel().equals(apps)) {
-                        subjectPAS = child;
+
+
+                    AmConllEntry subjectPSD = null;
+                    AmConllEntry adjectivePSD = null;
+                    // 1.find arguments of to be
+                    for (AmConllEntry child : psdDep.getChildren(index)) {
+                        if (child.getEdgeLabel().equals(apps)) {
+                            subjectPSD = child;
+                        } else if (child.getEdgeLabel().equals(appo) || child.getEdgeLabel().equals(appoo)) {
+                            adjectivePSD = child;
+                        }
                     }
-                    else if (child.getEdgeLabel().equals(appo) || child.getEdgeLabel().equals(appoo)) {
-                        adjectivePAS = child;
+                    if (!adjectivePSD.getPos().startsWith("JJ")) {
+                        //                    System.err.println(adjectivePSD.getPos());
+                        failLogger.add("copula not JJ");
+                        continue; // only do adjectives for now
                     }
+                    if (subjectPSD == null || adjectivePSD == null) {
+                        failLogger.add("copula missing PSD arg");
+                        System.err.println(psdDep.get(index).getType());
+                        continue; // at least one argument not found -> skip
+                    }
+                    patternCoverageLogger.add("copula restricted");
+
+                    int subj0psd = subjectPSD.getId() - 1; // 0-based
+                    int adj0psd = adjectivePSD.getId() - 1;
+
+                    // 2. check if psd and dm have expected structure EDIT: skipped, using PSD in the first place and not checking with PAS
+                    // 2.1 PSD:   verb--APPs->subject and verb--APPo->adjective
+                    //                AmConllEntry verbPSD = psdDep.get(index);
+                    //                AmConllEntry subjPSD = psdDep.get(subj0pas);
+                    //                AmConllEntry adjPSD = psdDep.get(adj0pas);
+                    //                if (subjPSD.getHead() != verbPSD.getId() || !subjPSD.getEdgeLabel().equals(apps)) {
+                    //                    failLogger.add("copula PSD bad subject");
+                    //                    continue;
+                    //                }
+                    //                if (adjPSD.getHead() != verbPSD.getId() || !adjPSD.getEdgeLabel().equals(appo)) {
+                    //                    failLogger.add("copula PSD bad object");
+                    //                    continue;
+                    //                }
+
+                    // 2.2 DM:    verb ignored,   adjective--APPs-> subject
+                    AmConllEntry verbDM = dmDep.get(index);
+                    AmConllEntry subjDM = dmDep.get(subj0psd);
+                    AmConllEntry adjDM = dmDep.get(adj0psd);
+                    if (!verbDM.getEdgeLabel().equals(ignore)) {
+                        failLogger.add("copula DM not ignored");
+                        continue;
+                    }
+                    if (!subjDM.getEdgeLabel().equals(apps) || subjDM.getHead() != adjDM.getId()) {
+                        failLogger.add("copula no good DM edge");
+                        continue;
+                    }
+
+                    AlignedAMDependencyTree dmAlignedDepTree;
+                    try {
+                        dmAlignedDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
+                    } catch (AlignedAMDependencyTree.ConllParserException e) {
+                        failLogger.add("copula error in getting aligned dep tree");
+                        continue;
+                    }
+                    if (!(subjDM.getEdgeLabel().equals(ApplyModifyGraphAlgebra.OP_APPLICATION + "s")
+                            && dmAlignedDepTree.getTermTypeAt(adjDM).equals(Type.EMPTY_TYPE))) {
+                        //System.err.println("Can't fix copula for now: problematic adjective type: " + adjDM.getType().toString() + " for adjective " + adjDM.getForm());
+                        failLogger.add("copula bad DM type");
+//                        System.out.println("Copula bad DM type: " + verbDM.getId());
+//                        AMExampleFinder.printExample(dmDep, verbDM.getId(), 5);
+                        continue;
+                    }
+
+
+                    // 3. change DM
+                    // 3.1. heads (from h-->adj-->subj  to  h-->to-be-->adj and to-be-->subj )
+                    int headDM = adjDM.getHead();
+                    verbDM.setHead(headDM);
+                    adjDM.setHead(verbDM.getId());
+                    subjDM.setHead(verbDM.getId());
+                    // 3.2 incoming dependency edges
+                    verbDM.setEdgeLabel(adjDM.getEdgeLabel()); // todo side effects?
+                    adjDM.setEdgeLabel(appo);
+                    // subjDM.setEdgeLabel(apps); // already the case
+                    // 3.3. types - only need to change verb
+                    verbDM.setType(new ApplyModifyGraphAlgebra.Type("(o(s))"));
+                    // 3.4 delex supertags - only need to change verb
+                    verbDM.setDelexSupertag("(u<root, o>)"); // one node  s-annotation not part of supertag
+                    copulaFixedDM++;
+                    failLogger.add("copula success");
                 }
-                if (subjectPAS == null || adjectivePAS == null) {
-                    failLogger.add("copula missing PAS arg");
-                    System.err.println(psdDep.get(index).getType());
-                    continue; // at least one argument not found -> skip
-                }
-                if (!adjectivePAS.getPos().startsWith("JJ")) {
-//                    System.err.println(adjectivePAS.getPos());
-                    failLogger.add("copula not JJ");
-                    continue; // only do adjectives for now
-                }
-                int subj0pas = subjectPAS.getId()-1; // 0-based
-                int adj0pas = adjectivePAS.getId()-1;
-
-                // 2. check if psd and dm have expected structure
-                // 2.1 PSD:   verb--APPs->subject and verb--APPo->adjective
-                AmConllEntry verbPSD = psdDep.get(index);
-                AmConllEntry subjPSD = psdDep.get(subj0pas);
-                AmConllEntry adjPSD = psdDep.get(adj0pas);
-//                if (subjPSD.getHead() != verbPSD.getId() || !subjPSD.getEdgeLabel().equals(apps)) {
-//                    failLogger.add("copula PSD bad subject");
-//                    continue;
-//                }
-//                if (adjPSD.getHead() != verbPSD.getId() || !adjPSD.getEdgeLabel().equals(appo)) {
-//                    failLogger.add("copula PSD bad object");
-//                    continue;
-//                }
-                // todo check 0-based, 1-based not confused? getHead, getId comparable?
-
-                // 2.2 DM:    verb ignored,   adjective--APPs-> subject
-                AmConllEntry verbDM = dmDep.get(index);
-                AmConllEntry subjDM = dmDep.get(subj0pas);
-                AmConllEntry adjDM = dmDep.get(adj0pas);
-                if (!verbDM.getEdgeLabel().equals(ignore)) {
-                    failLogger.add("copula DM not ignored");
-                    continue;
-                }
-                if (!subjDM.getEdgeLabel().equals(apps) || subjDM.getHead() != adjDM.getId()) {
-                    failLogger.add("copula no good DM edge");
-                    continue;
-                }
-                // todo check 0-based, 1-based not confused? getHead, getId comparable?
-                // todo check if incoming edge is the same across PSD, DM, PAS? -> other phenomena?
-
-                AlignedAMDependencyTree dmAlignedDepTree;
-                try {
-                    dmAlignedDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
-                } catch (AlignedAMDependencyTree.ConllParserException e) {
-                   failLogger.add("copula error in getting aligned dep tree");
-                   continue;
-                }
-                if (!(subjDM.getEdgeLabel().equals(ApplyModifyGraphAlgebra.OP_APPLICATION+"s")
-                        && dmAlignedDepTree.getTermTypeAt(adjDM).equals(Type.EMPTY_TYPE))) {
-                    //System.err.println("Can't fix copula for now: problematic adjective type: " + adjDM.getType().toString() + " for adjective " + adjDM.getForm());
-                    failLogger.add("copula bad DM type");
-                    System.out.println("Copula bad DM type: "+verbDM.getId());
-                    AMExampleFinder.printExample(dmDep, verbDM.getId(), 5);
-                    continue;
-                }
-
-
-
-
-
-                // 3. change DM
-                // 3.1. heads (from h-->adj-->subj  to  h-->to-be-->adj and to-be-->subj )
-                int headDM = adjDM.getHead();
-                verbDM.setHead(headDM);
-                adjDM.setHead(verbDM.getId());
-                subjDM.setHead(verbDM.getId());
-                // 3.2 incoming dependency edges
-                verbDM.setEdgeLabel(adjDM.getEdgeLabel()); // todo side effects?
-                adjDM.setEdgeLabel(appo);
-                // subjDM.setEdgeLabel(apps); // already the case
-                // 3.3. types - only need to change verb
-                verbDM.setType(new ApplyModifyGraphAlgebra.Type("(o(s))"));
-                // 3.4 delex supertags - only need to change verb
-                verbDM.setDelexSupertag("(u<root, o>)"); // one node  s-annotation not part of supertag
-                copulaFixedDM++;
-                failLogger.add("copula success");
             }
             index++;
         }
@@ -980,15 +989,36 @@ public class ModifyDependencyTreesDetCopNeg {
 
         return r;
     }
+
+    private Type addSourceWithRequestWithoutRenames(Type typeToAddTo, String sourceToAdd, Type oldType, String oldSource){
+
+        Set<String> oldSources = typeToAddTo.getAllSources();
+        if (oldSources.contains(sourceToAdd)) throw new IllegalArgumentException("source already there");
+
+        Type r = typeToAddTo.addSource(sourceToAdd);
+        Type request = oldType.getRequest(oldSource);
+        if (request == null) throw new IllegalArgumentException("oldSource not in oldType");
+        //add all new sources, including renames
+        for (String s : request.getAllSources()){
+            String sAfterRename = oldType.getRenameTarget(oldSource, s);
+            r = r.addSource(sAfterRename);
+            r = r.setDependency(sourceToAdd, sAfterRename, sAfterRename);
+        }
+        for (Edge reqDep : request.getAllEdges()) {
+            r = r.setDependency(oldType.getRenameTarget(oldSource, reqDep.getSource()),
+                    oldType.getRenameTarget(oldSource, reqDep.getTarget()), reqDep.getLabel());
+        }
+
+        return r;
+    }
     
     /**
      * Fixing Binary conjunction:
      * detection pattern:
      * - CC pos tag in PSD with APP_op and APP_op2 (and no other APP_opX edges) +
      * DM ignores the conjunction and conjuncts are connected directly using MOD_coord
-     * TODO: [enhancement] rewrite detection (DM centered, look at PAS too)
      * - might be the source of current IllegalArgumentExceptions (Couldn't find a binarization ...) later on
-     * TODO: [fix this] source change op to op1 in PSDs supertag  - do it right, not the string-find-replace way
+     * CLEANUP: [fix this] source change op to op1 in PSDs supertag  - do it right, not the string-find-replace way
      * Changes:
      * - DM MOD_coord structure changed to APP_op1, APP_op2 structure like PSD/PAS (conjunction no longer ignored)
      * - PSD's APP_op changed to APP_op1 (plus subsequent changes in the types and supertags)
@@ -1003,7 +1033,7 @@ public class ModifyDependencyTreesDetCopNeg {
         String modcoord = "MOD_coord";
         String appcoord = "APP_coord";
         String ignore = "IGNORE";
-        // todo avoid magic strings for edge labels and also sources? maybe import sources from BlobUtils?
+        // CLEANUP avoid magic strings for edge labels and also sources? maybe import sources from BlobUtils?
         int index = 0;
         
         AlignedAMDependencyTree dmDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
@@ -1011,183 +1041,193 @@ public class ModifyDependencyTreesDetCopNeg {
         for (AmConllEntry word : psdDep){
             // CC postag (conjunction) and pattern
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
-            if (word.getPos().equals("CC") && (pattern.equals("011") || pattern.equals("088"))) {
-                // PSD 2 APP children (APP_op and APP_op1)
-                // DM 1 coord edge
+            if (pattern.equals("011") || pattern.equals("088")) {
+                patternCoverageLogger.add("coord pattern");
+                if (word.getPos().equals("CC")) {
+                    // PSD 2 APP children (APP_op and APP_op1)
+                    // DM 1 coord edge
 
-                AmConllEntry firstConjunctPSD = null;
-                AmConllEntry secondConjunctPSD = null;
-                boolean multiconj = false;
-                // TODO: [ENHANCEMENT] maybe start with finding an dependency edge in DM with coord source and
-                //  then try to find conjunction in PSD _and/or_ PAS. Currently we don't look at the PAS structure at all
+                    AmConllEntry firstConjunctPSD = null;
+                    AmConllEntry secondConjunctPSD = null;
+                    boolean multiconj = false;
 
-                // 1.find arguments of conjunction in PSD
-                for (AmConllEntry child: psdDep.getChildren(index)) {
-                    if (child.getEdgeLabel().equals(appop)) {
-                        firstConjunctPSD = child;
+                    // 1.find arguments of conjunction in PSD (using PSD instead of PAS gives better recall in DM)
+                    for (AmConllEntry child : psdDep.getChildren(index)) {
+                        if (child.getEdgeLabel().equals(appop)) {
+                            firstConjunctPSD = child;
+                        } else if (child.getEdgeLabel().equals(appop2)) {
+                            secondConjunctPSD = child;
+                        } else if (child.getEdgeLabel().startsWith(appop)) {  // more conjuncts?
+                            multiconj = true;
+                        }
                     }
-                    else if (child.getEdgeLabel().equals(appop2)) {
-                        secondConjunctPSD = child;
+                    if (multiconj) continue;  // skip multiconj for now  // maybe count them still?
+
+                    if (firstConjunctPSD == null || secondConjunctPSD == null)
+                        continue; // skip if not two conjuncts found
+
+
+                    // now we have coordination
+                    patternCoverageLogger.add("coord restricted");
+                    patternLogger.add("coord " + pattern);
+                    binaryconjunction++;
+
+
+                    int psdconj1idx = firstConjunctPSD.getId() - 1; // 0-based
+                    int psdconj2idx = secondConjunctPSD.getId() - 1;
+                    // do we need to check the type of PSD's conjunction? e.g. equals (op,op2) or related
+
+                    // 2. Find DM structure - coord edge between conjuncts?
+                    AmConllEntry firstConjunctDM = dmDep.get(psdconj1idx);
+                    AmConllEntry secondConjunctDM = dmDep.get(psdconj2idx);
+                    AmConllEntry conjunctionDM = dmDep.get(index);
+                    // a) conjunction node ignored in DM
+                    if (!conjunctionDM.getEdgeLabel().equals(ignore)) {
+                        failLogger.add("coord no DM IGNORE");
+                        continue;
                     }
-                    else if (child.getEdgeLabel().startsWith(appop)) {  // more conjuncts?
-                        multiconj = true;
+                    // b) APPcoord or MODcoord egde between the two conjuncts
+                    // Most frequent structure is MODcoord with first conjunct as head, but others are possible too.
+                    // Depending on the structure (MOD or APP, first or second as head), the new DM supertag for the
+                    // conjunction looks slightly different.
+                    boolean usesModCoord = false;
+                    boolean coordEdgeInFirstConjunct = false;
+                    if (secondConjunctDM.getEdgeLabel().equals(modcoord) && secondConjunctDM.getHead() == firstConjunctDM.getId()) {
+                        // MODcoord from first to second conjunct, first conjunct is Head --> coord source in second conjunct
+                        usesModCoord = true;
+                        // coordEdgeInFirstConjunct = false;
+                        assert (secondConjunctDM.getType().getAllSources().contains(coordsource));
+                    } else if (secondConjunctDM.getEdgeLabel().equals(appcoord) && secondConjunctDM.getHead() == firstConjunctDM.getId()) {
+                        // APPcoord from first to second conjunct, first conjunct is head --> coord source in first conjunct
+                        //usesModCoord = false;
+                        coordEdgeInFirstConjunct = true;
+                        assert (firstConjunctDM.getType().getAllSources().contains(coordsource));
+                    } else if (firstConjunctDM.getEdgeLabel().equals(appcoord) && firstConjunctDM.getHead() == secondConjunctDM.getId()) {
+                        // APPcoord from second to first conjunct, second conjunct is head --> coord souce in second conjunct
+                        // usesModCoord = false;
+                        // coordEdgeInFirstConjunct = false;
+                        assert (secondConjunctDM.getType().getAllSources().contains(coordsource));
+                    } else if (firstConjunctDM.getEdgeLabel().equals(modcoord) && firstConjunctDM.getHead() == secondConjunctDM.getId()) {
+                        // MODcoord from second to first conjunct, second conjunct is head --> coord source in first conjunct
+                        usesModCoord = true;
+                        coordEdgeInFirstConjunct = true;
+                        assert (firstConjunctDM.getType().getAllSources().contains(coordsource));
+                    } else {
+                        // no APP/MOD coord edge between conjuncts in DM -> not a DM coordination
+                        failLogger.add("coord no DM _c edge");
+                        continue;
                     }
-                }
-                if (multiconj) continue;  // skip multiconj for now  // maybe count them still?
+                    boolean firstConjunctIsHead = usesModCoord ^ coordEdgeInFirstConjunct; // ^ is logical XOR
+                    // c) if we would like to be conservative: head of PSD conjunction node is the same as head of the
+                    // DM conjunct with the outgoing APP/MODcoord edge
+                    //if (firstConjunctIsHead && firstConjunctDM.getHead() != word.getHead()) continue;
+                    //if (!firstConjunctIsHead && secondConjunctDM.getHead() != word.getHead()) continue;
+                    AmConllEntry headConjunctDM = firstConjunctIsHead ? firstConjunctDM : secondConjunctDM;
+                    AmConllEntry coordSrcConjunctDM = coordEdgeInFirstConjunct ? firstConjunctDM : secondConjunctDM;
 
-                if (firstConjunctPSD == null || secondConjunctPSD == null) continue; // skip if not two conjuncts found
+                    String headOpSource = firstConjunctIsHead ? "op1" : "op2";
+                    String childOpSource = firstConjunctIsHead ? "op2" : "op1";
 
-
-                // now we have coordination
-                patternLogger.add("coord "+pattern);
-                binaryconjunction++;
-
-
-
-                int psdconj1idx = firstConjunctPSD.getId()-1; // 0-based
-                int psdconj2idx = secondConjunctPSD.getId()-1;
-                // do we need to check the type of PSD's conjunction? e.g. equals (op,op2) or related
-
-                // 2. Find DM structure - coord edge between conjuncts?
-                AmConllEntry firstConjunctDM = dmDep.get(psdconj1idx);
-                AmConllEntry secondConjunctDM = dmDep.get(psdconj2idx);
-                AmConllEntry conjunctionDM = dmDep.get(index);
-                // a) conjunction node ignored in DM
-                if (!conjunctionDM.getEdgeLabel().equals(ignore)) {
-                    failLogger.add("coord no DM IGNORE");
-                    continue;
-                }
-                // b) APPcoord or MODcoord egde between the two conjuncts
-                // Most frequent structure is MODcoord with first conjunct as head, but others are possible too.
-                // Depending on the structure (MOD or APP, first or second as head), the new DM supertag for the
-                // conjunction looks slightly different.
-                boolean usesModCoord = false;
-                boolean coordEdgeInFirstConjunct = false;
-                if (secondConjunctDM.getEdgeLabel().equals(modcoord) && secondConjunctDM.getHead() == firstConjunctDM.getId()) {
-                   // MODcoord from first to second conjunct, first conjunct is Head --> coord source in second conjunct
-                   usesModCoord = true;
-                   // coordEdgeInFirstConjunct = false;
-                   assert(secondConjunctDM.getType().getAllSources().contains(coordsource));
-                }
-                else if (secondConjunctDM.getEdgeLabel().equals(appcoord) && secondConjunctDM.getHead() == firstConjunctDM.getId()) {
-                    // APPcoord from first to second conjunct, first conjunct is head --> coord source in first conjunct
-                    //usesModCoord = false;
-                    coordEdgeInFirstConjunct = true;
-                    assert(firstConjunctDM.getType().getAllSources().contains(coordsource));
-                }
-                else if (firstConjunctDM.getEdgeLabel().equals(appcoord) && firstConjunctDM.getHead() == secondConjunctDM.getId()) {
-                    // APPcoord from second to first conjunct, second conjunct is head --> coord souce in second conjunct
-                    // usesModCoord = false;
-                    // coordEdgeInFirstConjunct = false;
-                    assert(secondConjunctDM.getType().getAllSources().contains(coordsource));
-                }
-                else if (firstConjunctDM.getEdgeLabel().equals(modcoord) && firstConjunctDM.getHead() == secondConjunctDM.getId()) {
-                    // MODcoord from second to first conjunct, second conjunct is head --> coord source in first conjunct
-                    usesModCoord = true;
-                    coordEdgeInFirstConjunct = true;
-                    assert(firstConjunctDM.getType().getAllSources().contains(coordsource));
-                }
-                else {
-                    // no APP/MOD coord edge between conjuncts in DM -> not a DM coordination
-                    failLogger.add("coord no DM _c edge");
-                    continue;
-                }
-                boolean firstConjunctIsHead = usesModCoord ^ coordEdgeInFirstConjunct; // ^ is logical XOR
-                // c) if we would like to be conservative: head of PSD conjunction node is the same as head of the
-                // DM conjunct with the outgoing APP/MODcoord edge
-                //if (firstConjunctIsHead && firstConjunctDM.getHead() != word.getHead()) continue;
-                //if (!firstConjunctIsHead && secondConjunctDM.getHead() != word.getHead()) continue;
-                AmConllEntry headConjunctDM = firstConjunctIsHead ? firstConjunctDM : secondConjunctDM;
-                AmConllEntry coordSrcConjunctDM = coordEdgeInFirstConjunct ? firstConjunctDM : secondConjunctDM;
+                    // 3. change DM (and PSD source names...
 
 
-                // 3. change DM (and PSD source names...
+                    // 3. actual fix: change DM (and PSD source names)...
 
-                
-                // 3. actual fix: change DM (and PSD source names)...
-                
-                if (usesModCoord){
-                    //Matthias' part
-                    Type depTermType = dmDepTree.getTermTypeAt(coordSrcConjunctDM);
-                    Type headLexType = headConjunctDM.getType();
-                    
-                    Type coordinationType = addSourceWithRequest(Type.EMPTY_TYPE, "op2", depTermType.performApply("coord"));
-                    
-                    //find common arguments:
-                    Set<AmConllEntry> commonArgumentChildren = dmDep.getChildren(headConjunctDM.getId()-1).stream().filter(child -> child.getEdgeLabel().startsWith("APP_")) //get apply edges
+
+                    boolean doPrint = false;
+
+                    if (usesModCoord) {
+
+                        //                    if (!firstConjunctIsHead) {
+                        //                        System.out.println("DM "+conjunctionDM.getId());
+                        //                        AMExampleFinder.printExample(dmDep, conjunctionDM.getId(), 5);
+                        //                        doPrint = true;
+                        //                    }
+
+                        //Matthias' part
+                        Type depTermType = dmDepTree.getTermTypeAt(coordSrcConjunctDM);
+                        Type headLexType = headConjunctDM.getType();
+
+                        Type coordinationType = addSourceWithRequest(Type.EMPTY_TYPE, "op2", depTermType.performApply("coord"));
+
+                        //find common arguments:
+                        Set<AmConllEntry> commonArgumentChildren = dmDep.getChildren(headConjunctDM.getId() - 1).stream().filter(child -> child.getEdgeLabel().startsWith("APP_")) //get apply edges
                                 .filter(child -> depTermType.getOrigins().contains(child.getEdgeLabel().split("_")[1])).collect(Collectors.toSet());
-                    
-                    //make common arguments children of coordination
-                    for (AmConllEntry commonChild : commonArgumentChildren){
-                        commonChild.setHead(conjunctionDM.getId());
+
+                        //make common arguments children of coordination
+                        for (AmConllEntry commonChild : commonArgumentChildren) {
+                            commonChild.setHead(conjunctionDM.getId());
+                        }
+
+                        // retrieve Type of head when common arguments are removed (that subtree is well-typed but the entire tree is not at this point!)
+                        Type headTermType = AlignedAMDependencyTree.fromSentence(dmDep).getTermTypeAt(headConjunctDM);
+
+                        coordinationType = addSourceWithRequest(coordinationType, "op1", headTermType);
+
+                        conjunctionDM.setType(coordinationType);
+
+                    } else { //APP_coord
+                        // Jonas' part
+
+
+                        Type coordinationType = addSourceWithRequestAndRenames(Type.EMPTY_TYPE, childOpSource, headConjunctDM.getType(), coordsource);
+                        coordinationType = addSourceWithRequestWithoutRenames(coordinationType, headOpSource, headConjunctDM.getType(), coordsource);
+                        conjunctionDM.setType(coordinationType);
+
+
                     }
-                    
-                    // retrieve Type of head when common arguments are removed (that subtree is well-typed but the entire tree is not at this point!)
-                    Type headTermType = AlignedAMDependencyTree.fromSentence(dmDep).getTermTypeAt(headConjunctDM);
-                    
-                    coordinationType = addSourceWithRequest(coordinationType, "op1", headTermType);
-                    
-                    conjunctionDM.setType(coordinationType); 
-                    
-                } else { //APP_coord
-                    // Jonas' part
-                    Type headRequest = headConjunctDM.getType().getRequest(coordsource);
 
-                    Type coordinationType = addSourceWithRequest(Type.EMPTY_TYPE, "op1", headRequest);
-                    coordinationType = addSourceWithRequestAndRenames(coordinationType, "op2", headConjunctDM.getType(), coordsource);
-                    //TODO get op1 and op2 right
-                    conjunctionDM.setType(coordinationType);
+
+                    // - [DM] change head from first conjunct to conjunction
+                    int headDM = headConjunctDM.getHead();
+                    String toconjlabel = headConjunctDM.getEdgeLabel();
+                    conjunctionDM.setHead(headDM);
+                    conjunctionDM.setEdgeLabel(toconjlabel); // was previously ignore
+                    // - [DM] conjuncts receive incoming edge from conjunction node
+                    firstConjunctDM.setHead(conjunctionDM.getId());
+                    secondConjunctDM.setHead(conjunctionDM.getId());
+                    firstConjunctDM.setEdgeLabel(appop1);
+                    secondConjunctDM.setEdgeLabel(appop2); // was previously MODcoord
+                    // - [DM] change supertag of conjunct with coord source (delete conjunction edge in supertag plus incident coord node)
+                    String coordRepl = coordEdgeInFirstConjunct ? op2source : op1source;
+                    String lexRepl = coordEdgeInFirstConjunct ? op1source : op2source;
+                    Pair<SGraph, SGraph> supertags = prepareNewDMSupertags(coordSrcConjunctDM.delexGraph(), usesModCoord, coordRepl, lexRepl);
+                    coordSrcConjunctDM.setDelexSupertag(supertags.left.toIsiAmrStringWithSources());
+                    // - [DM] change type of conjunct with coord source: remove coord from type
+                    coordSrcConjunctDM.setType(secondConjunctDM.getType().performApply(coordsource));
+                    // - [DM] create supertag for conjunction in DM (use edge deleted from secondConj supertag) plus type
+                    conjunctionDM.setDelexSupertag(supertags.right.toIsiAmrStringWithSources());
+
+                    // something like conjunctionDM.setDelexSupertag("(u<root, op1> :_and_c (v<op2>))");  but not just for :_and_c edge,
+                    // not sure about directionaly (_and_c or _and_c-of ?)
+
+
+                    //reload dependency tree, we might make other changes to tree:
+                    dmDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
+
+                    // Type firsttype = firstConjunctDM.getType();
+                    // Type secondtype = secondConjunctDM.getType();
+                    // String conjtype = "(op1" + firsttype + ", op2" + secondtype + ")" ;  // dirty hack and only an approximation of the desired solution
+                    //String conjtype = "(op1, op2)";
+                    //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type(conjtype));
+
+                    // - [PSD] change APP_op to APP_op1 and corresponding type & supertag change
+                    firstConjunctPSD.setEdgeLabel(appop1); // was previously APP_op  note the absence of the number 1
+                    SGraph oldSupertag = new IsiAmrInputCodec().read(word.getDelexSupertag());
+                    oldSupertag = oldSupertag.renameSource("op", "op1");
+                    word.setDelexSupertag(oldSupertag.toIsiAmrStringWithSources());
+                    word.setType(renameSource(word.getType(), "op", "op1"));
+
+                    binaryconjunctionFixedDM++;
+                    failLogger.add("coord success");
+
+
+                    //                if (doPrint) {
+                    //                    System.out.println("DM after");
+                    //                    AMExampleFinder.printExample(dmDep, conjunctionDM.getId(), 5);
+                    //                    System.out.println();
+                    //                }
                 }
-                
-
-                // - [DM] change head from first conjunct to conjunction
-                int headDM = headConjunctDM.getHead();
-                String toconjlabel = headConjunctDM.getEdgeLabel();
-                conjunctionDM.setHead(headDM);
-                conjunctionDM.setEdgeLabel(toconjlabel); // was previously ignore
-                // - [DM] conjuncts receive incoming edge from conjunction node
-                firstConjunctDM.setHead(conjunctionDM.getId());
-                secondConjunctDM.setHead(conjunctionDM.getId());
-                firstConjunctDM.setEdgeLabel(appop1);
-                secondConjunctDM.setEdgeLabel(appop2); // was previously MODcoord
-                // - [DM] change supertag of conjunct with coord source (delete conjunction edge in supertag plus incident coord node)
-                String coordRepl = coordEdgeInFirstConjunct ? op2source : op1source;
-                String lexRepl = coordEdgeInFirstConjunct ? op1source : op2source;
-                Pair<SGraph, SGraph> supertags =  prepareNewDMSupertags(coordSrcConjunctDM.delexGraph(), usesModCoord, coordRepl, lexRepl);
-                coordSrcConjunctDM.setDelexSupertag(supertags.left.toIsiAmrStringWithSources());
-                // - [DM] change type of conjunct with coord source: remove coord from type
-                coordSrcConjunctDM.setType(secondConjunctDM.getType().performApply(coordsource));
-                // - [DM] create supertag for conjunction in DM (use edge deleted from secondConj supertag) plus type
-                conjunctionDM.setDelexSupertag(supertags.right.toIsiAmrStringWithSources());
-
-                // something like conjunctionDM.setDelexSupertag("(u<root, op1> :_and_c (v<op2>))");  but not just for :_and_c edge,
-                // not sure about directionaly (_and_c or _and_c-of ?)
-                
-
-                //Type conjunctionTypeDM = addSourceWithRequest(Type.EMPTY_TYPE, "op1", conjunctDMTermType);
-                //conjunctionTypeDM = addSourceWithRequest(conjunctionTypeDM, "op2", conjunctDMTermType); //TODO: secondConjunct?
-                
-                //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type("(op1, op2)"));
-                //conjunctionDM.setType(conjunctionTypeDM);
-                
-                //reload dependency tree, we might make other changes to tree:
-                dmDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
-
-                // Type firsttype = firstConjunctDM.getType();
-                // Type secondtype = secondConjunctDM.getType();
-                // String conjtype = "(op1" + firsttype + ", op2" + secondtype + ")" ;  // dirty hack and only an approximation of the desired solution
-                //String conjtype = "(op1, op2)";
-                //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type(conjtype));
-
-                // - [PSD] change APP_op to APP_op1 and corresponding type & supertag change
-                firstConjunctPSD.setEdgeLabel(appop1); // was previously APP_op  note the absence of the number 1
-                SGraph oldSupertag = new IsiAmrInputCodec().read(word.getDelexSupertag());
-                oldSupertag = oldSupertag.renameSource("op", "op1");
-                word.setDelexSupertag(oldSupertag.toIsiAmrStringWithSources());
-                word.setType(renameSource(word.getType(), "op", "op1"));
-
-                binaryconjunctionFixedDM++;
-                failLogger.add("coord success");
             }
             index++;
         }
@@ -1203,7 +1243,7 @@ public class ModifyDependencyTreesDetCopNeg {
         String sourceNameToGetRidOf = "coord";
         SGraph newConjunctGraph = new SGraph();
         SGraph ConjunctionGraph = new SGraph();
-        // todo avoid magic strings
+        // CLEANUP avoid magic strings
         GraphNode conjunctionRootNode = null;
         GraphNode oldRootNode = null;
 
