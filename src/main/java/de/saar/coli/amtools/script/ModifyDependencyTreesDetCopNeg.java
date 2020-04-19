@@ -51,7 +51,7 @@ public class ModifyDependencyTreesDetCopNeg {
     //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/pas/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\new_psd_preprocessing\\gold-dev\\gold-dev.amconll";
     //"/home/matthias/Schreibtisch/Hiwi/Koller/uniformify2020/original_decompositions/psd/gold-dev/gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
@@ -234,13 +234,12 @@ public class ModifyDependencyTreesDetCopNeg {
                     }
 
                     //modify new dep trees here
-                    //treeModifier.fixDeterminer(psdDep, dmDep, pasDep);
+//                    treeModifier.fixDeterminer(psdDep, dmDep, pasDep);
                     //fixDeterminer(psdDep, dmDep, pasDep);
-                    //treeModifier.fixNegation(psdDep, dmDep, pasDep);
-                    //treeModifier.fixNever(psdDep, dmDep, pasDep);
-                    //treeModifier.fixPunctuation(psdDep, dmDep, pasDep);
+//                    treeModifier.fixNegation(psdDep, dmDep, pasDep);
+                    treeModifier.fixPASOnlyModifiers(psdDep, dmDep, pasDep);
                     //treeModifier.fixAdjCopula(psdDep, dmDep, pasDep);
-                    treeModifier.fixBinaryConjuction(psdDep, dmDep, pasDep);
+//                    treeModifier.fixBinaryConjuction(psdDep, dmDep, pasDep);
 
 
 
@@ -401,6 +400,10 @@ public class ModifyDependencyTreesDetCopNeg {
                     failLogger.add("det head ignored in PSD");
                     continue;
                 }
+
+
+
+
                 word.setHead(head);
                 word.setEdgeLabel("MOD_det");
                 word.setDelexSupertag("(u<root, det>)");// empty modifier graph: one unlabeled node with root and det source.
@@ -505,86 +508,86 @@ public class ModifyDependencyTreesDetCopNeg {
         
     }
     
-    public void fixNever(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, AlignedAMDependencyTree.ConllParserException {
-        int index = 0;
-        
-        SGraph desiredPSDSupertag = new IsiAmrInputCodec().read("(i_8<root> / --LEX--  :TWHEN-of (i_2<mod>))");
-        SGraph desiredPASSupertag = new IsiAmrInputCodec().read("(i_6<root> / --LEX--  :adj_ARG1 (i_8<mod>))");
-        SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_3<root> / --LEX--  :ARG1 (i_2<s>))");
-        
-        
-        AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
-        AlignedAMDependencyTree psdTree = AlignedAMDependencyTree.fromSentence(psdDep);
-        AlignedAMDependencyTree pasTree = AlignedAMDependencyTree.fromSentence(pasDep);
-        
-        boolean fixedPSD = false;
-        
-        for (AmConllEntry dmEntry : dmDep) {
-            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmEntry.getId());
-            if (dmEntry.getLemma().equals("never") && pattern.equals("566")){
-                this.never++;
-                neverPatterns.add(FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmEntry.getId()));
-                
-                if ((new IsiAmrInputCodec().read(dmEntry.getDelexSupertag())).equals(desiredDMSupertag)) {
-                Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_s")).findFirst();
-                if (potential_argument.isPresent()) {
-                    AmConllEntry dmArgument = potential_argument.get();
-                    
-                    
-                    // now dmEntry is "never"
-                    // there is an APP_s edge to the dmArgument
-                    
-                    // rename s source to neg
-                    dmArgument.setEdgeLabel("APP_neg");
-                    dmEntry.setType(renameSource(dmEntry.getType(), "s", "neg"));
-                    dmEntry.setDelexSupertag("(i_3<root> / --LEX--  :ARG1 (i_2<neg>))");
-                    
-                    fixedPSD = false;
-                    
-                    //fix PSD where we have head -- MOD_mod --> never
-                    
-                    AmConllEntry psdEntry = psdDep.get(index);
-                    if (psdEntry.getEdgeLabel().equals("MOD_mod") && desiredPSDSupertag.equals(new IsiAmrInputCodec().read(psdEntry.getDelexSupertag()))
-                            && psdEntry.getHead() == dmArgument.getId() // do we want this condition? Perhaps, we should systematically swap?
-                            ){
-                        // we indeed have the situation as described above in PSD
-                        if (!psdTree.getTermTypeAt(psdDep.getParent(index)).equals(Type.EMPTY_TYPE)) {
-                            System.out.println("Never percolation PAS: "+psdEntry.getId());
-                            AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
-                        }
-                        swapHead(psdTree, psdEntry, psdDep.getParent(index), "neg");
-                        neverFixedPSD++;
-                        fixedPSD = true;
-                        psdTree = AlignedAMDependencyTree.fromSentence(psdDep);
-                        
-                    }
-                    
-                    // fix PAS, same situation as in PSD
-                    AmConllEntry pasEntry = pasDep.get(index);
-                    if (pasEntry.getEdgeLabel().equals("MOD_mod") && desiredPASSupertag.equals(new IsiAmrInputCodec().read(pasEntry.getDelexSupertag()))
-                            && pasEntry.getHead() == dmArgument.getId() // do we want this condition?
-                            ){
-
-                        if (!pasTree.getTermTypeAt(pasDep.getParent(index)).equals(Type.EMPTY_TYPE)) {
-                            System.out.println("Never percolation PAS: "+pasEntry.getId());
-                            AMExampleFinder.printExample(pasDep, pasEntry.getId(), 5);
-                        }
-                        swapHead(pasTree, pasEntry, pasDep.getParent(index), "neg");
-                        neverFixedPAS++;
-                        pasTree = AlignedAMDependencyTree.fromSentence(pasDep);
-                        
-                        if (fixedPSD) neverAllFixed++; 
-                        
-                    }
-                    
-                    
-                }
-                
-            }}
-            index++;
-         
-        }
-    }
+//    public void fixNever(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParseException, AlignedAMDependencyTree.ConllParserException {
+//        int index = 0;
+//
+//        SGraph desiredPSDSupertag = new IsiAmrInputCodec().read("(i_8<root> / --LEX--  :TWHEN-of (i_2<mod>))");
+//        SGraph desiredPASSupertag = new IsiAmrInputCodec().read("(i_6<root> / --LEX--  :adj_ARG1 (i_8<mod>))");
+//        SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_3<root> / --LEX--  :ARG1 (i_2<s>))");
+//
+//
+//        AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
+//        AlignedAMDependencyTree psdTree = AlignedAMDependencyTree.fromSentence(psdDep);
+//        AlignedAMDependencyTree pasTree = AlignedAMDependencyTree.fromSentence(pasDep);
+//
+//        boolean fixedPSD = false;
+//
+//        for (AmConllEntry dmEntry : dmDep) {
+//            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmEntry.getId());
+//            if (dmEntry.getLemma().equals("never") && pattern.equals("566")){
+//                this.never++;
+//                neverPatterns.add(FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmEntry.getId()));
+//
+//                if ((new IsiAmrInputCodec().read(dmEntry.getDelexSupertag())).equals(desiredDMSupertag)) {
+//                Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_s")).findFirst();
+//                if (potential_argument.isPresent()) {
+//                    AmConllEntry dmArgument = potential_argument.get();
+//
+//
+//                    // now dmEntry is "never"
+//                    // there is an APP_s edge to the dmArgument
+//
+//                    // rename s source to neg
+//                    dmArgument.setEdgeLabel("APP_neg");
+//                    dmEntry.setType(renameSource(dmEntry.getType(), "s", "neg"));
+//                    dmEntry.setDelexSupertag("(i_3<root> / --LEX--  :ARG1 (i_2<neg>))");
+//
+//                    fixedPSD = false;
+//
+//                    //fix PSD where we have head -- MOD_mod --> never
+//
+//                    AmConllEntry psdEntry = psdDep.get(index);
+//                    if (psdEntry.getEdgeLabel().equals("MOD_mod") && desiredPSDSupertag.equals(new IsiAmrInputCodec().read(psdEntry.getDelexSupertag()))
+//                            && psdEntry.getHead() == dmArgument.getId() // do we want this condition? Perhaps, we should systematically swap?
+//                            ){
+//                        // we indeed have the situation as described above in PSD
+//                        if (!psdTree.getTermTypeAt(psdDep.getParent(index)).equals(Type.EMPTY_TYPE)) {
+//                            System.out.println("Never percolation PAS: "+psdEntry.getId());
+//                            AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+//                        }
+//                        swapHead(psdTree, psdEntry, psdDep.getParent(index), "neg");
+//                        neverFixedPSD++;
+//                        fixedPSD = true;
+//                        psdTree = AlignedAMDependencyTree.fromSentence(psdDep);
+//
+//                    }
+//
+//                    // fix PAS, same situation as in PSD
+//                    AmConllEntry pasEntry = pasDep.get(index);
+//                    if (pasEntry.getEdgeLabel().equals("MOD_mod") && desiredPASSupertag.equals(new IsiAmrInputCodec().read(pasEntry.getDelexSupertag()))
+//                            && pasEntry.getHead() == dmArgument.getId() // do we want this condition?
+//                            ){
+//
+//                        if (!pasTree.getTermTypeAt(pasDep.getParent(index)).equals(Type.EMPTY_TYPE)) {
+//                            System.out.println("Never percolation PAS: "+pasEntry.getId());
+//                            AMExampleFinder.printExample(pasDep, pasEntry.getId(), 5);
+//                        }
+//                        swapHead(pasTree, pasEntry, pasDep.getParent(index), "neg");
+//                        neverFixedPAS++;
+//                        pasTree = AlignedAMDependencyTree.fromSentence(pasDep);
+//
+//                        if (fixedPSD) neverAllFixed++;
+//
+//                    }
+//
+//
+//                }
+//
+//            }}
+//            index++;
+//
+//        }
+//    }
    
     
     
@@ -595,37 +598,37 @@ public class ModifyDependencyTreesDetCopNeg {
         SGraph desiredPASSupertag = new IsiAmrInputCodec().read("(i_2<root> / --LEX--  :adj_ARG1 (i_3<mod>))");
         SGraph desiredDMSupertag = new IsiAmrInputCodec().read("(i_13<root> / --LEX--  :neg (i_12<mod>))");
         
-        
+        //TODO no longer use neg source
         
         boolean fixedPSD = false;
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
-            if (psdEntry.getLemma().equals("#Neg") && pattern.equals("566")) { // psdEntry is Negation word
+            if ((psdEntry.getLemma().equals("#Neg") || psdEntry.getLemma().equals("never")) && pattern.equals("566")) { // psdEntry is Negation word
                 this.negations ++;
                 negationPatterns.add(pattern);
                 fixedPSD = false;
                 // In DM we can be in the situation that the negation word is the head with outgoing APP_mod edge
                 // or - in relative clauses - , the negation would be the depndent of the verb and we have an incoming MOD_mod edge
                 
-                if (dmDep.getChildren(index).isEmpty() && new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag) && dmEntry.getEdgeLabel().equals("MOD_mod")){
-                    // we are probably in a relative clause
-                    // so we first make DM consistent that the negation word is the head, then we can apply the transformation for PSD and PAS
-                    
-                    // let's make sure that we are in a relative clause and see what the clause modifies
-                    AmConllEntry negatedDMverb = dmDep.getParent(index);
-                    
-                    AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
-                    
-                    Type termTypeofNegatedDMverb = dmTree.getTermTypeAt(negatedDMverb);
-                    if (negatedDMverb.getEdgeLabel().equals("MOD_s") || negatedDMverb.getEdgeLabel().equals("MOD_o")) {
-                        // subject or object relative clause
-                        // make negation child of what the clause modifies
-                        swapHead(dmTree, dmEntry, negatedDMverb, "neg");
-                    }
-                    
-                }
+//                if (dmDep.getChildren(index).isEmpty() && new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag) && dmEntry.getEdgeLabel().equals("MOD_mod")){
+//                    // we are probably in a relative clause
+//                    // so we first make DM consistent that the negation word is the head, then we can apply the transformation for PSD and PAS
+//
+//                    // let's make sure that we are in a relative clause and see what the clause modifies
+//                    AmConllEntry negatedDMverb = dmDep.getParent(index);
+//
+//                    AlignedAMDependencyTree dmTree = AlignedAMDependencyTree.fromSentence(dmDep);
+//
+//                    Type termTypeofNegatedDMverb = dmTree.getTermTypeAt(negatedDMverb);
+//                    if (negatedDMverb.getEdgeLabel().equals("MOD_s") || negatedDMverb.getEdgeLabel().equals("MOD_o")) {
+//                        // subject or object relative clause
+//                        // make negation child of what the clause modifies
+//                        swapHead(dmTree, dmEntry, negatedDMverb, "neg");
+//                    }
+//
+//                }
                 
                 // find verb or thing that is negated in DM: could be none, therefore use Optional
                 // outgoing dep. edges in DM from negation: if it's an APPmod edge, its target is the negated thing
@@ -633,17 +636,19 @@ public class ModifyDependencyTreesDetCopNeg {
                 Optional<AmConllEntry> potential_argument = dmDep.getChildren(index).stream().filter(child -> child.getEdgeLabel().equals("APP_mod") || child.getEdgeLabel().equals("APP_neg")).findFirst();
                 if (potential_argument.isPresent()) {
                     AmConllEntry dmArgument = potential_argument.get();
+
+
                     // found DM negation
                     
                     // DM: rename mod source to neg source
-                    if (new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag)) {
-                        dmArgument.setEdgeLabel("APP_neg");
-                        dmEntry.setDelexSupertag("(i_13<root> / --LEX--  :neg (i_12<neg>))");
-                        Type negationType = Type.EMPTY_TYPE;
-                        negationType = negationType.addSource("neg");
-                        dmEntry.setType(negationType);
-                    
-                    }
+//                    if (new IsiAmrInputCodec().read(dmEntry.getDelexSupertag()).equals(desiredDMSupertag)) {
+//                        dmArgument.setEdgeLabel("APP_neg");
+//                        dmEntry.setDelexSupertag("(i_13<root> / --LEX--  :neg (i_12<neg>))");
+//                        Type negationType = Type.EMPTY_TYPE;
+//                        negationType = negationType.addSource("neg");
+//                        dmEntry.setType(negationType);
+//
+//                    }
                     
                     // PSD
                     //  - currently   --> argument --MOD_mod--> psdEntry (negation)
@@ -660,15 +665,14 @@ public class ModifyDependencyTreesDetCopNeg {
                         if (desiredPSDSupertag.equals(supertag)) {
                             // only change if negated element doesn't have a mod source
                             try {
-                                // take term type of negated element, add neg source and create dependencies such that the requirement 
-                                // at the neg source is the type of the negated element.
-                                if (!psdAlignedDeptree.getTermTypeAt(psdNegated).equals(Type.EMPTY_TYPE)) {
-                                    System.out.println("Negation percolation PSD: "+psdEntry.getId());
-                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+                                // only fix if we don't have to percolate sources
+                                if (psdAlignedDeptree.getTermTypeAt(psdNegated).equals(Type.EMPTY_TYPE)) {
+                                    swapHead(psdAlignedDeptree, psdEntry, psdNegated, "mod");
+                                    negationsFixedPSD++;
+                                    fixedPSD = true;
+                                } else {
+                                    failLogger.add("neg need source percolation");
                                 }
-                                swapHead(psdAlignedDeptree, psdEntry, psdNegated, "neg");
-                                negationsFixedPSD++;
-                                fixedPSD = true;
                              } catch (IllegalArgumentException ex) { // introduces a cycle by adding the mod source and the dependencies
                                 failLogger.add("neg cycle PSD");
                              }
@@ -703,16 +707,17 @@ public class ModifyDependencyTreesDetCopNeg {
                         SGraph supertag = new IsiAmrInputCodec().read(pasEntry.getDelexSupertag());
                         if (desiredPASSupertag.equals(supertag)) {
                             try {
-                                if (!pasAlignedDeptree.getTermTypeAt(pasNegated).equals(Type.EMPTY_TYPE)) {
+                                if (pasAlignedDeptree.getTermTypeAt(pasNegated).equals(Type.EMPTY_TYPE)) {
+                                    swapHead(pasAlignedDeptree, pasEntry, pasNegated, "mod");
+                                    negationsFixedPAS++;
+                                } else {
                                     System.out.println("Negation percolation PAS: "+pasEntry.getId());
                                     AMExampleFinder.printExample(pasDep, pasEntry.getId(), 5);
                                 }
-                                swapHead(pasAlignedDeptree, pasEntry, pasNegated, "neg");
-                                
-                                negationsFixedPAS++;
+
                                 if (fixedPSD) {
-                                    String afterFixPattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
-                                    fixedNegationPatterns.add(pattern+"|"+afterFixPattern);
+//                                    String afterFixPattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+//                                    fixedNegationPatterns.add(pattern+"|"+afterFixPattern);
                                     negationsAllFixed++;
                                     failLogger.add("neg success");
                                 }
@@ -747,7 +752,7 @@ public class ModifyDependencyTreesDetCopNeg {
         // Punctuation
         // in PAS sometimes punctuation integrated in graph, but not in PSD and DM:
         // fix: DM, PSD create one-node blob with pnct and root source for them
-        // todo avoid magic strings if possible (import static strings from elsewhere?)
+        // CLEANUP avoid magic strings if possible (import static strings from elsewhere?)
         String ignore_edge = "IGNORE";
         List<String> allowedPOS = Arrays.asList(",","``","''",":","-RRB-","LRB-","TO","IN","RP");
         int index = 0;
@@ -755,7 +760,6 @@ public class ModifyDependencyTreesDetCopNeg {
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, word.getId());
             AmConllEntry psdWord = psdDep.get(index); // punctuation is PSD
             if (pattern.equals("060") && allowedPOS.contains(psdWord.getPos())) {
-            //if (word.getEdgeLabel().equals(mod_punct)){ // TODO maybe check if APPpnct exists?
                 punctuation++;
                 boolean fixedPSD = false;
                 boolean fixedDM = false;
@@ -768,7 +772,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 //assert psdWord != null; // same sentence , same size
                 if (psdWord.getEdgeLabel().equals(ignore_edge)
                         && !psdDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
-                    // second term: skip if parent in PAS is ignored in PSD??? todo should i do this?
+                    // second term: skip if parent in PAS is ignored in PSD
                     // delete ignore edge, create edge parent-punctuation
                     // create supertag for punctuation
                     psdWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+pasSource); // was previously ignore
@@ -782,10 +786,10 @@ public class ModifyDependencyTreesDetCopNeg {
                 }
 
                 // B. DM if ignored, change to pas like structure
-                // todo copy pasted code, but what is the best way in java here to avoid it?
+                // CLEANUP copy pasted code, but what is the best way in java here to avoid it?
                 AmConllEntry dmWord = dmDep.get(index);
                 if (dmWord.getEdgeLabel().equals(ignore_edge) && !dmDep.get(parentID_pas-1).getEdgeLabel().equals(ignore_edge)) {
-                    // second term: skip if parent in PAS is ignored in DM???
+                    // second term: skip if parent in PAS is ignored in DM
                     // delete ignore edge, create edge parent-punctuation
                     // create supertag for punctuation
                     dmWord.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION+pasSource); // was previously ignore
@@ -1152,7 +1156,7 @@ public class ModifyDependencyTreesDetCopNeg {
                 Pair<SGraph, SGraph> supertags =  prepareNewDMSupertags(coordSrcConjunctDM.delexGraph(), usesModCoord, coordRepl, lexRepl);
                 coordSrcConjunctDM.setDelexSupertag(supertags.left.toIsiAmrStringWithSources());
                 // - [DM] change type of conjunct with coord source: remove coord from type
-                coordSrcConjunctDM.setType(secondConjunctDM.getType().performApply(coordsource));// todo is this the right way to remove the coord source?
+                coordSrcConjunctDM.setType(secondConjunctDM.getType().performApply(coordsource));
                 // - [DM] create supertag for conjunction in DM (use edge deleted from secondConj supertag) plus type
                 conjunctionDM.setDelexSupertag(supertags.right.toIsiAmrStringWithSources());
 
@@ -1175,7 +1179,6 @@ public class ModifyDependencyTreesDetCopNeg {
                 //String conjtype = "(op1, op2)";
                 //conjunctionDM.setType(new ApplyModifyGraphAlgebra.Type(conjtype));
 
-                // todo [BUG] the previous line is problematic if the type should be something like (op1(mod), op2(mod)
                 // - [PSD] change APP_op to APP_op1 and corresponding type & supertag change
                 firstConjunctPSD.setEdgeLabel(appop1); // was previously APP_op  note the absence of the number 1
                 SGraph oldSupertag = new IsiAmrInputCodec().read(word.getDelexSupertag());

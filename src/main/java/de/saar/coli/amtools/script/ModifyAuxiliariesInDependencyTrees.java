@@ -45,7 +45,7 @@ public class ModifyAuxiliariesInDependencyTrees {
     private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\new_psd_preprocessing\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
     private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
@@ -237,6 +237,10 @@ public class ModifyAuxiliariesInDependencyTrees {
             String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
             if (pattern.equals("040") && pasEntry.getPos().startsWith("V")) {
                 this.temporalAuxiliaries ++;
+
+                System.out.println("PAS "+psdEntry.getId());
+                AMExampleFinder.printExample(pasDep, psdEntry.getId(), 2);
+
                 if (!new Type("(s,o)").equals(pasEntry.getType())) {
                     this.unusualType++;
 //                    System.err.println(pasEntry.getId());
@@ -253,10 +257,19 @@ public class ModifyAuxiliariesInDependencyTrees {
                     continue;
                 }
 
+                System.out.println("PSD "+psdEntry.getId());
+                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 2);
+
                 psdEntry.setDelexSupertag(desiredSupertag);
                 psdEntry.setType(desiredType);
                 psdEntry.setHead(pasEntry.getHead());
                 psdEntry.setEdgeLabel(pasEntry.getEdgeLabel());
+
+                System.out.println("PSD after "+psdEntry.getId());
+                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 2);
+
+                System.out.println("DM "+psdEntry.getId());
+                AMExampleFinder.printExample(dmDep, psdEntry.getId(), 2);
 
                 dmEntry.setDelexSupertag(desiredSupertag);
                 dmEntry.setType(desiredType);
@@ -264,6 +277,10 @@ public class ModifyAuxiliariesInDependencyTrees {
                 dmEntry.setEdgeLabel(pasEntry.getEdgeLabel());
                 failLogger.add("aux success");
                 temporalAuxiliariesFixed++;
+
+                System.out.println("DM after "+psdEntry.getId());
+                AMExampleFinder.printExample(dmDep, psdEntry.getId(), 2);
+                System.out.println();
 
             }
             index++;

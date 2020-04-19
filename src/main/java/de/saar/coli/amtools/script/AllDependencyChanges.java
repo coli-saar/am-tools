@@ -196,7 +196,7 @@ public class AllDependencyChanges {
             changer.applyFix(dm -> pas -> psd -> {
                 try {
                     treeModifier.fixNegation(psd, dm, pas);
-                    treeModifier.fixNever(psd, dm, pas);
+//                    treeModifier.fixNever(psd, dm, pas); // now included in fixNegation
                 } catch (ParseException | AlignedAMDependencyTree.ConllParserException e) {
                     throw new RuntimeException(e);
                 }
