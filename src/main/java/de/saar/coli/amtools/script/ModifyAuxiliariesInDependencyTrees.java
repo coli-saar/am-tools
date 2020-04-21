@@ -14,6 +14,7 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.SGraphDrawer;
+import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import org.eclipse.collections.impl.factory.Sets;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
@@ -44,7 +45,7 @@ public class ModifyAuxiliariesInDependencyTrees {
     private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\new_psd_preprocessing\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
     private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
@@ -62,6 +63,8 @@ public class ModifyAuxiliariesInDependencyTrees {
     private int temporalAuxiliaries = 0;
     private int unusualType = 0;
     private int temporalAuxiliariesFixed = 0;
+
+    Counter<String> failLogger = new Counter<>();
 
     /**
      * @param args
@@ -231,31 +234,44 @@ public class ModifyAuxiliariesInDependencyTrees {
             AmConllEntry pasEntry = pasDep.get(index);
 //            if (FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, dmGraph, pasGraph, psdGraph, psdEntry.getId()).equals("040")
 //                    && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
-            if (pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)
-                && psdEntry.getEdgeLabel().equals(AmConllEntry.IGNORE) && dmEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)
-                && pasEntry.getPos().startsWith("V")) {
-                this.temporalAuxiliaries ++;
-                if (!new Type("(s,o)").equals(pasEntry.getType())) {
-                    this.unusualType++;
-//                    System.err.println(pasEntry.getId());
-//                    System.err.println(pasDep);
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+            if (pattern.equals("040")) {
+                ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("aux pattern");
+                if (pasEntry.getPos().startsWith("V")) {
+                    ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("aux restricted");
+                    this.temporalAuxiliaries++;
+
+
+                    if (!new Type("(s,o)").equals(pasEntry.getType())) {
+                        this.unusualType++;
+                        //                    System.err.println(pasEntry.getId());
+                        //                    System.err.println(pasDep);
+                    }
+
+                    String source = pasEntry.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+                    String desiredSupertag = desiredSupertagTemplate.replace("--SOURCE--", source);
+                    Type desiredType = new Type("(" + source + ")");
+
+                    if (psdDep.get(pasEntry.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)
+                            || dmDep.get(pasEntry.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+                        failLogger.add("aux head ignored");
+                        continue;
+                    }
+
+
+                    psdEntry.setDelexSupertag(desiredSupertag);
+                    psdEntry.setType(desiredType);
+                    psdEntry.setHead(pasEntry.getHead());
+                    psdEntry.setEdgeLabel(pasEntry.getEdgeLabel());
+
+                    dmEntry.setDelexSupertag(desiredSupertag);
+                    dmEntry.setType(desiredType);
+                    dmEntry.setHead(pasEntry.getHead());
+                    dmEntry.setEdgeLabel(pasEntry.getEdgeLabel());
+                    failLogger.add("aux success");
+                    temporalAuxiliariesFixed++;
+
                 }
-
-                String source = pasEntry.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                String desiredSupertag = desiredSupertagTemplate.replace("--SOURCE--", source);
-                Type desiredType = new Type("("+source+")");
-
-                psdEntry.setDelexSupertag(desiredSupertag);
-                psdEntry.setType(desiredType);
-                psdEntry.setHead(pasEntry.getHead());
-                psdEntry.setEdgeLabel(pasEntry.getEdgeLabel());
-
-                dmEntry.setDelexSupertag(desiredSupertag);
-                dmEntry.setType(desiredType);
-                dmEntry.setHead(pasEntry.getHead());
-                dmEntry.setEdgeLabel(pasEntry.getEdgeLabel());
-                temporalAuxiliariesFixed++;
-
             }
             index++;
         } // for psdEntry

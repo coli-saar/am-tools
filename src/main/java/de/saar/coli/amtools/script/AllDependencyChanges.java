@@ -24,16 +24,6 @@ import java.util.function.Function;
 
 public class AllDependencyChanges {
 
-    //SDP corpora (i.e. original graphs)
-    @Parameter(names = {"--corpusDM", "-dm"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")
-    private String corpusPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.dm.sdp";
-
-    @Parameter(names = {"--corpusPAS", "-pas"}, description = "Path to the input corpus (en.pas.sdp) or subset thereof")
-    private String corpusPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.pas.sdp";
-
-    @Parameter(names = {"--corpusPSD", "-psd"}, description = "Path to the input corpus (en.psd.sdp) or subset thereof")
-    private String corpusPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_1015\\data\\2015\\en.psd.sdp";
-
     // amconll files (i.e. AM dependency trees)
     @Parameter(names = {"--amconllDM", "-amdm"}, description = "Path to the input corpus (.amconll) or subset thereof")
     private String amconllPathDM = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\dm\\gold-dev\\gold-dev.amconll";
@@ -42,10 +32,10 @@ public class AllDependencyChanges {
     private String amconllPathPAS = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\pas\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--amconllPSD", "-ampsd"}, description = "Path to the input corpus (.amconll) or subset thereof")
-    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\psd\\gold-dev\\gold-dev.amconll";
+    private String amconllPathPSD = "C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\uniformify2020\\original_decompositions\\new_psd_preprocessing\\gold-dev\\gold-dev.amconll";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to the output folder")
-    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\dev_03-28\\";
+    private String outputPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\uniformify2020\\";
 
     @Parameter(names = {"--onlyDeterminers"}, description = "only fix determiners (for testing purposes)")
     private boolean onlyDeterminers=false;
@@ -55,10 +45,6 @@ public class AllDependencyChanges {
     private boolean help=false;
 
 
-    private static DMBlobUtils dmBlobUtils = new DMBlobUtils();
-    private static PASBlobUtils pasBlobUtils = new PASBlobUtils();
-    private static PSDBlobUtils psdBlobUtils = new PSDBlobUtils();
-
     private int dmFails = 0;
     private int pasFails = 0;
     private int psdFails = 0;
@@ -66,6 +52,8 @@ public class AllDependencyChanges {
     private final List<AmConllSentence> intersectedDepsDM = new ArrayList<>();
     private final List<AmConllSentence> intersectedDepsPAS = new ArrayList<>();
     private final List<AmConllSentence> intersectedDepsPSD = new ArrayList<>();
+
+
 
     private void addData(List<AmConllSentence> amDM, List<AmConllSentence> amPAS, List<AmConllSentence> amPSD) {
         Map<String, AmConllSentence> id2amDM = new HashMap<>();
@@ -117,7 +105,7 @@ public class AllDependencyChanges {
 //        Graph dmGraph;
 //        Graph pasGraph;
 //        Graph psdGraph;
-        //TODO move this to constructor
+        //CLEANUP move this to constructor
         List<AmConllSentence> amDM = AmConllSentence.read(new InputStreamReader(
                 new FileInputStream(changer.amconllPathDM), StandardCharsets.UTF_8));
         List<AmConllSentence> amPAS = AmConllSentence.read(new InputStreamReader(
@@ -130,6 +118,8 @@ public class AllDependencyChanges {
         changer.printComparisons();
 
         ModifyDependencyTreesDetCopNeg treeModifier = new ModifyDependencyTreesDetCopNeg();
+        ModifyAuxiliariesInDependencyTrees auxTreeFixer = new ModifyAuxiliariesInDependencyTrees();
+        ModifyPrepsInDependencyTrees prepTreeFixer = new ModifyPrepsInDependencyTrees();
 
 
         //error handling below could maybe be done better, but Java is weird about exceptions and lambdas...
@@ -144,14 +134,11 @@ public class AllDependencyChanges {
             }
         });
         changer.printComparisons();
-        System.err.println(treeModifier.getDeterminer());
-        System.err.println(treeModifier.getDeterminerFixedPSD());
         if (!changer.onlyDeterminers) {
 
 
             //temporal auxiliaries
             System.out.println("Fixing temporal auxiliaries");
-            ModifyAuxiliariesInDependencyTrees auxTreeFixer = new ModifyAuxiliariesInDependencyTrees();
             changer.applyFix(dm -> pas -> psd -> {
                 try {
                     auxTreeFixer.fixTemporalAuxiliaries(psd, dm, pas);
@@ -163,7 +150,6 @@ public class AllDependencyChanges {
 
             //prepositions
             System.out.println("Fixing prepositions (220 pattern)");
-            ModifyPrepsInDependencyTrees prepTreeFixer = new ModifyPrepsInDependencyTrees();
             changer.applyFix(dm -> pas -> psd -> {
                 try {
                     prepTreeFixer.fixPreps220(psd, dm, pas);
@@ -182,13 +168,13 @@ public class AllDependencyChanges {
             });
             changer.printComparisons();
 
-            //negation
-            System.out.println("Fixing negations");
+
+            //binary coordination
+            System.out.println("Fixing binary coordination ");
             changer.applyFix(dm -> pas -> psd -> {
                 try {
-                    treeModifier.fixNegation(psd, dm, pas);
-                    treeModifier.fixNever(psd, dm, pas);
-                } catch (ParseException | AlignedAMDependencyTree.ConllParserException e) {
+                    treeModifier.fixBinaryConjuction(psd, dm, pas);
+                } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -205,12 +191,13 @@ public class AllDependencyChanges {
             });
             changer.printComparisons();
 
-            //binary coordination
-            System.out.println("Fixing binary coordination ");
+            //negation
+            System.out.println("Fixing negations");
             changer.applyFix(dm -> pas -> psd -> {
                 try {
-                    treeModifier.fixBinaryConjuction(psd, dm, pas);
-                } catch (ParseException | ParserException | AlignedAMDependencyTree.ConllParserException e) {
+                    treeModifier.fixNegation(psd, dm, pas);
+                    //                    treeModifier.fixNever(psd, dm, pas); // now included in fixNegation
+                } catch (ParseException | AlignedAMDependencyTree.ConllParserException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -225,10 +212,6 @@ public class AllDependencyChanges {
                     throw new RuntimeException(e);
                 }
             });
-            System.err.println(treeModifier.punctuation);
-            System.err.println(treeModifier.punctuationAllFixed);
-            System.err.println(treeModifier.punctuationFixedDM);
-            System.err.println(treeModifier.punctuationFixedPSD);
             changer.printComparisons();
 
             //TODO check equality!
@@ -237,14 +220,22 @@ public class AllDependencyChanges {
         System.out.println("PAS fails: "+changer.pasFails);
         System.out.println("PSD fails: "+changer.psdFails);
 
+        System.err.println();
+        System.err.println("fail and success stats:");
+        treeModifier.failLogger.printAllSorted();
+        prepTreeFixer.failLogger.printAllSorted();
+        auxTreeFixer.failLogger.printAllSorted();
+
+        System.err.println();
+        System.err.println("pattern coverage:");
+        ModifyDependencyTreesDetCopNeg.patternCoverageLogger.printAllSorted();
 
         AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/dm.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsDM);
         AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/pas.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsPAS);
         AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/psd.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsPSD);
     }
 
-    private void applyFix(Function<AmConllSentence, Function<AmConllSentence, Consumer<AmConllSentence>>> fixingFunction)
-            throws AlignedAMDependencyTree.ConllParserException, ParseException, ParserException {
+    private void applyFix(Function<AmConllSentence, Function<AmConllSentence, Consumer<AmConllSentence>>> fixingFunction) {
 
         for (int i = 0; i < intersectedDepsDM.size(); i++) {
             AmConllSentence dmDep = intersectedDepsDM.get(i);
@@ -256,89 +247,87 @@ public class AllDependencyChanges {
             AmConllSentence pasBackup = (AmConllSentence)pasDep.clone();
             AmConllSentence psdBackup = (AmConllSentence)psdDep.clone();
 
-            //save original evaluation results for later checking
-//            SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-//            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(dmSGraph);
-//            SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-//            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(psdSGraph);
-//            SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-//            ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(pasSGraph);
-
-            //modify new dep trees here
             try {
+                //save original evaluation results for later checking
+                SGraph dmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(dmSGraph);
+                SGraph psdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(psdSGraph);
+                SGraph pasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(pasSGraph);
+
+                //modify new dep trees here
                 fixingFunction.apply(dmDep).apply(pasDep).accept(psdDep);
-            } catch (Exception ex) {
-                //restore backups
-                intersectedDepsDM.remove(i);
-                intersectedDepsDM.add(i, dmBackup);
-                intersectedDepsPAS.remove(i);
-                intersectedDepsPAS.add(i, pasBackup);
-                intersectedDepsPSD.remove(i);
-                intersectedDepsPSD.add(i, psdBackup);
-                dmFails++;
-                pasFails++;
-                psdFails++;
-            }
 
-            // try to evaluate new graph, and use backup if it fails or if result differs
-            //DM
-            try {
-                SGraph newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
-                ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newdmSGraph);
-                //if (!newdmSGraph.equals(dmSGraph)) {
-                if (newdmSGraph == null) {
+                // try to evaluate new graph, and use backup if it fails or if result differs
+                //DM
+                try {
+                    SGraph newdmSGraph = AlignedAMDependencyTree.fromSentence(dmDep).evaluate(true);
+                    ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newdmSGraph);
+                    if (!newdmSGraph.equals(dmSGraph)) {
+                        //restore backup
+                        intersectedDepsDM.remove(i);
+                        intersectedDepsDM.add(i, dmBackup);
+    //                    System.err.println(dmDep.getId() + " DM graph changed");
+                        dmFails++;
+                    }
+                } catch (Exception ex) {
                     //restore backup
                     intersectedDepsDM.remove(i);
                     intersectedDepsDM.add(i, dmBackup);
-//                    System.err.println(dmDep.getId() + " DM graph changed");
+    //                System.err.println(dmDep.getId());
+    //                ex.printStackTrace();
                     dmFails++;
                 }
-            } catch (Exception ex) {
-                //restore backup
-                intersectedDepsDM.remove(i);
-                intersectedDepsDM.add(i, dmBackup);
-//                System.err.println(dmDep.getId());
-//                ex.printStackTrace();
-                dmFails++;
-            }
-            //PAS
-            try {
-                SGraph newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
-                ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newpasSGraph);
-                //if (!newpasSGraph.equals(pasSGraph)) {
-                if (newpasSGraph == null) {
+                //PAS
+                try {
+                    SGraph newpasSGraph = AlignedAMDependencyTree.fromSentence(pasDep).evaluate(true);
+                    ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newpasSGraph);
+                    if (!newpasSGraph.equals(pasSGraph)) {
+                        //restore backup
+                        intersectedDepsPAS.remove(i);
+                        intersectedDepsPAS.add(i, pasBackup);
+    //                    System.err.println(pasDep.getId() + " PAS graph changed");
+                        pasFails++;
+                    }
+                } catch (Exception ex) {
                     //restore backup
                     intersectedDepsPAS.remove(i);
                     intersectedDepsPAS.add(i, pasBackup);
-//                    System.err.println(pasDep.getId() + " PAS graph changed");
+    //                System.err.println(pasDep.getId());
+    //                ex.printStackTrace();
                     pasFails++;
                 }
-            } catch (Exception ex) {
-                //restore backup
-                intersectedDepsPAS.remove(i);
-                intersectedDepsPAS.add(i, pasBackup);
-//                System.err.println(pasDep.getId());
-//                ex.printStackTrace();
-                pasFails++;
-            }
-            //PSD
-            try {
-                SGraph newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
-                ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newpsdSGraph);
-                //if (!newpsdSGraph.equals(psdSGraph)) {
-                if (newpsdSGraph == null) {
+                //PSD
+                try {
+                    SGraph newpsdSGraph = AlignedAMDependencyTree.fromSentence(psdDep).evaluate(true);
+                    ModifyDependencyTreesDetCopNeg.onlyIndicesAsLabels(newpsdSGraph);
+                    if (!newpsdSGraph.equals(psdSGraph)) {
+                        //restore backup
+                        intersectedDepsPSD.remove(i);
+                        intersectedDepsPSD.add(i, psdBackup);
+    //                    System.err.println(psdDep.getId() + " PSD graph changed");
+                        psdFails++;
+                    }
+                } catch (Exception ex) {
                     //restore backup
                     intersectedDepsPSD.remove(i);
                     intersectedDepsPSD.add(i, psdBackup);
-//                    System.err.println(psdDep.getId() + " PSD graph changed");
+    //                System.err.println(psdDep.getId());
+    //                ex.printStackTrace();
                     psdFails++;
                 }
             } catch (Exception ex) {
-                //restore backup
+                //restore backups
+                System.err.println("skipping graph with id "+dmDep.getId()+" for one of the fixes");
+                intersectedDepsDM.remove(i);
+                intersectedDepsDM.add(i, dmBackup);
+                intersectedDepsPAS.remove(i);
+                intersectedDepsPAS.add(i, pasBackup);
                 intersectedDepsPSD.remove(i);
                 intersectedDepsPSD.add(i, psdBackup);
-//                System.err.println(psdDep.getId());
-//                ex.printStackTrace();
+                dmFails++;
+                pasFails++;
                 psdFails++;
             }
         }
@@ -350,18 +339,18 @@ public class AllDependencyChanges {
         double dmPasUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, false, false);
         double dmPsdUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, false, false);
         double psdPasUnlabeledF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, false, false);
-        System.out.println(String.format("%.0f",dmPasUnlabeledF*100)+"     "+String.format("%.0f",dmPsdUnlabeledF*100)
-                +"     "+String.format("%.0f",psdPasUnlabeledF*100)+ "   unlabeled F");
+        System.out.println(String.format("%.1f",dmPasUnlabeledF*100)+"     "+String.format("%.1f",dmPsdUnlabeledF*100)
+                +"     "+String.format("%.1f",psdPasUnlabeledF*100)+ "   unlabeled F");
         double dmPasAMF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, true, false);
         double dmPsdAMF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, true, false);
         double psdPasAMF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, true, false);
-        System.out.println(String.format("%.0f",dmPasAMF*100)+"     "+String.format("%.0f",dmPsdAMF*100)
-                +"     "+String.format("%.0f",psdPasAMF*100)+ "   APP/MOD F");
+        System.out.println(String.format("%.1f",dmPasAMF*100)+"     "+String.format("%.1f",dmPsdAMF*100)
+                +"     "+String.format("%.1f",psdPasAMF*100)+ "   APP/MOD F");
         double dmPasLabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, false, true);
         double dmPsdLabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, false, true);
         double psdPasLabeledF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, false, true);
-        System.out.println(String.format("%.0f",dmPasLabeledF*100)+"     "+String.format("%.0f",dmPsdLabeledF*100)
-                +"     "+String.format("%.0f",psdPasLabeledF*100)+ "   labeled F");
+        System.out.println(String.format("%.1f",dmPasLabeledF*100)+"     "+String.format("%.1f",dmPsdLabeledF*100)
+                +"     "+String.format("%.1f",psdPasLabeledF*100)+ "   labeled F");
     }
 
 }
