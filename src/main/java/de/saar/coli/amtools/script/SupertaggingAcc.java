@@ -24,10 +24,10 @@ import java.util.Set;
  */
 public class SupertaggingAcc {
     @Parameter(names = {"--gold"}, description = "Points to the gold amconll corpus")//, required = true)
-    private String goldPath = "/tmp/gold.amconll";
+    private String goldPath = "/tmp/original_decompositions/DM/gold-dev/gold-dev.amconll";
     
     @Parameter(names = {"--system"}, description = "Points to the system output corpus")//, required = true)
-    private String systemPath = "/tmp/system.amconll";
+    private String systemPath = "/tmp/04-19/DM/gold-dev/gold-dev.amconll";
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -72,13 +72,21 @@ public class SupertaggingAcc {
                 AmConllEntry systemEntry = systemSent.get(i);
                 
                 total++;
+
+                if (exactlyOneNull(goldEntry.getType(), systemEntry.getType())) continue;
+                if (exactlyOneNull(goldEntry.delexGraph(), systemEntry.delexGraph())) continue;
                 
-                if ((goldEntry.getType() == systemEntry.getType() || goldEntry.getType().equals(systemEntry.getType()))
-                        && (goldEntry.delexGraph() == systemEntry.delexGraph() || goldEntry.delexGraph().equals(systemEntry.delexGraph()))){
+                if ((goldEntry.getType() == null || goldEntry.getType().equals(systemEntry.getType())) //either both null or none of them is null
+                        && (goldEntry.delexGraph() == null | goldEntry.delexGraph().equals(systemEntry.delexGraph()))) {
                     correct++;
                 }
             }
         }
-        System.out.println("Graph constant accuracy: "+ (float) correct / (float) total);
+        System.out.println("Graph constant accuracy: "+ 100*(float) correct / (float) total + "%");
     }
+   
+    private static boolean exactlyOneNull(Object o1, Object o2){
+        return o1 == null ^ o2 == null;
+    }
+    
 }
