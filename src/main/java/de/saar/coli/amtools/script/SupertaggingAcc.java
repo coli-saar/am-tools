@@ -9,36 +9,32 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.SupertagDictionary;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.tree.ParseException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
- * Take an existing amconll file (train) and another existing one (gold-dev) and write both of them to the output path with .train and .dev suffix.
- * In the new files, consistent string representations for the supertags are chosen.
+ * Take two amconll files and computes the supertagging accuracy (as-graphs and types).
  * @author matthias
  */
-public class ConsistentSupertags {
-    @Parameter(names = {"--train"}, description = "Points to the train amconll corpus")//, required = true)
-    private String trainPath = "/tmp/train.amconll";
+public class SupertaggingAcc {
+    @Parameter(names = {"--gold"}, description = "Points to the gold amconll corpus")//, required = true)
+    private String goldPath = "/tmp/gold.amconll";
     
-    @Parameter(names = {"--dev"}, description = "Points to the gold-dev amconll corpus")//, required = true)
-    private String devPath = "/tmp/gold-dev.amconll";
-
-    @Parameter(names = {"-o"}, description = "Output path")//, required = true)
-    private String outPath = "/tmp/consistent";
-    
+    @Parameter(names = {"--system"}, description = "Points to the system output corpus")//, required = true)
+    private String systemPath = "/tmp/system.amconll";
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
     
     
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException{
-        ConsistentSupertags cli = new ConsistentSupertags();
+        SupertaggingAcc cli = new SupertaggingAcc();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("constraint_extractor");
 
@@ -56,25 +52,33 @@ public class ConsistentSupertags {
             return;
         }
         
-        List<AmConllSentence> train = AmConllSentence.readFromFile(cli.trainPath);
+        Map<String, AmConllSentence> gold = new HashMap<>();
+        AmConllSentence.readFromFile(cli.goldPath).stream().forEach(sent -> gold.put(sent.getId(), sent));
         
-        List<AmConllSentence> dev = AmConllSentence.readFromFile(cli.devPath);
+        Map<String, AmConllSentence> system = new HashMap<>();
+        AmConllSentence.readFromFile(cli.systemPath).stream().forEach(sent -> system.put(sent.getId(), sent));
         
-        SupertagDictionary lexicon = new SupertagDictionary();
+        Set<String> intersection = system.keySet();
+        intersection.retainAll(gold.keySet());
         
-        for (AmConllSentence sent : train){
-            for (AmConllEntry e : sent){
-                e.setDelexSupertag(lexicon.getRepr(e.delexGraph()));
+        int total = 0;
+        int correct = 0;
+        
+        for (String id : intersection){
+            AmConllSentence goldSent = (AmConllSentence) gold.get(id);
+            AmConllSentence systemSent = (AmConllSentence) system.get(id);
+            for (int i = 0; i < goldSent.size(); i++){
+                AmConllEntry goldEntry = goldSent.get(i);
+                AmConllEntry systemEntry = systemSent.get(i);
+                
+                total++;
+                
+                if ((goldEntry.getType() == systemEntry.getType() || goldEntry.getType().equals(systemEntry.getType()))
+                        && (goldEntry.delexGraph() == systemEntry.delexGraph() || goldEntry.delexGraph().equals(systemEntry.delexGraph()))){
+                    correct++;
+                }
             }
         }
-        
-        for (AmConllSentence sent : dev){
-            for (AmConllEntry e : sent){
-                e.setDelexSupertag(lexicon.getRepr(e.delexGraph()));
-            }
-        }
-        
-        AmConllSentence.writeToFile(cli.outPath+".dev", dev);
-        AmConllSentence.writeToFile(cli.outPath+".train", train);
+        System.out.println("Graph constant accuracy: "+ (float) correct / (float) total);
     }
 }
