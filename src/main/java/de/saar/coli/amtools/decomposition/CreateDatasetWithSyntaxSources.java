@@ -26,16 +26,16 @@ import java.util.stream.Collectors;
 public class CreateDatasetWithSyntaxSources {
 
     @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus (en.dm.sdp) or subset thereof")//, required = true)
-    private String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.sdp";
+    private String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\smallDev.sdp";
 
     @Parameter(names = {"--syntaxScores", "-s"}, description = "Path to the opProbs.txt file containing syntax edge scores")//, required = true)
-    private String syntaxEdgeScoresPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\ud_scores_march2020\\dev\\opProbs.txt";
+    private String syntaxEdgeScoresPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\ud_scores_march2020\\smallDev\\opProbs.txt";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where")//, required = true)
     private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\";
 
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
-    private String prefix = "experimenting";
+    private String prefix = "smallDev";
 
     @Parameter(names = {"--vocab", "-v"}, description = "existing vocab file containing supertags (e.g. points to training vocab when doing dev/test files). Using this flag means dev set mode, don't use it for the training set")
     private String vocab = null;
