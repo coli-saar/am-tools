@@ -8,6 +8,7 @@ package de.saar.coli.amrtagging;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment.Span;
 import de.up.ling.irtg.algebra.ParserException;
+import de.up.ling.irtg.algebra.graph.AMDependencyTree;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -15,6 +16,7 @@ import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import de.up.ling.tree.TreeBottomUpVisitor;
+import edu.stanford.nlp.coref.statistical.EvalUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -135,10 +137,9 @@ public class AlignedAMDependencyTree {
      * @throws ParseException
      */
     public SGraph evaluate(boolean align) throws ParserException, ParseException {
-        return evaluateTermWithPostprocessing(binarize(align, true));
-        /*
-        ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
-        SGraph g = amAl.evaluate(binarize(align, true)).getLeft();
+        //return evaluateTermWithPostprocessing(binarize(align, true));
+        
+        SGraph g = toAMDepTree(align, true).evaluate().left;
         //now make sure to remove remaining source nodes
         List<String> sourceNodes = new ArrayList<String>();
         g.getAllSourceNodenames().forEach(sourceNodes::add);
@@ -150,10 +151,11 @@ public class AlignedAMDependencyTree {
             }
         }
         return g_;
-         */
+         
     }
 
     // AKAKAK
+    /*
     public static SGraph evaluateTermWithPostprocessing(Tree<String> amTerm) {
         ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
         SGraph g = amAl.evaluate(amTerm).getLeft();
@@ -173,10 +175,11 @@ public class AlignedAMDependencyTree {
 
         return g_;
     }
+    */
 
     public SGraph evaluateWithoutRelex(boolean align) throws ParserException, ParseException {
-        ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
-        SGraph g = amAl.evaluate(binarize(align, false)).getLeft();
+        //ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
+        SGraph g = this.toAMDepTree(align, false).evaluate().left;
         //now make sure to remove remaining source nodes
         List<String> sourceNodes = new ArrayList<String>();
         g.getAllSourceNodenames().forEach(sourceNodes::add);
@@ -191,16 +194,46 @@ public class AlignedAMDependencyTree {
     }
     
     /**
+     * Turn AlignedAMDependencyTree into AMDependencyTree (e.g. for evaluation).
+     * @param align shall we encode the positions into the node labels?
+     * @param relex shall we perform relexicalization?
+     * @return
+     * @throws ParserException 
+     */
+    public AMDependencyTree toAMDepTree(boolean align, boolean relex) throws ParserException{
+        return tree.dfs((Tree<AmConllEntry> currentSubtree, List<Pair<String, AMDependencyTree>> children) -> {
+            SGraph sg = null;
+            try {
+                if (relex) {
+                    sg = currentSubtree.getLabel().relex();
+                } else {
+                    sg = currentSubtree.getLabel().delexGraph();
+                }
+            } catch (ParserException ex){
+                Logger.getLogger(AlignedAMDependencyTree.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            if (align) {
+                encodeNodenames(sg, currentSubtree.getLabel().getId());
+            }
+            AMDependencyTree t = new AMDependencyTree(new Pair<>(sg, currentSubtree.getLabel().getType()));
+            for (Pair<String, AMDependencyTree> child : children){
+                t.addEdge(child.left, child.right);
+            }
+            
+            return new Pair<>(currentSubtree.getLabel().getEdgeLabel(), t);
+        }).right;
+    }
+    
+    /**
      * Returns the type of the AM term corresponding to this AM dependency tree.
      * @return 
      */
     public ApplyModifyGraphAlgebra.Type evaluateType(){
-        ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
+        //ApplyModifyGraphAlgebra amAl = new ApplyModifyGraphAlgebra();
         try {
-            return amAl.evaluate(binarize(false, false)).getRight();
+            return toAMDepTree(false, false).evaluate().right;
         } catch (ParserException ex) {
-            Logger.getLogger(AlignedAMDependencyTree.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ParseException ex) {
             Logger.getLogger(AlignedAMDependencyTree.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
@@ -303,6 +336,7 @@ public class AlignedAMDependencyTree {
      * @throws ParserException
      * @throws ParseException
      */
+    /*
     public Tree<String> binarize(boolean align, boolean relex) throws ParserException, ParseException {
         Stack<Stack<Item<String>>> agenda = new Stack();
         HashMap<Integer, Item<String>> chart = new HashMap();
@@ -433,6 +467,7 @@ public class AlignedAMDependencyTree {
             throw new IllegalArgumentException("Couldn't find a binarization of AMDependencyTree");
         }
     }
+    */
 
     /**
      * Encodes the id (position in Sentence) and the node names of non-source
@@ -483,6 +518,7 @@ public class AlignedAMDependencyTree {
      *
      * @param <U>
      */
+    /*
     private class Item<U> {
 
         public int index;
@@ -511,5 +547,6 @@ public class AlignedAMDependencyTree {
         }
 
     }
+*/
 
 }
