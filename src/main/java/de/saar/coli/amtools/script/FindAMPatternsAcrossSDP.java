@@ -177,7 +177,7 @@ public class FindAMPatternsAcrossSDP {
         }
 
 
-        int maxNumbers = 0;
+        int maxNumbers = 50;
         int i = 0;
         for (String pattern : sortedPatterns) {
             if (i>=maxNumbers) {
@@ -189,7 +189,7 @@ public class FindAMPatternsAcrossSDP {
 
         System.err.println("DIFFERENCES:");
         i=0;
-        maxNumbers = 0;
+        maxNumbers = 150;
         for (String pattern : sortedPatterns) {
             if (!equalPatterns.contains(pattern)) {
                 if (i>=maxNumbers) {
@@ -200,8 +200,6 @@ public class FindAMPatternsAcrossSDP {
             }
         }
 
-        patterns2posCounter.get("060").printAllSorted();
-        patterns2lemmaCounter.get("060").printAllSorted();
 
     }
 
