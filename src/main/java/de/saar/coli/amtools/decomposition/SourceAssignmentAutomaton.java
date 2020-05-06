@@ -460,11 +460,13 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
                 try {
 
-                    ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, blobUtils);
+                    DecompositionPackage decompositionPackage = new DMDecompositionPackage(sdpGraph);
+
+                    ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
                     ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
 
-                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph, blobUtils);
+                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
 
 
                     try {

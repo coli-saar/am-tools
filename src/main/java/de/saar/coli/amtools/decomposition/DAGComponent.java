@@ -25,7 +25,6 @@ public class DAGComponent {
     
     private final SGraph graph;
     private final DAGNode root;
-    private final AMRBlobUtils blobUtils;
     
     private final Set<DAGNode> allNodes;
     private final Map<GraphNode, DAGNode> graphNode2DAGNode;
@@ -39,7 +38,6 @@ public class DAGComponent {
         
         this.graph = graph;
         this.root = new DAGNode(graph, dagRoot, blobUtils);
-        this.blobUtils = blobUtils;
         
         allNodes = new HashSet<>();
         graphNode2DAGNode = new HashMap<>();
