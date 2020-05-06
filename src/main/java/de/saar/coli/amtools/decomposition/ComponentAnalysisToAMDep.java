@@ -201,7 +201,7 @@ public class ComponentAnalysisToAMDep {
     /**
      * assumes we don't have to remove the head
      * @param dep
-     * @param headNodesToBeRemoved
+     * @param headNodeNamesToBeRemoved
      */
     private static void removeRecursive(AMDependencyTree dep, Set<String> headNodeNamesToBeRemoved) {
         List<Pair<String, AMDependencyTree>> removeThis = new ArrayList<>();

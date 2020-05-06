@@ -415,10 +415,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.sdp";
         String syntaxEdgeScoresPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm" +
                 "\\ud_scores_march2020\\dev\\opProbs.txt";
-        int nrSources = 4;
+        int nrSources = 6;
 
 
-        int[] buckets = new int[]{0, 10, 100, 1000, 10000};
+        int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
         Counter<Integer> bucketCounter = new Counter<>();
         Counter<String> successCounter = new Counter<>();
 
@@ -483,6 +483,11 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 //                            System.out.println(concreteTreeAutomaton.viterbi());
                             if (concreteTreeAutomaton.viterbi() != null) {
                                 successCounter.add("success");
+//                                if (concreteTreeAutomaton.getNumberOfRules() < 30) {
+//                                    System.err.println(concreteTreeAutomaton);
+//                                    System.err.println();
+//                                    System.err.println();
+//                                }
                             } else {
                                 successCounter.add("fail");
                             }
