@@ -18,8 +18,8 @@ import java.util.List;
 
 
 /**
- * Take an existing amconll file (train) and another existing one (gold-dev) and write the second one (gold-dev)
- * to a new file but using the string representations of supertags based on the first (train) file.
+ * Take an existing amconll file (train) and another existing one (gold-dev) and write both of them to the output path with .train and .dev suffix.
+ * In the new files, consistent string representations for the supertags are chosen.
  * @author matthias
  */
 public class ConsistentSupertags {
@@ -29,8 +29,8 @@ public class ConsistentSupertags {
     @Parameter(names = {"--dev"}, description = "Points to the gold-dev amconll corpus")//, required = true)
     private String devPath = "/tmp/gold-dev.amconll";
 
-    @Parameter(names = {"-o"}, description = "Output file name")//, required = true)
-    private String outPath = "/tmp/gold-dev-new.amconll";
+    @Parameter(names = {"-o"}, description = "Output path")//, required = true)
+    private String outPath = "/tmp/consistent";
     
     
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -64,7 +64,7 @@ public class ConsistentSupertags {
         
         for (AmConllSentence sent : train){
             for (AmConllEntry e : sent){
-                lexicon.getRepr(e.delexGraph());
+                e.setDelexSupertag(lexicon.getRepr(e.delexGraph()));
             }
         }
         
@@ -74,6 +74,7 @@ public class ConsistentSupertags {
             }
         }
         
-        AmConllSentence.writeToFile(cli.outPath, dev);
+        AmConllSentence.writeToFile(cli.outPath+".dev", dev);
+        AmConllSentence.writeToFile(cli.outPath+".train", train);
     }
 }

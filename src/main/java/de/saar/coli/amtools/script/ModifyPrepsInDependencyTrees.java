@@ -140,8 +140,8 @@ public class ModifyPrepsInDependencyTrees {
             //System.out.println(dmSGraph);
 
             //modify new dep trees here
-            treeModifier.fixPreps220(psdDep, dmDep, pasDep);
-            //treeModifier.fixPreps020(psdDep, dmDep, pasDep);
+            //treeModifier.fixPreps220(psdDep, dmDep, pasDep);
+            treeModifier.fixPreps020(psdDep, dmDep, pasDep);
 
 
             SGraph newdmSGraph = null;
@@ -250,69 +250,100 @@ public class ModifyPrepsInDependencyTrees {
         }
     }
 
+    //CLEANUP there is massive code duplcation below, with essentially the same code for PSD 220, PSD 020 and DM 020
+
     public void fixPreps220(AmConllSentence psdDep, AmConllSentence dmDep, AmConllSentence pasDep) throws ParserException, ParseException {
         int index = 0;
         for (AmConllEntry psdEntry : psdDep) {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
 
-            if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
-                List<AmConllEntry> dmChildren = dmDep.getChildren(index);
-                List<AmConllEntry> pasChildren = pasDep.getChildren(index);
-                //TODO make below check the pattern check
-                if (dmChildren.size()==1 && dmChildren.get(0).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)
-                    && pasChildren.size()==1 && pasChildren.get(0).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)
-                    && dmEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)
-                    && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)
-                    && psdEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+            if (pattern.equals("220")) {
+                ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("220 pattern");
+                if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
+                    ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("220 restricted");
 
                     //we count all of these as matching the preposition pattern
                     preps220++;
 
                     // now we try to fix them
-                    // first find edge
-                    int dmLeft = Math.min(dmEntry.getHead(), dmChildren.get(0).getId());
-                    int dmRight = Math.max(dmEntry.getHead(), dmChildren.get(0).getId());
-                    int pasLeft = Math.min(pasEntry.getHead(), pasChildren.get(0).getId());
-                    int pasRight = Math.max(pasEntry.getHead(), pasChildren.get(0).getId());
+                    // first find PSD edge
+                    AmConllEntry dmAppChild = getFirstAppChild(dmDep, psdEntry.getId());
+                    int dmLeft = Math.min(dmEntry.getHead(), dmAppChild.getId());
+                    int dmRight = Math.max(dmEntry.getHead(), dmAppChild.getId());
+                    AmConllEntry pasAppChild = getFirstAppChild(pasDep, psdEntry.getId());
+                    int pasLeft = Math.min(pasEntry.getHead(), pasAppChild.getId());
+                    int pasRight = Math.max(pasEntry.getHead(), pasAppChild.getId());
 //                    IntList matchingEdges = HeadAndConstituentAnalysis.getHeadMatchEdges(psdDep, dmDep, pasDep,
 //                            dmLeft, dmRight, pasLeft, pasRight);
                     // just look at PAS structures for simplicity
                     IntList matchingEdges = HeadAndConstituentAnalysis.getHeadMatchEdges(psdDep, pasDep, pasDep,
                             pasLeft, pasRight, pasLeft, pasRight);
 
+                    //get PAS source names for later
+                    String pasHeadSource = pasEntry.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+                    String pasChildSource = pasAppChild.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
+
+
+                    //check that there is a unique PSD edge
                     if (matchingEdges.size() == 1) {
                         AmConllEntry psdEdgeTarget = psdDep.get(matchingEdges.getInt(0) - 1);
                         AmConllEntry psdEdgeOrigin = psdDep.get(psdEdgeTarget.getHead() - 1);
 
+                        // case distinction: mod or app edge in PSD?
                         if (psdEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
                             mods++;
                             String modSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                            if (Type.EMPTY_TYPE.equals(psdEdgeTarget.getType().getRequest(modSourcePSD))) {
+
+                            //set up getting the term type, which we need to rule out having to pass up sources.
+                            AlignedAMDependencyTree psdAlignedDepTree;
+                            try {
+                                psdAlignedDepTree = AlignedAMDependencyTree.fromSentence(psdDep);
+                            } catch (AlignedAMDependencyTree.ConllParserException e) {
+                                failLogger.add("020 error getting aligned dep tree");
+                                continue;
+                            }
+
+                            if (psdAlignedDepTree.getTermTypeAt(psdEdgeTarget).getAllSources().size() == 1) {
                                 if (psdEdgeTarget.delexGraph().getNodeForSource(modSourcePSD) != null) {
+
+                                    //now we can actually fix the pattern
+
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeTarget.delexGraph(), modSourcePSD);
-                                    //TODO get DM sources -- EDIT: for now keep psd sources
 
+                                    //edge constant and its Conll entry. Create the constant first.
+                                    SGraph edgeConst = graphAndEdge.right;
+                                    // sources. First, rename old psd source to PAS head source.
+                                    edgeConst = edgeConst.renameSource(modSourcePSD, pasHeadSource);
+                                    // add PAS child source at root node
+                                    edgeConst.addSource(pasChildSource, edgeConst.getNodeForSource("root"));
+                                    // now set Conll entry correctly
                                     psdEntry.setHead(psdEdgeOrigin.getId());
-                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + modSourcePSD);
-                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
-                                    psdEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
-                                    psdEntry.setType(new Type("(prep," + modSourcePSD + ")"));
+                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasHeadSource);
+                                    psdEntry.setDelexSupertag(edgeConst.toIsiAmrStringWithSources());
+                                    psdEntry.setType(new Type("("+pasChildSource+"," + pasHeadSource + ")"));
 
-
+                                    // graph without edge. Constant is already correct, just need to update Conll entry
                                     psdEdgeTarget.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
-                                    psdEdgeTarget.setType(psdEdgeTarget.getType().performApply(modSourcePSD));//TODO this may cause error
+                                    //don't have the old PSD source anymore
+                                    psdEdgeTarget.setType(psdEdgeTarget.getType().performApply(modSourcePSD));//CLEANUP this may cause error (fixed now?)
+                                    // the incoming edge is the apply from the edge constant
                                     psdEdgeTarget.setHead(psdEntry.getId());
-                                    psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
+                                    psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+pasChildSource);
                                     preps220Fixed++;
                                     failLogger.add("220 success");
                                 } else {
-                                    System.err.println(psdDep);
-                                    System.err.println(psdEdgeTarget.getId());
+//                                    System.err.println(psdDep);
+//                                    System.err.println(psdEdgeTarget.getId());
                                     sourceNotInGraph++;
                                     failLogger.add("220 source not in graph");
                                 }
                             } else {
+//                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSources++;
                                 failLogger.add("220 need to percolate sources");
@@ -322,26 +353,50 @@ public class ModifyPrepsInDependencyTrees {
                             String appSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
                             if (Type.EMPTY_TYPE.equals(psdEdgeOrigin.getType().getRequest(appSourcePSD))) {
                                 if (psdEdgeOrigin.delexGraph().getNodeForSource(appSourcePSD) != null) {
+
+                                    //now we can fix the pattern
+//                                    System.out.println("PAS APP "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(pasDep, psdEntry.getId(), 5);
+//                                    System.out.println("PSD APP "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+
+
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeOrigin.delexGraph(), appSourcePSD);
-                                    //TODO get DM sources -- EDIT: for now keep psd sources
 
+                                    //edge constant and its Conll entry. Create the constant first.
+                                    SGraph edgeConst = graphAndEdge.right;
+                                    // sources. First, get old psd source to PAS child source.
+                                    edgeConst = edgeConst.renameSource(appSourcePSD, pasChildSource);
+                                    // add PAS head source at root node
+                                    edgeConst.addSource(pasHeadSource, edgeConst.getNodeForSource("root"));
+                                    // now set Conll entry correctly
                                     psdEntry.setHead(psdEdgeOrigin.getId());
-                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + "prep");
-                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
-                                    psdEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
-                                    psdEntry.setType(new Type("(prep," + appSourcePSD + ")"));
+                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasHeadSource);
+                                    psdEntry.setDelexSupertag(edgeConst.toIsiAmrStringWithSources());
+                                    psdEntry.setType(new Type("("+pasHeadSource+"," + pasChildSource + ")"));
 
+                                    //update entry where we took the edge out of the constant
                                     psdEdgeOrigin.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
-                                    psdEdgeOrigin.setType(psdEdgeOrigin.getType().performApply(appSourcePSD));// this only works as long as we don't have to percolate types
-                                    //TODO line above may cause error
+                                    // this only works as long as we don't have to percolate types
+                                    psdEdgeOrigin.setType(psdEdgeOrigin.getType().performApply(appSourcePSD));//CLEANUP this may cause error (fixed now?)
+
+                                    //update child head information (is now app incoming from edge constant)
                                     psdEdgeTarget.setHead(psdEntry.getId());
+                                    psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+pasChildSource);
                                     preps220Fixed++;
                                     failLogger.add("220 success");
+//                                    System.out.println("PSD APP "+psdEntry.getId() + " after");
+//                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+//                                    System.out.println();
                                 } else {
                                     sourceNotInGraph++;
                                     failLogger.add("220 source not in graph");
                                 }
                             } else {
+//                                System.out.println("prep 220 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSources++;
                                 failLogger.add("220 need to percolate sources");
@@ -366,85 +421,132 @@ public class ModifyPrepsInDependencyTrees {
             AmConllEntry dmEntry = dmDep.get(index);
             AmConllEntry pasEntry = pasDep.get(index);
 
-            if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
-                List<AmConllEntry> pasChildren = pasDep.getChildren(index);
-                if (dmEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)
-                        && pasChildren.size()==1 && pasChildren.get(0).getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)
-                        && pasEntry.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)
-                        && psdEntry.getEdgeLabel().equals(AmConllEntry.IGNORE)) {
+            String pattern = FindAMPatternsAcrossSDP.getPatternCombination(dmDep, pasDep, psdDep, psdEntry.getId());
+            if (pattern.equals("020")) {
+                ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("020 pattern");
+                if (psdEntry.getPos().equals("IN") || psdEntry.getPos().equals("TO")) {
+                    ModifyDependencyTreesDetCopNeg.patternCoverageLogger.add("020 restricted");
 
                     //we count all of these as matching the preposition pattern
                     preps020++;
+//                    System.out.println("PAS "+psdEntry.getId());
+//                    AMExampleFinder.printExample(pasDep, psdEntry.getId(), 5);
 
                     // now we try to fix them
                     // first find edge
-                    int pasLeft = Math.min(pasEntry.getHead(), pasChildren.get(0).getId());
-                    int pasRight = Math.max(pasEntry.getHead(), pasChildren.get(0).getId());
+                    AmConllEntry pasAppChild = getFirstAppChild(pasDep, pasEntry.getId());
+                    int pasLeft = Math.min(pasEntry.getHead(), pasAppChild.getId());
+                    int pasRight = Math.max(pasEntry.getHead(), pasAppChild.getId());
                     AmConllEntry dmEdgeTarget = getMatchingEdge(dmDep, pasLeft, pasRight);
                     AmConllEntry psdEdgeTarget = getMatchingEdge(psdDep, pasLeft, pasRight);
+
+
+                    //get PAS source names for later
+                    String pasHeadSource = pasEntry.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
+                    String pasChildSource = pasAppChild.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
 
                     if (psdEdgeTarget != null && !psdDep.get(psdEdgeTarget.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
                         AmConllEntry psdEdgeOrigin = psdDep.get(psdEdgeTarget.getHead() - 1);
 
                         if (psdEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
                             String modSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                            if (Type.EMPTY_TYPE.equals(psdEdgeTarget.getType().getRequest(modSourcePSD))) {
+                            AlignedAMDependencyTree psdAlignedDepTree;
+                            try {
+                                psdAlignedDepTree = AlignedAMDependencyTree.fromSentence(psdDep);
+                            } catch (AlignedAMDependencyTree.ConllParserException e) {
+                                failLogger.add("020 error getting aligned dep tree");
+                                continue;
+                            }
+
+                            if (psdAlignedDepTree.getTermTypeAt(psdEdgeTarget).getAllSources().size() == 1) {
                                 if (psdEdgeTarget.delexGraph().getNodeForSource(modSourcePSD) != null) {
+                                    //now we can actually fix the pattern
+//                                    System.out.println("PSD MOD "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeTarget.delexGraph(), modSourcePSD);
-                                    //TODO get DM sources -- EDIT: for now keep psd sources
 
+                                    //edge constant and its Conll entry. Create the constant first.
+                                    SGraph edgeConst = graphAndEdge.right;
+                                    // sources. First, rename old psd source to PAS head source.
+                                    edgeConst = edgeConst.renameSource(modSourcePSD, pasHeadSource);
+                                    // add PAS child source at root node
+                                    edgeConst.addSource(pasChildSource, edgeConst.getNodeForSource("root"));
+                                    // now set Conll entry correctly
                                     psdEntry.setHead(psdEdgeOrigin.getId());
-                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + modSourcePSD);
-                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
-                                    psdEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
-                                    psdEntry.setType(new Type("(prep," + modSourcePSD + ")"));
+                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasHeadSource);
+                                    psdEntry.setDelexSupertag(edgeConst.toIsiAmrStringWithSources());
+                                    psdEntry.setType(new Type("("+pasChildSource+"," + pasHeadSource + ")"));
 
-
+                                    // graph without edge. Constant is already correct, just need to update Conll entry
                                     psdEdgeTarget.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
-                                    psdEdgeTarget.setType(psdEdgeTarget.getType().performApply(modSourcePSD));
+                                    //don't have the old PSD source anymore
+                                    psdEdgeTarget.setType(psdEdgeTarget.getType().performApply(modSourcePSD));//CLEANUP this may cause error (fixed now?)
+                                    // the incoming edge is the apply from the edge constant
                                     psdEdgeTarget.setHead(psdEntry.getId());
-                                    psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
+                                    psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+pasChildSource);
                                     preps020FixedPSD++;
                                     failLogger.add("020 success PSD");
+//                                    System.out.println("PSD MOD after "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
                                 } else {
                                     sourceNotInGraphPSD020++;
                                     failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
+//                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdAlignedDepTree.getTermTypeAt(psdEdgeTarget));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(modSourcePSD));
                                 needToPercolateSourcesPSD020++;
                                 failLogger.add("020 need to percolate sources PSD");
                             }
                         } else {
                             String appSourcePSD = psdEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
-                            if (psdEdgeOrigin.getType() == null) {
-                                System.err.println(psdDep);
-                                System.err.println(pasDep);
-                                System.err.println(pasLeft);
-                                System.err.println(pasRight);
-                            }
+
                             if (Type.EMPTY_TYPE.equals(psdEdgeOrigin.getType().getRequest(appSourcePSD))) {
                                 if (psdEdgeOrigin.delexGraph().getNodeForSource(appSourcePSD) != null) {
+                                    //now we can fix the pattern
+//                                    System.out.println("PSD APP "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
+
+
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(psdEdgeOrigin.delexGraph(), appSourcePSD);
-                                    //TODO get DM sources -- EDIT: for now keep psd sources
 
+                                    //edge constant and its Conll entry. Create the constant first.
+                                    SGraph edgeConst = graphAndEdge.right;
+                                    // sources. First, get old psd source to PAS child source.
+                                    edgeConst = edgeConst.renameSource(appSourcePSD, pasChildSource);
+                                    // add PAS head source at root node
+                                    edgeConst.addSource(pasHeadSource, edgeConst.getNodeForSource("root"));
+                                    // now set Conll entry correctly
                                     psdEntry.setHead(psdEdgeOrigin.getId());
-                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + "prep");
-                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
-                                    psdEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
-                                    psdEntry.setType(new Type("(prep," + appSourcePSD + ")"));
+                                    psdEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasHeadSource);
+                                    psdEntry.setDelexSupertag(edgeConst.toIsiAmrStringWithSources());
+                                    psdEntry.setType(new Type("("+pasHeadSource+"," + pasChildSource + ")"));
 
+                                    //update entry where we took the edge out of the constant
                                     psdEdgeOrigin.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
-                                    psdEdgeOrigin.setType(psdEdgeOrigin.getType().performApply(appSourcePSD));// this only works as long as we don't have to percolate types
+                                    // this only works as long as we don't have to percolate types
+                                    psdEdgeOrigin.setType(psdEdgeOrigin.getType().performApply(appSourcePSD));//CLEANUP this may cause error (fixed now?)
 
+                                    //update child head information (is now app incoming from edge constant)
                                     psdEdgeTarget.setHead(psdEntry.getId());
+                                    psdEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+pasChildSource);
                                     preps020FixedPSD++;
                                     failLogger.add("020 success PSD");
+//                                    System.out.println("PSD APP after"+psdEntry.getId());
+//                                    AMExampleFinder.printExample(psdDep, psdEntry.getId(), 5);
                                 } else {
                                     sourceNotInGraphPSD020++;
                                     failLogger.add("020 source not in graph PSD");
                                 }
                             } else {
+//                                System.out.println("prep 020 need percolate sources PSD: "+psdEntry.getId());
+//                                System.out.println(psdEdgeOrigin.getType().getRequest(appSourcePSD));
+//                                AMExampleFinder.printExample(psdDep, psdEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(psdEdgeOrigin.getType().getRequest(appSourcePSD));
                                 needToPercolateSourcesPSD020++;
                                 failLogger.add("020 need to percolate sources PSD");
@@ -460,60 +562,97 @@ public class ModifyPrepsInDependencyTrees {
                     if (dmEdgeTarget != null && !dmDep.get(dmEdgeTarget.getHead() - 1).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
                         AmConllEntry dmEdgeOrigin = dmDep.get(dmEdgeTarget.getHead() - 1);
 
+
+
                         if (dmEdgeTarget.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
                             String modSourceDM = dmEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_MODIFICATION.length());
-                            if (Type.EMPTY_TYPE.equals(dmEdgeTarget.getType().getRequest(modSourceDM))) {
+                            AlignedAMDependencyTree dmAlignedDepTree;
+                            try {
+                                dmAlignedDepTree = AlignedAMDependencyTree.fromSentence(dmDep);
+                            } catch (AlignedAMDependencyTree.ConllParserException e) {
+                                failLogger.add("020 error getting aligned dep tree");
+                                continue;
+                            }
+
+                            if (dmAlignedDepTree.getTermTypeAt(dmEdgeTarget).getAllSources().size() == 1) {
                                 if (dmEdgeTarget.delexGraph().getNodeForSource(modSourceDM) != null) {
+                                    //now we can actually fix the pattern
+//                                    System.out.println("DM MOD "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(dmDep, psdEntry.getId(), 5);
+
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(dmEdgeTarget.delexGraph(), modSourceDM);
-                                    //TODO get DM sources -- EDIT: for now keep dm sources
 
+                                    //edge constant and its Conll entry. Create the constant first.
+                                    SGraph edgeConst = graphAndEdge.right;
+                                    // sources. First, rename old dm source to PAS head source.
+                                    edgeConst = edgeConst.renameSource(modSourceDM, pasHeadSource);
+                                    // add PAS child source at root node
+                                    edgeConst.addSource(pasChildSource, edgeConst.getNodeForSource("root"));
+                                    // now set Conll entry correctly
                                     dmEntry.setHead(dmEdgeOrigin.getId());
-                                    dmEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + modSourceDM);
-                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
-                                    dmEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
-                                    dmEntry.setType(new Type("(prep," + modSourceDM + ")"));
+                                    dmEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasHeadSource);
+                                    dmEntry.setDelexSupertag(edgeConst.toIsiAmrStringWithSources());
+                                    dmEntry.setType(new Type("("+pasChildSource+"," + pasHeadSource + ")"));
 
-
+                                    // graph without edge. Constant is already correct, just need to update Conll entry
                                     dmEdgeTarget.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
-                                    dmEdgeTarget.setType(dmEdgeTarget.getType().performApply(modSourceDM));
+                                    //don't have the old DM source anymore
+                                    dmEdgeTarget.setType(dmEdgeTarget.getType().performApply(modSourceDM));//CLEANUP this may cause error (fixed now?)
+                                    // the incoming edge is the apply from the edge constant
                                     dmEdgeTarget.setHead(dmEntry.getId());
-                                    dmEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+"prep");
+                                    dmEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+pasChildSource);
                                     preps020FixedDM++;
                                     failLogger.add("020 success DM");
+//                                    System.out.println("DM MOD after "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(dmDep, psdEntry.getId(), 5);
                                 } else {
                                     sourceNotInGraphDM020++;
                                     failLogger.add("020 source not in graph DM");
                                 }
                             } else {
+//                                System.out.println("prep 020 need percolate sources DM: "+dmEntry.getId());
+//                                System.out.println(dmAlignedDepTree.getTermTypeAt(dmEdgeTarget));
+//                                AMExampleFinder.printExample(dmDep, dmEntry.getId(), 15);
+//                                System.out.println();
                                 typesToPercolate.add(dmEdgeOrigin.getType().getRequest(modSourceDM));
                                 needToPercolateSourcesDM020++;
                                 failLogger.add("020 need to percolate sources DM");
                             }
                         } else {
                             String appSourceDM = dmEdgeTarget.getEdgeLabel().substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
-                            if (dmEdgeOrigin.getType() == null) {
-                                System.err.println(dmDep);
-                                System.err.println(pasDep);
-                                System.err.println(pasLeft);
-                                System.err.println(pasRight);
-                            }
                             if (Type.EMPTY_TYPE.equals(dmEdgeOrigin.getType().getRequest(appSourceDM))) {
                                 if (dmEdgeOrigin.delexGraph().getNodeForSource(appSourceDM) != null) {
+                                    //now we can fix the pattern
+//                                    System.out.println("DM APP "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(dmDep, psdEntry.getId(), 5);
+
+
                                     Pair<SGraph, SGraph> graphAndEdge = splitEdgeFromGraph(dmEdgeOrigin.delexGraph(), appSourceDM);
-                                    //TODO get DM sources -- EDIT: for now keep dm sources
 
+                                    //edge constant and its Conll entry. Create the constant first.
+                                    SGraph edgeConst = graphAndEdge.right;
+                                    // sources. First, get old dm source to PAS child source.
+                                    edgeConst = edgeConst.renameSource(appSourceDM, pasChildSource);
+                                    // add PAS head source at root node
+                                    edgeConst.addSource(pasHeadSource, edgeConst.getNodeForSource("root"));
+                                    // now set Conll entry correctly
                                     dmEntry.setHead(dmEdgeOrigin.getId());
-                                    dmEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + "prep");
-                                    graphAndEdge.right.addSource("prep", graphAndEdge.right.getNodeForSource("root")); // add prep source at root node
-                                    dmEntry.setDelexSupertag(graphAndEdge.right.toIsiAmrStringWithSources());
-                                    dmEntry.setType(new Type("(prep," + appSourceDM + ")"));
+                                    dmEntry.setEdgeLabel(ApplyModifyGraphAlgebra.OP_MODIFICATION + pasHeadSource);
+                                    dmEntry.setDelexSupertag(edgeConst.toIsiAmrStringWithSources());
+                                    dmEntry.setType(new Type("("+pasHeadSource+"," + pasChildSource + ")"));
 
+                                    //update entry where we took the edge out of the constant
                                     dmEdgeOrigin.setDelexSupertag(graphAndEdge.left.toIsiAmrStringWithSources());
-                                    dmEdgeOrigin.setType(dmEdgeOrigin.getType().performApply(appSourceDM));// this only works as long as we don't have to percolate types
+                                    // this only works as long as we don't have to percolate types
+                                    dmEdgeOrigin.setType(dmEdgeOrigin.getType().performApply(appSourceDM));//CLEANUP this may cause error (fixed now?)
 
+                                    //update child head information (is now app incoming from edge constant)
                                     dmEdgeTarget.setHead(dmEntry.getId());
+                                    dmEdgeTarget.setEdgeLabel(ApplyModifyGraphAlgebra.OP_APPLICATION+pasChildSource);
                                     preps020FixedDM++;
                                     failLogger.add("020 success DM");
+//                                    System.out.println("DM APP after "+psdEntry.getId());
+//                                    AMExampleFinder.printExample(dmDep, psdEntry.getId(), 5);
                                 } else {
                                     sourceNotInGraphDM020++;
                                     failLogger.add("020 source not in graph DM");
@@ -597,6 +736,21 @@ public class ModifyPrepsInDependencyTrees {
             }
         }
         return new Pair<>(retGraph, retEdge);
+    }
+
+    /**
+     * returns the first apply-child of the entry (as ordered in getChildren()), or null if there is none.
+     * @param dep dependency tree
+     * @param id 1-based
+     * @return
+     */
+    private static AmConllEntry getFirstAppChild(AmConllSentence dep, int id) {
+        for (AmConllEntry child : dep.getChildren(id-1)) {
+            if (child.getEdgeLabel().startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
+                return child;
+            }
+        }
+        return null;
     }
 
 }
