@@ -66,21 +66,17 @@ public class DMDecompositionPackage extends DecompositionPackage {
     }
 
     @Override
-    public int getSentencePositionForGraphFragment(SGraph graphFragment, AmConllSentence amConllSentence) {
+    public int getSentencePositionForGraphFragment(SGraph graphFragment) {
         String rootNodeName = graphFragment.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
         int id;
         if (rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
-            id = amConllSentence.size();
+            id = sdpGraph.getNNodes();// the artificial root position is the last in the sentence, which is original size + 1
         } else {
             id = Integer.parseInt(rootNodeName.substring(2));// maps i_x to x
         }
         return id;
     }
 
-    @Override
-    public String getTempSourceForNodeName(String nodeName) {
-        return nodeName.replaceAll("_", "");
-    }
 
     @Override
     public AMRBlobUtils getBlobUtils() {

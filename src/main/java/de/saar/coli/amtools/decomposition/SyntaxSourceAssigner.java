@@ -7,6 +7,9 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.*;
 
+/**
+ * Source assigner based on UD syntax dependency scores provided by the AM parser.
+ */
 public class SyntaxSourceAssigner extends SourceAssigner {
 
     private final Map<IntSet, String> bestLabels;

@@ -21,8 +21,22 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * This class has two methods (one for training set, one for dev set) that each take lists with decomposition information
+ * for a corpus, and create an AmConll file (and in the training case a supertag lexicon) with the decompositions.
+ */
 public class AmConllWithSourcesCreator {
 
+    /**
+     * Creates a training set AmConll corpus and a supertag dictionary. The three input lists must have the same length,
+     * with the i-th DecompositionPackage and the i-th SourceAssigner corresponding to the i-th SGraph.
+     * @param graphCorpus
+     * @param decompositionPackageList
+     * @param sourceAssignerList
+     * @param amConllOutPath
+     * @param supertagDictionaryOutPath
+     * @throws IOException
+     */
     public static void createTrainingCorpus(List<SGraph> graphCorpus, List<DecompositionPackage> decompositionPackageList,
                                             List<SourceAssigner> sourceAssignerList, String amConllOutPath, String supertagDictionaryOutPath) throws IOException {
         SupertagDictionary supertagDictionary = new SupertagDictionary();
@@ -31,6 +45,18 @@ public class AmConllWithSourcesCreator {
 
     }
 
+    /**
+     * Creates a dev set AmConll corpus with constants matching the given supertag dictionary (invents new
+     * constants as necessary, but does not add them to the dictionary file). The three input lists must have the same length,
+     * with the i-th DecompositionPackage and the i-th SourceAssigner corresponding to the i-th SGraph.
+     * @param graphCorpus
+     * @param decompositionPackageList
+     * @param sourceAssignerList
+     * @param amConllOutPath
+     * @param existingSupertagDictionaryPath
+     * @throws IOException
+     * @throws ParserException
+     */
     public static void createDevCorpus(List<SGraph> graphCorpus, List<DecompositionPackage> decompositionPackageList,
                                             List<SourceAssigner> sourceAssignerList, String amConllOutPath, String existingSupertagDictionaryPath) throws IOException, ParserException {
         SupertagDictionary supertagDictionary = new SupertagDictionary();
@@ -77,6 +103,8 @@ public class AmConllWithSourcesCreator {
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
 
+                    // if multiple nodes in the graph belong to the same word
+                    result = condenseNodesWithSameAlignment(result, decompositionPackage);
 
                     try {
                         SGraph resultGraph = result.evaluate().left;
@@ -140,7 +168,7 @@ public class AmConllWithSourcesCreator {
     private void addDepToAmConllRecursive(AMDependencyTree dep, AmConllSentence sent, Map<String, String> old2newSource,
                                                  DecompositionPackage decompositionPackage, SourceAssigner sourceAssigner) {
         String rootNodeName = dep.getHeadGraph().left.getNodeForSource("root");
-        int id = decompositionPackage.getSentencePositionForGraphFragment(dep.getHeadGraph().left, sent);
+        int id = decompositionPackage.getSentencePositionForGraphFragment(dep.getHeadGraph().left);
         AmConllEntry headEntry = sent.get(id-1);
         if (!rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
             headEntry.setLexLabel(decompositionPackage.getLexLabelFromGraphFragment(dep.getHeadGraph().left));
@@ -151,12 +179,12 @@ public class AmConllWithSourcesCreator {
         List<Pair<String, AMDependencyTree>> sortedOpsAndChildren = dep.getOperationsAndChildren().stream().sorted(new Comparator<Pair<String, AMDependencyTree>>() {
             @Override
             public int compare(Pair<String, AMDependencyTree> o1, Pair<String, AMDependencyTree> o2) {
-                return Integer.compare(decompositionPackage.getSentencePositionForGraphFragment(o1.right.getHeadGraph().left, sent),
-                        decompositionPackage.getSentencePositionForGraphFragment(o2.right.getHeadGraph().left, sent));
+                return Integer.compare(decompositionPackage.getSentencePositionForGraphFragment(o1.right.getHeadGraph().left),
+                        decompositionPackage.getSentencePositionForGraphFragment(o2.right.getHeadGraph().left));
             }
         }).collect(Collectors.toList());
         for (Pair<String, AMDependencyTree> opAndChild : sortedOpsAndChildren) {
-            int childId = decompositionPackage.getSentencePositionForGraphFragment(opAndChild.right.getHeadGraph().left, sent);
+            int childId = decompositionPackage.getSentencePositionForGraphFragment(opAndChild.right.getHeadGraph().left);
             String newSource;
             if (rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
                 newSource = SGraphConverter.ROOT_EDGE_LABEL;
@@ -261,6 +289,35 @@ public class AmConllWithSourcesCreator {
             } else {
                 ret = ret.setDependency(edge.getSource(), edge.getTarget(), edge.getLabel());
             }
+        }
+        return ret;
+    }
+
+
+    private static AMDependencyTree condenseNodesWithSameAlignment(AMDependencyTree dep, DecompositionPackage decompositionPackage) {
+
+        int alignmentHere = decompositionPackage.getSentencePositionForGraphFragment(dep.getHeadGraph().left);
+        // build an AMDependency tree with all nodes belonging to the same word. We will later evaluate and thus condense it.
+        AMDependencyTree localCondensationTree = new AMDependencyTree(dep.getHeadGraph());
+        // keep all children that are aligned ot a different word.
+        List<Pair<String, AMDependencyTree>> childrenToKeep = new ArrayList<>();
+        for (Pair<String, AMDependencyTree> opAndChild : dep.getOperationsAndChildren()) {
+            int childAlignment = decompositionPackage.getSentencePositionForGraphFragment(opAndChild.right.getHeadGraph().left);
+            // recursively condense the children
+            AMDependencyTree condensedChild = condenseNodesWithSameAlignment(opAndChild.right, decompositionPackage);
+            if (childAlignment == alignmentHere) {
+                localCondensationTree.addEdge(opAndChild.left, condensedChild);
+            } else {
+                childrenToKeep.add(new Pair(opAndChild.left, condensedChild));
+            }
+        }
+
+        // build resulting dependency tree, by evaluating the localCondensationTree
+        Pair<SGraph, ApplyModifyGraphAlgebra.Type> newHead = localCondensationTree.evaluate();
+        AMDependencyTree ret = new AMDependencyTree(newHead);
+        // keep the other children
+        for (Pair<String, AMDependencyTree> child : childrenToKeep) {
+            ret.addEdge(child.left, child.right);
         }
         return ret;
     }

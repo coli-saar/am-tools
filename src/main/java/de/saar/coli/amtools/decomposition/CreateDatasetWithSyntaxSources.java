@@ -66,10 +66,10 @@ public class CreateDatasetWithSyntaxSources {
             return;
         }
 
-        //read data from files
-        DMBlobUtils blobUtils = new DMBlobUtils();
+        //read graphs from file
         GraphReader2015 gr = new GraphReader2015(cli.corpusPath);
 
+        // read syntax edge scores from file (use them later to obtain source names).
         List<List<List<Pair<String, Double>>>> syntaxEdgeScores = Util.readEdgeProbs(new FileReader(cli.syntaxEdgeScoresPath),
                 true, 0, 5, false);//indices are 1-based, like in the am-dependency tree
         //the following lines work around weird legacy issue for edge scores
@@ -85,11 +85,12 @@ public class CreateDatasetWithSyntaxSources {
             }
         };
 
-        //AmConllWithSourcesCreator wants lists, so we shall make them.
-        Graph sdpGraph;
+        //AmConllWithSourcesCreator wants three lists, so we shall make them.
         List<SGraph> graphCorpus = new ArrayList<>();
         List<DecompositionPackage> decompositionPackageList = new ArrayList<>();
         List<SourceAssigner> sourceAssignerList = new ArrayList<>();
+        Graph sdpGraph;
+        // filling the lists with one entry each for each graph in the corpus.
         while ((sdpGraph = gr.readGraph()) != null) {
             MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
             graphCorpus.add(inst.getGraph());
