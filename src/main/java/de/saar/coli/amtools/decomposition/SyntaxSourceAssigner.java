@@ -18,8 +18,8 @@ public class SyntaxSourceAssigner extends SourceAssigner {
         for (Pair<String, Double> edgeAndScore : syntaxEdgeLabelScores) {
             Pair<String, Pair<Integer, Integer>> labelSourceTarget = Util.edgeString2Edge(edgeAndScore.left);
             IntSet nodes = new IntOpenHashSet();
-            nodes.add(labelSourceTarget.right.left);
-            nodes.add(labelSourceTarget.right.right);
+            nodes.add(labelSourceTarget.right.left.intValue());// use intValue to avoid deprecated IntList add.
+            nodes.add(labelSourceTarget.right.right.intValue());
             if (edgeAndScore.right > bestScorePerEdge.getOrDefault(nodes, 0.0)) {
                 bestLabels.put(nodes, syntaxRole2Source(labelSourceTarget.left));
                 bestScorePerEdge.put(nodes, edgeAndScore.right);
