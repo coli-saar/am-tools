@@ -1,6 +1,6 @@
 package de.saar.coli.amtools.decomposition;
 
-public abstract class SourceAssigner {
+public interface SourceAssigner {
 
     /**
      * For an AM dependency edge from parent to child with the operation being a MOD or APP operation,

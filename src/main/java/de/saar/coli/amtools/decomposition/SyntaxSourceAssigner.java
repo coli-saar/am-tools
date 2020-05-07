@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Source assigner based on UD syntax dependency scores provided by the AM parser.
  */
-public class SyntaxSourceAssigner extends SourceAssigner {
+public class SyntaxSourceAssigner implements SourceAssigner {
 
     private final Map<IntSet, String> bestLabels;
 
