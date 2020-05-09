@@ -47,7 +47,7 @@ tasks.withType(JavaCompile) {
 
 project.compileJava.dependsOn(createVersionFile)
 dependencies {
-    compile 'com.github.coli-saar:alto:018856d716'
+    compile 'com.github.coli-saar:alto:2b176992a1'
     
     implementation 'se.liu.ida.nlp.sdp:toolkit:2.0-20190117.110742-1'
     implementation 'me.tongfei:progressbar:0.7.2'

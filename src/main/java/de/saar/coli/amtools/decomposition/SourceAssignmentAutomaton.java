@@ -72,16 +72,17 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return new SourceAssignmentAutomaton(signature, null, null, null);
     }
 
-    public static SourceAssignmentAutomaton makeAutomatonWithAllSourceCombinations(AMDependencyTree dep, int nrSources) {
+    public static SourceAssignmentAutomaton makeAutomatonWithAllSourceCombinations(AMDependencyTree dep, int nrSources, SupertagDictionary supertagDictionary) {
         Map<IntList, AMDependencyTree> position2dep = new HashMap<>();
         Map<IntList, List<String>> position2operations = new HashMap<>();
         sortRecursive(dep, position2dep, position2operations, new IntArrayList());
 
         Signature signature = new Signature();
-        signature.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION.split("_")[0], 2);
-        signature.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION.split("_")[0], 2);
+        for (int i = 0; i<nrSources; i++) {
+            signature.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION+makeSource(i), 2);
+            signature.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION+makeSource(i), 2);
+        }
         Map<String, List<SourceAssignmentAutomaton.State>> constant2states = new HashMap<>();
-        Map<Pair<SGraph, Type>, String> const2label = new HashMap<>();
 
         for (Map.Entry<IntList, AMDependencyTree> entry : position2dep.entrySet()) {
             Pair<SGraph, Type> graph = entry.getValue().getHeadGraph();
@@ -108,13 +109,8 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                     }
                 }
                 Pair<SGraph, Type> constant = new Pair<>(newSGraph, newType);
-                if (!const2label.containsKey(constant)) {
-                    String label = constant.left.toIsiAmrStringWithSources()+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP
-                            +constant.right.toString();
-                    const2label.put(constant, label);
-                    signature.addSymbol(label, 0);
-                }
-                String label = const2label.get(constant);
+                String label = supertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
+                signature.addSymbol(label, 0);
                 State state = new State(entry.getKey(), 0, sourceAssignment);
                 if (!constant2states.containsKey(label)) {
                     constant2states.put(label, new ArrayList<>());
@@ -166,11 +162,11 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             }
         });
         int index = 0;
-        for (Pair<String, AMDependencyTree> child : childrenList) {
-            operationsHere.add(child.left.split("_")[0]);
+        for (Pair<String, AMDependencyTree> opAndChild : childrenList) {
+            operationsHere.add(opAndChild.left);
             IntList childPosition = new IntArrayList(position);
             childPosition.add(index);
-            sortRecursive(child.right, position2dep, position2operations, childPosition);
+            sortRecursive(opAndChild.right, position2dep, position2operations, childPosition);
             index++;
         }
     }
@@ -180,8 +176,16 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         if (childStates.length == 2) {
             State head = getStateForId(childStates[0]);
             State argument = getStateForId(childStates[1]);
-            if (argumentMatches(head, argument) && signature.resolveSymbolId(labelId)
-                    .equals(position2operations.get(head.position).get(head.childrenProcessed))) {
+            // check that label matches operation in dep tree
+            String depOperation = position2operations.get(head.position).get(head.childrenProcessed);
+            String mappedDepSource;
+            if (depOperation.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
+                mappedDepSource = head.sourceAssignments.get(depOperation.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
+            } else {
+                mappedDepSource = argument.sourceAssignments.get(depOperation.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
+            }
+            String mappedDepOperation = depOperation.substring(0, ApplyModifyGraphAlgebra.OP_APPLICATION.length())+mappedDepSource;
+            if (signature.resolveSymbolId(labelId).equals(mappedDepOperation) && argumentMatches(head, argument)) {
                 State result = head.increment();
                 if (result.position.isEmpty() && result.childrenProcessed == headChildCount) {
                     addFinalState(addState(result));
@@ -205,13 +209,12 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         }
     }
 
-    //TODO sibling finder
 
 
     @Override
     public SiblingFinder newSiblingFinder(int labelID) {
         if (signature.getArity(labelID) == 2) {
-            return new BinarySiblingFinder(labelID);
+            return new BinarySiblingFinder();
         } else {
             return super.newSiblingFinder(labelID);
         }
@@ -219,18 +222,15 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
     private class BinarySiblingFinder extends SiblingFinder {
 
-        private final String label;
         private final Map<Pair<IntList, Integer>, Set<State>> headMap;
         private final Map<IntList, Set<State>> argumentMap;
 
         /**
          * Creates a new sibling finder for an operation with given arity.
          *
-         * @param labelID
          */
-        public BinarySiblingFinder(int labelID) {
+        public BinarySiblingFinder() {
             super(2);
-            label = signature.resolveSymbolId(labelID);
             headMap = new HashMap<>();
             argumentMap = new HashMap<>();
         }
@@ -242,7 +242,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                 // we have a head
                 State head = getStateForId(stateID);
                 List<String> operationList = position2operations.get(head.position);
-                if (operationList.size() > head.childrenProcessed && operationList.get(head.childrenProcessed).equals(label)) {
+                if (operationList.size() > head.childrenProcessed) {
                     // only return something if the head matches the operation
                     IntList argumentPosition = new IntArrayList(head.position);
                     argumentPosition.add(head.childrenProcessed);
@@ -273,9 +273,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             } else if (pos == 1) {
                 State argument = getStateForId(stateID);
                 int posSize = argument.position.size();
-                if (posSize > 0 && argument.childrenProcessed == position2operations.get(argument.position).size()
-                        && position2operations.get(argument.position.subList(0, posSize-1))
-                        .get(argument.position.getInt(posSize-1)).equals(label)) {
+                if (posSize > 0 && argument.childrenProcessed == position2operations.get(argument.position).size()) {
 
                     IntList headPosition = argument.position.subList(0, argument.position.size()-1);
                     int argPos = argument.position.getInt(argument.position.size()-1);
@@ -313,7 +311,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                 // we have a head
                 State head = getStateForId(stateID);
                 List<String> operationList = position2operations.get(head.position);
-                if (operationList.size() > head.childrenProcessed && operationList.get(head.childrenProcessed).equals(label)) {
+                if (operationList.size() > head.childrenProcessed) {
                     Pair<IntList, Integer> key = new Pair<>(head.position, head.childrenProcessed);
                     Set<State> stateSet = headMap.computeIfAbsent(key, k -> new HashSet<>());
                     stateSet.add(head);
@@ -321,9 +319,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             } else if (pos == 1) {
                 State argument = getStateForId(stateID);
                 int posSize = argument.position.size();
-                if (posSize > 0 && argument.childrenProcessed == position2operations.get(argument.position).size()
-                        && position2operations.get(argument.position.subList(0, posSize-1))
-                        .get(argument.position.getInt(posSize-1)).equals(label)) {
+                if (posSize > 0 && argument.childrenProcessed == position2operations.get(argument.position).size()) {
                     
                     Set<State> stateSet = argumentMap.computeIfAbsent(argument.position, k -> new HashSet<>());
                     stateSet.add(argument);
@@ -412,10 +408,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
 
     public static void main(String[] args) throws Exception {
-        String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.sdp";
+        String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
         String syntaxEdgeScoresPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm" +
-                "\\ud_scores_march2020\\dev\\opProbs.txt";
-        int nrSources = 6;
+                "\\ud_scores_march2020\\minimalDev\\opProbs.txt";
+        int nrSources = 1;
 
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
@@ -441,7 +437,11 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         };
 
 
+        SupertagDictionary supertagDictionary = new SupertagDictionary();//future: load from file for dev set (better: get dev scores from training EM)
+
         Graph sdpGraph;
+
+        List<TreeAutomaton> decompositionAutomata = new ArrayList<>();
 
         int index = 0;
         int fails = 0;
@@ -477,14 +477,16 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
                         if (graph.equals(resultGraph)) {
                             SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
-                                    .makeAutomatonWithAllSourceCombinations(result, nrSources);
+                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, supertagDictionary);
                             ConcreteTreeAutomaton concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
-                            //System.out.println(auto.signature);
+                            System.out.println(auto.signature);
                             //System.out.println(result);
-                            //System.out.println(concreteTreeAutomaton);
-//                            System.out.println(concreteTreeAutomaton.viterbi());
+                            System.out.println(concreteTreeAutomaton);
+                            System.out.println(concreteTreeAutomaton.viterbi());
                             if (concreteTreeAutomaton.viterbi() != null) {
                                 successCounter.add("success");
+                                concreteTreeAutomaton = (ConcreteTreeAutomaton)concreteTreeAutomaton.reduceTopDown();
+                                decompositionAutomata.add(concreteTreeAutomaton);
 //                                if (concreteTreeAutomaton.getNumberOfRules() < 30) {
 //                                    System.err.println(concreteTreeAutomaton);
 //                                    System.err.println();
@@ -527,6 +529,13 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         }
         bucketCounter.printAllSorted();
         successCounter.printAllSorted();
+
+
+
+        ConcreteTreeAutomaton<String> grammarAutomaton = new ConcreteTreeAutomaton<>();
+
+
+
     }
 
 }
