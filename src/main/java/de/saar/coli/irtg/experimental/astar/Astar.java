@@ -28,6 +28,7 @@ import de.up.ling.irtg.util.CpuTimeStopwatch;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
+import edu.stanford.nlp.util.MutableLong;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -689,10 +690,6 @@ public class Astar {
         System.err.println("Reading supertags ...");
         CpuTimeStopwatch watch = new CpuTimeStopwatch();
         watch.record();
-//        ScoreReader scoreReader = new TextScoreReader(arguments.getScoreFile());
-//        ZipFile probsZipFile = new ZipFile(arguments.getScoreFile());
-//        ZipEntry supertagsZipEntry = probsZipFile.getEntry("tagProbs.txt");
-//        Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
 
         int nullSupertagId = -1;
         List<List<List<AnnotatedSupertag>>> supertags = scoreReader.getSupertagScores();
@@ -845,7 +842,7 @@ public class Astar {
         File outfile = arguments.getOutFile();
         PrintWriter logW = new PrintWriter(new FileWriter(logfile));
 
-        System.err.printf("\nWriting graphs to %s.\n\n", outfile.getAbsolutePath());
+        System.err.printf("\nWriting AM-CoNLL trees to %s.\n\n", outfile.getAbsolutePath());
 
         List<Integer> sentenceIndices = IntStream.rangeClosed(0, tagp.size() - 1).boxed().collect(Collectors.toList());
         if (arguments.sort) {
@@ -853,6 +850,7 @@ public class Astar {
         }
 
         final ProgressBar pb = new ProgressBar("Parsing", sentenceIndices.size());
+        final MutableLong totalParsingTimeNs = new MutableLong(0);
 
         for (int i : sentenceIndices) { // loop over corpus
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
@@ -916,6 +914,8 @@ public class Astar {
                                     w.getMillisecondsBefore(2),
                                     w.getMillisecondsBefore(3));
                             logW.flush();
+
+                            totalParsingTimeNs.incValue(w.getTimeBefore(1) + w.getTimeBefore(2) + w.getTimeBefore(3));
                         }
 
                         synchronized (pb) {
@@ -932,6 +932,8 @@ public class Astar {
 
         pb.close();
         logW.close();
+
+        System.out.printf("Total parsing time: %f seconds.\n", totalParsingTimeNs.longValue() / 1.e9);
 
         // write parsed corpus to output file
         AmConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);

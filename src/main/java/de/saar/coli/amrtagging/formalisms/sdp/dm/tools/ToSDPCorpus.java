@@ -20,6 +20,7 @@ import de.up.ling.tree.ParseException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import me.tongfei.progressbar.ProgressBar;
 import se.liu.ida.nlp.sdp.toolkit.graph.*;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
@@ -78,8 +79,9 @@ public class ToSDPCorpus {
         }
         
         Scorer scorer = new Scorer();
-        
-        for (AmConllSentence s : sents){
+        final ProgressBar pb = new ProgressBar("Converting", sents.size());
+
+        for (AmConllSentence s : sents) {
             // prepare raw output without edges
             String id = s.getAttr("id") != null ? s.getAttr("id") : "#NO-ID";
             if (! id.startsWith("#")) id = "#" + id;
@@ -108,7 +110,7 @@ public class ToSDPCorpus {
                 if (grW != null){
                     grW.writeGraph(outputSent);
                 }
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 System.err.printf("In line %d, id=%s: ignoring exception.\n", s.getLineNr(), id);
                 
 //                AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
@@ -125,10 +127,18 @@ public class ToSDPCorpus {
                     scorer.update(goldGraph, sdpSent);
                 }
             }
+
+            synchronized(pb) {
+                pb.step();
+            }
         }
+
+        pb.close();
+
         if (grW != null){
             grW.close();
         }
+
         if (goldReader != null){
            System.out.println("Labeled Scores");
            System.out.println("Precision "+scorer.getPrecision());
