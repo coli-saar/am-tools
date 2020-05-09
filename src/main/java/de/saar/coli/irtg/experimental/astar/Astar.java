@@ -164,7 +164,7 @@ public class Astar {
                     int type = getSupertagType(supertagId);
 
                     if( seenTypesHere.add(type)) { // only add best supertag at each position for each type
-                        Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
+                        Item it = new Item(i_final, i_final + 1, i_final, type, prob);
                         it.setCreatedBySupertag(supertagId);
                         it.setOutsideEstimate(outside.evaluate(it));
                         //System.err.println(it);
