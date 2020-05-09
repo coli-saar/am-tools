@@ -29,7 +29,7 @@ public class PriorityQueueAgenda implements Agenda {
 
     @Override
     public void enqueue(Item item) {
-        if (item.getTotalValue() > Astar.FAKE_NEG_INFINITY / 2) {
+        if (item.getScore() > Astar.FAKE_NEG_INFINITY / 2) {
             // if DECLUTTER_AGENDA is switched on, don't enqueue a previously dequeued item again
             if (!declutterAgenda || !allDequeuedItems.contains(item)) {
                 

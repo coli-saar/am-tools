@@ -5,14 +5,13 @@
  */
 package de.saar.coli.irtg.experimental.astar;
 
-import de.saar.coli.irtg.experimental.astar.Astar.Evaluable;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 
 /**
  *
  * @author koller
  */
-public class Item implements Comparable<Item>, Evaluable {
+public class Item implements Comparable<Item>  {
     private int start, end, root;
     private int type;
     private double logProb;
@@ -167,11 +166,5 @@ public class Item implements Comparable<Item>, Evaluable {
             return new Item(s, e, 0, 0, 0);
         }
     }
-
-    @Override
-    public double getTotalValue() {
-        return getScore();
-    }
-    
     
 }

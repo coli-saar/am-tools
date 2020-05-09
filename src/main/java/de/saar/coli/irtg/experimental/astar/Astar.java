@@ -106,20 +106,11 @@ public class Astar {
         this.N = tagp.getLength();              // sentence length
         this.outsideEstimatorString = outsideEstimatorString;
 
-        // create type interner for the supertags in tagp
-        // Set<Type> types = new HashSet<>();
-        // for (int i = 1; i <= tagp.getLength(); i++) {
-        //     tagp.foreachInOrder(i, (id, prob) -> {
-        //         types.add(idToAsGraph.get(id).right);
-        //     });
-        // }
-
         w.record();
-        this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
+        this.typeLexicon = typeLexicon;
         w.record();
 
         this.outside = OUTSIDE_ESTIMATORS.get(this.outsideEstimatorString).apply(tagp, edgep);
-//        ((RootAwareStaticEstimator) outside).printTopEdges(edgeLabelLexicon);
 
         w.record();
         // precompute supertag types
@@ -129,10 +120,6 @@ public class Astar {
         }
 
         w.record();
-//        w.printMilliseconds("prep", "typelex", "outside", "supertag types");
-
-//        System.err.println("\nSUPERTAGS:");
-//        this.tagp.prettyprint(this.idToSupertag, System.out);
     }
 
     public void setDeclutterAgenda(boolean declutterAgenda) {
@@ -147,48 +134,7 @@ public class Astar {
         return runtimeStatistics;
     }
 
-    private class RuntimeStatistics {
-        long numDequeuedItems;
-        long runtime;
-        double score;
-        long numDequeuedSupertags;
-
-        public RuntimeStatistics(long numDequeuedItems, long numDequeuedSupertags, long runtime, double score) {
-            this.numDequeuedItems = numDequeuedItems;
-            this.numDequeuedSupertags = numDequeuedSupertags;
-            this.runtime = runtime;
-            this.score = score;
-        }
-
-        public double getScore() {
-            return score;
-        }
-
-        public long getRuntime() {
-            return runtime;
-        }
-
-        public long getNumDequeuedItems() {
-            return numDequeuedItems;
-        }
-
-        public long getNumDequeuedSupertags() {
-            return numDequeuedSupertags;
-        }
-
-        public int getSentenceLength() {
-            return N;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("length=%d, time=%dms, dequeued=%d, supertags=%d, logprob=%f", N, runtime / 1000000, numDequeuedItems, numDequeuedSupertags, score);
-        }
-    }
-
     private Item process() {
-        // edgep.prettyprint(edgeLabelLexicon, System.err);
-
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
         long numDequeuedSupertags = 0;
@@ -226,11 +172,7 @@ public class Astar {
             });
         }
 
-        // tagp.prettyprint(idToSupertag, System.err);
-        // edgep.prettyprint(edgeLabelLexicon, System.err);
-
         // iterate over agenda
-        //
         int j = 0;
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
@@ -246,7 +188,7 @@ public class Astar {
                 //System.err.println(j);
                 // emptied agenda without finding goal item
                 w.record(); // agenda looping time
-                runtimeStatistics = new RuntimeStatistics(numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), Double.NaN);
+                runtimeStatistics = new RuntimeStatistics(N, numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), Double.NaN);
                 return null;
             }
 
@@ -260,11 +202,9 @@ public class Astar {
 
             // return first found goal item
             if (isGoal(it)) {
-                // it.setOutsideEstimate(it.getOutsideEstimate() - edgep.getBestIncomingProb(it.getRoot()));
-                // System.err.println(j);
                 w.record(); // agenda looping time
 
-                runtimeStatistics = new RuntimeStatistics(numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), it.getLogProb());
+                runtimeStatistics = new RuntimeStatistics(N, numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), it.getLogProb());
                 return it;
             }
 
@@ -293,7 +233,7 @@ public class Astar {
                             agenda.enqueue(result);
                         }
 
-                        // items with matching types on the left  *** GUT
+                        // items with matching types on the left
                         for (Item partner : (Set<Item>) leftChart[it.getStart()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                             Item result = combineLeft(op, it, partner);
                             assert result.getScore() <= it.getScore() + EPS : "[0L] Generated " + result + " from " + it;
@@ -305,18 +245,10 @@ public class Astar {
                         // here, 'it' is the argument and partner is the functor
                         int partnerType = types[0];
 
-                        // items with matching types on the right     ** SCHLECHT
+                        // items with matching types on the right
                         for (Item partner : (Set<Item>) rightChart[it.getEnd()].getOrDefault(partnerType, Collections.EMPTY_SET)) {
                             Item result = combineLeft(op, partner, it);
-                            double logEdgeProbability = edgep.get(partner.getRoot(), it.getRoot(), op); // AKAKAK
-
-                            /*
-                            System.err.println("analysis for it:");
-                            ((StaticOutsideEstimator) outside).analyze(it, supertagLexicon, edgeLabelLexicon);
-                            
-                            System.err.println("analysis for result:");
-                            ((StaticOutsideEstimator) outside).analyze(result, supertagLexicon, edgeLabelLexicon);
-                            */
+                            double logEdgeProbability = edgep.get(partner.getRoot(), it.getRoot(), op);
                             assert result.getScore() <= it.getScore() + EPS : String.format("[1R] Generated %s from it: %s <--[%s:%f]-- partner: %s", result.toString(typeLexicon), it.toString(typeLexicon), edgeLabelLexicon.resolveId(op), logEdgeProbability, partner.toString(typeLexicon));
                             agenda.enqueue(result);
                         }
@@ -365,7 +297,7 @@ public class Astar {
         }
 
         w.record();
-        runtimeStatistics = new RuntimeStatistics(numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), Double.NaN);
+        runtimeStatistics = new RuntimeStatistics(N, numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), Double.NaN);
         return null;
     }
     
@@ -388,21 +320,13 @@ public class Astar {
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
         double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-//        double ignoreProb = 0;
-        
-        // if (this.outsideEstimatorString.equals("supertagonly")) {
-        //     ignoreProb = 0;
-        // }
 
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
-//            System.err.printf("Warning: couldn't skip %s to %d; nullProb=%f, ignoreProb=%f\n", originalItem, skippedPosition, nullProb, ignoreProb);
             return null;
         }
 
-        // ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());
         double newItemCost = originalItem.getLogProb() + nullProb + ignoreProb;
-
         Item itemAfterSkip = new Item(newStart, newEnd, originalItem.getRoot(), originalItem.getType(), newItemCost);
         itemAfterSkip.setOutsideEstimate(outside.evaluate(itemAfterSkip));
         itemAfterSkip.setCreatedByOperation(-1, originalItem, null); // -1 is arbitrary, the thing that counts is that right=null
@@ -423,9 +347,7 @@ public class Astar {
 
     private Tree<String> decode(Item item, double logProbGoalItem, IntList leafOrderToStringOrder, MutableInteger nextLeafPosition) {
         double realOutside = logProbGoalItem - item.getLogProb();
-       // System.err.printf("item: %s\n", item);
 
-       // System.err.printf("%s -> logprob=%f, real_outside=%f, outside_estimate=%f\n", item.shortString(), item.getLogProb(), realOutside, item.getOutsideEstimate());
         if (realOutside > item.getOutsideEstimate() + EPS) {
             logger.accept(String.format("WARNING: Inadmissible estimate (realOutside=%f, item=%s).", realOutside, item.toString()));
         }
@@ -435,26 +357,11 @@ public class Astar {
             String supertag = supertagLexicon.resolveId(item.getOperation());
             leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart()-1);
             return Tree.create(supertag);
-
-            /*
-            Pair<SGraph, Type> asGraph = idToSupertag.get(item.getOperation());
-
-//            System.err.printf("           @%d: supertag=%d %s\n", item.getStart(), item.getOperation(), asGraph.left.toString());
-            String graphS = asGraph.left.toIsiAmrStringWithSources();
-            graphS = graphS.replace(DependencyExtractor.LEX_MARKER, "\"" + Parser.LEXMARKER_OUT + item.getStart() + "\"");
-
-            leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart());
-            return Tree.create(graphS + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + asGraph.right.toString());
-             */
         } else if (item.getRight() == null) {
             // skip
-//            System.err.printf("           @%d: NULL %s to %s, logp(skip)=%f\n", item.subtract(item.getLeft()).getStart(), item.getLeft().shortString(), item.shortString(), item.getLogProb() - item.getLeft().getLogProb());
-
             return decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
         } else {
             // non-leaf; decode op as edge
-
-//            System.err.printf("           %s --%s--> %s\n", item.getLeft().shortString(), edgeLabelLexicon.resolveId(item.getOperation()), item.getRight().shortString());
             Tree<String> left = decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
             Tree<String> right = decode(item.getRight(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
             return Tree.create(edgeLabelLexicon.resolveId(item.getOperation()), left, right);
@@ -465,9 +372,6 @@ public class Astar {
         if (goalItem == null) {
             return null;
         } else {
-//            System.err.println("goal item final score: " + goalItem.getLogProb());
-//            System.err.println("goal item outside estimate (for sanity): " + goalItem.getOutsideEstimate());
-
             double goalItemLogProb = goalItem.getLogProb();
             IntList leafOrderToStringOrder = new IntArrayList(N);
             for (int i = 0; i < N; i++) {
@@ -478,25 +382,6 @@ public class Astar {
 
             return new ParsingResult(amTerm, goalItemLogProb, leafOrderToStringOrder);
         }
-    }
-
-    static class ParsingResult {
-
-        public Tree<String> amTerm;
-        public double logProb;
-        public IntList leafOrderToStringOrder;
-
-        public ParsingResult(Tree<String> amTerm, double logProb, IntList leafOrderToStringOrder) {
-            this.amTerm = amTerm;
-            this.logProb = logProb;
-            this.leafOrderToStringOrder = leafOrderToStringOrder;
-        }
-
-        @Override
-        public String toString() {
-            return "ParsingResult{" + "amTerm=" + amTerm + ", logProb=" + logProb + ", leafOrderToStringOrder=" + leafOrderToStringOrder + '}';
-        }
-
     }
 
     // check whether the item is a goal item
@@ -535,27 +420,10 @@ public class Astar {
         return typeLexicon.combine(op, functor, argument);
     }
 
-    public static interface Evaluable {
-
-        public double getTotalValue();
-    }
-
     private int getSupertagType(int supertagId) {
         return supertagTypes.get(supertagId);
     }
 
-    //    private IntSet ignorableEdgeLabels;
-//    private Set<Item> itemsInBestParse = new HashSet<>();
-//
-//    private Set<Item> interestingItems;
-//    private void setInterestingItems(Set<Item> usedIn41Parse) {
-//        interestingItems = usedIn41Parse;
-//    }
-//    public Set<Item> getItemsInBestParse() {
-//        return itemsInBestParse;
-//    }
-//    
-//    
     public void setLogger(Consumer<String> logger) {
         this.logger = logger;
     }

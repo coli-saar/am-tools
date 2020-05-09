@@ -8,17 +8,10 @@ package de.saar.coli.irtg.experimental.astar
 
 
 import static org.junit.Assert.*
-import org.junit.*
-import static de.up.ling.irtg.util.TestingTools.*;
-import de.saar.coli.irtg.experimental.astar.Astar.ParsingResult
-import de.up.ling.irtg.signature.Interner
-import de.up.ling.irtg.signature.Signature
-import de.up.ling.irtg.util.MutableInteger
-import de.up.ling.tree.Tree
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.ints.IntArrayList
-import it.unimi.dsi.fastutil.ints.IntList
+import static de.up.ling.irtg.util.TestingTools.*
 
+import de.up.ling.irtg.signature.Interner
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 
 /**
  *
