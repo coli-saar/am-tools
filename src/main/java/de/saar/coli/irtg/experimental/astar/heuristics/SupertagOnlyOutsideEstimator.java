@@ -3,8 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar.heuristics;
 
+import de.saar.coli.irtg.experimental.astar.Astar;
+import de.saar.coli.irtg.experimental.astar.Item;
+import de.saar.coli.irtg.experimental.astar.SupertagProbabilities;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 
 /**

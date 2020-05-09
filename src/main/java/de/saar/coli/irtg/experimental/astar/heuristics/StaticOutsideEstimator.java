@@ -3,13 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar.heuristics;
 
 import de.saar.basic.Pair;
+import de.saar.coli.irtg.experimental.astar.EdgeProbabilities;
 import de.saar.coli.irtg.experimental.astar.EdgeProbabilities.Edge;
+import de.saar.coli.irtg.experimental.astar.Item;
+import de.saar.coli.irtg.experimental.astar.SupertagProbabilities;
 import de.up.ling.irtg.signature.Interner;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
-import edu.illinois.cs.cogcomp.core.datastructures.Triple;
 
 /**
  * An outside estimator that sums up the best supertag scores and the best
@@ -131,33 +133,7 @@ public class StaticOutsideEstimator implements OutsideEstimator {
             sum += bestIncomingEdge + bestSupertag + bias;
         }
 
-        // if (fromRoot != Double.NEGATIVE_INFINITY) {
-        //     sum += fromRoot;
-        // }
-            
-//            
-//            
-//            double scoreWithInEdge = bestTagp[i] + bestEdgep[i];
-//            double scoreWithIgnore = tagp.get(i, tagp.getNullSupertagId()); // NULL score
-//
-//            System.err.printf("[%d] bestTagp=%f, bestEdgep=%f, NULL=%f\n", i, bestTagp[i], bestEdgep[i], scoreWithIgnore);
-//
-//            // AKAKAK should scoreWithIgnore also contain substitutionCost of IGNORE in-edge?
-//            // #951: Token 4 doesn't have an in-edge or a NULL supertag, therefore both scores are -INF
-//            assert Math.max(scoreWithInEdge, scoreWithIgnore) > Astar.FAKE_NEG_INFINITY / 2 : String.format("No good supertag or in-edge for pos %d (while computing context scores for pos %d): withInEdge=%f, withIgnore=%f\n", i, k, scoreWithInEdge, scoreWithIgnore);
-//
-//            if (scoreWithInEdge > scoreWithIgnore) {
-//                sum += scoreWithInEdge;
-//                worst = Math.min(worst, bestEdgep[i]);
-//            } else {
-//                sum += scoreWithIgnore;
-//            }
-//
-//            sum += this.bias;
-//        }
-
         onesidedOutsides[k] = sum;
-//        onesidedWorstIncoming[k] = worst;
     }
 
     public StaticOutsideEstimator(EdgeProbabilities edgep, SupertagProbabilities tagp) {
@@ -167,9 +143,6 @@ public class StaticOutsideEstimator implements OutsideEstimator {
         N = tagp.getLength();
         this.edgep = edgep;
         this.tagp = tagp;
-
-        // getRootId and add it into the ignore
-        // edgep.addIgnoredEdgeLabel(edgep.getRootEdgeId());
 
         rootDiff = new double[N+1];
         ignoreProbIfHighest = new double[N+1];

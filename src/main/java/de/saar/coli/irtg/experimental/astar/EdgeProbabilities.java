@@ -300,6 +300,66 @@ public class EdgeProbabilities {
     }
 
     /**
+     * Returns the probability of the highest-probability edge into this position with a label
+     * that is not the given label.
+     *
+     * @param to
+     * @return
+     */
+    public double getBestIncomingEdgeProbExceptWithLabel(int to, int forbiddenEdgeLabel) {
+        MutableDouble val = new MutableDouble(defaultValue);
+
+        for (Int2ObjectMap.Entry<Int2ObjectMap<Int2DoubleMap>> entry : probs.int2ObjectEntrySet()) {
+            Int2DoubleMap m = entry.getValue().get(to);
+            if (m != null) {
+                for (Int2DoubleMap.Entry e : m.int2DoubleEntrySet()) {
+                    if (e.getIntKey() != forbiddenEdgeLabel && !ignoredEdgeLabels.contains(e.getIntKey())) {
+                        if (e.getDoubleValue() > val.getValue()) {
+                            val.setValue(e.getDoubleValue());
+                        }
+                    }
+                }
+            }
+        }
+
+        return val.getValue();
+    }
+
+    /**
+     * Returns the highest-probability edge into this position with a label
+     * that is not the given label.
+     *
+     * @param to
+     * @return
+     */
+    public Pair<Edge,Double> getBestIncomingEdgeExceptWithLabel(int to, int forbiddenEdgeLabel) {
+        MutableDouble val = new MutableDouble(defaultValue);
+        Edge edge = new Edge(0, 0, 0);
+
+        for (Int2ObjectMap.Entry<Int2ObjectMap<Int2DoubleMap>> entry : probs.int2ObjectEntrySet()) {
+            Int2DoubleMap m = entry.getValue().get(to);
+            if (m != null) {
+                for (Int2DoubleMap.Entry e : m.int2DoubleEntrySet()) {
+                    if (e.getIntKey() != forbiddenEdgeLabel && !ignoredEdgeLabels.contains(e.getIntKey())) {
+                        if (e.getDoubleValue() > val.getValue()) {
+                            val.setValue(e.getDoubleValue());
+                            edge.setFrom(entry.getIntKey());
+                            edge.setTo(to);
+                            edge.setLabelId(e.getIntKey());
+                        }
+                    }
+                }
+            }
+        }
+
+        if (val.getValue() == defaultValue) {
+            edge = null;
+        }
+
+        return new Pair(edge, val.getValue());
+    }
+
+    /**
      * Returns the max probability of edges into this position. When calculating
      * the max probability, edges with one of the labels specified by {@link #addIgnoredEdgeLabel(int)
      * } will be ignored.

@@ -8,10 +8,11 @@ package de.saar.coli.irtg.experimental.astar;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+import com.google.common.collect.ImmutableMap;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
-import de.saar.coli.amrtagging.Util;
+import de.saar.coli.irtg.experimental.astar.heuristics.*;
 import de.saar.coli.irtg.experimental.astar.io.ScoreReader;
 import de.saar.coli.irtg.experimental.astar.io.SerializedScoreReader;
 import de.saar.coli.irtg.experimental.astar.io.TextScoreReader;
@@ -41,24 +42,21 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import javax.swing.UnsupportedLookAndFeelException;
 import me.tongfei.progressbar.ProgressBar;
 
@@ -70,7 +68,7 @@ import me.tongfei.progressbar.ProgressBar;
  */
 public class Astar {
 
-    static final double FAKE_NEG_INFINITY = -1000000;
+    public static final double FAKE_NEG_INFINITY = -1000000;
     private static final String IGNORE_EDGELABEL = "IGNORE";
     private static final String ROOT_EDGELABEL = "ROOT";
     
@@ -88,6 +86,13 @@ public class Astar {
     private RuntimeStatistics runtimeStatistics = null;
     private final Int2IntMap supertagTypes;
     private Consumer<String> logger;
+
+    private static final Map<String, BiFunction<SupertagProbabilities, EdgeProbabilities, OutsideEstimator>> OUTSIDE_ESTIMATORS = ImmutableMap.of(
+            "supertagonly", (tagp, edgep) -> new SupertagOnlyOutsideEstimator(tagp),
+            "static", (tagp, edgep) -> new StaticOutsideEstimator(edgep, tagp),
+            "trivial", (tagp, edgep) -> new TrivialOutsideEstimator(),
+            "root_aware", (tagp, edgep) -> new RootAwareStaticEstimator(edgep, tagp)
+            );
 
     public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon, String outsideEstimatorString) {
         logger = (s) -> System.err.println(s);  // by default, log to stderr
@@ -114,18 +119,8 @@ public class Astar {
         this.typeLexicon = typeLexicon; // new AMAlgebraTypeInterner(types, edgeLabelLexicon);  // <--- TODO: this is expensive for some reason
         w.record();
 
-        if (this.outsideEstimatorString.equals("supertagonly")) {
-            this.outside = new SupertagOnlyOutsideEstimator(tagp);
-        } else if (this.outsideEstimatorString.equals("static")) {
-            this.outside = new StaticOutsideEstimator(edgep, tagp);
-        } else if (this.outsideEstimatorString.equals("trivial")) {
-            this.outside = new TrivialOutsideEstimator();
-        } else {
-            this.outside = new StaticOutsideEstimator(edgep, tagp);
-        }
-        //this.outside = new SupertagOnlyOutsideEstimator(tagp);
-        //this.outside = new StaticOutsideEstimator(edgep, tagp);
-//        this.outside = new SupertagOnlyOutsideEstimator(tagp);
+        this.outside = OUTSIDE_ESTIMATORS.get(this.outsideEstimatorString).apply(tagp, edgep);
+//        ((RootAwareStaticEstimator) outside).printTopEdges(edgeLabelLexicon);
 
         w.record();
         // precompute supertag types
@@ -690,14 +685,24 @@ public class Astar {
             System.err.println(e.getMessage());
             System.err.println();
             jc.usage();
+            System.out.println("Available outside estimators: " + OUTSIDE_ESTIMATORS.keySet());
             System.exit(1);
         }
 
         if (arguments.help) {
             jc.usage();
+            System.out.println("Available outside estimators: " + OUTSIDE_ESTIMATORS.keySet());
             System.exit(0);
         }
 
+        // initialize outside estimator
+        if( ! OUTSIDE_ESTIMATORS.containsKey(arguments.outsideEstimatorString) ) {
+            System.err.printf("Outside estimator '%s' is invalid, known outside estimators:\n", arguments.outsideEstimatorString);
+            System.err.println(OUTSIDE_ESTIMATORS.keySet());
+            System.exit(1);
+        }
+
+        // initialize score reader
         ScoreReader scoreReader = arguments.createScoreReader();
 
         // read supertags
@@ -894,6 +899,7 @@ public class Astar {
                             astar.setLogger((s) -> {
                                 synchronized (logW) {
                                     logW.println(s);
+                                    logW.flush();
                                 }
                             });
                         }
@@ -908,6 +914,7 @@ public class Astar {
                         StringWriter ww = new StringWriter();
                         e.printStackTrace(new PrintWriter(ww));
                         astar.logger.accept(ww.toString());
+                        System.exit(2); // AKAKAK
                     } finally {
                         AmConllSentence sent = corpus.get(ii);
 

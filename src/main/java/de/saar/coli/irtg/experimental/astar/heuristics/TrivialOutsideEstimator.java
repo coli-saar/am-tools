@@ -3,7 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar.heuristics;
+
+import de.saar.coli.irtg.experimental.astar.Item;
 
 /**
  * An outside estimator which estimates the outside score
