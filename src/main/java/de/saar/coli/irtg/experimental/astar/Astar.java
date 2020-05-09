@@ -28,12 +28,8 @@ import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import edu.stanford.nlp.util.MutableLong;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -159,15 +155,21 @@ public class Astar {
         // initialize agenda
         for (int i = 1; i <= N; i++) {  // no items for 0
             final int i_final = i;
+            final IntSet seenTypesHere = new IntOpenHashSet();
+
             tagp.foreachInOrder(i, (supertagId, prob) -> {
                 //System.err.printf("[%02d] supertag %d [%s], p=%f\n", i_final, supertagId, supertagLexicon.resolveId(supertagId), prob);
 
                 if (supertagId != tagp.getNullSupertagId()) { // skip NULL entries - NULL items are created on the fly during the agenda exploration phase
-                    Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
-                    it.setCreatedBySupertag(supertagId);
-                    it.setOutsideEstimate(outside.evaluate(it));
-                    //System.err.println(it);
-                    agenda.enqueue(it);
+                    int type = getSupertagType(supertagId);
+
+                    if( seenTypesHere.add(type)) { // only add best supertag at each position for each type
+                        Item it = new Item(i_final, i_final + 1, i_final, getSupertagType(supertagId), prob);
+                        it.setCreatedBySupertag(supertagId);
+                        it.setOutsideEstimate(outside.evaluate(it));
+                        //System.err.println(it);
+                        agenda.enqueue(it);
+                    }
                 }
             });
         }

@@ -12,6 +12,7 @@ class RuntimeStatistics {
         this.numDequeuedSupertags = numDequeuedSupertags;
         this.runtime = runtime;
         this.score = score;
+        this.N = sentenceLength;
     }
 
     public double getScore() {
