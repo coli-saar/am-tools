@@ -75,6 +75,12 @@ public class SupertagProbabilities implements Serializable  {
         }
     }
 
+    /**
+     * Returns the max probability of a supertag at this position.
+     *
+     * @param pos
+     * @return
+     */
     public double getMaxProb(int pos) {
         Int2DoubleMap m = supertags.get(pos);
         double max = Double.NEGATIVE_INFINITY;
@@ -89,6 +95,28 @@ public class SupertagProbabilities implements Serializable  {
 //                if (entry.getIntKey() != nullSupertagId) { // skip NULL
 //                    max = Math.max(max, entry.getDoubleValue());
 //                }
+            }
+        }
+
+        return max;
+    }
+
+    /**
+     * Returns the max probability of a supertag at this position
+     * for a non-NULL supertag.
+     *
+     * @param pos
+     * @return
+     */
+    public double getMaxConventionalProb(int pos) {
+        Int2DoubleMap m = supertags.get(pos);
+        double max = Double.NEGATIVE_INFINITY;
+
+        if (m != null) {
+            for (Int2DoubleMap.Entry entry : m.int2DoubleEntrySet()) {
+                if (entry.getIntKey() != nullSupertagId) { // skip NULL
+                    max = Math.max(max, entry.getDoubleValue());
+                }
             }
         }
 

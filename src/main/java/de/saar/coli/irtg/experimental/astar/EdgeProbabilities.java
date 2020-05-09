@@ -136,6 +136,30 @@ public class EdgeProbabilities implements Serializable {
     }
 
     /**
+     * Returns the max probability of incoming edges into this position
+     * with labels which are not ROOT or IGNORE.
+     *
+     * @param to
+     * @return
+     */
+    public double getBestConventionalIncomingProb(int to) {
+        MutableDouble ret = new MutableDouble(defaultValue);
+
+        for (Int2ObjectMap.Entry<Int2ObjectMap<Int2DoubleMap>> entry : probs.int2ObjectEntrySet()) {
+            Int2DoubleMap m = entry.getValue().get(to);
+            if (m != null) {
+                for (Int2DoubleMap.Entry e : m.int2DoubleEntrySet()) {
+                    if (e.getIntKey() != rootEdgeId && e.getIntKey() != ignoreEdgeId && !ignoredEdgeLabels.contains(e.getIntKey())) {
+                        ret.setValue(Math.max(ret.getValue(), e.getDoubleValue()));
+                    }
+                }
+            }
+        }
+
+        return ret.getValue();
+    }
+
+    /**
      * Returns the max probability of edges into this position. When calculating
      * the max probability, edges with one of the labels specified by {@link #addIgnoredEdgeLabel(int)
      * } will be ignored.
@@ -257,8 +281,9 @@ public class EdgeProbabilities implements Serializable {
             }
         }
 
+        // Found no incoming edge with the given label.
         if (val.getValue() == defaultValue) {
-            System.err.printf("No incoming edges for %d with label %d\n", to, edgeLabelId);
+//            System.err.printf("No incoming edges for %d with label %d\n", to, edgeLabelId);
             edge = null;
         }
 

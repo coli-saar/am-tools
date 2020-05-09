@@ -91,7 +91,8 @@ public class Astar {
             "supertagonly", (tagp, edgep) -> new SupertagOnlyOutsideEstimator(tagp),
             "static", (tagp, edgep) -> new StaticOutsideEstimator(edgep, tagp),
             "trivial", (tagp, edgep) -> new TrivialOutsideEstimator(),
-            "root_aware", (tagp, edgep) -> new RootAwareStaticEstimator(edgep, tagp)
+            "root_aware", (tagp, edgep) -> new RootAwareStaticEstimator(edgep, tagp),
+            "ignore_aware", (tagp, edgep) -> new RootAndIgnoreAwareStaticEstimator(edgep, tagp)
             );
 
     public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon, String outsideEstimatorString) {
@@ -282,7 +283,6 @@ public class Astar {
 
             // combine it with partners on the right
             if (it.getType() != 0) {
-
                 for (int op : edgeLabelLexicon.getKnownIds()) {
                     for (int[] types : siblingFinders[op - 1].getPartners(it.getType(), 0)) {
                         // here, 'it' is the functor and partner is the argument
@@ -334,6 +334,8 @@ public class Astar {
                 }
             }
 
+            // TODO Only allow skip items if supertag at root of it is not NULL
+
             // skip to the right
             if (it.getEnd() < N) {
                 Item skipRight = makeSkipItem(it, it.getStart(), it.getEnd() + 1, it.getEnd());
@@ -360,6 +362,7 @@ public class Astar {
                 //System.err.println(" --> goal: " + goalItem);
                 agenda.enqueue(goalItem);
             }
+
             j += 1;
         }
 
