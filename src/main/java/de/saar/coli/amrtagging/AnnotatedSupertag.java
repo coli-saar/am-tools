@@ -7,11 +7,13 @@ package de.saar.coli.amrtagging;
 
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 
+import java.io.Serializable;
+
 /**
  *
  * @author koller
  */
-public class AnnotatedSupertag {
+public class AnnotatedSupertag implements Serializable {
     
     public final String graph;
     public final String type;

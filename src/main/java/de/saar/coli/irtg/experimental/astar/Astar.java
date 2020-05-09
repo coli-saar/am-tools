@@ -12,6 +12,9 @@ import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.Util;
+import de.saar.coli.irtg.experimental.astar.io.ScoreReader;
+import de.saar.coli.irtg.experimental.astar.io.SerializedScoreReader;
+import de.saar.coli.irtg.experimental.astar.io.TextScoreReader;
 import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
@@ -59,6 +62,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import me.tongfei.progressbar.ProgressBar;
 
 /**
+ * Run on command line through Gradle like this:
+ * ./gradlew -PmainClass=de.saar.coli.irtg.experimental.astar.Astar run --args='-s EMNLP20/DM/dev/mtl-bert/scores.zip --threads 2 --typecache EMNLP20/DM/dev/mtl-bert/typecache.dat -o EMNLP20/DM/dev/'
  *
  * @author koller
  */
@@ -334,7 +339,7 @@ public class Astar {
                 Item skipLeft = makeSkipItem(it, it.getStart() - 1, it.getEnd(), it.getStart() - 1);
 
                 if (skipLeft != null) {
-                    assert skipLeft.getScore() <= it.getScore() + EPS;
+                    assert skipLeft.getScore() <= it.getScore() + EPS; // TODO ARGHHHH!
                     agenda.enqueue(skipLeft);
                 }
             }
@@ -595,8 +600,11 @@ public class Astar {
         @Parameter(names = "--typecache", description = "Save/load the type lexicon to this file.")
         private String typeInternerFilename = null;
 
-        @Parameter(names = {"--scores", "-s"}, description = "File with supertag and edge scores.", required = true)
+        @Parameter(names = {"--scores", "-s"}, description = "File with supertag and edge scores.")
         private String probsFilename;
+
+        @Parameter(names = {"--serialized-scores", "-S"}, description = "File with serialized supertag and edge scores.")
+        private String serializedProbsFilename;
 
         @Parameter(names = {"--outdir", "-o"}, description = "Directory to which outputs are written.")
         private String outFilename = "";
@@ -631,6 +639,10 @@ public class Astar {
             return resolveFilename(probsFilename);
         }
 
+        public File getSerializedScoreFile() {
+            return resolveFilename(serializedProbsFilename);
+        }
+
         public File getOutFile() {
             return resolveOutputFilename("results_" + timestamp + ".amconll");
         }
@@ -661,38 +673,33 @@ public class Astar {
             System.exit(0);
         }
 
+        if( arguments.getScoreFile() == null && arguments.getSerializedScoreFile() == null ) {
+            System.err.println("You must specify either a scores file (-s) or a serialized score file (-S).");
+            System.exit(1);
+        }
+
+        ScoreReader scoreReader = (arguments.getSerializedScoreFile() != null) ? new SerializedScoreReader(arguments.getSerializedScoreFile()) : new TextScoreReader(arguments.getSerializedScoreFile());
+
         // read supertags
-        ZipFile probsZipFile = new ZipFile(arguments.getScoreFile());
-        ZipEntry supertagsZipEntry = probsZipFile.getEntry("tagProbs.txt");
-        Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
+        System.err.println("Reading supertags ...");
+        CpuTimeStopwatch watch = new CpuTimeStopwatch();
+        watch.record();
+//        ScoreReader scoreReader = new TextScoreReader(arguments.getScoreFile());
+//        ZipFile probsZipFile = new ZipFile(arguments.getScoreFile());
+//        ZipEntry supertagsZipEntry = probsZipFile.getEntry("tagProbs.txt");
+//        Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
 
         int nullSupertagId = -1;
-        List<List<List<AnnotatedSupertag>>> supertags = Util.readSupertagProbs(supertagsReader, true);
+        List<List<List<AnnotatedSupertag>>> supertags = scoreReader.getSupertagScores();
         Interner<String> supertagLexicon = new Interner<>();
         Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
-//        int numSupertagsPerToken = 0;
         Set<Type> types = new HashSet<>();
         int x = 0;
 
         // calculate supertag lexicon
         for (List<List<AnnotatedSupertag>> sentence : supertags) {
-//            System.err.printf("Sentence %d has %d tokens\n", x++, sentence.size());
-
             for (List<AnnotatedSupertag> token : sentence) {
-                // check same #supertags for each token
-                // -> in latest version, some tokens get 15 supertags, some 16.
-
-                // calculate min #supertags per token
-//                if( numSupertagsPerToken == 0 || token.size() < numSupertagsPerToken ) {
-//                    numSupertagsPerToken = token.size();
-//                }
-//                System.err.printf("%d supertags/token\n", token.size());
-//                if (numSupertagsPerToken == 0) {
-//                    numSupertagsPerToken = token.size();
-//                } else {
-//                    assert numSupertagsPerToken == token.size();
-//                }
                 for (AnnotatedSupertag st : token) {
                     String supertag = st.graph;
 
@@ -722,7 +729,6 @@ public class Astar {
             System.exit(1);
         }
 
-//        System.err.printf("found %d supertags per token\n", numSupertagsPerToken);
         // build supertag array
         List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
         x = 0; // AKAKAK
@@ -750,9 +756,9 @@ public class Astar {
         }
 
         // calculate edge-label lexicon
-        ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
-        Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        List<List<List<Pair<String, Double>>>> edges = Util.readEdgeProbs(edgeReader, true, 0.0, 7, false);  // TODO make these configurable  // was: 0.1, 5
+        System.err.println("Reading edge label scores ...");
+        watch.record();
+        List<List<List<Pair<String, Double>>>> edges = scoreReader.getEdgeScores();
         Interner<String> edgeLabelLexicon = new Interner<>();
         x = 0;
 
@@ -789,7 +795,7 @@ public class Astar {
         // precalculate type interner for the supertags in tagp;
         // this can take a few minutes
         AMAlgebraTypeInterner typecache = null;
-
+        watch.record();
         if (arguments.typeInternerFilename != null) {
             if (arguments.getTypeInternerFile().exists()) {
                 try (InputStream is = new GZIPInputStream(new FileInputStream(arguments.getTypeInternerFile()))) {
@@ -821,8 +827,12 @@ public class Astar {
         final AMAlgebraTypeInterner typeLexicon = typecache;
 
         // load input amconll file
-        ZipEntry inputEntry = probsZipFile.getEntry("corpus.amconll");
-        final List<AmConllSentence> corpus = AmConllSentence.read(new InputStreamReader(probsZipFile.getInputStream(inputEntry)));
+        watch.record();
+        System.err.println("Reading input AM-CoNLL file ...");
+        final List<AmConllSentence> corpus = scoreReader.getInputCorpus();
+
+        watch.printMillisecondsX("preprocessing done", "supertags", "edges", "typelex", "amconll");
+        System.exit(0);
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);
@@ -872,13 +882,13 @@ public class Astar {
                         w.record();
 
                         Item goalItem = astar.process();
-                        System.err.println("goal item:");
-                        System.err.println(goalItem);
+//                        System.err.println("goal item:");
+//                        System.err.println(goalItem);
 
                         parsingResult = astar.decode(goalItem);
 
-                        System.err.println("parsing result:");
-                        System.err.println(parsingResult);
+//                        System.err.println("parsing result:");
+//                        System.err.println(parsingResult);
                         w.record();
                     } catch (Throwable e) {
                         astar.logger.accept(String.format("Exception (sentence id=%d):\n", ii));
