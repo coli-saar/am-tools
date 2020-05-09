@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -24,7 +25,7 @@ import java.util.StringJoiner;
  *
  * @author koller
  */
-public class SupertagProbabilities {
+public class SupertagProbabilities implements Serializable  {
 
     private Int2ObjectMap<Int2DoubleMap> supertags;
     private double defaultValue;

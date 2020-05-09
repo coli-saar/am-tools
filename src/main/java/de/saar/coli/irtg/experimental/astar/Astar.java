@@ -69,8 +69,8 @@ import me.tongfei.progressbar.ProgressBar;
 public class Astar {
 
     public static final double FAKE_NEG_INFINITY = -1000000;
-    private static final String IGNORE_EDGELABEL = "IGNORE";
-    private static final String ROOT_EDGELABEL = "ROOT";
+    public static final String IGNORE_EDGELABEL = "IGNORE";
+    public static final String ROOT_EDGELABEL = "ROOT";
     
     private boolean declutterAgenda = false; // previously dequeued items will never be enqueued again
 
@@ -543,27 +543,6 @@ public class Astar {
         return supertagTypes.get(supertagId);
     }
 
-    private static class Edge {
-
-        private int from, to;
-        private String label;
-
-        // o[i,j]
-        public static Edge parse(String s) {
-            String[] parts = s.split("\\[|\\]|,");
-            Edge ret = new Edge();
-            ret.label = parts[0];
-            ret.from = Integer.parseInt(parts[1]);
-            ret.to = Integer.parseInt(parts[2]);
-            return ret;
-        }
-
-        @Override
-        public String toString() {
-            return "Edge{" + "from=" + from + ", to=" + to + ", label=" + label + '}';
-        }
-    }
-
     //    private IntSet ignorableEdgeLabels;
 //    private Set<Item> itemsInBestParse = new HashSet<>();
 //
@@ -661,11 +640,11 @@ public class Astar {
             return resolveOutputFilename("log_" + timestamp + ".txt");
         }
 
-        public ScoreReader createScoreReader() throws IOException {
+        public ScoreReader createScoreReader() throws IOException, ParseException, ParserException {
             if( serializedProbsFilename != null ) {
                 return new SerializedScoreReader(getSerializedScoreFile());
             } else if( probsFilename != null ) {
-                return new TextScoreReader(getScoreFile());
+                return new TextScoreReader(getScoreFile(), ROOT_EDGELABEL, IGNORE_EDGELABEL);
             } else {
                 throw new RuntimeException("You must specify either a scores file (-s) or a serialized score file (-S).");
             }
@@ -702,121 +681,19 @@ public class Astar {
             System.exit(1);
         }
 
-        // initialize score reader
+        // read supertag and edge probs
         ScoreReader scoreReader = arguments.createScoreReader();
 
-        // read supertags
-        System.err.println("Reading supertags ...");
-        CpuTimeStopwatch watch = new CpuTimeStopwatch();
-        watch.record();
+        List<SupertagProbabilities> tagp = scoreReader.getSupertagProbabilities();
 
-        int nullSupertagId = -1;
-        List<List<List<AnnotatedSupertag>>> supertags = scoreReader.getSupertagScores();
-        Interner<String> supertagLexicon = new Interner<>();
-        Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
-        Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
-        Set<Type> types = new HashSet<>();
-        int x = 0;
 
-        // calculate supertag lexicon
-        for (List<List<AnnotatedSupertag>> sentence : supertags) {
-            for (List<AnnotatedSupertag> token : sentence) {
-                for (AnnotatedSupertag st : token) {
-                    String supertag = st.graph;
-
-                    if (!supertagLexicon.isKnownObject(supertag)) {
-                        int id = supertagLexicon.addObject(supertag);
-                        Pair<SGraph, Type> gAndT = alg.parseString(supertag);
-
-                        if (st.type != null) {
-                            // if supertag had an explicit type annotation in the file,
-                            // use that one
-                            gAndT.right = new Type(st.type);
-                        }
-
-                        idToSupertag.put(id, gAndT);
-                        types.add(gAndT.right);
-
-                        if ("NULL".equals(supertag)) {
-                            nullSupertagId = id;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (nullSupertagId < 0) {
-            System.err.println("Did not find an entry for the NULL supertag - exiting.");
-            System.exit(1);
-        }
-
-        // build supertag array
-        List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
-        x = 0; // AKAKAK
-        for (List<List<AnnotatedSupertag>> sentence : supertags) {
-            SupertagProbabilities tagpHere = new SupertagProbabilities(FAKE_NEG_INFINITY, nullSupertagId);
-
-            for (int tokenPos = 0; tokenPos < sentence.size(); tokenPos++) {
-                List<AnnotatedSupertag> token = sentence.get(tokenPos);
-
-                // for (int stPos = 0; stPos < token.size(); stPos++) {
-                for (int stPos = 0; stPos < 6; stPos++) {
-                    AnnotatedSupertag st = token.get(stPos);
-                    String supertag = st.graph;
-                    int supertagId = supertagLexicon.resolveObject(supertag);
-                    tagpHere.put(tokenPos + 1, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
-                }
-            }
-
-            if (arguments.parseOnly == null || x++ == arguments.parseOnly) {
-            //    tagpHere.prettyprint(idToSupertag, System.err);
-            //    System.err.println(tagpHere);
-            }
-
-            tagp.add(tagpHere);
-        }
 
         // calculate edge-label lexicon
-        System.err.println("Reading edge label scores ...");
-        watch.record();
-        List<List<List<Pair<String, Double>>>> edges = scoreReader.getEdgeScores();
-        Interner<String> edgeLabelLexicon = new Interner<>();
-        x = 0;
 
-        for (List<List<Pair<String, Double>>> sentence : edges) {
-            for (List<Pair<String, Double>> b : sentence) {
-                for (Pair<String, Double> edge : b) {
-                    Edge e = Edge.parse(edge.left);
-                    edgeLabelLexicon.addObject(e.label);
-                }
-            }
-        }
-
-        // build edge array
-        List<EdgeProbabilities> edgep = new ArrayList<>();
-        for (List<List<Pair<String, Double>>> sentence : edges) {
-            for (List<Pair<String, Double>> b : sentence) {
-                EdgeProbabilities edgepHere = new EdgeProbabilities(FAKE_NEG_INFINITY, edgeLabelLexicon.resolveObject(IGNORE_EDGELABEL), edgeLabelLexicon.resolveObject(ROOT_EDGELABEL));
-
-                for (Pair<String, Double> edge : b) {
-                    Edge e = Edge.parse(edge.left);
-                    int edgeLabelId = edgeLabelLexicon.resolveObject(e.label);
-
-                    try {
-                        edgepHere.set(e.from, e.to, edgeLabelId, Math.log(edge.right));
-                    } catch (ArrayIndexOutOfBoundsException ee) {
-                        throw ee;
-                    }
-                }
-
-                edgep.add(edgepHere);
-            }
-        }
 
         // precalculate type interner for the supertags in tagp;
         // this can take a few minutes
         AMAlgebraTypeInterner typecache = null;
-        watch.record();
         if (arguments.typeInternerFilename != null) {
             if (arguments.getTypeInternerFile().exists()) {
                 try (InputStream is = new GZIPInputStream(new FileInputStream(arguments.getTypeInternerFile()))) {
@@ -828,10 +705,10 @@ public class Astar {
         }
 
         if (typecache == null) {
-            System.err.printf("Building type interner from %d types ... ", types.size());
+            System.err.printf("Building type interner from %d types ... ", scoreReader.getAllTypes().size());
             CpuTimeStopwatch typew = new CpuTimeStopwatch();
             typew.record();
-            typecache = new AMAlgebraTypeInterner(types, edgeLabelLexicon);
+            typecache = new AMAlgebraTypeInterner(scoreReader.getAllTypes(), scoreReader.getEdgeLabelLexicon());
             typew.record();
             System.err.printf("done, %.1f ms\n", typew.getMillisecondsBefore(1));
 
@@ -848,11 +725,8 @@ public class Astar {
         final AMAlgebraTypeInterner typeLexicon = typecache;
 
         // load input amconll file
-        watch.record();
         System.err.println("Reading input AM-CoNLL file ...");
         final List<AmConllSentence> corpus = scoreReader.getInputCorpus();
-
-        watch.printMillisecondsX("loading done", "supertags", "edges", "typelex", "amconll");
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);
@@ -861,7 +735,7 @@ public class Astar {
         File outfile = arguments.getOutFile();
         PrintWriter logW = new PrintWriter(new FileWriter(logfile));
 
-        System.err.printf("\nWriting AM-CoNLL trees to %s.\n\n", outfile.getAbsolutePath());
+        System.err.printf("\nWriting AM-CoNLL trees to %s\n\n", outfile.getAbsolutePath());
 
         List<Integer> sentenceIndices = IntStream.rangeClosed(0, tagp.size() - 1).boxed().collect(Collectors.toList());
         if (arguments.sort) {
@@ -891,7 +765,7 @@ public class Astar {
                     try {
                         w.record();
 
-                        astar = new Astar(edgep.get(ii), tagp.get(ii), idToSupertag, supertagLexicon, edgeLabelLexicon, typeLexicon, arguments.outsideEstimatorString);
+                        astar = new Astar(scoreReader.getEdgeProbabilities().get(ii), tagp.get(ii), scoreReader.getIdToSupertag(), scoreReader.getSupertagLexicon(), scoreReader.getEdgeLabelLexicon(), typeLexicon, arguments.outsideEstimatorString);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
 

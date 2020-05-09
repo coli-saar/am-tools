@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.ints.IntIterable;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.PrintStream;
+import java.io.Serializable;
 
 // import org.codehaus.groovy.runtime.powerassert.SourceText;
 
@@ -25,7 +26,7 @@ import java.io.PrintStream;
  *
  * @author koller
  */
-public class EdgeProbabilities {
+public class EdgeProbabilities implements Serializable {
 
     private Int2ObjectMap<Int2ObjectMap<Int2DoubleMap>> probs;    // probs[from][to][labelId] = log P(edge)
     private double defaultValue;
