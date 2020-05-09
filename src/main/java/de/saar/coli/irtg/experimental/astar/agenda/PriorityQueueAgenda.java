@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar.agenda;
 
+import de.saar.coli.irtg.experimental.astar.Astar;
+import de.saar.coli.irtg.experimental.astar.Item;
 import de.up.ling.irtg.util.NumbersCombine;
 import it.unimi.dsi.fastutil.PriorityQueue;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -15,7 +17,7 @@ import it.unimi.dsi.fastutil.objects.ObjectHeapPriorityQueue;
  *
  * @author koller
  */
-class PriorityQueueAgenda implements Agenda {
+public class PriorityQueueAgenda implements Agenda {
     private PriorityQueue<Item> agenda = new ObjectHeapPriorityQueue<>();
     private final ItemCache allDequeuedItems = new ItemCache();
     private final ItemCache allItemsOnAgenda = new ItemCache();

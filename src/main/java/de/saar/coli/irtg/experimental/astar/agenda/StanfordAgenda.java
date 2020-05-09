@@ -1,5 +1,6 @@
-package de.saar.coli.irtg.experimental.astar;
+package de.saar.coli.irtg.experimental.astar.agenda;
 
+import de.saar.coli.irtg.experimental.astar.Item;
 import edu.stanford.nlp.util.BinaryHeapPriorityQueue;
 
 import java.util.HashSet;

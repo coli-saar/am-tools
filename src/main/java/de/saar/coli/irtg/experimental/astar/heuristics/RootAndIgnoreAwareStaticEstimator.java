@@ -15,17 +15,14 @@ import java.util.Comparator;
 import java.util.List;
 
 public class RootAndIgnoreAwareStaticEstimator implements OutsideEstimator {
-    private final double[] bestEdgep;      // bestEdgep[k]   = max_{i,o} edgep[i][k][o]
-    private final double[] bestScore;      // bestScore[k]    = bestEdgep[k] + bestTagp[k] (may be NULL+IGNORE, but not ROOT)
+    private final double[] bestEdgep;           // bestEdgep[k]   = max_{i,o} edgep[i][k][o] with conventional edges (i.e. not ROOT, not IGNORE)
+    private final double[] bestScore;           // bestScore[k]    = bestEdgep[k] + bestTagp[k] (may be NULL+IGNORE or conventional tag + conventional edge, but not ROOT)
 
-    private final double[] outsideLeft;    // outsideLeft[k] = sum_{0 <= i < k} bestEdgep[i] + bestTagp[i]
-    private final double[] outsideRight;   // outsideRight[k] = sum_{k <= i < n} bestEdgep[i] + bestTagp[i]
-//    private final double[] worstIncomingLeft; // min score of the best incoming edges in 0...k
-//    private final double[] worstIncomingRight; // min score of the best incoming edges in k...n
+    private final double[] outsideLeft;         // outsideLeft[k] = sum_{0 <= i < k} score[i]
+    private final double[] outsideRight;        // outsideRight[k] = sum_{k <= i < n} score[i]
 
-    private final double[] rootDiffForInside;
-
-    private final double[] rootDiffForOutside;       // rootDiff[k] = bestEdgep[k] - max prob of incoming edge that is not ROOT; thus rootDiff[k] >= 0, and >0 iff best edge is ROOT
+    private final double[] rootDiffForInside;   // [k] = best ROOT edge into k - bestEdgep[k]
+    private final double[] rootDiffForOutside;  // [k] = best ROOT edge into k + best conventional tagp at k - bestScore[k]
     private final double[] rootDiffLeft;   // rootDiffLeft[k] = max_{0 <= i < k} rootDiff[i]
     private final double[] rootDiffRight;  // rootDiffRight[k] = max_{k <= i < n} rootDiff[i]
 
@@ -97,8 +94,6 @@ public class RootAndIgnoreAwareStaticEstimator implements OutsideEstimator {
 
         for (int i = start; i < end; i++) {
             double bestScoreHere = bestScore[i];
-//            double bestIncomingEdge = bestEdgep[i];  // best incoming edge score, including IGNORE and ROOT edges
-//            double bestSupertag = rootDiffForInside[i];       // best supertag, including NULL
             double rootDiffHere = rootDiffForOutside[i];
 
             if( rootDiffHere > maxRootDiff ) {

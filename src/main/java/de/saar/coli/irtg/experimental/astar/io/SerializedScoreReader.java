@@ -2,8 +2,6 @@ package de.saar.coli.irtg.experimental.astar.io;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.AnnotatedSupertag;
-import de.saar.coli.amrtagging.Util;
 import de.saar.coli.irtg.experimental.astar.Astar;
 import de.saar.coli.irtg.experimental.astar.EdgeProbabilities;
 import de.saar.coli.irtg.experimental.astar.SupertagProbabilities;
@@ -21,12 +19,17 @@ import org.nustaq.serialization.FSTObjectOutput;
 
 import java.io.*;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * Reads score files that were previously serialized. The scores file
+ * is a zip file which contains a number of serialized Java objects for faster loading.
+ * You can convert a scores.zip file as output by the am-parser to a serialized-scores.zip file
+ * by calling java -jar ... SerializedScoreReader scores.zip serialized-scores.zip
+ */
 public class SerializedScoreReader implements ScoreReader {
     private ZipFile probsZipFile;
 
@@ -35,33 +38,8 @@ public class SerializedScoreReader implements ScoreReader {
         readAll();
     }
 
-    /*
-    @Override
-    public List<List<List<AnnotatedSupertag>>> getSupertagScores() throws IOException {
-        return readList("tagProbs.ser");
-    }
-
-    @Override
-    public List<List<List<Pair<String, Double>>>> getEdgeScores() throws IOException {
-        return readList("opProbs.ser");
-    }
-
-     */
-
     private List readList(String entryName) throws IOException {
         return readFromZip(entryName, List.class);
-
-//        ZipEntry supertagsZipEntry = probsZipFile.getEntry(entryName);
-//        FSTObjectInput in = new FSTObjectInput(probsZipFile.getInputStream(supertagsZipEntry));
-//
-//        try {
-//            List result = (List) in.readObject();
-//            return result;
-//        } catch (ClassNotFoundException e) {
-//            throw new IOException(e);
-//        } finally {
-//            in.close(); // required !
-//        }
     }
 
     private <E> E readFromZip(String entryName, Class<E> clazz) throws IOException {

@@ -11,20 +11,18 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableMap;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.AnnotatedSupertag;
+import de.saar.coli.irtg.experimental.astar.agenda.Agenda;
+import de.saar.coli.irtg.experimental.astar.agenda.PriorityQueueAgenda;
 import de.saar.coli.irtg.experimental.astar.heuristics.*;
 import de.saar.coli.irtg.experimental.astar.io.ScoreReader;
 import de.saar.coli.irtg.experimental.astar.io.SerializedScoreReader;
 import de.saar.coli.irtg.experimental.astar.io.TextScoreReader;
-import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.saar.coli.irtg.experimental.astar.TypeInterner.AMAlgebraTypeInterner;
 import de.up.ling.irtg.siblingfinder.SiblingFinder;
 import de.up.ling.irtg.signature.Interner;
-import de.up.ling.irtg.util.ArrayMap;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
@@ -198,7 +196,7 @@ public class Astar {
         w.record();
 
         Agenda agenda = new PriorityQueueAgenda(declutterAgenda);
-//        Agenda agenda = new StanfordAgenda();
+//        Agenda agenda = new StanfordAgenda(); // Wow, for some reason Stanford is really a lot slower now.
 
         SiblingFinder[] siblingFinders = new SiblingFinder[edgeLabelLexicon.size()];  // siblingFinders[op] = type-sibling-finder for operation op, for all seen types
         for (int j : edgeLabelLexicon.getKnownIds()) {
@@ -334,7 +332,7 @@ public class Astar {
                 }
             }
 
-            // TODO Only allow skip items if supertag at root of it is not NULL
+            // Skip rules maintain the invariant that the root of an item is not NULL.
 
             // skip to the right
             if (it.getEnd() < N) {
