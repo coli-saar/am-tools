@@ -18,6 +18,7 @@ public class TextScoreReader implements ScoreReader {
     private ZipFile probsZipFile;
 
     public TextScoreReader(File probsZipFilename) throws IOException {
+        System.err.println(probsZipFilename.getAbsolutePath());
         probsZipFile = new ZipFile(probsZipFilename);
     }
 

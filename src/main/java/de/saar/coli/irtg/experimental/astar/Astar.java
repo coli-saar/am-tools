@@ -651,6 +651,16 @@ public class Astar {
             return resolveOutputFilename("log_" + timestamp + ".txt");
         }
 
+        public ScoreReader createScoreReader() throws IOException {
+            if( serializedProbsFilename != null ) {
+                return new SerializedScoreReader(getSerializedScoreFile());
+            } else if( probsFilename != null ) {
+                return new TextScoreReader(getScoreFile());
+            } else {
+                throw new RuntimeException("You must specify either a scores file (-s) or a serialized score file (-S).");
+            }
+        }
+
         private String timestamp = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss").format(new Date());
     }
 
@@ -673,12 +683,7 @@ public class Astar {
             System.exit(0);
         }
 
-        if( arguments.getScoreFile() == null && arguments.getSerializedScoreFile() == null ) {
-            System.err.println("You must specify either a scores file (-s) or a serialized score file (-S).");
-            System.exit(1);
-        }
-
-        ScoreReader scoreReader = (arguments.getSerializedScoreFile() != null) ? new SerializedScoreReader(arguments.getSerializedScoreFile()) : new TextScoreReader(arguments.getSerializedScoreFile());
+        ScoreReader scoreReader = arguments.createScoreReader();
 
         // read supertags
         System.err.println("Reading supertags ...");
