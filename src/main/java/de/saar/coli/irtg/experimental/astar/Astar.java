@@ -329,7 +329,7 @@ public class Astar {
                 Item skipRight = makeSkipItem(it, it.getStart(), it.getEnd() + 1, it.getEnd());
 
                 if (skipRight != null) {
-                    assert skipRight.getScore() <= it.getScore() + EPS;
+                    assert skipRight.getScore() <= it.getScore() + EPS : String.format("skipRight=%f, it=%f", skipRight.getScore(), it.getScore());
                     agenda.enqueue(skipRight);
                 }
             }
@@ -339,7 +339,7 @@ public class Astar {
                 Item skipLeft = makeSkipItem(it, it.getStart() - 1, it.getEnd(), it.getStart() - 1);
 
                 if (skipLeft != null) {
-                    assert skipLeft.getScore() <= it.getScore() + EPS; // TODO ARGHHHH!
+                    assert skipLeft.getScore() <= it.getScore() + EPS : String.format("skipLeft=%f, it=%f", skipLeft.getScore(), it.getScore());
                     agenda.enqueue(skipLeft);
                 }
             }
@@ -376,8 +376,8 @@ public class Astar {
 
     private Item makeSkipItem(Item originalItem, int newStart, int newEnd, int skippedPosition) {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
-        //double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
-        double ignoreProb = 0;
+        double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
+//        double ignoreProb = 0;
         
         // if (this.outsideEstimatorString.equals("supertagonly")) {
         //     ignoreProb = 0;
@@ -832,7 +832,6 @@ public class Astar {
         final List<AmConllSentence> corpus = scoreReader.getInputCorpus();
 
         watch.printMillisecondsX("preprocessing done", "supertags", "edges", "typelex", "amconll");
-        System.exit(0);
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);
@@ -882,13 +881,7 @@ public class Astar {
                         w.record();
 
                         Item goalItem = astar.process();
-//                        System.err.println("goal item:");
-//                        System.err.println(goalItem);
-
                         parsingResult = astar.decode(goalItem);
-
-//                        System.err.println("parsing result:");
-//                        System.err.println(parsingResult);
                         w.record();
                     } catch (Throwable e) {
                         astar.logger.accept(String.format("Exception (sentence id=%d):\n", ii));
