@@ -154,13 +154,14 @@ public class Astar {
     }
 
     private class RuntimeStatistics {
-
         long numDequeuedItems;
         long runtime;
         double score;
+        long numDequeuedSupertags;
 
-        public RuntimeStatistics(long numDequeuedItems, long runtime, double score) {
+        public RuntimeStatistics(long numDequeuedItems, long numDequeuedSupertags, long runtime, double score) {
             this.numDequeuedItems = numDequeuedItems;
+            this.numDequeuedSupertags = numDequeuedSupertags;
             this.runtime = runtime;
             this.score = score;
         }
@@ -177,9 +178,17 @@ public class Astar {
             return numDequeuedItems;
         }
 
+        public long getNumDequeuedSupertags() {
+            return numDequeuedSupertags;
+        }
+
+        public int getSentenceLength() {
+            return N;
+        }
+
         @Override
         public String toString() {
-            return String.format("length=%d, time=%dms, dequeued=%d, logprob=%f", N, runtime / 1000000, numDequeuedItems, score);
+            return String.format("length=%d, time=%dms, dequeued=%d, supertags=%d, logprob=%f", N, runtime / 1000000, numDequeuedItems, numDequeuedSupertags, score);
         }
     }
 
@@ -188,6 +197,7 @@ public class Astar {
 
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
+        long numDequeuedSupertags = 0;
 
         w.record();
 
@@ -242,11 +252,15 @@ public class Astar {
                 //System.err.println(j);
                 // emptied agenda without finding goal item
                 w.record(); // agenda looping time
-                runtimeStatistics = new RuntimeStatistics(numDequeuedItems, w.getTimeBefore(1), Double.NaN);
+                runtimeStatistics = new RuntimeStatistics(numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), Double.NaN);
                 return null;
             }
 
             numDequeuedItems++;
+
+            if( it.isCreatedBySupertag() ) {
+                numDequeuedSupertags++;
+            }
 
 //            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it.toString(typeLexicon));
 
@@ -256,7 +270,7 @@ public class Astar {
                 // System.err.println(j);
                 w.record(); // agenda looping time
 
-                runtimeStatistics = new RuntimeStatistics(numDequeuedItems, w.getTimeBefore(1), it.getLogProb());
+                runtimeStatistics = new RuntimeStatistics(numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), it.getLogProb());
                 return it;
             }
 
@@ -355,7 +369,7 @@ public class Astar {
         }
 
         w.record();
-        runtimeStatistics = new RuntimeStatistics(numDequeuedItems, w.getTimeBefore(1), Double.NaN);
+        runtimeStatistics = new RuntimeStatistics(numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), Double.NaN);
         return null;
     }
     
@@ -801,27 +815,27 @@ public class Astar {
         if (arguments.typeInternerFilename != null) {
             if (arguments.getTypeInternerFile().exists()) {
                 try (InputStream is = new GZIPInputStream(new FileInputStream(arguments.getTypeInternerFile()))) {
-                    System.err.printf("\nLoad type interner from file %s ...\n", arguments.getTypeInternerFile());
+                    System.err.printf("Reading type interner from file %s ... ", arguments.getTypeInternerFile());
                     typecache = AMAlgebraTypeInterner.read(is);
-                    System.err.println("Done.");
+                    System.err.println("done.");
                 }
             }
         }
 
         if (typecache == null) {
-            System.err.printf("\nBuild type interner from %d types ...\n", types.size());
+            System.err.printf("Building type interner from %d types ... ", types.size());
             CpuTimeStopwatch typew = new CpuTimeStopwatch();
             typew.record();
             typecache = new AMAlgebraTypeInterner(types, edgeLabelLexicon);
             typew.record();
-            System.err.printf("Done, %.1f ms\n", typew.getMillisecondsBefore(1));
+            System.err.printf("done, %.1f ms\n", typew.getMillisecondsBefore(1));
 
             if (arguments.typeInternerFilename != null) {
                 try (OutputStream os = new GZIPOutputStream(new FileOutputStream(arguments.getTypeInternerFile()))) {
-                    System.err.printf("Write type interner to file %s ...\n", arguments.getTypeInternerFile());
+                    System.err.printf("Writing type interner to file %s ... ", arguments.getTypeInternerFile());
                     typecache.save(os);
                     os.flush();
-                    System.err.println("Done.");
+                    System.err.println("done.");
                 }
             }
         }
@@ -833,7 +847,7 @@ public class Astar {
         System.err.println("Reading input AM-CoNLL file ...");
         final List<AmConllSentence> corpus = scoreReader.getInputCorpus();
 
-        watch.printMillisecondsX("preprocessing done", "supertags", "edges", "typelex", "amconll");
+        watch.printMillisecondsX("loading done", "supertags", "edges", "typelex", "amconll");
 
         // parse corpus
         ForkJoinPool forkJoinPool = new ForkJoinPool(arguments.numThreads);
@@ -851,6 +865,9 @@ public class Astar {
 
         final ProgressBar pb = new ProgressBar("Parsing", sentenceIndices.size());
         final MutableLong totalParsingTimeNs = new MutableLong(0);
+        final MutableLong totalWords = new MutableLong(0);
+        final MutableLong totalDequeuedItems = new MutableLong(0);
+        final MutableLong totalDequeuedSupertags = new MutableLong(0);
 
         for (int i : sentenceIndices) { // loop over corpus
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
@@ -916,6 +933,9 @@ public class Astar {
                             logW.flush();
 
                             totalParsingTimeNs.incValue(w.getTimeBefore(1) + w.getTimeBefore(2) + w.getTimeBefore(3));
+                            totalWords.incValue(astar.getRuntimeStatistics().getSentenceLength());
+                            totalDequeuedItems.incValue(astar.getRuntimeStatistics().getNumDequeuedItems());
+                            totalDequeuedSupertags.incValue(astar.getRuntimeStatistics().getNumDequeuedSupertags());
                         }
 
                         synchronized (pb) {
@@ -933,7 +953,9 @@ public class Astar {
         pb.close();
         logW.close();
 
-        System.out.printf("Total parsing time: %f seconds.\n", totalParsingTimeNs.longValue() / 1.e9);
+        System.out.printf(Locale.ROOT, "Total parsing time: %f seconds.\n", totalParsingTimeNs.longValue() / 1.e9);
+        System.out.printf(Locale.ROOT, "Total dequeued items: %d (%.1f per token).\n", totalDequeuedItems.longValue(), ((double) totalDequeuedItems.longValue())/totalWords.longValue());
+        System.out.printf(Locale.ROOT, "Total dequeued supertags: %d (%.1f per token).\n", totalDequeuedSupertags.longValue(), ((double) totalDequeuedSupertags.longValue())/totalWords.longValue());
 
         // write parsed corpus to output file
         AmConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);

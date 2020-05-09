@@ -85,6 +85,10 @@ public class Item implements Comparable<Item>, Evaluable {
     public Item getRight() {
         return right;
     }
+
+    public boolean isCreatedBySupertag() {
+        return left == null && right == null;
+    }
     
     /** 
      * for printing debug information
