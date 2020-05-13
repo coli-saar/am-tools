@@ -2,11 +2,10 @@ package de.saar.coli.amtools.decomposition;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import de.saar.basic.Pair;
-import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.SupertagDictionary;
-import de.saar.coli.amrtagging.Util;
+import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
@@ -408,10 +407,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
 
     public static void main(String[] args) throws Exception {
-        String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
+        String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.sdp";
         String syntaxEdgeScoresPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm" +
-                "\\ud_scores_march2020\\minimalDev\\opProbs.txt";
-        int nrSources = 1;
+                "\\ud_scores_march2020\\dev\\opProbs.txt";
+        int nrSources = 3;
 
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
@@ -479,10 +478,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                             SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
                                     .makeAutomatonWithAllSourceCombinations(result, nrSources, supertagDictionary);
                             ConcreteTreeAutomaton concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
-                            System.out.println(auto.signature);
+//                            System.out.println(auto.signature);
                             //System.out.println(result);
-                            System.out.println(concreteTreeAutomaton);
-                            System.out.println(concreteTreeAutomaton.viterbi());
+//                            System.out.println(concreteTreeAutomaton);
+//                            System.out.println(concreteTreeAutomaton.viterbi());
                             if (concreteTreeAutomaton.viterbi() != null) {
                                 successCounter.add("success");
                                 concreteTreeAutomaton = (ConcreteTreeAutomaton)concreteTreeAutomaton.reduceTopDown();
@@ -533,7 +532,43 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
 
         ConcreteTreeAutomaton<String> grammarAutomaton = new ConcreteTreeAutomaton<>();
+        String dummyState = "X";
+        Random random = new Random();
+        List<Map<Rule, Rule>> dataRuleToGrammarRule = new ArrayList<>();
+        ListMultimap<Rule, Rule> grammarRuleToDataRules = ArrayListMultimap.create();
+        SupertagDictionary grammarSupertagDictionary = new SupertagDictionary();
 
+        ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
+
+        for (TreeAutomaton dataAutomaton : decompositionAutomata) {
+            Map<Rule, Rule> rulesMapForThisAuto = new HashMap<>();
+            dataRuleToGrammarRule.add(rulesMapForThisAuto);
+            for (Rule dataRule : (Iterable<Rule>)dataAutomaton.getRuleSet()) {
+                List<String> children = new ArrayList<>();
+                for (int child : dataRule.getChildren()) {
+                    children.add(dummyState);
+                }
+                String grammarLabel = dataRule.getLabel(dataAutomaton);
+                // delexicalize the constants in grammar, for now assuming that the root is the lexical label.
+                if (dataRule.getArity() == 0) {
+                    Pair<SGraph, Type> constant = alg.parseString(grammarLabel);
+                    String nodeName = constant.left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
+                    constant.left.getNode(nodeName).setLabel(AmConllEntry.LEX_MARKER);
+                    grammarLabel = grammarSupertagDictionary.getRepr(constant.left)+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
+                }
+
+                Rule grammarRule = grammarAutomaton.createRule(dummyState, grammarLabel, children, random.nextDouble());
+                rulesMapForThisAuto.put(dataRule, grammarRule);
+                grammarRuleToDataRules.put(grammarRule, dataRule);//can just do it like this, if same grammar rule shows up multiple times, the ListMultimap will keep multiple entries
+                grammarAutomaton.addRule(grammarRule);
+            }
+        }
+
+        System.out.println(grammarAutomaton);
+
+        grammarAutomaton.trainEM(decompositionAutomata, dataRuleToGrammarRule, grammarRuleToDataRules, 1000, 0.00001, false, null);
+
+        System.out.println(grammarAutomaton);
 
 
     }
