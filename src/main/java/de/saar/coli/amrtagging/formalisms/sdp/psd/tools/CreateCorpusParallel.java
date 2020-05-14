@@ -61,7 +61,10 @@ public class CreateCorpusParallel {
     
     @Parameter(names = {"--threads", "-t"}, description = "number of threads")
     private int threads = 50;
-    
+
+    @Parameter(names = {"--legacyACL19"}, description = "Uses legacy version of debugging, compatible with our ACL 2019 paper")
+    private boolean legacyACL19=false;
+
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
     
@@ -143,7 +146,7 @@ public class CreateCorpusParallel {
                     //System.out.println(inst.getGraph());
     //                System.err.println(inst.getSentence());
     //                System.err.println(inst.getGraph());
-                    MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils), inst.getAlignments());
+                    MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils, cli.legacyACL19), inst.getAlignments());
                     ConcreteAlignmentSignatureBuilder sigBuilder =
                         new PSDConcreteSignatureBuilder(modified.getGraph(), modified.getAlignments(), blobUtils);
     //                System.err.println(modified.getSentence());

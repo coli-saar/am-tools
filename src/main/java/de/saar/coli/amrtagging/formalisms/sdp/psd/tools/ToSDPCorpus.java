@@ -44,7 +44,10 @@ public class ToSDPCorpus {
     
     @Parameter(names={"--gold","-g"}, description = "Path to gold corpus. Make sure it contains exactly the same instances, in the same order.")//, required=true)
     private String goldCorpus = null;
-    
+
+    @Parameter(names = {"--legacyACL19"}, description = "Uses legacy version of debugging, compatible with our ACL 2019 paper")
+    private boolean legacyACL19=false;
+
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
    
@@ -95,7 +98,7 @@ public class ToSDPCorpus {
             try {
                 AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluate(true);
-                evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils()); //really important!
+                evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils(), cli.legacyACL19); //really important!
 
                 Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
                 if (goldReader != null){

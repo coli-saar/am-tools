@@ -56,7 +56,10 @@ public class CreateCorpusSorted {
     
     @Parameter(names = {"--vocab", "-v"}, description = "vocab file containing supertags (e.g. points to training vocab when doing dev/test files)")
     private String vocab = null;
-    
+
+    @Parameter(names = {"--legacyACL19"}, description = "Uses legacy version of debugging, compatible with our ACL 2019 paper")
+    private boolean legacyACL19=false;
+
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
     
@@ -122,7 +125,7 @@ public class CreateCorpusSorted {
             
             MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
             ExecutorService executor = Executors.newSingleThreadExecutor();
-            Future<AmConllSentence> future = executor.submit(new Task(inst,sdpGraph, supertagDictionary));
+            Future<AmConllSentence> future = executor.submit(new Task(inst,sdpGraph, supertagDictionary, cli.legacyACL19));
 
             try {
                 AmConllSentence o = future.get(cli.timeout, TimeUnit.SECONDS);
@@ -171,10 +174,12 @@ public class CreateCorpusSorted {
         MRInstance inst;
         Graph sdp;
         SupertagDictionary supertagDictionary;
-        public Task(MRInstance inst,Graph sdpGraph, SupertagDictionary dict){
+        boolean legacyACL19;
+        public Task(MRInstance inst,Graph sdpGraph, SupertagDictionary dict, boolean legacyACL19){
             this.inst = inst;
             this.sdp = sdpGraph;
             supertagDictionary = dict;
+            this.legacyACL19 = legacyACL19;
         }
         @Override
         public AmConllSentence call() throws Exception {
@@ -182,7 +187,7 @@ public class CreateCorpusSorted {
                 ConcreteAlignmentSignatureBuilder sigBuilder =
                     new PSDConcreteSignatureBuilder(inst.getGraph(), inst.getAlignments(), new PSDBlobUtils());
 
-                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)sigBuilder.getBlobUtils()), inst.getAlignments());
+                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)sigBuilder.getBlobUtils(), legacyACL19), inst.getAlignments());
 
                 AlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(modified,sigBuilder, false);
                 auto.processAllRulesBottomUp(null);
