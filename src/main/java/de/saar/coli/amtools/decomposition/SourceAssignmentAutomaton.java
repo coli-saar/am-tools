@@ -564,6 +564,13 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             }
         }
 
+        //need to give data automata the same weights
+        for (Rule grammarRule : grammarRuleToDataRules.keySet()) {
+            for (Rule dataRule : grammarRuleToDataRules.get(grammarRule)) {
+                dataRule.setWeight(grammarRule.getWeight());
+            }
+        }
+
         System.out.println(grammarAutomaton);
 
         grammarAutomaton.trainEM(decompositionAutomata, dataRuleToGrammarRule, grammarRuleToDataRules, 1000, 0.00001, false, null);
