@@ -17,6 +17,8 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.automata.Rule;
+import de.up.ling.irtg.automata.TreeAutomaton;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
@@ -135,7 +137,7 @@ public class ExhaustiveProjectiveDecoderComparison {
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
         //DIFFERENCE: edges are stored differently after reading
-        List<List<List<Pair<String, Double>>>> edgesProbs = Util.readEdgeProbs(edgeReader, true, 0.0, 7, false); //0.0, 7, false are the same as in Astar.java -- Jan 29, JG
+        List<List<List<Pair<String, Double>>>> edgesProbs = Util.readEdgeProbs(edgeReader, true, 0.0, 7, true); //0.0, 7, false are the same as in Astar.java -- Jan 29, JG
         List<Map<String, Int2ObjectMap<Int2DoubleMap>>> edgeLabel2pos2pos2prob = new ArrayList<>();
         if (edgesProbs != null) {
             for (List<List<Pair<String, Double>>> edgesInSentence : edgesProbs) {
@@ -206,6 +208,27 @@ public class ExhaustiveProjectiveDecoderComparison {
 
                         w.record();
 
+                        //the following lines write the IRTG rules (in incomplete form) to text files, sorted by probability
+//                        Map<String, Double> label2weight = new HashMap<>();
+//                        TreeAutomaton<String> irtgAuto = parser.getIrtg().getAutomaton();
+//                        for (Rule rule : irtgAuto.getRuleSet()) {
+//                            String ruleLabel = rule.getLabel(irtgAuto);
+//                            ruleLabel = ruleLabel.substring(0, ruleLabel.lastIndexOf("_"));
+//                            double ruleWeight = Math.max(rule.getWeight(), label2weight.getOrDefault(ruleLabel, 0.0));
+//                            label2weight.put(ruleLabel, ruleWeight);
+//                        }
+//                        List<String> sortedLabels = new ArrayList<>(label2weight.keySet());
+//                        sortedLabels.sort(new Comparator<String>() {
+//                            @Override
+//                            public int compare(String o1, String o2) {
+//                                return - Double.compare(label2weight.get(o1), label2weight.get(o2));
+//                            }
+//                        });
+//                        FileWriter irtgWriter = new FileWriter(arguments.outFilename+"/irtg_"+i+".txt");
+//                        for (String label : sortedLabels) {
+//                            irtgWriter.write(label+"  ["+label2weight.get(label)+"]\n");
+//                        }
+//                        irtgWriter.close();
 
                         Pair<Pair<SGraph, Tree<String>>, Double> graphTreeScore = parser.run();
 
@@ -286,7 +309,7 @@ public class ExhaustiveProjectiveDecoderComparison {
         IntList ret;
         if (irtgTerm.getLabel().startsWith("const_")) {
             assert irtgTerm.getChildren().isEmpty();
-            int id = Integer.parseInt(irtgTerm.getLabel().substring("const_".length(), "const_".length()+1));
+            int id = Integer.parseInt(irtgTerm.getLabel().split("_")[1]);
             ret = new IntArrayList();
             ret.add(id);
         } else if (irtgTerm.getLabel().startsWith("NULL_")) {
