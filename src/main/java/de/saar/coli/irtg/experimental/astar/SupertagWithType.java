@@ -36,11 +36,24 @@ public class SupertagWithType implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SupertagWithType that = (SupertagWithType) o;
-        return Objects.equals(graph, that.graph) &&
-                Objects.equals(type, that.type);
+//        System.err.println("equals:");
+//        System.err.println(this);
+//        System.err.println(o);
+
+
+        try {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            SupertagWithType that = (SupertagWithType) o;
+            return Objects.equals(graph, that.graph) &&
+                    Objects.equals(type, that.type);
+        } catch(Exception e) {
+            System.err.println(e);
+            System.err.println(this);
+            System.err.println(o);
+
+            return false;
+        }
     }
 
     @Override
