@@ -58,7 +58,7 @@ public class AnalyseComponents {
             }
             
             MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
-            inst = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils), inst.getAlignments());
+            inst = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils, false), inst.getAlignments());
             SGraph graph = inst.getGraph();
             try {
 
