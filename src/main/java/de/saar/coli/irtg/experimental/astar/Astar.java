@@ -116,13 +116,6 @@ public class Astar {
         for (int supertagId : idToSupertag.keySet()) {
             int typeId = typeLexicon.resolveObject(idToSupertag.get(supertagId).getType());
             supertagTypes.put(supertagId, typeId);
-//            System.err.printf("supertag %s\n", supertagLexicon.resolveId(supertagId));
-//            System.err.printf("   %s -> %d\n", idToSupertag.get(supertagId).getType(), typeId);
-
-//            if( typeId == 0 ) {
-//                System.err.println(typeLexicon.interner);
-//                System.exit(0);
-//            }
         }
 
         w.record();
@@ -194,16 +187,8 @@ public class Astar {
         int j = 0;
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
-            //System.err.println(it);
-            //if (j % 500 == 0) {
-                // System.err.println(it.getOutsideEstimate());
-                // System.err.println(it.getLogProb());
-                // System.err.println(it.getScore());
-                // System.err.println("");
-            //}
 
             if (it == null) {
-                //System.err.println(j);
                 // emptied agenda without finding goal item
                 w.record(); // agenda looping time
                 runtimeStatistics = new RuntimeStatistics(N, numDequeuedItems, numDequeuedSupertags, w.getTimeBefore(1), Double.NaN);
@@ -215,8 +200,6 @@ public class Astar {
             if( it.isCreatedBySupertag() ) {
                 numDequeuedSupertags++;
             }
-
-//            System.err.printf("[%5d] pop: %s\n", numDequeuedItems, it.toString(typeLexicon));
 
             // return first found goal item
             if (isGoal(it)) {
@@ -325,8 +308,6 @@ public class Astar {
     
     private Item makeGoalItem(Item almostGoalItem) {
         double rootProb = edgep.get(0, almostGoalItem.getRoot(), edgep.getRootEdgeId());
-        //double rootProb = 0;
-        //System.err.println(rootProb);
         Item goalItem = new Item(almostGoalItem.getStart()-1, almostGoalItem.getEnd()-1, almostGoalItem.getRoot(), almostGoalItem.getType(), almostGoalItem.getLogProb() + rootProb);
         goalItem.setOutsideEstimate(0);
         goalItem.setCreatedByOperation(-1, almostGoalItem, null);
@@ -373,7 +354,6 @@ public class Astar {
         if (item.getLeft() == null) {
             // leaf; decode op as supertag
             SupertagWithType stt = supertagLexicon.resolveId(item.getOperation());
-//            String supertag = supertagLexicon.resolveId(item.getOperation());
             leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart()-1);
             return Tree.create(Or.createRight(stt));
         } else if (item.getRight() == null) {
@@ -639,16 +619,10 @@ public class Astar {
 
         for (int i : sentenceIndices) { // loop over corpus
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
-            //if (tagp.get(i).getLength() == 1) {
                 final int ii = i;
-
-
-//                System.err.printf("\n[%02d] EDGES:\n", ii);
-                //edgep.get(ii).prettyprint(edgeLabelLexicon, System.err);
                 forkJoinPool.execute(() -> {
                     Astar astar = null;
                     ParsingResult parsingResult = null;
-//                    String result = "(u / unparseable)";
                     CpuTimeStopwatch w = new CpuTimeStopwatch();
 
                     try {
@@ -657,7 +631,6 @@ public class Astar {
                         astar = new Astar(scoreReader.getEdgeProbabilities().get(ii), tagp.get(ii), scoreReader.getIdToSupertag(), scoreReader.getSupertagLexicon(), scoreReader.getEdgeLabelLexicon(), typeLexicon, arguments.outsideEstimatorString);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
-//                        astar.setDebug(i == 5); // AKAKAK
 
                         if (!arguments.logToStderr) {
                             astar.setLogger((s) -> {
@@ -678,7 +651,6 @@ public class Astar {
                         StringWriter ww = new StringWriter();
                         e.printStackTrace(new PrintWriter(ww));
                         astar.logger.accept(ww.toString());
-                        System.exit(2); // AKAKAK
                     } finally {
                         AmConllSentence sent = corpus.get(ii);
 

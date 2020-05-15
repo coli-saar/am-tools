@@ -14,10 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface ScoreReader {
-//    public List<List<List<AnnotatedSupertag>>> getSupertagScores() throws IOException;
-//    public List<List<List<Pair<String, Double>>>> getEdgeScores() throws IOException;
     public List<AmConllSentence> getInputCorpus() throws IOException, ParseException;
-
 
     public List<SupertagProbabilities> getSupertagProbabilities() throws IOException;
     public Set<Type> getAllTypes() throws IOException;
@@ -26,6 +23,4 @@ public interface ScoreReader {
 
     public Interner<String> getEdgeLabelLexicon() throws IOException;
     public List<EdgeProbabilities> getEdgeProbabilities() throws IOException;
-
-
 }
