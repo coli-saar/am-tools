@@ -110,10 +110,19 @@ public class Astar {
         this.outside = OUTSIDE_ESTIMATORS.get(this.outsideEstimatorString).apply(tagp, edgep);
 
         w.record();
+
         // precompute supertag types
         supertagTypes = new Int2IntOpenHashMap();
         for (int supertagId : idToSupertag.keySet()) {
-            supertagTypes.put(supertagId, typeLexicon.resolveObject(idToSupertag.get(supertagId).getType()));
+            int typeId = typeLexicon.resolveObject(idToSupertag.get(supertagId).getType());
+            supertagTypes.put(supertagId, typeId);
+//            System.err.printf("supertag %s\n", supertagLexicon.resolveId(supertagId));
+//            System.err.printf("   %s -> %d\n", idToSupertag.get(supertagId).getType(), typeId);
+
+//            if( typeId == 0 ) {
+//                System.err.println(typeLexicon.interner);
+//                System.exit(0);
+//            }
         }
 
         w.record();
@@ -171,8 +180,9 @@ public class Astar {
                         agenda.enqueue(it);
 
                         if(debug) {
+                            System.err.printf("Enqueue at %d: %s\t%s\t%s\n", i_final, supertagLexicon.resolveId(supertagId), typeLexicon.resolveID(type), it);
 
-//                            System.err.printf("Enqueue at %d: %s\t%s\t%s\n", i_final, supertagLexicon.resolveId(supertagId), typeLexicon.resolveID(type), it);
+//                            if( )
                         }
 
                     }
@@ -647,7 +657,7 @@ public class Astar {
                         astar = new Astar(scoreReader.getEdgeProbabilities().get(ii), tagp.get(ii), scoreReader.getIdToSupertag(), scoreReader.getSupertagLexicon(), scoreReader.getEdgeLabelLexicon(), typeLexicon, arguments.outsideEstimatorString);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
-                        astar.setDebug(i == 2); // AKAKAK
+//                        astar.setDebug(i == 5); // AKAKAK
 
                         if (!arguments.logToStderr) {
                             astar.setLogger((s) -> {

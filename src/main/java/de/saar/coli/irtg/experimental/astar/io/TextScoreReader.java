@@ -103,16 +103,12 @@ public class TextScoreReader implements ScoreReader {
             for (List<AnnotatedSupertag> token : sentence) {
                 tokenId++;
 
-                if( sentenceId == 3 ) {
-//                    System.out.println("--------\n");
-                }
-
                 for (AnnotatedSupertag st : token) {
                     String supertag = st.graph;
 
-//                    if( sentenceId == 3 ) {
-//                        if (tokenId >= 3 && tokenId <= 3) {
-//                            System.err.printf("supertag at 3/3: %s\n", st);  // AKAKAK
+//                    if( sentenceId == 5) {
+//                        if (tokenId == 4) {
+//                            System.err.printf("supertag at %d/%d: %s\n", sentenceId, tokenId, st);  // AKAKAK
 //                        }
 //                    }
 
@@ -128,47 +124,9 @@ public class TextScoreReader implements ScoreReader {
                         if ("NULL".equals(supertag)) {
                             nullSupertagId = id;
                         }
+                    } else {
+                        assert types.contains(stt.getType()) : "unk type: " + stt.getType();
                     }
-
-
-
-
-
-//
-//                    if (!supertagLexicon.isKnownObject(supertag)) {
-//                        int id = supertagLexicon.addObject(supertag);
-//                        Pair<SGraph, ApplyModifyGraphAlgebra.Type> gAndT = alg.parseString(supertag);
-//
-//                        if (st.type != null) {
-//                            // if supertag had an explicit type annotation in the file,
-//                            // use that one
-//                            gAndT.right = new ApplyModifyGraphAlgebra.Type(st.type);
-//                            System.err.printf("Explicit type for %s:\t%s\n", gAndT.left, gAndT.right);
-//                        } else {
-//                            System.err.printf("Implicit type for %s:\t%s\n", gAndT.left, gAndT.right);
-//                        }
-//
-//                        if( sentenceId == 3 ) {
-//                            if (tokenId >= 3 && tokenId <= 3) {
-//                                System.err.printf("gAndT.right: %s\n", gAndT.right);  // AKAKAK
-//                            }
-//                        }
-//
-//                        idToSupertag.put(id, gAndT);
-//                        types.add(gAndT.right);
-//
-//                        if ("NULL".equals(supertag)) {
-//                            nullSupertagId = id;
-//                        }
-//                    } else {
-//                        if( sentenceId == 3 ) {
-//                            if (tokenId >= 3 && tokenId <= 3) {
-//                                int id = supertagLexicon.resolveObject(supertag);
-//                                Pair<SGraph, ApplyModifyGraphAlgebra.Type> gAndT = idToSupertag.get(id);
-//                                System.err.printf("(c) gAndT.right: %s\n", gAndT.right);  // AKAKAK
-//                            }
-//                        }
-//                    }
                 }
             }
         }
@@ -189,7 +147,6 @@ public class TextScoreReader implements ScoreReader {
                 for (int stPos = 0; stPos < 6; stPos++) {
                     AnnotatedSupertag st = token.get(stPos);
                     SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
-//                    String supertag = st.graph;
                     int supertagId = supertagLexicon.resolveObject(stt);
                     tagpHere.put(tokenPos + 1, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
                 }
