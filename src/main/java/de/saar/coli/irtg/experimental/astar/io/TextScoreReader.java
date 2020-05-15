@@ -4,10 +4,7 @@ import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.AnnotatedSupertag;
 import de.saar.coli.amrtagging.Util;
-import de.saar.coli.irtg.experimental.astar.Astar;
-import de.saar.coli.irtg.experimental.astar.Edge;
-import de.saar.coli.irtg.experimental.astar.EdgeProbabilities;
-import de.saar.coli.irtg.experimental.astar.SupertagProbabilities;
+import de.saar.coli.irtg.experimental.astar.*;
 import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
@@ -34,12 +31,11 @@ import static de.saar.coli.irtg.experimental.astar.Astar.FAKE_NEG_INFINITY;
 public class TextScoreReader implements ScoreReader {
     private ZipFile probsZipFile;
     private List<SupertagProbabilities> tagp = new ArrayList<>();  // one per sentence
-    private Interner<String> supertagLexicon = new Interner<>();
-    private Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag = new ArrayMap<>();
+    private Interner<SupertagWithType> supertagLexicon = new Interner<>();
+    private Int2ObjectMap<SupertagWithType> idToSupertag = new ArrayMap<>();
     private Set<ApplyModifyGraphAlgebra.Type> types = new HashSet<>();
     private Interner<String> edgeLabelLexicon = new Interner<>();
     private List<EdgeProbabilities> edgep = new ArrayList<>();
-
 
     public TextScoreReader(File probsZipFilename, String ROOT_EDGELABEL, String IGNORE_EDGELABEL) throws IOException, ParseException, ParserException {
         probsZipFile = new ZipFile(probsZipFilename);
@@ -95,31 +91,84 @@ public class TextScoreReader implements ScoreReader {
         int nullSupertagId = -1;
         List<List<List<AnnotatedSupertag>>> supertags = getSupertagScores();
         Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
-        int x = 0;
+
+        int sentenceId = 0;
+        int tokenId = 0;
 
         // calculate supertag lexicon
         for (List<List<AnnotatedSupertag>> sentence : supertags) {
+            sentenceId++;
+            tokenId = 0;
+
             for (List<AnnotatedSupertag> token : sentence) {
+                tokenId++;
+
+                if( sentenceId == 3 ) {
+//                    System.out.println("--------\n");
+                }
+
                 for (AnnotatedSupertag st : token) {
                     String supertag = st.graph;
 
-                    if (!supertagLexicon.isKnownObject(supertag)) {
-                        int id = supertagLexicon.addObject(supertag);
-                        Pair<SGraph, ApplyModifyGraphAlgebra.Type> gAndT = alg.parseString(supertag);
-
-                        if (st.type != null) {
-                            // if supertag had an explicit type annotation in the file,
-                            // use that one
-                            gAndT.right = new ApplyModifyGraphAlgebra.Type(st.type);
+                    if( sentenceId == 3 ) {
+                        if (tokenId >= 3 && tokenId <= 3) {
+                            System.err.printf("supertag at 3/3: %s\n", st);  // AKAKAK
                         }
+                    }
 
-                        idToSupertag.put(id, gAndT);
-                        types.add(gAndT.right);
+                    assert st.type != null || "NULL".equals(st.graph) : String.format("Null type for supertag %s", st.graph);
+                    SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
+
+                    if( ! supertagLexicon.isKnownObject(stt)) {
+                        int id = supertagLexicon.addObject(stt);
+
+                        idToSupertag.put(id, stt);
+                        types.add(stt.getType());
 
                         if ("NULL".equals(supertag)) {
                             nullSupertagId = id;
                         }
                     }
+
+
+
+
+
+//
+//                    if (!supertagLexicon.isKnownObject(supertag)) {
+//                        int id = supertagLexicon.addObject(supertag);
+//                        Pair<SGraph, ApplyModifyGraphAlgebra.Type> gAndT = alg.parseString(supertag);
+//
+//                        if (st.type != null) {
+//                            // if supertag had an explicit type annotation in the file,
+//                            // use that one
+//                            gAndT.right = new ApplyModifyGraphAlgebra.Type(st.type);
+//                            System.err.printf("Explicit type for %s:\t%s\n", gAndT.left, gAndT.right);
+//                        } else {
+//                            System.err.printf("Implicit type for %s:\t%s\n", gAndT.left, gAndT.right);
+//                        }
+//
+//                        if( sentenceId == 3 ) {
+//                            if (tokenId >= 3 && tokenId <= 3) {
+//                                System.err.printf("gAndT.right: %s\n", gAndT.right);  // AKAKAK
+//                            }
+//                        }
+//
+//                        idToSupertag.put(id, gAndT);
+//                        types.add(gAndT.right);
+//
+//                        if ("NULL".equals(supertag)) {
+//                            nullSupertagId = id;
+//                        }
+//                    } else {
+//                        if( sentenceId == 3 ) {
+//                            if (tokenId >= 3 && tokenId <= 3) {
+//                                int id = supertagLexicon.resolveObject(supertag);
+//                                Pair<SGraph, ApplyModifyGraphAlgebra.Type> gAndT = idToSupertag.get(id);
+//                                System.err.printf("(c) gAndT.right: %s\n", gAndT.right);  // AKAKAK
+//                            }
+//                        }
+//                    }
                 }
             }
         }
@@ -130,8 +179,6 @@ public class TextScoreReader implements ScoreReader {
         }
 
         // build supertag array
-
-        x = 0; // AKAKAK
         for (List<List<AnnotatedSupertag>> sentence : supertags) {
             SupertagProbabilities tagpHere = new SupertagProbabilities(FAKE_NEG_INFINITY, nullSupertagId);
 
@@ -141,8 +188,9 @@ public class TextScoreReader implements ScoreReader {
                 // for (int stPos = 0; stPos < token.size(); stPos++) {
                 for (int stPos = 0; stPos < 6; stPos++) {
                     AnnotatedSupertag st = token.get(stPos);
-                    String supertag = st.graph;
-                    int supertagId = supertagLexicon.resolveObject(supertag);
+                    SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
+//                    String supertag = st.graph;
+                    int supertagId = supertagLexicon.resolveObject(stt);
                     tagpHere.put(tokenPos + 1, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
                 }
             }
@@ -180,12 +228,12 @@ public class TextScoreReader implements ScoreReader {
     }
 
     @Override
-    public Interner<String> getSupertagLexicon() {
+    public Interner<SupertagWithType> getSupertagLexicon() {
         return supertagLexicon;
     }
 
     @Override
-    public Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> getIdToSupertag() {
+    public Int2ObjectMap<SupertagWithType> getIdToSupertag() {
         return idToSupertag;
     }
 

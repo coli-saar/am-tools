@@ -73,13 +73,14 @@ public class Astar {
     private final SupertagProbabilities tagp;
     private final OutsideEstimator outside;
     private final String outsideEstimatorString;
-    private final Int2ObjectMap<Pair<SGraph, Type>> idToSupertag;
-    private final Interner<String> supertagLexicon;
+    private final Int2ObjectMap<SupertagWithType> idToSupertag;
+    private final Interner<SupertagWithType> supertagLexicon;
     private final Interner<String> edgeLabelLexicon;
     private final AMAlgebraTypeInterner typeLexicon;
     private RuntimeStatistics runtimeStatistics = null;
     private final Int2IntMap supertagTypes;
     private Consumer<String> logger;
+    private boolean debug = false;
 
     private static final Map<String, BiFunction<SupertagProbabilities, EdgeProbabilities, OutsideEstimator>> OUTSIDE_ESTIMATORS = ImmutableMap.of(
             "supertagonly", (tagp, edgep) -> new SupertagOnlyOutsideEstimator(tagp),
@@ -89,7 +90,7 @@ public class Astar {
             "ignore_aware", (tagp, edgep) -> new RootAndIgnoreAwareStaticEstimator(edgep, tagp)
             );
 
-    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<Pair<SGraph, Type>> idToAsGraph, Interner<String> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon, String outsideEstimatorString) {
+    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<SupertagWithType> idToAsGraph, Interner<SupertagWithType> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon, String outsideEstimatorString) {
         logger = (s) -> System.err.println(s);  // by default, log to stderr
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         w.record();
@@ -112,7 +113,7 @@ public class Astar {
         // precompute supertag types
         supertagTypes = new Int2IntOpenHashMap();
         for (int supertagId : idToSupertag.keySet()) {
-            supertagTypes.put(supertagId, typeLexicon.resolveObject(idToSupertag.get(supertagId).right));
+            supertagTypes.put(supertagId, typeLexicon.resolveObject(idToSupertag.get(supertagId).getType()));
         }
 
         w.record();
@@ -167,8 +168,13 @@ public class Astar {
                         Item it = new Item(i_final, i_final + 1, i_final, type, prob);
                         it.setCreatedBySupertag(supertagId);
                         it.setOutsideEstimate(outside.evaluate(it));
-                        //System.err.println(it);
                         agenda.enqueue(it);
+
+                        if(debug) {
+
+                            System.err.printf("Enqueue at %d: %s\t%s\t%s\n", i_final, supertagLexicon.resolveId(supertagId), typeLexicon.resolveID(type), it);
+                        }
+
                     }
                 }
             });
@@ -356,9 +362,10 @@ public class Astar {
 
         if (item.getLeft() == null) {
             // leaf; decode op as supertag
-            String supertag = supertagLexicon.resolveId(item.getOperation());
+            SupertagWithType stt = supertagLexicon.resolveId(item.getOperation());
+//            String supertag = supertagLexicon.resolveId(item.getOperation());
             leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart()-1);
-            return Tree.create(supertag);
+            return Tree.create(stt.getGraph().toString()); // CHECK THIS
         } else if (item.getRight() == null) {
             // skip
             return decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
@@ -639,6 +646,7 @@ public class Astar {
                         astar = new Astar(scoreReader.getEdgeProbabilities().get(ii), tagp.get(ii), scoreReader.getIdToSupertag(), scoreReader.getSupertagLexicon(), scoreReader.getEdgeLabelLexicon(), typeLexicon, arguments.outsideEstimatorString);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
+                        astar.setDebug(i == 2); // AKAKAK
 
                         if (!arguments.logToStderr) {
                             astar.setLogger((s) -> {
@@ -664,10 +672,6 @@ public class Astar {
                         AmConllSentence sent = corpus.get(ii);
 
                         if (parsingResult != null) {
-                            // TODO find out how this can happen - this doesn't look like a normal
-                            // "no parse" case.
-                            // TODO what did I mean with that??
-
                             sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder, astar.getSupertagToTypeFunction());
                         }
 
@@ -722,11 +726,15 @@ public class Astar {
         N = n;
     }
 
-    public Function<String, Type> getSupertagToTypeFunction() {
-        return (supertag) -> {
-            int supertagId = supertagLexicon.resolveObject(supertag);
-            int typeId = supertagTypes.get(supertagId);
-            return typeLexicon.resolveID(typeId);
-        };
+//    public Function<String, Type> getSupertagToTypeFunction() {
+//        return (supertag) -> {
+//            int supertagId = supertagLexicon.resolveObject(supertag);
+//            int typeId = supertagTypes.get(supertagId);
+//            return typeLexicon.resolveID(typeId);
+//        };
+//    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

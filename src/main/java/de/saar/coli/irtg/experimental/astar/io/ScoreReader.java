@@ -1,11 +1,10 @@
 package de.saar.coli.irtg.experimental.astar.io;
 
-import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.irtg.experimental.astar.EdgeProbabilities;
 import de.saar.coli.irtg.experimental.astar.SupertagProbabilities;
+import de.saar.coli.irtg.experimental.astar.SupertagWithType;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
-import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.signature.Interner;
 import de.up.ling.tree.ParseException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -22,8 +21,8 @@ public interface ScoreReader {
 
     public List<SupertagProbabilities> getSupertagProbabilities() throws IOException;
     public Set<Type> getAllTypes() throws IOException;
-    public Interner<String> getSupertagLexicon() throws IOException;
-    public Int2ObjectMap<Pair<SGraph, Type>> getIdToSupertag() throws IOException;
+    public Interner<SupertagWithType> getSupertagLexicon() throws IOException;
+    public Int2ObjectMap<SupertagWithType> getIdToSupertag() throws IOException;
 
     public Interner<String> getEdgeLabelLexicon() throws IOException;
     public List<EdgeProbabilities> getEdgeProbabilities() throws IOException;

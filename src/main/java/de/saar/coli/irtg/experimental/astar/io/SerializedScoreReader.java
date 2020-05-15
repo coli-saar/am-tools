@@ -5,6 +5,7 @@ import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.irtg.experimental.astar.Astar;
 import de.saar.coli.irtg.experimental.astar.EdgeProbabilities;
 import de.saar.coli.irtg.experimental.astar.SupertagProbabilities;
+import de.saar.coli.irtg.experimental.astar.SupertagWithType;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -65,9 +66,9 @@ public class SerializedScoreReader implements ScoreReader {
     private List<SupertagProbabilities> tagp;
     private List<EdgeProbabilities> edgep;
     private Set<ApplyModifyGraphAlgebra.Type> types;
-    private Interner<String> supertagLexicon;
+    private Interner<SupertagWithType> supertagLexicon;
     private Interner<String> edgeLabelLexicon;
-    private Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag;
+    private Int2ObjectMap<SupertagWithType> idToSupertag;
 
     private void readAll() throws IOException {
         CpuTimeStopwatch w = new CpuTimeStopwatch();
@@ -86,7 +87,7 @@ public class SerializedScoreReader implements ScoreReader {
 
         for( Int2ObjectMap.Entry<Pair<String, ApplyModifyGraphAlgebra.Type>> entry : idToSuperTagStr.int2ObjectEntrySet() ) {
             SGraph g = c.read(entry.getValue().left);
-            idToSupertag.put(entry.getIntKey(), new Pair(g, entry.getValue().right));
+            idToSupertag.put(entry.getIntKey(), new SupertagWithType(g, entry.getValue().right));
         }
 
         w.record();
@@ -109,12 +110,12 @@ public class SerializedScoreReader implements ScoreReader {
     }
 
     @Override
-    public Interner<String> getSupertagLexicon() throws IOException {
+    public Interner<SupertagWithType> getSupertagLexicon() throws IOException {
         return supertagLexicon;
     }
 
     @Override
-    public Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> getIdToSupertag() throws IOException {
+    public Int2ObjectMap<SupertagWithType> getIdToSupertag() throws IOException {
         return idToSupertag;
     }
 
@@ -123,11 +124,11 @@ public class SerializedScoreReader implements ScoreReader {
         return edgeLabelLexicon;
     }
 
-    public static Int2ObjectMap<Pair<String, ApplyModifyGraphAlgebra.Type>> makeStringMap(Int2ObjectMap<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> idToSupertag) {
+    public static Int2ObjectMap<Pair<String, ApplyModifyGraphAlgebra.Type>> makeStringMap(Int2ObjectMap<SupertagWithType> idToSupertag) {
         Int2ObjectMap<Pair<String, ApplyModifyGraphAlgebra.Type>> idToSuperTagStr = new Int2ObjectOpenHashMap<>();
 
-        for( Int2ObjectMap.Entry<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> entry : idToSupertag.int2ObjectEntrySet() ) {
-            idToSuperTagStr.put(entry.getIntKey(), new Pair(entry.getValue().left.toString(), entry.getValue().right));
+        for( Int2ObjectMap.Entry<SupertagWithType> entry : idToSupertag.int2ObjectEntrySet() ) {
+            idToSuperTagStr.put(entry.getIntKey(), new Pair(entry.getValue().getGraph().toString(), entry.getValue().getType()));
         }
 
         return idToSuperTagStr;

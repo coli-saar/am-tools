@@ -32,5 +32,9 @@ public class AnnotatedSupertag implements Serializable {
     public String graphAndTypeString() {
         return graph+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+type;
     }
-    
+
+    @Override
+    public String toString() {
+        return String.format("%s\t%s\t%g", graph, type, probability);
+    }
 }
