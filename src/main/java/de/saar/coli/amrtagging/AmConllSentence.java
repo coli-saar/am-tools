@@ -361,8 +361,15 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
     public static List<AmConllSentence> readFromFile(String filename) throws FileNotFoundException, IOException, ParseException {
         return read(new FileReader(filename));
     }
-    
-    
+
+    /**
+     * Converts the given AM term into an AM-CoNLL dependency tree. The AM term is a tree with two types
+     * of node labels. Leaves are labeled with supertags ({@link SupertagWithType}); all other nodes are
+     * labeled with strings representing operations of the AM algebra (e.g. "APP_o").
+     *
+     * @param amTerm
+     * @param leafOrderToStringOrder
+     */
     public void setDependenciesFromAmTerm(Tree<Or<String, SupertagWithType>> amTerm, List<Integer> leafOrderToStringOrder) {
         MutableInteger nextLeafPosition = new MutableInteger(0);
         
