@@ -6,6 +6,7 @@ import de.saar.coli.irtg.experimental.astar.Astar;
 import de.saar.coli.irtg.experimental.astar.EdgeProbabilities;
 import de.saar.coli.irtg.experimental.astar.SupertagProbabilities;
 import de.saar.coli.irtg.experimental.astar.SupertagWithType;
+import de.up.ling.irtg.algebra.Algebra;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -34,7 +35,7 @@ import java.util.zip.ZipOutputStream;
 public class SerializedScoreReader implements ScoreReader {
     private ZipFile probsZipFile;
 
-    public SerializedScoreReader(File probsZipFilename) throws IOException {
+    public SerializedScoreReader(File probsZipFilename) throws IOException, ParseException, ParserException {
         probsZipFile = new ZipFile(probsZipFilename);
         readAll();
     }
@@ -70,17 +71,17 @@ public class SerializedScoreReader implements ScoreReader {
     private Interner<String> edgeLabelLexicon;
     private Int2ObjectMap<SupertagWithType> idToSupertag;
 
-    private void readAll() throws IOException {
+    private void readAll() throws IOException, ParseException, ParserException {
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         w.record();
         tagp = readList("tagProbs.ser");
         edgep = readList("edgeProbs.ser");
         types = readFromZip("types.ser", Set.class);
-        supertagLexicon = readFromZip("supertagLex.ser", Interner.class);
         edgeLabelLexicon = readFromZip("edgeLabelLex.ser", Interner.class);
 
         w.record();
 
+        // decode idToSupertag from string representations
         Int2ObjectMap<Pair<String, ApplyModifyGraphAlgebra.Type>> idToSuperTagStr = readFromZip("idToSupertagStr.ser", Int2ObjectMap.class);
         idToSupertag = new Int2ObjectOpenHashMap<>();
         SGraphInputCodec c = new SGraphInputCodec();
@@ -89,6 +90,16 @@ public class SerializedScoreReader implements ScoreReader {
             SGraph g = c.read(entry.getValue().left);
             idToSupertag.put(entry.getIntKey(), new SupertagWithType(g, entry.getValue().right));
         }
+
+        // decode supertag lexicon from string representations
+        Interner<String> strSupertagLexicon = readFromZip("supertagLexStr.ser", Interner.class);
+        supertagLexicon = new Interner<>();
+        supertagLexicon.setTrustingMode(true);
+        Algebra<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> alg = new ApplyModifyGraphAlgebra();
+        for( int i = 1; i < strSupertagLexicon.getNextIndex(); i++ ) {
+            supertagLexicon.addObjectWithIndex(i, SupertagWithType.fromStringEncoding(strSupertagLexicon.resolveId(i), alg));
+        }
+        supertagLexicon.setTrustingMode(false);
 
         w.record();
         w.printMillisecondsX("done loading", "deserialize", "graphs");
@@ -134,6 +145,17 @@ public class SerializedScoreReader implements ScoreReader {
         return idToSuperTagStr;
     }
 
+    public static Interner<String> makeStringInterner(Interner<SupertagWithType> interner) {
+        Interner<String> ret = new Interner<>();
+        ret.setTrustingMode(true);
+
+        for( int i = 1; i < interner.getNextIndex(); i++ ) {
+            ret.addObjectWithIndex(i, interner.resolveId(i).encode());
+        }
+
+        return ret;
+    }
+
 
 
     /**
@@ -154,7 +176,7 @@ public class SerializedScoreReader implements ScoreReader {
         serialize(zos, "tagProbs.ser", tsr.getSupertagProbabilities());
         serialize(zos, "edgeProbs.ser", tsr.getEdgeProbabilities());
         serialize(zos, "types.ser", tsr.getAllTypes());
-        serialize(zos, "supertagLex.ser", tsr.getSupertagLexicon());
+        serialize(zos, "supertagLexStr.ser", makeStringInterner(tsr.getSupertagLexicon()));
         serialize(zos, "edgeLabelLex.ser", tsr.getEdgeLabelLexicon());
         serialize(zos, "idToSupertagStr.ser", makeStringMap(tsr.getIdToSupertag())); // SGraph not serializable -> convert graphs to strings
 

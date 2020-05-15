@@ -110,11 +110,11 @@ public class TextScoreReader implements ScoreReader {
                 for (AnnotatedSupertag st : token) {
                     String supertag = st.graph;
 
-                    if( sentenceId == 3 ) {
-                        if (tokenId >= 3 && tokenId <= 3) {
-                            System.err.printf("supertag at 3/3: %s\n", st);  // AKAKAK
-                        }
-                    }
+//                    if( sentenceId == 3 ) {
+//                        if (tokenId >= 3 && tokenId <= 3) {
+//                            System.err.printf("supertag at 3/3: %s\n", st);  // AKAKAK
+//                        }
+//                    }
 
                     assert st.type != null || "NULL".equals(st.graph) : String.format("Null type for supertag %s", st.graph);
                     SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);

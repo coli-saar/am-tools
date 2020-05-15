@@ -172,7 +172,7 @@ public class Astar {
 
                         if(debug) {
 
-                            System.err.printf("Enqueue at %d: %s\t%s\t%s\n", i_final, supertagLexicon.resolveId(supertagId), typeLexicon.resolveID(type), it);
+//                            System.err.printf("Enqueue at %d: %s\t%s\t%s\n", i_final, supertagLexicon.resolveId(supertagId), typeLexicon.resolveID(type), it);
                         }
 
                     }
@@ -353,7 +353,7 @@ public class Astar {
         set.add(item);
     }
 
-    private Tree<String> decode(Item item, double logProbGoalItem, IntList leafOrderToStringOrder, MutableInteger nextLeafPosition) {
+    private Tree<Or<String,SupertagWithType>> decode(Item item, double logProbGoalItem, IntList leafOrderToStringOrder, MutableInteger nextLeafPosition) {
         double realOutside = logProbGoalItem - item.getLogProb();
 
         if (realOutside > item.getOutsideEstimate() + EPS) {
@@ -365,15 +365,16 @@ public class Astar {
             SupertagWithType stt = supertagLexicon.resolveId(item.getOperation());
 //            String supertag = supertagLexicon.resolveId(item.getOperation());
             leafOrderToStringOrder.set(nextLeafPosition.incValue(), item.getStart()-1);
-            return Tree.create(stt.getGraph().toString()); // CHECK THIS
+            return Tree.create(Or.createRight(stt));
         } else if (item.getRight() == null) {
             // skip
             return decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
         } else {
             // non-leaf; decode op as edge
-            Tree<String> left = decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
-            Tree<String> right = decode(item.getRight(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
-            return Tree.create(edgeLabelLexicon.resolveId(item.getOperation()), left, right);
+            Tree<Or<String,SupertagWithType>> left = decode(item.getLeft(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
+            Tree<Or<String,SupertagWithType>> right = decode(item.getRight(), logProbGoalItem, leafOrderToStringOrder, nextLeafPosition);
+            Or<String,SupertagWithType> label = Or.createLeft(edgeLabelLexicon.resolveId(item.getOperation()));
+            return Tree.create(label, left, right);
         }
     }
 
@@ -387,7 +388,7 @@ public class Astar {
                 leafOrderToStringOrder.add(0);
             }
 
-            Tree<String> amTerm = decode(goalItem, goalItemLogProb, leafOrderToStringOrder, new MutableInteger(0));
+            Tree<Or<String,SupertagWithType>> amTerm = decode(goalItem, goalItemLogProb, leafOrderToStringOrder, new MutableInteger(0));
 
             return new ParsingResult(amTerm, goalItemLogProb, leafOrderToStringOrder);
         }
@@ -672,7 +673,7 @@ public class Astar {
                         AmConllSentence sent = corpus.get(ii);
 
                         if (parsingResult != null) {
-                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder, astar.getSupertagToTypeFunction());
+                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder);
                         }
 
                         w.record();
@@ -725,14 +726,6 @@ public class Astar {
     void setN(int n) {
         N = n;
     }
-
-//    public Function<String, Type> getSupertagToTypeFunction() {
-//        return (supertag) -> {
-//            int supertagId = supertagLexicon.resolveObject(supertag);
-//            int typeId = supertagTypes.get(supertagId);
-//            return typeLexicon.resolveID(typeId);
-//        };
-//    }
 
     public void setDebug(boolean debug) {
         this.debug = debug;
