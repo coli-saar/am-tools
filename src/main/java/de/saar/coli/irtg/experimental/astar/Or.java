@@ -1,5 +1,12 @@
 package de.saar.coli.irtg.experimental.astar;
 
+/**
+ * A disjunctive type which can hold values of either type E or F.
+ * Use the isLeft method to find out which type it holds.
+ *
+ * @param <E>
+ * @param <F>
+ */
 public class Or<E,F> {
     private E leftValue;
     private F rightValue;

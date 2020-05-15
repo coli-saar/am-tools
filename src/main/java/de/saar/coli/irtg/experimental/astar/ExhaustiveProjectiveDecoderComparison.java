@@ -234,7 +234,7 @@ public class ExhaustiveProjectiveDecoderComparison {
 
                         IntList leafOrderToStringOrder = irtgTerm2OrderMap(graphTreeScore.left.right);
                         Tree<String> amTerm = fixLexNotation(parser.getIrtg().getInterpretation("graph").getHomomorphism().apply(graphTreeScore.left.right));
-                        parsingResult = new ParsingResult(amTerm, Math.log(graphTreeScore.right), leafOrderToStringOrder);
+//                        parsingResult = new ParsingResult(amTerm, Math.log(graphTreeScore.right), leafOrderToStringOrder);  /// JONAS FIX ME!!
                         System.err.println(graphTreeScore.left.right);
                         System.err.println(amTerm);
                         System.err.println(leafOrderToStringOrder);
@@ -251,7 +251,7 @@ public class ExhaustiveProjectiveDecoderComparison {
 
                         if (parsingResult != null) {
 
-                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder, getSupertagToTypeFunction());
+//                            sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder, getSupertagToTypeFunction()); /// JONAS FIX ME!!
                         }
 
                         w.record();
