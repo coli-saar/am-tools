@@ -104,22 +104,26 @@ public class TextScoreReader implements ScoreReader {
                 tokenId++;
 
                 for (AnnotatedSupertag st : token) {
-                    String supertag = st.graph;
+                    try {
+                        assert st.type != null || "NULL".equals(st.graph) : String.format("Null type for supertag %s", st.graph);
 
-                    assert st.type != null || "NULL".equals(st.graph) : String.format("Null type for supertag %s", st.graph);
-                    SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
+                        String supertag = st.graph;
+                        SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
 
-                    if( ! supertagLexicon.isKnownObject(stt)) {
-                        int id = supertagLexicon.addObject(stt);
+                        if (!supertagLexicon.isKnownObject(stt)) {
+                            int id = supertagLexicon.addObject(stt);
 
-                        idToSupertag.put(id, stt);
-                        types.add(stt.getType());
+                            idToSupertag.put(id, stt);
+                            types.add(stt.getType());
 
-                        if ("NULL".equals(supertag)) {
-                            nullSupertagId = id;
+                            if ("NULL".equals(supertag)) {
+                                nullSupertagId = id;
+                            }
+                        } else {
+                            assert types.contains(stt.getType()) : "unk type: " + stt.getType();
                         }
-                    } else {
-                        assert types.contains(stt.getType()) : "unk type: " + stt.getType();
+                    } catch(IllegalArgumentException e) { // https://github.com/coli-saar/am-tools/issues/9
+                        System.err.printf("Skipping supertag %s with invalid type '%s'.\n", st.graph, st.type);
                     }
                 }
             }
@@ -139,10 +143,14 @@ public class TextScoreReader implements ScoreReader {
 
                 // for (int stPos = 0; stPos < token.size(); stPos++) {
                 for (int stPos = 0; stPos < 6; stPos++) {
-                    AnnotatedSupertag st = token.get(stPos);
-                    SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
-                    int supertagId = supertagLexicon.resolveObject(stt);
-                    tagpHere.put(tokenPos + 1, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
+                    try {
+                        AnnotatedSupertag st = token.get(stPos);
+                        SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
+                        int supertagId = supertagLexicon.resolveObject(stt);
+                        tagpHere.put(tokenPos + 1, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
+                    } catch(IllegalArgumentException e) { // https://github.com/coli-saar/am-tools/issues/9
+                        // Just skip it silently; warning was already printed above
+                    }
                 }
             }
 
