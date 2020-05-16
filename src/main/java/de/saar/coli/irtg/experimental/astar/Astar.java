@@ -9,7 +9,10 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableMap;
-import de.saar.basic.Pair;
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvDataTypeMismatchException;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.irtg.experimental.astar.agenda.Agenda;
 import de.saar.coli.irtg.experimental.astar.agenda.PriorityQueueAgenda;
@@ -18,8 +21,6 @@ import de.saar.coli.irtg.experimental.astar.io.ScoreReader;
 import de.saar.coli.irtg.experimental.astar.io.SerializedScoreReader;
 import de.saar.coli.irtg.experimental.astar.io.TextScoreReader;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
-import de.up.ling.irtg.algebra.graph.SGraph;
 import de.saar.coli.irtg.experimental.astar.TypeInterner.AMAlgebraTypeInterner;
 import de.up.ling.irtg.siblingfinder.SiblingFinder;
 import de.up.ling.irtg.signature.Interner;
@@ -30,15 +31,7 @@ import de.up.ling.tree.Tree;
 import edu.stanford.nlp.util.MutableLong;
 import it.unimi.dsi.fastutil.ints.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -46,7 +39,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.GZIPInputStream;
@@ -467,6 +459,9 @@ public class Astar {
         @Parameter(names = {"--outdir", "-o"}, description = "Directory to which outputs are written.")
         private String outFilename = "";
 
+        @Parameter(names = {"--statistics"}, description = "Store runtime statistics in this CSV file.")
+        private String statisticsFilename = null;
+
         @Parameter(names = "--log-to-stderr", description = "Write log messages to stderr instead of logfile")
         private boolean logToStderr = false;
 
@@ -507,6 +502,10 @@ public class Astar {
 
         public File getLogFile() {
             return resolveOutputFilename("log_" + timestamp + ".txt");
+        }
+
+        public File getStatisticsFile() {
+            return resolveFilename(statisticsFilename);
         }
 
         public ScoreReader createScoreReader() throws IOException, ParseException, ParserException {
@@ -616,6 +615,7 @@ public class Astar {
         final MutableLong totalWords = new MutableLong(0);
         final MutableLong totalDequeuedItems = new MutableLong(0);
         final MutableLong totalDequeuedSupertags = new MutableLong(0);
+        final List<RuntimeStatistics> allRuntimeStatistics = new ArrayList<>();
 
         for (int i : sentenceIndices) { // loop over corpus
             if (arguments.parseOnly == null || i == arguments.parseOnly) {  // restrict to given sentence
@@ -675,6 +675,7 @@ public class Astar {
                             totalWords.incValue(astar.getRuntimeStatistics().getSentenceLength());
                             totalDequeuedItems.incValue(astar.getRuntimeStatistics().getNumDequeuedItems());
                             totalDequeuedSupertags.incValue(astar.getRuntimeStatistics().getNumDequeuedSupertags());
+                            allRuntimeStatistics.add(astar.getRuntimeStatistics());
                         }
 
                         synchronized (pb) {
@@ -691,6 +692,23 @@ public class Astar {
 
         pb.close();
         logW.close();
+
+        if( arguments.getStatisticsFile() != null ) {
+            System.out.printf("Write runtime statistics to %s ... ", arguments.getStatisticsFile());
+            boolean ok = true;
+
+            try(Writer w = new FileWriter(arguments.getStatisticsFile())) {
+                StatefulBeanToCsv beanToCsv = new StatefulBeanToCsvBuilder(w).build();
+                beanToCsv.write(allRuntimeStatistics);
+            } catch (CsvDataTypeMismatchException|CsvRequiredFieldEmptyException e) {
+                System.out.println(e);
+                ok = false;
+            }
+
+            if( ok ) {
+                System.out.println("done.");
+            }
+        }
 
         System.out.printf(Locale.ROOT, "Total parsing time: %f seconds.\n", totalParsingTimeNs.longValue() / 1.e9);
         System.out.printf(Locale.ROOT, "Total dequeued items: %d (%.1f per token).\n", totalDequeuedItems.longValue(), ((double) totalDequeuedItems.longValue())/totalWords.longValue());

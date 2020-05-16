@@ -1,11 +1,17 @@
 package de.saar.coli.irtg.experimental.astar;
 
-class RuntimeStatistics {
+import java.io.Serializable;
+
+public class RuntimeStatistics implements Serializable {
     private long numDequeuedItems;
     private long runtime;
     private double score;
     private long numDequeuedSupertags;
     private int N;
+
+    public RuntimeStatistics() {
+
+    }
 
     public RuntimeStatistics(int sentenceLength, long numDequeuedItems, long numDequeuedSupertags, long runtime, double score) {
         this.numDequeuedItems = numDequeuedItems;
@@ -33,6 +39,26 @@ class RuntimeStatistics {
 
     public int getSentenceLength() {
         return N;
+    }
+
+    public void setNumDequeuedItems(long numDequeuedItems) {
+        this.numDequeuedItems = numDequeuedItems;
+    }
+
+    public void setRuntime(long runtime) {
+        this.runtime = runtime;
+    }
+
+    public void setScore(double score) {
+        this.score = score;
+    }
+
+    public void setNumDequeuedSupertags(long numDequeuedSupertags) {
+        this.numDequeuedSupertags = numDequeuedSupertags;
+    }
+
+    public void setN(int n) {
+        N = n;
     }
 
     @Override

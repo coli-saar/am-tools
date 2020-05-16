@@ -77,7 +77,7 @@ dependencies {
     implementation 'edu.illinois.cs.cogcomp:illinois-ner:4.0.13'
     
     implementation 'com.owlike:genson:1.5'
-    
+    implementation group: 'com.opencsv', name: 'opencsv', version: '5.1'
     implementation 'de.ruedigermoeller:fst:2.56' // faster serialization
 }
 
