@@ -5,11 +5,10 @@
  */
 package de.saar.coli.amrtagging;
 
-import de.saar.coli.irtg.experimental.astar.Or;
-import de.saar.coli.irtg.experimental.astar.SupertagWithType;
+import de.saar.coli.amtools.astar.Or;
+import de.saar.coli.amtools.astar.SupertagWithType;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;

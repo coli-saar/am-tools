@@ -12,7 +12,7 @@ compileJava {
     targetCompatibility = '1.8'
 }
 
-mainClassName = 'de.saar.coli.irtg.experimental.astar.Astar'
+mainClassName = 'de.saar.coli.amtools.astar.Astar'
 
 //to make sure we always use UTF-8 (see https://gist.github.com/rponte/d660919434d094bbd35a1aabf7ef1bf0), otherwise I got errors on Windows -- JG
 compileJava.options.encoding = "UTF-8"
