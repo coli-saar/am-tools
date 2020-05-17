@@ -3,7 +3,6 @@ package de.saar.coli.amtools.decomposition;
 import com.google.common.collect.Multiset;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -59,7 +58,7 @@ public class ComponentAnalysisToAMDep {
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new DMDecompositionPackage(sdpGraph);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 

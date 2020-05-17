@@ -1,7 +1,5 @@
 package de.saar.coli.amtools.decomposition;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import de.saar.basic.Pair;
@@ -26,10 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
-import javax.xml.transform.Source;
 import java.io.FileReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -459,7 +454,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new DMDecompositionPackage(sdpGraph);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 

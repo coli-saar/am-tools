@@ -15,12 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DMDecompositionPackage extends DecompositionPackage {
+public class SDPDecompositionPackage extends DecompositionPackage {
 
-    private final static DMBlobUtils blobUtils = new DMBlobUtils();
+    private final AMRBlobUtils blobUtils;
     private final Graph sdpGraph;
 
-    public DMDecompositionPackage(Graph sdpGraph) {
+    public SDPDecompositionPackage(Graph sdpGraph, AMRBlobUtils blobUtils) {
+        this.blobUtils = blobUtils;
         this.sdpGraph = sdpGraph;
     }
 

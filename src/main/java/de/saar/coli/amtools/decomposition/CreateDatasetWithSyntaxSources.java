@@ -4,24 +4,18 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
-import de.up.ling.irtg.algebra.graph.AMDependencyTree;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
+import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
+import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
+import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.util.Counter;
-import edu.stanford.nlp.simple.Sentence;
-import org.eclipse.collections.impl.factory.Sets;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
-import se.liu.ida.nlp.sdp.toolkit.graph.Node;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 import java.io.FileReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CreateDatasetWithSyntaxSources {
 
@@ -40,8 +34,8 @@ public class CreateDatasetWithSyntaxSources {
     @Parameter(names = {"--vocab", "-v"}, description = "existing vocab file containing supertags (e.g. points to training vocab when doing dev/test files). Using this flag means dev set mode, don't use it for the training set")
     private String vocab = null;
 
-    @Parameter(names = {"--debug"}, description = "maxes things run faster for debugging (skips NER tags)")
-    private boolean debug=true;
+    @Parameter(names = {"--corpusType", "-ct"}, description = "values can be DM, PAS or PSD, default is DM")//, required = true)
+    private String corpusType = "DM";
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -85,6 +79,14 @@ public class CreateDatasetWithSyntaxSources {
             }
         };
 
+        AMRBlobUtils blobUtils;
+        switch (cli.corpusType) {
+            case "DM": blobUtils = new DMBlobUtils(); break;
+            case "PAS": blobUtils = new PASBlobUtils(); break;
+            case "PSD": blobUtils = new PSDBlobUtils(); break;
+            default: throw new IllegalArgumentException("Illegal corpus type '"+cli.corpusType+"'. Legal are 'DM', 'PAS' and 'PSD'.");
+        }
+
         //AmConllWithSourcesCreator wants three lists, so we shall make them.
         List<SGraph> graphCorpus = new ArrayList<>();
         List<DecompositionPackage> decompositionPackageList = new ArrayList<>();
@@ -93,14 +95,19 @@ public class CreateDatasetWithSyntaxSources {
         // filling the lists with one entry each for each graph in the corpus.
         while ((sdpGraph = gr.readGraph()) != null) {
             MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
-            graphCorpus.add(inst.getGraph());
-            decompositionPackageList.add(new DMDecompositionPackage(sdpGraph));
+            SGraph graph = inst.getGraph();
+            if (cli.corpusType.equals("PSD")) {
+                graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils);
+            }
+            graphCorpus.add(graph);
+            decompositionPackageList.add(new SDPDecompositionPackage(sdpGraph, blobUtils));
             sourceAssignerList.add(new SyntaxSourceAssigner(syntaxEdgeScoresIterator.next()));
         }
 
         // case distinction: if a supertag dictionary path is given, use it and call dev version (since for creating the dev set, we use the training set supertag path)
         // if no supertag dictionary path is given, make one and call training version.
         String amConllOutPath = cli.outPath+"/"+cli.prefix+".amconll";
+
         if (cli.vocab != null) {
             AmConllWithSourcesCreator.createDevCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, cli.vocab);
         } else {
