@@ -76,7 +76,7 @@ public class TextScoreReader implements ScoreReader {
                     int edgeLabelId = edgeLabelLexicon.resolveObject(e.getLabel());
 
                     try {
-                        edgepHere.set(e.getFrom(), e.getTo(), edgeLabelId, Math.log(edge.right));
+                        edgepHere.set(e.getFrom(), e.getTo(), edgeLabelId, edge.right);
                     } catch (ArrayIndexOutOfBoundsException ee) {
                         throw ee;
                     }
@@ -147,7 +147,7 @@ public class TextScoreReader implements ScoreReader {
                         AnnotatedSupertag st = token.get(stPos);
                         SupertagWithType stt = SupertagWithType.fromAnnotatedSupertag(st, alg);
                         int supertagId = supertagLexicon.resolveObject(stt);
-                        tagpHere.put(tokenPos + 1, supertagId, Math.log(st.probability)); // wasteful: first exp in Util.readProbs, then log again here
+                        tagpHere.put(tokenPos + 1, supertagId, st.probability);
                     } catch(IllegalArgumentException e) { // https://github.com/coli-saar/am-tools/issues/9
                         // Just skip it silently; warning was already printed above
                     }
@@ -161,13 +161,13 @@ public class TextScoreReader implements ScoreReader {
     private List<List<List<AnnotatedSupertag>>> getSupertagScores() throws IOException {
         ZipEntry supertagsZipEntry = probsZipFile.getEntry("tagProbs.txt");
         Reader supertagsReader = new InputStreamReader(probsZipFile.getInputStream(supertagsZipEntry));
-        return Util.readSupertagProbs(supertagsReader, true);
+        return Util.readSupertagProbs(supertagsReader, false);
     }
 
     private List<List<List<Pair<String, Double>>>> getEdgeScores() throws IOException {
         ZipEntry edgeZipEntry = probsZipFile.getEntry("opProbs.txt");
         Reader edgeReader = new InputStreamReader(probsZipFile.getInputStream(edgeZipEntry));
-        return Util.readEdgeProbs(edgeReader, true, 0.0, 7, false);  // TODO make these configurable  // was: 0.1, 5
+        return Util.readEdgeProbs(edgeReader, false, true, Double.NEGATIVE_INFINITY, 7, false);  // TODO make these configurable  // was: 0.1, 5
     }
 
     @Override

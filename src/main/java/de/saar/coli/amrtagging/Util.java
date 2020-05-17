@@ -189,6 +189,12 @@ public class Util {
     }
 
 
+    public static List<List<List<Pair<String, Double>>>> readEdgeProbs(Reader reader, boolean exponentiate,
+                                                                       double threshold, int maxLabels, boolean shift) throws FileNotFoundException, IOException {
+        return readEdgeProbs(reader, exponentiate, false, threshold, maxLabels, shift);
+    }
+
+
     /**
      * Reads edge probabilities from a text file. Dimensions of the result are
      * [sentences][1][edges for the sentence] (the 1 is a historical remnant).<p>
@@ -200,7 +206,11 @@ public class Util {
      * input file does not exist.
      *
      * @param reader    Reader from which to read
-     * @param areLogs   log probabilities or not
+     * @param exponentiate   Convert every score in the file to exp(score). This can be useful if the scores in the file
+     *                     are log probabilities, but you want the original probabilities.
+     * @param addProbs  Add edge existence + label probs. This is useful if the values stored in the file are actually
+     *                  logarithms, but you set exponentiate=false because you want the raw log probabilities instead of the
+     *                  probabilities themselves. If addProbs=false (the default), then the probabilities are multiplied.
      * @param threshold threshold where to cut off probabilities for edges (non-log values).
      *                  Edges with scores below this threshold are not added to the resulting list. Try something like 0.01.
      * @param maxLabels Maximum number of labels considered per edge. If this is k,
@@ -212,7 +222,7 @@ public class Util {
      * @throws FileNotFoundException
      * @throws IOException
      */
-    public static List<List<List<Pair<String, Double>>>> readEdgeProbs(Reader reader, boolean areLogs,
+    public static List<List<List<Pair<String, Double>>>> readEdgeProbs(Reader reader, boolean exponentiate, boolean addProbs,
                                                                        double threshold, int maxLabels, boolean shift) throws FileNotFoundException, IOException {
         /*
         if (!new File(path).exists()) {
@@ -251,7 +261,7 @@ public class Util {
                     // P(edge from first to second exists)
                     double p = Double.parseDouble(parts[0].substring(sepInd + 1));
 
-                    if (areLogs) {
+                    if (exponentiate) {
                         p = Math.exp(p);
                     }
 
@@ -262,10 +272,17 @@ public class Util {
 
                             // P(label | edge from first to second)
                             double pl = Double.parseDouble(parts[i].substring(sepInd + 1));
-                            if (areLogs) {
+                            if (exponentiate) {
                                 pl = Math.exp(pl);
                             }
-                            edgesHere.add(new Pair(label + edge, p * pl));
+
+                            if( addProbs ) {
+                                p += pl;
+                            } else {
+                                p *= pl;
+                            }
+
+                            edgesHere.add(new Pair(label + edge, p));
                         }
                     }
                 }
@@ -322,7 +339,7 @@ public class Util {
     }
 
     /**
-     * Call on strings from {@link #readSupertagProbs(java.lang.String, boolean) } to
+     * Call on strings from {@link #readSupertagProbs} to
      * remove whitespace markers.
      *
      * @param raw
