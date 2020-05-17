@@ -51,6 +51,9 @@ public class ToSDPCorpus {
 //, required=true)
     private String goldCorpus = null; //"/home/matthias/uni/multi-amparser/data/SemEval/2015/DM/dev/dev.sdp";
 
+    @Parameter(names = {"--repeat"}, description="Run the evaluation N times; useful for runtime experiments.")
+    private int repeat = 1;
+
     @Parameter(names = {"--help", "-?", "-h"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
@@ -73,108 +76,110 @@ public class ToSDPCorpus {
             return;
         }
 
+        for (int repetition = 0; repetition < cli.repeat; repetition++) {
 
-        List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
-        GraphReader2015 goldReader = null;
-        if (cli.goldCorpus != null) {
-            goldReader = new GraphReader2015(cli.goldCorpus);
-        }
-        GraphWriter2015 grW = null;
-        if (cli.outPath != null) {
-            grW = new GraphWriter2015(cli.outPath + ".sdp");
-        }
+            List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
+            GraphReader2015 goldReader = null;
+            if (cli.goldCorpus != null) {
+                goldReader = new GraphReader2015(cli.goldCorpus);
+            }
+            GraphWriter2015 grW = null;
+            if (cli.outPath != null) {
+                grW = new GraphWriter2015(cli.outPath + ".sdp");
+            }
 
-        Scorer scorer = new Scorer();
-        final ProgressBar pb = new ProgressBar("Converting", sents.size());
+            Scorer scorer = new Scorer();
+            final ProgressBar pb = new ProgressBar("Converting", sents.size());
 
-        long conversionTimeNs = 0;
-        long evaluationTimeNs = 0;
-        long graphTimeNs = 0;
-        ThreadMXBean cpuTimeBean = ManagementFactory.getThreadMXBean();
+            long conversionTimeNs = 0;
+            long evaluationTimeNs = 0;
+            long graphTimeNs = 0;
+            ThreadMXBean cpuTimeBean = ManagementFactory.getThreadMXBean();
 
-        for (AmConllSentence s : sents) {
-            long t1 = cpuTimeBean.getCurrentThreadCpuTime();
+            for (AmConllSentence s : sents) {
+                long t1 = cpuTimeBean.getCurrentThreadCpuTime();
 
-            // prepare raw output without edges
-            String id = s.getAttr("id") != null ? s.getAttr("id") : "#NO-ID";
-            if (!id.startsWith("#")) id = "#" + id;
-            Graph sdpSent = new Graph(id);
-            sdpSent.addNode(Constants.WALL_FORM, Constants.WALL_LEMMA, Constants.WALL_POS, false, false, Constants.WALL_SENSE); //some weird dummy node.
+                // prepare raw output without edges
+                String id = s.getAttr("id") != null ? s.getAttr("id") : "#NO-ID";
+                if (!id.startsWith("#")) id = "#" + id;
+                Graph sdpSent = new Graph(id);
+                sdpSent.addNode(Constants.WALL_FORM, Constants.WALL_LEMMA, Constants.WALL_POS, false, false, Constants.WALL_SENSE); //some weird dummy node.
 
-            for (AmConllEntry word : s) { //build a SDP Graph with only the words copied from the input.
-                if (!word.getForm().equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
-                    sdpSent.addNode(word.getForm(), word.getLemma(), word.getPos(), false, false, "_");
+                for (AmConllEntry word : s) { //build a SDP Graph with only the words copied from the input.
+                    if (!word.getForm().equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
+                        sdpSent.addNode(word.getForm(), word.getLemma(), word.getPos(), false, false, "_");
+                    }
+                }
+
+                boolean read = false;
+
+                try {
+                    AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
+                    SGraph evaluatedGraph = amdep.evaluate(true);
+                    long t2a = cpuTimeBean.getCurrentThreadCpuTime();
+
+                    Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
+
+                    long t2 = cpuTimeBean.getCurrentThreadCpuTime();
+
+                    if (goldReader != null) {
+                        read = true;
+                        Graph goldGraph = goldReader.readGraph();
+                        scorer.update(goldGraph, outputSent);
+                    }
+
+                    long t3 = cpuTimeBean.getCurrentThreadCpuTime();
+
+                    if (grW != null) {
+                        grW.writeGraph(outputSent);
+                    }
+
+                    graphTimeNs += t2a - t1;
+                    conversionTimeNs += t2 - t2a;
+                    evaluationTimeNs += t3 - t2;
+                } catch (Exception ex) {
+                    System.err.printf("In line %d, id=%s: ignoring exception.\n", s.getLineNr(), id);
+                    ex.printStackTrace();
+                    System.err.println("Writing graph without edges instead.\n");
+
+                    grW.writeGraph(sdpSent);
+
+                    if (!read && goldReader != null) {
+                        Graph goldGraph = goldReader.readGraph();
+                        scorer.update(goldGraph, sdpSent);
+                    }
+                }
+
+                synchronized (pb) {
+                    pb.step();
                 }
             }
 
-            boolean read = false;
+            pb.close();
 
-            try {
-                AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
-                SGraph evaluatedGraph = amdep.evaluate(true);
-                long t2a = cpuTimeBean.getCurrentThreadCpuTime();
-
-                Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
-
-                long t2 = cpuTimeBean.getCurrentThreadCpuTime();
-
-                if (goldReader != null) {
-                    read = true;
-                    Graph goldGraph = goldReader.readGraph();
-                    scorer.update(goldGraph, outputSent);
-                }
-
-                long t3 = cpuTimeBean.getCurrentThreadCpuTime();
-
-                if (grW != null) {
-                    grW.writeGraph(outputSent);
-                }
-
-                graphTimeNs += t2a - t1;
-                conversionTimeNs += t2 - t2a;
-                evaluationTimeNs += t3 - t2;
-            } catch (Exception ex) {
-                System.err.printf("In line %d, id=%s: ignoring exception.\n", s.getLineNr(), id);
-                ex.printStackTrace();
-                System.err.println("Writing graph without edges instead.\n");
-
-                grW.writeGraph(sdpSent);
-
-                if (!read && goldReader != null) {
-                    Graph goldGraph = goldReader.readGraph();
-                    scorer.update(goldGraph, sdpSent);
-                }
+            if (grW != null) {
+                grW.close();
             }
 
-            synchronized (pb) {
-                pb.step();
+            System.out.printf("Total time: AM evaluation %fs, conversion to evaluator %fs, f-score evaluation %fs.\n", graphTimeNs / 1000000000.0, conversionTimeNs / 1000000000.0, evaluationTimeNs / 1000000000.0);
+
+            if (goldReader != null) {
+                System.out.println("Labeled Scores");
+                System.out.println("Precision " + scorer.getPrecision());
+                System.out.println("Recall " + scorer.getRecall());
+                System.out.println("F " + scorer.getF1());
+                System.out.println("Exact Match " + scorer.getExactMatch());
+                System.out.println("------------------------");
+                System.out.println("Core Predications");
+                System.out.println("Precision " + scorer.getCorePredicationsPrecision());
+                System.out.println("Recall " + scorer.getCorePredicationsRecall());
+                System.out.println("F " + scorer.getCorePredicationsF1());
+                System.out.println("------------------------");
+                System.out.println("Semantic Frames");
+                System.out.println("Precision " + scorer.getSemanticFramesPrecision());
+                System.out.println("Recall " + scorer.getSemanticFramesRecall());
+                System.out.println("F " + scorer.getSemanticFramesF1());
             }
-        }
-
-        pb.close();
-
-        if (grW != null) {
-            grW.close();
-        }
-
-        System.out.printf("Total time: AM evaluation %fs, conversion to evaluator %fs, f-score evaluation %fs.\n", graphTimeNs / 1000000000.0, conversionTimeNs / 1000000000.0, evaluationTimeNs / 1000000000.0);
-
-        if (goldReader != null) {
-            System.out.println("Labeled Scores");
-            System.out.println("Precision " + scorer.getPrecision());
-            System.out.println("Recall " + scorer.getRecall());
-            System.out.println("F " + scorer.getF1());
-            System.out.println("Exact Match " + scorer.getExactMatch());
-            System.out.println("------------------------");
-            System.out.println("Core Predications");
-            System.out.println("Precision " + scorer.getCorePredicationsPrecision());
-            System.out.println("Recall " + scorer.getCorePredicationsRecall());
-            System.out.println("F " + scorer.getCorePredicationsF1());
-            System.out.println("------------------------");
-            System.out.println("Semantic Frames");
-            System.out.println("Precision " + scorer.getSemanticFramesPrecision());
-            System.out.println("Recall " + scorer.getSemanticFramesRecall());
-            System.out.println("F " + scorer.getSemanticFramesF1());
         }
     }
 }
