@@ -17,6 +17,7 @@ import de.up.ling.irtg.automata.TreeAutomaton;
 import de.up.ling.irtg.siblingfinder.SiblingFinder;
 import de.up.ling.irtg.signature.Signature;
 import de.up.ling.irtg.util.Counter;
+import de.up.ling.tree.Tree;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.eclipse.collections.impl.factory.Sets;
@@ -30,18 +31,18 @@ import java.util.stream.Collectors;
 
 public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAutomaton.State> {
 
-    private final Map<IntList, AMDependencyTree> position2dep;
+    private final Map<IntList, Integer> position2wordID;
     private final Map<IntList, List<String>> position2operations;
     private final Map<String, List<SourceAssignmentAutomaton.State>> constant2states;
 
     private final int headChildCount;
 
     private SourceAssignmentAutomaton(Signature signature,
-                                      Map<IntList, AMDependencyTree> position2dep,
+                                      Map<IntList, Integer> position2wordID,
                                       Map<String, List<SourceAssignmentAutomaton.State>> constant2states,
                                       Map<IntList, List<String>> position2operations) {
         super(signature);
-        this.position2dep = position2dep;
+        this.position2wordID = position2wordID;
         this.constant2states = constant2states;
         this.position2operations = position2operations;
         this.headChildCount = position2operations.get(new IntArrayList()).size();
@@ -49,7 +50,8 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     }
 
 
-    public static SourceAssignmentAutomaton makeAutomatonFromConstants(AMDependencyTree dep, Collection<String> constants)
+    public static SourceAssignmentAutomaton makeAutomatonFromConstants(AMDependencyTree dep, Collection<String> constants,
+                                                                       DecompositionPackage decompositionPackage)
             throws ParserException {
         ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
         Signature signature = new Signature();
@@ -66,10 +68,12 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return new SourceAssignmentAutomaton(signature, null, null, null);
     }
 
-    public static SourceAssignmentAutomaton makeAutomatonWithAllSourceCombinations(AMDependencyTree dep, int nrSources, SupertagDictionary supertagDictionary) {
+    public static SourceAssignmentAutomaton makeAutomatonWithAllSourceCombinations(AMDependencyTree dep, int nrSources,
+                                                                                   SupertagDictionary supertagDictionary, DecompositionPackage decompositionPackage) {
         Map<IntList, AMDependencyTree> position2dep = new HashMap<>();
+        Map<IntList, Integer> position2wordID = new HashMap<>();
         Map<IntList, List<String>> position2operations = new HashMap<>();
-        sortRecursive(dep, position2dep, position2operations, new IntArrayList());
+        sortRecursive(dep, position2dep, position2wordID, position2operations, new IntArrayList(), decompositionPackage);
 
         Signature signature = new Signature();
         for (int i = 0; i<nrSources; i++) {
@@ -112,7 +116,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                 constant2states.get(label).add(state);
             }
         }
-        return new SourceAssignmentAutomaton(signature, position2dep, constant2states, position2operations);
+        return new SourceAssignmentAutomaton(signature, position2wordID, constant2states, position2operations);
     }
 
 
@@ -143,9 +147,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return "S"+i;
     }
 
-    private static void sortRecursive(AMDependencyTree depToSort, Map<IntList, AMDependencyTree> position2dep,
-                                      Map<IntList, List<String>> position2operations, IntList position) {
+    private static void sortRecursive(AMDependencyTree depToSort, Map<IntList, AMDependencyTree> position2dep, Map<IntList, Integer> position2wordID,
+                                      Map<IntList, List<String>> position2operations, IntList position, DecompositionPackage decompositionPackage) {
         position2dep.put(position, depToSort);
+        position2wordID.put(position, decompositionPackage.getSentencePositionForGraphFragment(depToSort.getHeadGraph().left));
         List<String> operationsHere = new ArrayList<>();
         position2operations.put(position, operationsHere);
         List<Pair<String, AMDependencyTree>> childrenList = new ArrayList<>(depToSort.getOperationsAndChildren());
@@ -160,7 +165,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             operationsHere.add(opAndChild.left);
             IntList childPosition = new IntArrayList(position);
             childPosition.add(index);
-            sortRecursive(opAndChild.right, position2dep, position2operations, childPosition);
+            sortRecursive(opAndChild.right, position2dep, position2wordID, position2operations, childPosition, decompositionPackage);
             index++;
         }
     }
@@ -403,8 +408,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
     public static void main(String[] args) throws Exception {
         String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.sdp";
-        String syntaxEdgeScoresPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm" +
-                "\\ud_scores_march2020\\dev\\opProbs.txt";
+        String corpusOutPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\devEM.amconll";
         int nrSources = 3;
 
 
@@ -415,34 +419,19 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         DMBlobUtils blobUtils = new DMBlobUtils();
         GraphReader2015 gr = new GraphReader2015(corpusPath);
 
-        List<List<List<Pair<String, Double>>>> syntaxEdgeScores = Util.readEdgeProbs(new FileReader(syntaxEdgeScoresPath),
-                true, 0, 5, false);//indices are 1-based, like in the am-dependency tree
-        //work around weird legacy issue for edge scores
-        Iterator<List<Pair<String, Double>>> syntaxEdgeScoresIterator = new Iterator<List<Pair<String, Double>>>() {
-            Iterator<List<List<Pair<String, Double>>>> it = syntaxEdgeScores.iterator();
-            @Override
-            public boolean hasNext() {
-                return it.hasNext();
-            }
-            @Override
-            public List<Pair<String, Double>> next() {
-                return it.next().get(0);
-            }
-        };
-
 
         SupertagDictionary supertagDictionary = new SupertagDictionary();//future: load from file for dev set (better: get dev scores from training EM)
 
         Graph sdpGraph;
 
-        List<TreeAutomaton> decompositionAutomata = new ArrayList<>();
+        List<TreeAutomaton> concreteDecompositionAutomata = new ArrayList<>();
+        List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
+        List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
         int index = 0;
         int fails = 0;
         int nondecomposeable = 0;
-        List<AmConllSentence> amConllSentenceList = new ArrayList<>();
         while ((sdpGraph = gr.readGraph()) != null) {
-            List<Pair<String, Double>> syntaxEdges = syntaxEdgeScoresIterator.next(); // synchronously step forward with this
             if (index % 100 == 0) {
                 System.err.println(index);
                 bucketCounter.printAllSorted();
@@ -471,16 +460,18 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
                         if (graph.equals(resultGraph)) {
                             SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
-                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, supertagDictionary);
-                            ConcreteTreeAutomaton concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
+                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, supertagDictionary, decompositionPackage);
+                            ConcreteTreeAutomaton<State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
                             //System.out.println(result);
 //                            System.out.println(concreteTreeAutomaton);
 //                            System.out.println(concreteTreeAutomaton.viterbi());
                             if (concreteTreeAutomaton.viterbi() != null) {
                                 successCounter.add("success");
-                                concreteTreeAutomaton = (ConcreteTreeAutomaton)concreteTreeAutomaton.reduceTopDown();
-                                decompositionAutomata.add(concreteTreeAutomaton);
+                                concreteTreeAutomaton = (ConcreteTreeAutomaton<State>)concreteTreeAutomaton.reduceTopDown();
+                                concreteDecompositionAutomata.add(concreteTreeAutomaton);
+                                decompositionPackages.add(decompositionPackage);
+                                originalDecompositionAutomata.add(auto);
 //                                if (concreteTreeAutomaton.getNumberOfRules() < 30) {
 //                                    System.err.println(concreteTreeAutomaton);
 //                                    System.err.println();
@@ -535,10 +526,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
         ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
 
-        for (TreeAutomaton dataAutomaton : decompositionAutomata) {
+        for (TreeAutomaton<State> dataAutomaton : concreteDecompositionAutomata) {
             Map<Rule, Rule> rulesMapForThisAuto = new HashMap<>();
             dataRuleToGrammarRule.add(rulesMapForThisAuto);
-            for (Rule dataRule : (Iterable<Rule>)dataAutomaton.getRuleSet()) {
+            for (Rule dataRule : dataAutomaton.getRuleSet()) {
                 List<String> children = new ArrayList<>();
                 for (int child : dataRule.getChildren()) {
                     children.add(dummyState);
@@ -568,11 +559,52 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
         System.out.println(grammarAutomaton);
 
-        grammarAutomaton.trainEM(decompositionAutomata, dataRuleToGrammarRule, grammarRuleToDataRules, 1000, 0.00001, false, null);
+        grammarAutomaton.trainEM(concreteDecompositionAutomata, dataRuleToGrammarRule, grammarRuleToDataRules, 1000, 0.00001, false, null);
 
         System.out.println(grammarAutomaton);
 
+        List<AmConllSentence> outputCorpus = new ArrayList<>();
+        Iterator<DecompositionPackage> decompositionPackageIterator = decompositionPackages.iterator();
+        Iterator<SourceAssignmentAutomaton> originalAutomataIterator = originalDecompositionAutomata.iterator();
 
+        for (TreeAutomaton<SourceAssignmentAutomaton.State> dataAutomaton : concreteDecompositionAutomata) {
+            Tree<String> viterbiTree = dataAutomaton.viterbi();
+            DecompositionPackage decompositionPackage = decompositionPackageIterator.next();
+            outputCorpus.add(originalAutomataIterator.next().tree2amConll(viterbiTree, decompositionPackage, supertagDictionary));
+        }
+
+        AmConllSentence.writeToFile(corpusOutPath, outputCorpus);
+
+        System.out.println("Entropy in amconll file: " + SupertagEntropy.computeSupertagEntropy(outputCorpus));
+    }
+
+
+    private AmConllSentence tree2amConll(Tree<String> tree, DecompositionPackage decompositionPackage, SupertagDictionary supertagDictionary) throws ParserException {
+        AmConllSentence sentenceToAddTo = decompositionPackage.makeBaseAmConllSentence();
+        addTreeToAmConllAndReturnHeadIndex(tree, decompositionPackage, sentenceToAddTo, supertagDictionary);
+        return sentenceToAddTo;
+    }
+
+    private int addTreeToAmConllAndReturnHeadIndex(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
+                                                          AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
+        List<Tree<String>> children = treeToAdd.getChildren();
+        String label = treeToAdd.getLabel();
+        if (children.size() == 2) {
+            int headID = addTreeToAmConllAndReturnHeadIndex(children.get(0), decompositionPackage, sentenceToAddTo, supertagDictionary);
+            int childID = addTreeToAmConllAndReturnHeadIndex(children.get(1), decompositionPackage, sentenceToAddTo, supertagDictionary);
+            AmConllEntry childEntry = sentenceToAddTo.get(childID-1);//careful, this get function is 0-based
+            childEntry.setHead(headID);
+            childEntry.setEdgeLabel(label);
+            return headID;
+        } else if (children.size() == 0) {
+            Pair<SGraph, Type> asGraph = new ApplyModifyGraphAlgebra().parseString(label);
+            int wordID = position2wordID.get(run(treeToAdd).iterator().next().position);
+            AmConllWithSourcesCreator.setSupertag(asGraph.left, asGraph.right, decompositionPackage, wordID,
+                    sentenceToAddTo, supertagDictionary);
+            return wordID;
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package de.saar.coli.amtools.decomposition;
 
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 
 /**
@@ -19,13 +20,12 @@ public abstract class DecompositionPackage {
     public abstract AmConllSentence makeBaseAmConllSentence();
 
     /**
-     * For a sub-s-graph, return the corresponding value to be filled into the lexical label column
-     * of the AmConll file. In particular, for a formalism where the node labels are not just the words of
-     * the sentence, use the label of the lexical node.
+     * For a sub-s-graph, return the corresponding lexical node, that is, the node which should be delaxicalized in the
+     * supertag, and whose label should fill the "lexical label" column in the amconll file.
      * @param graphFragment
      * @return
      */
-    public abstract String getLexLabelFromGraphFragment(SGraph graphFragment);
+    public abstract GraphNode getLexNodeFromGraphFragment(SGraph graphFragment);
 
     /**
      * For a sub-s-graph of the full graph, return the position (1-based!) of the word that the graph

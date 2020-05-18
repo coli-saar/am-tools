@@ -6,6 +6,7 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.simple.Sentence;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
@@ -62,8 +63,8 @@ public class SDPDecompositionPackage extends DecompositionPackage {
     }
 
     @Override
-    public String getLexLabelFromGraphFragment(SGraph graphFragment) {
-        return graphFragment.getNode(graphFragment.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME)).getLabel();
+    public GraphNode getLexNodeFromGraphFragment(SGraph graphFragment) {
+        return graphFragment.getNode(graphFragment.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME));
     }
 
     @Override

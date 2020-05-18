@@ -9,6 +9,7 @@ import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.AMDependencyTree;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.Counter;
 import org.eclipse.collections.impl.factory.Sets;
@@ -167,14 +168,7 @@ public class AmConllWithSourcesCreator {
      */
     private void addDepToAmConllRecursive(AMDependencyTree dep, AmConllSentence sent, Map<String, String> old2newSource,
                                                  DecompositionPackage decompositionPackage, SourceAssigner sourceAssigner) {
-        String rootNodeName = dep.getHeadGraph().left.getNodeForSource("root");
         int id = decompositionPackage.getSentencePositionForGraphFragment(dep.getHeadGraph().left);
-        AmConllEntry headEntry = sent.get(id-1);
-        if (!rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
-            headEntry.setLexLabel(decompositionPackage.getLexLabelFromGraphFragment(dep.getHeadGraph().left));
-        }
-        dep.getHeadGraph().left.addNode(rootNodeName, AmConllEntry.LEX_MARKER);//modifies the label in the original graph
-
         //sort children by word order in sentence
         List<Pair<String, AMDependencyTree>> sortedOpsAndChildren = dep.getOperationsAndChildren().stream().sorted(new Comparator<Pair<String, AMDependencyTree>>() {
             @Override
@@ -183,6 +177,7 @@ public class AmConllWithSourcesCreator {
                         decompositionPackage.getSentencePositionForGraphFragment(o2.right.getHeadGraph().left));
             }
         }).collect(Collectors.toList());
+        String rootNodeName = dep.getHeadGraph().left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
         for (Pair<String, AMDependencyTree> opAndChild : sortedOpsAndChildren) {
             int childId = decompositionPackage.getSentencePositionForGraphFragment(opAndChild.right.getHeadGraph().left);
             String newSource;
@@ -241,11 +236,37 @@ public class AmConllWithSourcesCreator {
                 System.err.println(dep);
             }
         }
-        dep.getHeadGraph().left.setEqualsMeansIsomorphy(true);
-        String delexSupertag = supertagDictionary.getRepr(dep.getHeadGraph().left);
-        supertagCounter.add(dep.getHeadGraph().right.toString() + " | " + delexSupertag);
+        //supertagCounter.add(dep.getHeadGraph().right.toString() + " | " + delexSupertag);
+        setSupertag(dep.getHeadGraph().left, dep.getHeadGraph().right, decompositionPackage, id, sent, supertagDictionary);
+    }
+
+    /**
+     * sets a supertag (consisting of graph and type) to be the supertag in the given sentenceToAddTo at position
+     * wordID.
+     * @param graph
+     * @param type
+     * @param decompositionPackage
+     * @param wordID 1-based
+     * @param sentenceToAddTo
+     */
+    public static void setSupertag(SGraph graph, ApplyModifyGraphAlgebra.Type type, DecompositionPackage decompositionPackage,
+                                   int wordID, AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) {
+        String rootNodeName = graph.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
+        if (rootNodeName == null) {
+            throw new IllegalArgumentException("As-graph does not have root.");
+        }
+        AmConllEntry headEntry = sentenceToAddTo.get(wordID-1);
+        if (!rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
+            GraphNode lexNode = decompositionPackage.getLexNodeFromGraphFragment(graph);
+            if (lexNode != null) {
+                headEntry.setLexLabel(lexNode.getLabel());
+                lexNode.setLabel(AmConllEntry.LEX_MARKER);
+            }
+        }
+        graph.setEqualsMeansIsomorphy(true);
+        String delexSupertag = supertagDictionary.getRepr(graph);
         headEntry.setDelexSupertag(delexSupertag);
-        headEntry.setType(dep.getHeadGraph().right);
+        headEntry.setType(type);
     }
 
     private static void changeSourceInHeadGraph(AMDependencyTree dep, String oldSource, String newSource) {
