@@ -159,7 +159,7 @@ public class ToSDPCorpus {
             if (grW != null) {
                 grW.close();
             }
-
+            // If you want to print something, please do so AFTER this block.
             if (goldReader != null) {
                 System.out.println("Labeled Scores");
                 System.out.println("Precision " + scorer.getPrecision());
