@@ -408,8 +408,8 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
     public static void main(String[] args) throws Exception {
         String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.sdp";
-        String corpusOutPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\devEM.amconll";
-        int nrSources = 3;
+        String corpusOutPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.amconll";
+        int nrSources = 2;
 
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
@@ -424,7 +424,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
         Graph sdpGraph;
 
-        List<TreeAutomaton> concreteDecompositionAutomata = new ArrayList<>();
+        List<TreeAutomaton<?>> concreteDecompositionAutomata = new ArrayList<>();
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
@@ -519,6 +519,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
         ConcreteTreeAutomaton<String> grammarAutomaton = new ConcreteTreeAutomaton<>();
         String dummyState = "X";
+        grammarAutomaton.addFinalState(grammarAutomaton.addState(dummyState));
         Random random = new Random();
         List<Map<Rule, Rule>> dataRuleToGrammarRule = new ArrayList<>();
         ListMultimap<Rule, Rule> grammarRuleToDataRules = ArrayListMultimap.create();
@@ -526,7 +527,8 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
         ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
 
-        for (TreeAutomaton<State> dataAutomaton : concreteDecompositionAutomata) {
+        double ruleSum = 0;
+        for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
             Map<Rule, Rule> rulesMapForThisAuto = new HashMap<>();
             dataRuleToGrammarRule.add(rulesMapForThisAuto);
             for (Rule dataRule : dataAutomaton.getRuleSet()) {
@@ -544,10 +546,16 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                 }
 
                 Rule grammarRule = grammarAutomaton.createRule(dummyState, grammarLabel, children, random.nextDouble());
+                ruleSum += grammarRule.getWeight();
                 rulesMapForThisAuto.put(dataRule, grammarRule);
                 grammarRuleToDataRules.put(grammarRule, dataRule);//can just do it like this, if same grammar rule shows up multiple times, the ListMultimap will keep multiple entries
                 grammarAutomaton.addRule(grammarRule);
             }
+        }
+
+        //normalize rule weights, or else EM won't work right
+        for (Rule grammarRule : grammarRuleToDataRules.keySet()) {
+            grammarRule.setWeight(grammarRule.getWeight()/ruleSum);
         }
 
         //need to give data automata the same weights
@@ -559,7 +567,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
         System.out.println(grammarAutomaton);
 
-        grammarAutomaton.trainEM(concreteDecompositionAutomata, dataRuleToGrammarRule, grammarRuleToDataRules, 1000, 0.00001, false, null);
+        Pair<Integer, Double> iterationAndDiff = grammarAutomaton.trainEM(concreteDecompositionAutomata,
+                dataRuleToGrammarRule, grammarRuleToDataRules, 100, 0.0001, true, null);
+
+        System.out.println("EM stopped after iteration "+iterationAndDiff.left+" with difference "+iterationAndDiff.right);
 
         System.out.println(grammarAutomaton);
 
@@ -567,7 +578,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         Iterator<DecompositionPackage> decompositionPackageIterator = decompositionPackages.iterator();
         Iterator<SourceAssignmentAutomaton> originalAutomataIterator = originalDecompositionAutomata.iterator();
 
-        for (TreeAutomaton<SourceAssignmentAutomaton.State> dataAutomaton : concreteDecompositionAutomata) {
+        for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
             Tree<String> viterbiTree = dataAutomaton.viterbi();
             DecompositionPackage decompositionPackage = decompositionPackageIterator.next();
             outputCorpus.add(originalAutomataIterator.next().tree2amConll(viterbiTree, decompositionPackage, supertagDictionary));
@@ -579,7 +590,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     }
 
 
-    private AmConllSentence tree2amConll(Tree<String> tree, DecompositionPackage decompositionPackage, SupertagDictionary supertagDictionary) throws ParserException {
+    public AmConllSentence tree2amConll(Tree<String> tree, DecompositionPackage decompositionPackage, SupertagDictionary supertagDictionary) throws ParserException {
         AmConllSentence sentenceToAddTo = decompositionPackage.makeBaseAmConllSentence();
         addTreeToAmConllAndReturnHeadIndex(tree, decompositionPackage, sentenceToAddTo, supertagDictionary);
         return sentenceToAddTo;
