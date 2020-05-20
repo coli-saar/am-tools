@@ -5,18 +5,24 @@ GOLD_SDP=$1
 JAVA_OPTIONS=${JAVA_OPTIONS:--Xmx4G}
 THREADS=${THREADS:-2}
 
+# prepwork
+
 rm -f /tmp/typecache.dat
 
+for corpus in "${@:2}" # all except first
+do
+    mkdir -p $corpus
+    rm -f $corpus/eval.tsv
+done	      
+
+
+# parsing
 
 for heuristic in ignore_aware static trivial
 do
-
-
     for corpus in "${@:2}" # all except first
     do
 	csv=${corpus//\//_}.csv
-	mkdir -p $corpus
-	rm -f $corpus/eval.tsv
 
 	output=$($JAVA_HOME/bin/java $JAVA_OPTIONS -cp build/libs/am-tools.jar de.saar.coli.amtools.astar.Astar --print-data -s $CORPUS_BASE/$corpus/scores.zip --typecache /tmp/typecache.dat --threads $THREADS --outside-estimator $heuristic --statistics $corpus/$heuristic.csv -o $corpus )
 	last_line=${output##*$'\n'}
