@@ -2,8 +2,8 @@
 
 CORPUS_BASE=${CORPUS_BASE:-/proj/irtg.shadow}
 GOLD_SDP=$1
-JAVA_OPTIONS=-Xmx4G
-THREADS=2
+JAVA_OPTIONS=${JAVA_OPTIONS:--Xmx4G}
+THREADS=${THREADS:-2}
 
 rm -f /tmp/typecache.dat
 
