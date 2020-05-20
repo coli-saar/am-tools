@@ -28,7 +28,7 @@ if [ ! -f $SMATCH ]; then
 fi
 
 if [ ! -f "$output_dir/goldAMR.txt" ]; then
-    echo "Output directory '$outdir' does not contain goldAMR.txt; please copy it there first."
+    echo "Output directory '$outdir_dir' does not contain goldAMR.txt; please copy it there first."
     exit 2
 fi
 

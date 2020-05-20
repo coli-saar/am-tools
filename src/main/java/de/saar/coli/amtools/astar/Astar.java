@@ -465,6 +465,9 @@ public class Astar {
         @Parameter(names = "--log-to-stderr", description = "Write log messages to stderr instead of logfile")
         private boolean logToStderr = false;
 
+        @Parameter(names = "--print-data", description = "Write the relevant data in the last line")
+        private boolean printAmConll = false;
+
         @Parameter(names = "--help", help = true)
         private boolean help = false;
 
@@ -502,6 +505,10 @@ public class Astar {
 
         public File getLogFile() {
             return resolveOutputFilename("log_" + timestamp + ".txt");
+        }
+
+        public boolean isPrintAmConll() {
+            return printAmConll;
         }
 
         public File getStatisticsFile() {
@@ -716,6 +723,15 @@ public class Astar {
 
         // write parsed corpus to output file
         AmConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);
+
+        if( arguments.isPrintAmConll() ) {
+            System.out.printf(Locale.ROOT, "%f\t%.1f\t%.1f\t%s\n",
+                    totalParsingTimeNs.longValue() / 1.e9,
+                    ((double) totalDequeuedItems.longValue())/totalWords.longValue(),
+                    ((double) totalDequeuedSupertags.longValue())/totalWords.longValue(),
+                    arguments.getOutFile().getAbsolutePath()
+                    );
+        }
     }
 
     /**
