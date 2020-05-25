@@ -30,7 +30,7 @@ done
 
 for heuristic in ignore_aware static trivial
 do
-    for corpus in "${@:2}" # all except first
+    for corpus in "${@:4}" # all except first
     do
 	csv=${corpus//\//_}.csv
 
