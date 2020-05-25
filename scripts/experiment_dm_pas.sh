@@ -1,6 +1,9 @@
 #! /bin/bash
 
-CORPUS_BASE=${CORPUS_BASE:-/proj/irtg.shadow}
+# ./scripts/experiment_dm_pas.sh <gold_sdp> <directories_with_scores.zip>
+
+
+CORPUS_BASE=${CORPUS_BASE:-.} # could be /proj/irtg.shadow, but that confuses the script
 GOLD_SDP=$1
 JAVA_OPTIONS=${JAVA_OPTIONS:--Xmx4G}
 THREADS=${THREADS:-2}
@@ -8,6 +11,7 @@ THREADS=${THREADS:-2}
 # prepwork
 
 rm -f /tmp/typecache.dat
+HOSTNAME=`hostname`
 
 for corpus in "${@:2}" # all except first
 do
@@ -29,8 +33,9 @@ do
 	amconll=$(echo "$last_line"|cut -f4)
 
 	eval=$(./scripts/evaluate_dm_pas.sh $amconll out $GOLD_SDP|grep "F "|head -1)
-	f=$(echo "$eval"|cut -f2)
-	echo -e "$corpus\t$heuristic\t$f\t$last_line" >> $corpus/eval.tsv
+	f=$(echo "$eval"|cut -f2 -d " ")
+	echo -e "$corpus\t$HOSTNAME\t$heuristic\t$f\t$last_line" >> $corpus/eval.tsv
+	exit 0
     done
 done
 
