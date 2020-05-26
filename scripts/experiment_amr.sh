@@ -4,10 +4,12 @@
 #
 # e.g.: ./scripts/experiment_amr.sh ../am-parser/downloaded_models/wordnet3.0/dict EMNLP20/AMR-2015/lookup EMNLP20/AMR-2015/test EMNLP20/AMR-2015/test/*_amr15
 
-
-CORPUS_BASE=${CORPUS_BASE:-.} # could be /proj/irtg.shadow, but that confuses the script
+# change these variables away from their default values by setting them explicitly,
+# e.g. THREADS=10 ./scripts/experiment_amr.sh ...
+CORPUS_BASE=${CORPUS_BASE:-.}
 JAVA_OPTIONS=${JAVA_OPTIONS:--Xmx4G}
 THREADS=${THREADS:-2}
+LIMIT_ITEMS=${LIMIT_ITEMS:-0}
 
 WORDNET=$1
 LOOKUP=$2
@@ -34,13 +36,10 @@ do
     do
 	csv=${corpus//\//_}.csv
 
-	output=$($JAVA_HOME/bin/java $JAVA_OPTIONS -cp build/libs/am-tools.jar de.saar.coli.amtools.astar.Astar --print-data -s $CORPUS_BASE/$corpus/scores.zip --typecache $CORPUS_BASE/$corpus/typecache.dat --threads $THREADS --outside-estimator $heuristic --statistics $corpus/$heuristic.csv -o $corpus )
-#	output=`echo -e "95.396228\t52.0\t2.3\tEMNLP20/AMR-2015/results_2020-05-09_10.57.15.amconll"`
+	output=$($JAVA_HOME/bin/java $JAVA_OPTIONS -cp build/libs/am-tools.jar de.saar.coli.amtools.astar.Astar --print-data -s $CORPUS_BASE/$corpus/scores.zip --typecache $CORPUS_BASE/$corpus/typecache.dat --limit-items $LIMIT_ITEMS --threads $THREADS --outside-estimator $heuristic --statistics $corpus/$heuristic.csv -o $corpus )
+
 	last_line=${output##*$'\n'}
-	amconll=$(echo "$last_line"|cut -f4)
-	echo $amconll
-#	exit 0
-	
+	amconll=$(echo "$last_line"|cut -f5)
 	eval=$(./scripts/evaluate_amr.sh $WORDNET $LOOKUP $OUTDIR $amconll|grep "F-score: "|head -1)
 	f=$(echo "$eval"|cut -f2 -d " ")
 	
