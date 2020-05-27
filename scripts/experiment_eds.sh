@@ -53,7 +53,6 @@ do
 	edm=$(grep F1-score $output_prefix.edm.txt|head -1|cut -f2 -d " ")
 	
 	echo -e "$corpus\t$HOSTNAME\t$heuristic\t$smatch\t$edm\t$last_line" >> $corpus/eval.tsv
-	exit 0 # AKAKAK
     done
 done
 
