@@ -52,7 +52,7 @@ java -Xmx2G -cp $AM_TOOLS de.saar.coli.amrtagging.formalisms.eds.tools.EvaluateC
 # Compute Smatch
 echo ""
 echo "Compute Smatch score ..."
-python2 $SMATCH -f "$output_prefix.amr.txt" "$gold_prefix.amr.txt" --significant 4 --pr > $output_prefix.smatch.txt
+python2 $SMATCH -f "$output_prefix.amr.txt" "$gold_prefix.amr.txt"  --pr > $output_prefix.smatch.txt
 echo "Smatch score is in $output_prefix.smatch.txt"
 
 # file contents then look like this:
