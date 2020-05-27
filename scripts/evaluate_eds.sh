@@ -55,10 +55,15 @@ echo "Compute Smatch score ..."
 python2 $SMATCH -f "$output_prefix.amr.txt" "$gold_prefix.amr.txt"  --pr > $output_prefix.smatch.txt
 echo "Smatch score is in $output_prefix.smatch.txt"
 
-# file contents then look like this:
+# file contents then look like this (with smatch.py):
 # Precision: 0.87
 # Recall: 0.90
 # F-score: 0.88
+
+# or like this (with fast_smatch):
+# Precision: 0.857
+# Recall: 0.900
+# Document F-score: 0.878
 
 
 echo "Compute EDM score ..."

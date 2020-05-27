@@ -50,7 +50,7 @@ do
 	output_prefix="$CORPUS_BASE/$corpus/predictions_$heuristic"
 	./scripts/evaluate_eds.sh $output_prefix $GOLD_PREFIX $amconll
 	smatch=$(grep F-score $output_prefix.smatch.txt|cut -f2 -d " ")
-	edm=$(grep score $output_prefix.edm.txt|head -1|cut -f2 -d " ")
+	edm=$(grep F1-score $output_prefix.edm.txt|head -1|cut -f2 -d " ")
 	
 	echo -e "$corpus\t$HOSTNAME\t$heuristic\t$smatch\t$edm\t$last_line" >> $corpus/eval.tsv
     done
