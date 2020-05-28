@@ -30,7 +30,7 @@ do
 
 	output=$($JAVA_HOME/bin/java $JAVA_OPTIONS -cp build/libs/am-tools.jar de.saar.coli.amtools.astar.Astar --print-data -s $CORPUS_BASE/$corpus/scores.zip --typecache $CORPUS_BASE/$corpus/typecache.dat --threads $THREADS --outside-estimator $heuristic --statistics $corpus/$heuristic.csv -o $corpus )
 	last_line=${output##*$'\n'}
-	amconll=$(echo "$last_line"|cut -f4)
+	amconll=$(echo "$last_line"|cut -f5)
 
 	eval=$(./scripts/evaluate_psd.sh $amconll out $GOLD_SDP|grep "F "|head -1)
 	f=$(echo "$eval"|cut -f2 -d " ")
