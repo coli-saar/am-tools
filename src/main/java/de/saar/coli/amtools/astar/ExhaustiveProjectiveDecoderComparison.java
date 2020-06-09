@@ -326,7 +326,7 @@ public class ExhaustiveProjectiveDecoderComparison {
 
                                 w.record();
 
-                                Item goalItem = astar.process();
+                                Item goalItem = astar.process(-1);
                                 ParsingResult parsingResultAstar = astar.decode(goalItem);
 
                                 SGraph graph = parsingResult.evaluate().left;
