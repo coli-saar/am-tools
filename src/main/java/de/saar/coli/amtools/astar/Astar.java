@@ -69,6 +69,7 @@ public class Astar {
     private final Interner<SupertagWithType> supertagLexicon;
     private final Interner<String> edgeLabelLexicon;
     private final AMAlgebraTypeInterner typeLexicon;
+    private final boolean useRootAndIgnoreScores;
     private RuntimeStatistics runtimeStatistics = null;
     private final Int2IntMap supertagTypes;
     private Consumer<String> logger;
@@ -82,7 +83,9 @@ public class Astar {
             "ignore_aware", (tagp, edgep) -> new RootAndIgnoreAwareStaticEstimator(edgep, tagp)
             );
 
-    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<SupertagWithType> idToAsGraph, Interner<SupertagWithType> supertagLexicon, Interner<String> edgeLabelLexicon, AMAlgebraTypeInterner typeLexicon, String outsideEstimatorString) {
+    public Astar(EdgeProbabilities edgep, SupertagProbabilities tagp, Int2ObjectMap<SupertagWithType> idToAsGraph,
+                 Interner<SupertagWithType> supertagLexicon, Interner<String> edgeLabelLexicon,
+                 AMAlgebraTypeInterner typeLexicon, String outsideEstimatorString, boolean useRootAndIgnoreScores) {
         logger = (s) -> System.err.println(s);  // by default, log to stderr
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         w.record();
@@ -94,6 +97,7 @@ public class Astar {
         this.supertagLexicon = supertagLexicon;
         this.N = tagp.getLength();              // sentence length
         this.outsideEstimatorString = outsideEstimatorString;
+        this.useRootAndIgnoreScores = useRootAndIgnoreScores;
 
         w.record();
         this.typeLexicon = typeLexicon;
@@ -125,7 +129,7 @@ public class Astar {
         return runtimeStatistics;
     }
 
-    private Item process() {
+    Item process() {
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
         long numDequeuedSupertags = 0;
@@ -299,7 +303,12 @@ public class Astar {
     }
     
     private Item makeGoalItem(Item almostGoalItem) {
-        double rootProb = edgep.get(0, almostGoalItem.getRoot(), edgep.getRootEdgeId());
+        double rootProb;
+        if (useRootAndIgnoreScores) {
+            rootProb = edgep.get(0, almostGoalItem.getRoot(), edgep.getRootEdgeId());
+        } else {
+            rootProb = 0.0;
+        }
         Item goalItem = new Item(almostGoalItem.getStart()-1, almostGoalItem.getEnd()-1, almostGoalItem.getRoot(), almostGoalItem.getType(), almostGoalItem.getLogProb() + rootProb);
         goalItem.setOutsideEstimate(0);
         goalItem.setCreatedByOperation(-1, almostGoalItem, null);
@@ -317,7 +326,13 @@ public class Astar {
             return null;
         }
 
-        double newItemCost = originalItem.getLogProb() + nullProb + ignoreProb;
+        double newItemCost;
+        if (useRootAndIgnoreScores) {
+            newItemCost = originalItem.getLogProb() + nullProb + ignoreProb;
+        } else {
+            newItemCost = originalItem.getLogProb() + nullProb;
+        }
+
         Item itemAfterSkip = new Item(newStart, newEnd, originalItem.getRoot(), originalItem.getType(), newItemCost);
         itemAfterSkip.setOutsideEstimate(outside.evaluate(itemAfterSkip));
         itemAfterSkip.setCreatedByOperation(-1, originalItem, null); // -1 is arbitrary, the thing that counts is that right=null
@@ -628,7 +643,7 @@ public class Astar {
                     try {
                         w.record();
 
-                        astar = new Astar(scoreReader.getEdgeProbabilities().get(ii), tagp.get(ii), scoreReader.getIdToSupertag(), scoreReader.getSupertagLexicon(), scoreReader.getEdgeLabelLexicon(), typeLexicon, arguments.outsideEstimatorString);
+                        astar = new Astar(scoreReader.getEdgeProbabilities().get(ii), tagp.get(ii), scoreReader.getIdToSupertag(), scoreReader.getSupertagLexicon(), scoreReader.getEdgeLabelLexicon(), typeLexicon, arguments.outsideEstimatorString, true);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
 

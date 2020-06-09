@@ -17,18 +17,20 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.TreeAutomaton;
+import de.up.ling.irtg.automata.WeightedTree;
+import de.up.ling.irtg.automata.condensed.CondensedIntersectionAutomaton;
+import de.up.ling.irtg.automata.condensed.CondensedNondeletingInverseHomAutomaton;
 import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.irtg.hom.Homomorphism;
 import de.up.ling.irtg.signature.Signature;
 import static de.up.ling.irtg.util.Util.gensym;
+
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import de.up.ling.tree.TreeBottomUpVisitor;
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
-import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -98,7 +100,12 @@ public class Parser {
             for (int k = 0; k<Math.min(maxK, tAndPs.size()); k++) {
                 AnnotatedSupertag tAndP = tAndPs.get(k);
                 if (!tAndP.isNull()) {
-                    types[i].addAll(new Type(tAndP.type).getAllSubtypes());
+                    try {
+                        types[i].addAll(new Type(tAndP.type).getAllSubtypes());
+                    } catch (IllegalArgumentException ex) {
+                        System.err.println("**WARNING**");
+                        ex.printStackTrace();
+                    }
                 }
             }
         }
@@ -135,13 +142,19 @@ public class Parser {
                     }
                     String fullGraphString = Util.raw2readable(fAndP.graphAndTypeString()).replace(DependencyExtractor.LEX_MARKER, Util.raw2readable(label));
                     int head = i;
-                    String nt = head+"|"+new Type(fAndP.type).toString();//to make strings consistent with method below
-                    String ruleLabel = gensym("const_"+i+"__");
-                    ruleLabel2tag.put(ruleLabel, fAndP.graphAndTypeString());
-                    grammarAuto.addRule(grammarAuto.createRule(nt, ruleLabel, new String[0], Math.pow(fAndP.probability, tagExponent)));
-                    min = Math.min(min, Math.pow(fAndP.probability, tagExponent));
-                    graphHom.add(ruleLabel, Tree.create(fullGraphString, new Tree[0]));
-                    stringHom.add(ruleLabel, Tree.create(sentInternal.get(i), new Tree[0]));
+                    try {
+                        String nt = head + "|" + new Type(fAndP.type).toString();//to make strings consistent with method below
+                        String ruleLabel = gensym("const_" + i + "__");
+                        ruleLabel2tag.put(ruleLabel, fAndP.graphAndTypeString());
+                        grammarAuto.addRule(grammarAuto.createRule(nt, ruleLabel, new String[0], Math.pow(fAndP.probability, tagExponent)));
+                        min = Math.min(min, Math.pow(fAndP.probability, tagExponent));
+                        graphHom.add(ruleLabel, Tree.create(fullGraphString, new Tree[0]));
+                        stringHom.add(ruleLabel, Tree.create(sentInternal.get(i), new Tree[0]));
+                    } catch (IllegalArgumentException ex) {
+                        System.err.println("**WARNING**");
+                        ex.printStackTrace();
+                        continue;
+                    }
                 } else {
                     //then we add an IGNORE rule
                     foundNull = true;
@@ -338,26 +351,77 @@ public class Parser {
         return new Pair(Math.pow(pos2prob.get(second), exponent)*factor, true);
     }
     
-    public Pair<Pair<SGraph, Tree<String>>, Double> run() throws ParserException {
-        Object input = irtg.getInterpretation("string").getAlgebra().parseString(sentInternal.stream().collect(Collectors.joining(" ")));
-        TreeAutomaton<String> auto = (TreeAutomaton) irtg.parseSimple("string", input);
-        auto.makeAllRulesExplicit();
+    public ParsingResult run() throws ParserException {
+        return run(Long.MAX_VALUE);//no time limit
+    }
+
+    /**
+     *
+     * @param maxItemsInIrtgIntersection
+     * @return
+     * @throws ParserException
+     * @throws IllegalStateException when seeing more items in intersection than given by argument.
+     */
+    public ParsingResult run(long maxItemsInIrtgIntersection) throws IllegalStateException {
+        StringAlgebra stringAlgebra = (StringAlgebra)irtg.getInterpretation("string").getAlgebra();
+        List<String> input = stringAlgebra.parseString(sentInternal.stream().collect(Collectors.joining(" ")));
+//        if (maxMS <= 0) {
+        //auto = (CondensedIntersectionAutomaton)irtg.parseSimple("string", input);
+        TreeAutomaton decomp = stringAlgebra.decompose(input);
+        CondensedNondeletingInverseHomAutomaton invhom = new CondensedNondeletingInverseHomAutomaton(decomp, irtg.getInterpretation("string").getHomomorphism());
+        CondensedIntersectionAutomaton intersectionAutomaton = new CondensedIntersectionAutomaton(irtg.getAutomaton(), invhom);
+        intersectionAutomaton.setItemLimit(maxItemsInIrtgIntersection);
+        intersectionAutomaton.makeAllRulesExplicit();
+        WeightedTree viterbiWeightedTree = intersectionAutomaton.viterbiRaw();
+//        } else {
+//            try {
+//                // https://stackoverflow.com/questions/37421681/how-to-interrupt-a-function-call-in-java
+//                auto = CompletableFuture.supplyAsync(() -> {
+//                    CpuTimeStopwatch watch = new CpuTimeStopwatch();
+//                    watch.record();
+//                    TreeAutomaton<String> autoInside = (TreeAutomaton) irtg.parseSimple("string", input);
+//                    autoInside.makeAllRulesExplicit();
+//                    watch.record();
+//                    autoInside.viterbi();//to get time measure right
+//                    timeNs.set(watch.getTimeBefore(1));
+//                    return autoInside;
+//                }).get(maxMS, TimeUnit.MILLISECONDS);
+//                vit = auto.viterbi();
+//            } catch (ExecutionException | InterruptedException e) {
+//                throw new RuntimeException(e);
+//            } catch (TimeoutException e) {
+//                System.err.println("Parsing sentence canceled after " + maxMS + "ms.");
+//                System.err.println("Canceled sentence (internal format): " + sentInternal.stream().collect(Collectors.joining(" ")));
+//                timeNs.set(new Double(maxMS*1.e6).longValue());//if we failed due to timeout, set time as timeout value
+//            }
+//        }
         //System.err.println(auto);
-        Tree<String> vit = auto.viterbi();
-        if (vit == null) {
-            return new Pair(UNPARSEABLE_GRAPH, null);
+        if (viterbiWeightedTree == null) {
+            return new ParsingResult(UNPARSEABLE_GRAPH, null, Double.NaN);
         } else {
+            Tree<String> vit = intersectionAutomaton.getSignature().resolve(viterbiWeightedTree.getTree());
             try {
                 SGraph ret = ((Pair<SGraph, Type>)irtg.getInterpretation("graph").interpret(vit)).left;
-                double score = auto.getWeight(vit);
-                return new Pair(new Pair(ret, vit), score);
+                double score = viterbiWeightedTree.getWeight();
+                return new ParsingResult(ret, vit, score);
             } catch (java.lang.Exception ex) {
                 System.err.println("Evaluation in algebra failed!");
                 System.err.println(de.up.ling.irtg.util.Util.getStackTrace(ex));
                 System.err.println(vit);
                 //System.err.println(irtg); // probably not smart to always print the full IRTG
-                return new Pair(new Pair(FAILED_EVAL_GRAPH, null), 0);
+                return new ParsingResult(FAILED_EVAL_GRAPH, null, 0);
             }
+        }
+    }
+
+    public static class ParsingResult {
+        public final SGraph graph;
+        public final Tree<String> tree;
+        public final double prob;
+        public ParsingResult(SGraph graph, Tree<String> tree, double prob) {
+            this.graph = graph;
+            this.tree = tree;
+            this.prob = prob;
         }
     }
 

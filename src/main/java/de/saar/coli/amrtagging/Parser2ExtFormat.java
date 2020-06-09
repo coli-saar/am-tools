@@ -266,12 +266,12 @@ public class Parser2ExtFormat {
                                 sent, p2ext.k, p2ext.edgeExponent, p2ext.edgeFactor, p2ext.tagExponent,
                                 p2ext.addNull, p2ext.addEdges, stringAlg);
 
-                        Pair<Pair<SGraph, Tree<String>>, Double> graphAndVit = parser.run();
+                        Parser.ParsingResult graphAndVit = parser.run();
                         
                         
-                        SGraph graph = graphAndVit.left.left;
-                        Tree<String> vit = graphAndVit.left.right;
-                        double score = graphAndVit.right;
+                        SGraph graph = graphAndVit.graph;
+                        Tree<String> vit = graphAndVit.tree;
+                        double score = graphAndVit.prob;
                         
                         watch.record();
                         
