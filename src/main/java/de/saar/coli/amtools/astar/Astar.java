@@ -129,7 +129,8 @@ public class Astar {
         return runtimeStatistics;
     }
 
-    Item process() {
+	
+    Item process(int limitDequeuedItems) {
         CpuTimeStopwatch w = new CpuTimeStopwatch();
         long numDequeuedItems = 0;
         long numDequeuedSupertags = 0;
@@ -170,8 +171,6 @@ public class Astar {
 
                         if(debug) {
                             System.err.printf("Enqueue at %d: %s\t%s\t%s\n", i_final, supertagLexicon.resolveId(supertagId), typeLexicon.resolveID(type), it);
-
-//                            if( )
                         }
 
                     }
@@ -180,7 +179,6 @@ public class Astar {
         }
 
         // iterate over agenda
-        int j = 0;
         while (!agenda.isEmpty()) {
             Item it = agenda.dequeue();
 
@@ -192,6 +190,10 @@ public class Astar {
             }
 
             numDequeuedItems++;
+            if( (limitDequeuedItems > 0) && (numDequeuedItems > limitDequeuedItems) ) {
+                // Break A* search off with failure after dequeueing limitDequeuedItems items.
+                throw new RuntimeException("Broke off parsing after reaching item limit.");
+            }
 
             if( it.isCreatedBySupertag() ) {
                 numDequeuedSupertags++;
@@ -289,8 +291,6 @@ public class Astar {
                 //System.err.println(" --> goal: " + goalItem);
                 agenda.enqueue(goalItem);
             }
-
-            j += 1;
         }
 
         w.record();
@@ -480,6 +480,12 @@ public class Astar {
         @Parameter(names = "--log-to-stderr", description = "Write log messages to stderr instead of logfile")
         private boolean logToStderr = false;
 
+        @Parameter(names = "--print-data", description = "Write the relevant data in the last line")
+        private boolean printAmConll = false;
+
+        @Parameter(names = {"--limit-items", "-L"}, description = "Break off A* search unsuccessfully after dequeueing this many items")
+        private int limitItems = -1;
+
         @Parameter(names = "--help", help = true)
         private boolean help = false;
 
@@ -517,6 +523,14 @@ public class Astar {
 
         public File getLogFile() {
             return resolveOutputFilename("log_" + timestamp + ".txt");
+        }
+
+        public boolean isPrintAmConll() {
+            return printAmConll;
+        }
+
+        public int getLimitItems() {
+            return limitItems;
         }
 
         public File getStatisticsFile() {
@@ -630,6 +644,7 @@ public class Astar {
         final MutableLong totalWords = new MutableLong(0);
         final MutableLong totalDequeuedItems = new MutableLong(0);
         final MutableLong totalDequeuedSupertags = new MutableLong(0);
+        final MutableLong totalFailed = new MutableLong(0);
         final List<RuntimeStatistics> allRuntimeStatistics = new ArrayList<>();
 
         for (int i : sentenceIndices) { // loop over corpus
@@ -658,7 +673,7 @@ public class Astar {
 
                         w.record();
 
-                        Item goalItem = astar.process();
+                        Item goalItem = astar.process(arguments.getLimitItems());
                         parsingResult = astar.decode(goalItem);
                         w.record();
                     } catch (Throwable e) {
@@ -671,6 +686,8 @@ public class Astar {
 
                         if (parsingResult != null) {
                             sent.setDependenciesFromAmTerm(parsingResult.amTerm, parsingResult.leafOrderToStringOrder);
+                        } else {
+                            totalFailed.incValue(1);
                         }
 
                         w.record();
@@ -686,11 +703,17 @@ public class Astar {
                                     w.getMillisecondsBefore(3));
                             logW.flush();
 
-                            totalParsingTimeNs.incValue(w.getTimeBefore(1) + w.getTimeBefore(2) + w.getTimeBefore(3));
-                            totalWords.incValue(astar.getRuntimeStatistics().getSentenceLength());
-                            totalDequeuedItems.incValue(astar.getRuntimeStatistics().getNumDequeuedItems());
-                            totalDequeuedSupertags.incValue(astar.getRuntimeStatistics().getNumDequeuedSupertags());
-                            allRuntimeStatistics.add(astar.getRuntimeStatistics());
+                            if( astar.getRuntimeStatistics() != null ) {
+                                // Never report statistics for failed parses. This means that all downstream
+                                // statistics will be based on fewer values than the total number of test instances.
+                                // Maybe report statistics for failures better?
+
+                                totalParsingTimeNs.incValue(w.getTimeBefore(1) + w.getTimeBefore(2) + w.getTimeBefore(3));
+                                totalWords.incValue(astar.getRuntimeStatistics().getSentenceLength());
+                                totalDequeuedItems.incValue(astar.getRuntimeStatistics().getNumDequeuedItems());
+                                totalDequeuedSupertags.incValue(astar.getRuntimeStatistics().getNumDequeuedSupertags());
+                                allRuntimeStatistics.add(astar.getRuntimeStatistics());
+                            }
                         }
 
                         synchronized (pb) {
@@ -726,11 +749,22 @@ public class Astar {
         }
 
         System.out.printf(Locale.ROOT, "Total parsing time: %f seconds.\n", totalParsingTimeNs.longValue() / 1.e9);
+        System.out.printf(Locale.ROOT, "Total failed sentences: %d.\n", totalFailed.longValue());
         System.out.printf(Locale.ROOT, "Total dequeued items: %d (%.1f per token).\n", totalDequeuedItems.longValue(), ((double) totalDequeuedItems.longValue())/totalWords.longValue());
         System.out.printf(Locale.ROOT, "Total dequeued supertags: %d (%.1f per token).\n", totalDequeuedSupertags.longValue(), ((double) totalDequeuedSupertags.longValue())/totalWords.longValue());
 
         // write parsed corpus to output file
         AmConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);
+
+        if( arguments.isPrintAmConll() ) {
+            System.out.printf(Locale.ROOT, "%f\t%.1f\t%.1f\t%d\t%s\n",
+                    totalParsingTimeNs.longValue() / 1.e9,
+                    ((double) totalDequeuedItems.longValue())/totalWords.longValue(),
+                    ((double) totalDequeuedSupertags.longValue())/totalWords.longValue(),
+                    totalFailed.longValue(),
+                    arguments.getOutFile().getAbsolutePath()
+                    );
+        }
     }
 
     /**

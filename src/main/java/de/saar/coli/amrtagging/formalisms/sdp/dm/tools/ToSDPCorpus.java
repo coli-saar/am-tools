@@ -178,7 +178,7 @@ public class ToSDPCorpus {
                 System.out.println("Recall " + scorer.getSemanticFramesRecall());
                 System.out.println("F " + scorer.getSemanticFramesF1());
             }
-             System.out.printf("Total time: AM evaluation %fs, conversion to evaluator %fs, f-score evaluation %fs.\n", graphTimeNs / 1000000000.0, conversionTimeNs / 1000000000.0, evaluationTimeNs / 1000000000.0);
+//             System.out.printf("Total time: AM evaluation %fs, conversion to evaluator %fs, f-score evaluation %fs.\n", graphTimeNs / 1000000000.0, conversionTimeNs / 1000000000.0, evaluationTimeNs / 1000000000.0);
 
         }
     }

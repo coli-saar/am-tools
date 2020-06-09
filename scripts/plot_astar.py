@@ -19,7 +19,7 @@ with open(filename,'r') as csvfile:
     next(plots) # skip header
     
     for row in plots:
-        values.append( (int(row[0]), int(row[1])) )
+        values.append( (int(row[0]), int(row[3])/1000000.0) )
 
 sorted_values = sorted(values, key=lambda x:x[0])
 grouped_values = [(k, list(list(zip(*g))[1])) for k, g in groupby(sorted_values, itemgetter(0))]
@@ -28,7 +28,7 @@ x, means, stds = zip(*grouped_values)
         
 plt.figure()
 plt.clf()
-#plt.yscale('log')
+plt.yscale('log')
 #plt.ylim([0,2000])
 plt.errorbar(x, means, stds, linestyle='None', marker='^')
 
