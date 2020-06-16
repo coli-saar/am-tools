@@ -3,10 +3,12 @@ package de.saar.coli.amtools.analysis;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AmConllComparator {
 
@@ -88,11 +90,13 @@ public class AmConllComparator {
             for (int wordIndex = 0; wordIndex < sent1.size(); wordIndex++) {
                 if (!sent1.get(wordIndex).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
                     totalNonIgnoreEdges1++;
-                    sent1Pairs.add(Set.of(wordIndex+1, sent1.get(wordIndex).getHead()));
+                    Integer[] arr = {wordIndex+1, sent1.get(wordIndex).getHead()};
+                    sent1Pairs.add(Arrays.stream(arr).collect(Collectors.toSet()));
                 }
                 if (!sent2.get(wordIndex).getEdgeLabel().equals(AmConllEntry.IGNORE)) {
                     totalNonIgnoreEdges2++;
-                     sent2Pairs.add(Set.of(wordIndex+1, sent2.get(wordIndex).getHead()));
+                    Integer[] arr = {wordIndex+1, sent2.get(wordIndex).getHead()};
+                    sent2Pairs.add(Arrays.stream(arr).collect(Collectors.toSet()));
                 }
             }
             
