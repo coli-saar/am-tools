@@ -336,6 +336,12 @@ public class AllDependencyChanges {
 
     private void printComparisons() {
         System.out.println("DM-PAS DM-PSD PAS-PSD");
+        double dmPasUndirectedF = AmConllComparator.getUndirectedF(intersectedDepsDM, intersectedDepsPAS);
+        double dmPsdUndirectedF = AmConllComparator.getUndirectedF(intersectedDepsDM, intersectedDepsPSD);
+        double psdPasUndirectedF = AmConllComparator.getUndirectedF(intersectedDepsPSD, intersectedDepsPAS);
+        System.out.println(String.format("%.1f",dmPasUndirectedF*100)+"     "+String.format("%.1f",dmPsdUndirectedF*100)
+                +"     "+String.format("%.1f",psdPasUndirectedF*100)+ "   undirected F");
+        
         double dmPasUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPAS, false, false);
         double dmPsdUnlabeledF = AmConllComparator.getF(intersectedDepsDM, intersectedDepsPSD, false, false);
         double psdPasUnlabeledF = AmConllComparator.getF(intersectedDepsPSD, intersectedDepsPAS, false, false);
