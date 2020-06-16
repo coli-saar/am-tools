@@ -60,25 +60,31 @@ public class CountLoopsAndDoubleEdges {
         int doubleEdges = 0; //number of cases where there are multiple edges between two nodes.
         
         for (AmConllSentence s: sentences){
-            AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
-            SGraph evaluatedGraph = amdep.evaluate(true);
-            if (cli.psdPost || cli.psdPostACL19){
-                evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils(), cli.psdPostACL19); 
-            }
-            
-            //loops
-            
-            for (GraphEdge e : evaluatedGraph.getGraph().edgeSet()){
-                if (e.getSource().getName().equals(e.getTarget().getName())) loops++;
-            }
-            
-            //multiple edges between same nodes
-            for (GraphNode n : evaluatedGraph.getGraph().vertexSet()){
-                Set<GraphEdge> incomingEdges = evaluatedGraph.getGraph().incomingEdgesOf(n);
-                Set<String> nodesOfIncomingEdges = incomingEdges.stream().map(e -> e.getSource().getName()).collect(Collectors.toSet());
-                if (nodesOfIncomingEdges.size() < incomingEdges.size()){
-                    doubleEdges++;
+            try {
+               
+                AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
+                SGraph evaluatedGraph = amdep.evaluate(true);
+                if (cli.psdPost || cli.psdPostACL19){
+                    evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils(), cli.psdPostACL19); 
                 }
+
+                //loops
+
+                for (GraphEdge e : evaluatedGraph.getGraph().edgeSet()){
+                    if (e.getSource().getName().equals(e.getTarget().getName())) loops++;
+                }
+
+                //multiple edges between same nodes
+                for (GraphNode n : evaluatedGraph.getGraph().vertexSet()){
+                    Set<GraphEdge> incomingEdges = evaluatedGraph.getGraph().incomingEdgesOf(n);
+                    Set<String> nodesOfIncomingEdges = incomingEdges.stream().map(e -> e.getSource().getName()).collect(Collectors.toSet());
+                    if (nodesOfIncomingEdges.size() < incomingEdges.size()){
+                        doubleEdges++;
+                    }
+                }
+            } catch (Exception ex){
+                System.err.println("Ignoring a sentence because of exception:");
+                System.err.println(ex.getMessage());
             }
         }
         
