@@ -37,17 +37,17 @@ import java.util.*;
 public class SourceAutomataCLI {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.sdp file)")//, required = true)
-    private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\smallDev.sdp";
+    private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\sent1dev.pas.sdp";
 
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.sdp file)")//, required = true)
-    private String devCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
+    private String devCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\sent1dev.pas.sdp";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where amconll and supertag dictionary files are created")//, required = true)
-    private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\";
+    private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\pas\\";
 
 
     @Parameter(names = {"--corpusType", "-ct"}, description = "values can be DM, PAS or PSD, default is DM")//, required = true)
-    private String corpusType = "DM";
+    private String corpusType = "PAS";
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
     private int nrSources = 3;
@@ -58,8 +58,8 @@ public class SourceAutomataCLI {
     @Parameter(names = {"--difference"}, description = "difference in log likelihood for early EM stopping")//, required = true)
     private double difference = 0.1;
 
-    @Parameter(names = {"--algorithm", "-a"}, description = "currently only option is EM")//, required = true)
-    private String algorithm = "EM";
+    @Parameter(names = {"--algorithm", "-a"}, description = "options: EM, random, arbitraryViterbi")//, required = true)
+    private String algorithm = "arbitraryViterbi";
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -102,7 +102,7 @@ public class SourceAutomataCLI {
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
-        cli.processCorpus(gr, blobUtils, supertagDictionary, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
+        cli.processCorpus(gr, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
 
 
         //get automata for dev set
@@ -112,7 +112,7 @@ public class SourceAutomataCLI {
         List<SourceAssignmentAutomaton> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
-        cli.processCorpus(grDev, blobUtils, supertagDictionary, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
+        cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
 
         if (cli.algorithm.equals("EM")) {
 
@@ -203,16 +203,23 @@ public class SourceAutomataCLI {
         Iterator<SourceAssignmentAutomaton> originalAutomataIterator = originalDecompositionAutomata.iterator();
 
         for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
-            Tree<String> viterbiTree = dataAutomaton.viterbi();
+            Tree<String> chosenTree;
+            if (cli.algorithm.equals("EM") || cli.algorithm.equals("arbitraryViterbi")) {
+                chosenTree = dataAutomaton.viterbi();
+            } else if (cli.algorithm.equals("random")) {
+                chosenTree = dataAutomaton.getRandomTree();
+            } else {
+                throw new IllegalArgumentException("Algorithm must be EM, random or arbitraryViterbi");
+            }
             DecompositionPackage decompositionPackage = decompositionPackageIterator.next();
-            outputCorpus.add(originalAutomataIterator.next().tree2amConll(viterbiTree, decompositionPackage, supertagDictionary));
+            outputCorpus.add(originalAutomataIterator.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
         }
 
         System.out.println("Entropy in train.amconll file: " + SupertagEntropy.computeSupertagEntropy(outputCorpus));
 
-        File trainPath = Paths.get(cli.outPath,"train").toFile();
+        File trainPath = Paths.get(cli.outPath).toFile(); //,"train"
         trainPath.mkdirs();
-        String amConllOutPath = Paths.get(cli.outPath,"train", "train.amconll").toString();
+        String amConllOutPath = Paths.get(cli.outPath, "train.amconll").toString();//,"train"
         AmConllSentence.writeToFile(amConllOutPath, outputCorpus);
 
         //write dev set
@@ -221,22 +228,29 @@ public class SourceAutomataCLI {
         Iterator<SourceAssignmentAutomaton> originalAutomataIteratorDev = originalDecompositionAutomataDev.iterator();
 
         for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomataDev) {
-            Tree<String> viterbiTree = dataAutomaton.viterbi();
+            Tree<String> chosenTree;
+            if (cli.algorithm.equals("EM") || cli.algorithm.equals("arbitraryViterbi")) {
+                chosenTree = dataAutomaton.viterbi();
+            } else if (cli.algorithm.equals("random")) {
+                chosenTree = dataAutomaton.getRandomTree();
+            } else {
+                throw new IllegalArgumentException("Algorithm must be EM, random or arbitraryViterbi");
+            }
             DecompositionPackage decompositionPackage = decompositionPackageIteratorDev.next();
-            outputCorpusDev.add(originalAutomataIteratorDev.next().tree2amConll(viterbiTree, decompositionPackage, supertagDictionary));
+            outputCorpusDev.add(originalAutomataIteratorDev.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
         }
 
-        File devPath = Paths.get(cli.outPath,"gold-dev").toFile();
+        File devPath = Paths.get(cli.outPath).toFile();//,"gold-dev"
         devPath.mkdirs();
-        String amConllOutPathDev = Paths.get(cli.outPath,"gold-dev", "gold-dev.amconll").toString();
+        String amConllOutPathDev = Paths.get(cli.outPath, "dev.amconll").toString();//,"gold-dev"
         AmConllSentence.writeToFile(amConllOutPathDev, outputCorpusDev);
 
         //write supertag dictionary
-        String supertagDictionaryPath = Paths.get(cli.outPath,"train", "supertagDictionary.txt").toString();
+        String supertagDictionaryPath = Paths.get(cli.outPath, "supertagDictionary.txt").toString();//,"train"
         supertagDictionary.writeToFile(supertagDictionaryPath);
     }
 
-    private void processCorpus(GraphReader2015 gr, AMRBlobUtils blobUtils, SupertagDictionary supertagDictionary,
+    private void processCorpus(GraphReader2015 gr, AMRBlobUtils blobUtils,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
                                 List<DecompositionPackage> decompositionPackages) throws IOException {
 
@@ -256,7 +270,7 @@ public class SourceAutomataCLI {
                 MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
                 SGraph graph = inst.getGraph();
                 if (corpusType.equals("PSD")) {
-                    ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils);
+                    graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils);
                 }
 
 
@@ -279,7 +293,7 @@ public class SourceAutomataCLI {
 
                         if (graph.equals(resultGraph)) {
                             SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
-                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, supertagDictionary, decompositionPackage);
+                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, decompositionPackage);
                             ConcreteTreeAutomaton<SourceAssignmentAutomaton.State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
                             //System.out.println(result);

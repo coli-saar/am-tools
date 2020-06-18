@@ -31,19 +31,19 @@ import java.util.stream.Collectors;
 
 public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAutomaton.State> {
 
-    private final Map<IntList, Integer> position2wordID;
+    private final Map<String, Integer> constant2wordID;
     private final Map<IntList, List<String>> position2operations;
-    private final Map<String, List<SourceAssignmentAutomaton.State>> constant2states;
+    private final Map<String, SourceAssignmentAutomaton.State> constant2state;
 
     private final int headChildCount;
 
     private SourceAssignmentAutomaton(Signature signature,
-                                      Map<IntList, Integer> position2wordID,
-                                      Map<String, List<SourceAssignmentAutomaton.State>> constant2states,
+                                      Map<String, Integer> constant2wordID,
+                                      Map<String, SourceAssignmentAutomaton.State> constant2state,
                                       Map<IntList, List<String>> position2operations) {
         super(signature);
-        this.position2wordID = position2wordID;
-        this.constant2states = constant2states;
+        this.constant2wordID = constant2wordID;
+        this.constant2state = constant2state;
         this.position2operations = position2operations;
         this.headChildCount = position2operations.get(new IntArrayList()).size();
 
@@ -68,19 +68,26 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return new SourceAssignmentAutomaton(signature, null, null, null);
     }
 
+    /**
+     * assumes that all constants in the dependency tree are different from each other.
+     * @param dep
+     * @param nrSources
+     * @param decompositionPackage
+     * @return
+     */
     public static SourceAssignmentAutomaton makeAutomatonWithAllSourceCombinations(AMDependencyTree dep, int nrSources,
-                                                                                   SupertagDictionary supertagDictionary, DecompositionPackage decompositionPackage) {
+                                                                                   DecompositionPackage decompositionPackage) {
         Map<IntList, AMDependencyTree> position2dep = new HashMap<>();
-        Map<IntList, Integer> position2wordID = new HashMap<>();
         Map<IntList, List<String>> position2operations = new HashMap<>();
-        sortRecursive(dep, position2dep, position2wordID, position2operations, new IntArrayList(), decompositionPackage);
+        sortRecursive(dep, position2dep, position2operations, new IntArrayList(), decompositionPackage);
 
         Signature signature = new Signature();
         for (int i = 0; i<nrSources; i++) {
             signature.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION+makeSource(i), 2);
             signature.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION+makeSource(i), 2);
         }
-        Map<String, List<SourceAssignmentAutomaton.State>> constant2states = new HashMap<>();
+        Map<String, SourceAssignmentAutomaton.State> constant2state = new HashMap<>();
+        Map<String, Integer> constant2wordID = new HashMap<>();
 
         for (Map.Entry<IntList, AMDependencyTree> entry : position2dep.entrySet()) {
             Pair<SGraph, Type> graph = entry.getValue().getHeadGraph();
@@ -107,16 +114,21 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                     }
                 }
                 Pair<SGraph, Type> constant = new Pair<>(newSGraph, newType);
-                String label = supertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
+                String label = constant.left.toIsiAmrStringWithSources() + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
                 signature.addSymbol(label, 0);
                 State state = new State(entry.getKey(), 0, sourceAssignment);
-                if (!constant2states.containsKey(label)) {
-                    constant2states.put(label, new ArrayList<>());
+                if (constant2state.containsKey(label)) {
+                    throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
                 }
-                constant2states.get(label).add(state);
+                constant2state.put(label, state);
+                if (constant2wordID.containsKey(label)) {
+                    throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
+                }
+                constant2wordID.put(label, decompositionPackage.getSentencePositionForGraphFragment(constant.left));
+
             }
         }
-        return new SourceAssignmentAutomaton(signature, position2wordID, constant2states, position2operations);
+        return new SourceAssignmentAutomaton(signature, constant2wordID, constant2state, position2operations);
     }
 
 
@@ -147,10 +159,9 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return "S"+i;
     }
 
-    private static void sortRecursive(AMDependencyTree depToSort, Map<IntList, AMDependencyTree> position2dep, Map<IntList, Integer> position2wordID,
+    private static void sortRecursive(AMDependencyTree depToSort, Map<IntList, AMDependencyTree> position2dep,
                                       Map<IntList, List<String>> position2operations, IntList position, DecompositionPackage decompositionPackage) {
         position2dep.put(position, depToSort);
-        position2wordID.put(position, decompositionPackage.getSentencePositionForGraphFragment(depToSort.getHeadGraph().left));
         List<String> operationsHere = new ArrayList<>();
         position2operations.put(position, operationsHere);
         List<Pair<String, AMDependencyTree>> childrenList = new ArrayList<>(depToSort.getOperationsAndChildren());
@@ -165,7 +176,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             operationsHere.add(opAndChild.left);
             IntList childPosition = new IntArrayList(position);
             childPosition.add(index);
-            sortRecursive(opAndChild.right, position2dep, position2wordID, position2operations, childPosition, decompositionPackage);
+            sortRecursive(opAndChild.right, position2dep, position2operations, childPosition, decompositionPackage);
             index++;
         }
     }
@@ -195,14 +206,11 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             }
         } else if (childStates.length == 0) {
 
-
-            return constant2states.get(signature.resolveSymbolId(labelId)).stream().map(state ->
-                    {
-                        if (state.position.isEmpty() && state.childrenProcessed == headChildCount) {
-                            addFinalState(addState(state));
-                        }
-                        return createRule(addState(state), labelId, childStates, 1.0);
-                    }).collect(Collectors.toList());
+            State state = constant2state.get(signature.resolveSymbolId(labelId));
+            if (state.position.isEmpty() && state.childrenProcessed == headChildCount) {
+                addFinalState(addState(state));
+            }
+            return Collections.singleton(createRule(addState(state), labelId, childStates, 1.0));
         } else {
             throw new IllegalArgumentException();
         }
@@ -460,7 +468,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
                         if (graph.equals(resultGraph)) {
                             SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
-                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, supertagDictionary, decompositionPackage);
+                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, decompositionPackage);
                             ConcreteTreeAutomaton<State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
                             //System.out.println(result);
@@ -609,7 +617,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
             return headID;
         } else if (children.size() == 0) {
             Pair<SGraph, Type> asGraph = new ApplyModifyGraphAlgebra().parseString(label);
-            int wordID = position2wordID.get(run(treeToAdd).iterator().next().position);
+            int wordID = constant2wordID.get(treeToAdd.getLabel());
             AmConllWithSourcesCreator.setSupertag(asGraph.left, asGraph.right, decompositionPackage, wordID,
                     sentenceToAddTo, supertagDictionary);
             return wordID;
