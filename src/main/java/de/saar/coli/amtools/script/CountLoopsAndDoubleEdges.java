@@ -62,6 +62,7 @@ public class CountLoopsAndDoubleEdges {
         
         int loops = 0; //number of cases where there is an edge from a node N to node N.
         int doubleEdges = 0; //number of cases where there are multiple edges between two nodes.
+        int totalEdges = 0;
         
         for (AmConllSentence s: sentences){
             try {
@@ -75,6 +76,7 @@ public class CountLoopsAndDoubleEdges {
                 //loops
 
                 for (GraphEdge e : evaluatedGraph.getGraph().edgeSet()){
+                    totalEdges++;
                     if (e.getSource().getName().equals(e.getTarget().getName())) loops++;
                 }
                 
@@ -107,6 +109,7 @@ public class CountLoopsAndDoubleEdges {
         
         System.out.println("Self-Loops: "+loops);
         System.out.println("Pairs of nodes with multiple edges between them: "+doubleEdges);
+        System.out.println("Total edges: "+totalEdges);
        
         
     }
