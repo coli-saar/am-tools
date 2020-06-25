@@ -390,11 +390,20 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         }
 
         @Override
+        /**
+         * This is designed to for each State create a unique string (and always the same string for equal states).
+         */
         public String toString() {
+            List<String> sourceAssignmentKeysSorted = new ArrayList<>(sourceAssignments.keySet());
+            sourceAssignmentKeysSorted.sort(Comparator.naturalOrder());
+            StringJoiner stringJoiner = new StringJoiner(",");
+            for (String key : sourceAssignmentKeysSorted) {
+                stringJoiner.add(key+"=>"+sourceAssignments.get(key));
+            }
             return "["+position.toString() +
                     "(" + childrenProcessed + ")" +
-                    ", " + sourceAssignments
-                    +"]";
+                    ", {" + stringJoiner.toString()
+                    +"}]";
         }
 
         @Override

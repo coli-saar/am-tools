@@ -18,6 +18,7 @@ import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.AMDependencyTree;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
@@ -37,20 +38,20 @@ import java.util.*;
 public class SourceAutomataCLI {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.sdp file)")//, required = true)
-    private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\sent1dev.pas.sdp";
+    private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
 
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.sdp file)")//, required = true)
-    private String devCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\sent1dev.pas.sdp";
+    private String devCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where amconll and supertag dictionary files are created")//, required = true)
-    private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\pas\\";
+    private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\";
 
 
     @Parameter(names = {"--corpusType", "-ct"}, description = "values can be DM, PAS or PSD, default is DM")//, required = true)
-    private String corpusType = "PAS";
+    private String corpusType = "DM";
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
-    private int nrSources = 3;
+    private int nrSources = 1;
 
     @Parameter(names = {"--iterations"}, description = "max number of EM iterations")//, required = true)
     private int iterations = 100;
@@ -58,8 +59,9 @@ public class SourceAutomataCLI {
     @Parameter(names = {"--difference"}, description = "difference in log likelihood for early EM stopping")//, required = true)
     private double difference = 0.1;
 
-    @Parameter(names = {"--algorithm", "-a"}, description = "options: EM, random, arbitraryViterbi")//, required = true)
-    private String algorithm = "arbitraryViterbi";
+    //TODO document what each option does
+    @Parameter(names = {"--algorithm", "-a"}, description = "options: EM, random, arbitraryViterbi, automata")//, required = true)
+    private String algorithm = "automata";
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -114,140 +116,209 @@ public class SourceAutomataCLI {
 
         cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
 
-        if (cli.algorithm.equals("EM")) {
 
-            ConcreteTreeAutomaton<String> grammarAutomaton = new ConcreteTreeAutomaton<>();
-            String dummyState = "X";
-            grammarAutomaton.addFinalState(grammarAutomaton.addState(dummyState));
-            Random random = new Random();
-            List<Map<Rule, Rule>> dataRuleToGrammarRule = new ArrayList<>();
-            ListMultimap<Rule, Rule> grammarRuleToDataRules = ArrayListMultimap.create();
-            SupertagDictionary grammarSupertagDictionary = new SupertagDictionary();
-
+        if (cli.algorithm.equals("automata")) {
             ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
+            for (int i = 0; i<originalDecompositionAutomata.size(); i++) {
+                SourceAssignmentAutomaton decomp = originalDecompositionAutomata.get(i);
+                DecompositionPackage decompositionPackage = decompositionPackages.get(i);
+
+                Map<SourceAssignmentAutomaton.State, Integer> stateToWordPosition = new HashMap<>();
+                ConcreteTreeAutomaton<String> fakeIRTGAutomaton = new ConcreteTreeAutomaton<>();
+
+                decomp.processAllRulesBottomUp(rule -> {
+                    if (rule.getArity() == 0) {
+                        try {
+                            // we want a new rule format
+                            // state.toString() -> wordPosition_supertag
+                            // which is, below, parent.toString() -> newRuleLabel
+                            String oldRuleLabel = rule.getLabel(decomp);
+                            Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(oldRuleLabel);
+                            int wordPosition = decompositionPackage.getSentencePositionForGraphFragment(constant.left);
+                            SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
+                            // obtain delexicalized graph fragment
+                            GraphNode lexicalNode = decompositionPackage.getLexNodeFromGraphFragment(constant.left);
+                            lexicalNode.setLabel(AmConllEntry.LEX_MARKER);
+                            String newRuleLabel = wordPosition+"_"
+                                    + constant.left.toIsiAmrStringWithSources()+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
+                            //add rule to new automaton, with array of size 0 for children
+                            fakeIRTGAutomaton.addRule(fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel, new String[0]));
+                            // add entry to state-to-word-position map
+                            stateToWordPosition.put(parent, wordPosition);
+                        } catch (ParserException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else if (rule.getArity() == 2) {
+                        // we want a new rule format
+                        // state.toString() -> i_j_oldRuleLabel(state0.toString(), state1.toString())
+                        // where below state = parent, state0 = child0, state1 = child1
+                        // and i = child0 wordPosition, j = child1 wordPosition
+                        SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
+                        SourceAssignmentAutomaton.State child0 = decomp.getStateForId(rule.getChildren()[0]);
+                        SourceAssignmentAutomaton.State child1 = decomp.getStateForId(rule.getChildren()[1]);
+                        int wordPosition0 = stateToWordPosition.get(child0);
+                        int wordPosition1 = stateToWordPosition.get(child1);
+                        int parentWordPosition = wordPosition0; // in AM operations, the left child is the head, and this rule reflects that.
+                        // add entry to state-to-word-position map
+                        stateToWordPosition.put(parent, parentWordPosition);
+                        // make and add new rule to new automaton
+                        String newRuleLabel = wordPosition0+"_"+wordPosition1+"_"+rule.getLabel(decomp);
+                        fakeIRTGAutomaton.addRule(fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel,
+                                new String[]{child0.toString(), child1.toString()}));
+                    } else {
+                        System.err.println("uh-oh, rule arity was "+rule.getArity());
+                    }
+                });
+
+                // transfer final states over to new automaton
+                for (int finalStateID : decomp.getFinalStates()) {
+                    // a whole lot of converting IDs and states and strings..
+                    fakeIRTGAutomaton.addFinalState(fakeIRTGAutomaton.getIdForState(decomp.getStateForId(finalStateID).toString()));
+                }
+
+                System.out.println(fakeIRTGAutomaton);
+                System.out.println(fakeIRTGAutomaton.viterbi());
+
+            }
+
+        } else {
+
+
+            if (cli.algorithm.equals("EM")) {
+
+                ConcreteTreeAutomaton<String> grammarAutomaton = new ConcreteTreeAutomaton<>();
+                String dummyState = "X";
+                grammarAutomaton.addFinalState(grammarAutomaton.addState(dummyState));
+                Random random = new Random();
+                List<Map<Rule, Rule>> dataRuleToGrammarRule = new ArrayList<>();
+                ListMultimap<Rule, Rule> grammarRuleToDataRules = ArrayListMultimap.create();
+                SupertagDictionary grammarSupertagDictionary = new SupertagDictionary();
+
+                ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
+
+                for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
+                    Map<Rule, Rule> rulesMapForThisAuto = new HashMap<>();
+                    dataRuleToGrammarRule.add(rulesMapForThisAuto);
+                    for (Rule dataRule : dataAutomaton.getRuleSet()) {
+                        List<String> children = new ArrayList<>();
+                        for (int child : dataRule.getChildren()) {
+                            children.add(dummyState);
+                        }
+                        String grammarLabel = dataRule.getLabel(dataAutomaton);
+                        // delexicalize the constants in grammar, for now assuming that the root is the lexical label.
+                        if (dataRule.getArity() == 0) {
+                            Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(grammarLabel);
+                            String nodeName = constant.left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME); //TODO make this use the decomposition package
+                            constant.left.getNode(nodeName).setLabel(AmConllEntry.LEX_MARKER);
+                            grammarLabel = grammarSupertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
+                        }
+
+                        Rule grammarRule = grammarAutomaton.createRule(dummyState, grammarLabel, children, random.nextDouble());
+                        rulesMapForThisAuto.put(dataRule, grammarRule);
+                        grammarRuleToDataRules.put(grammarRule, dataRule);//can just do it like this, if same grammar rule shows up multiple times, the ListMultimap will keep multiple entries
+                        grammarAutomaton.addRule(grammarRule);
+                    }
+                }
+
+
+                System.out.println(grammarAutomaton);
+
+                MutableInteger iterationCounter = new MutableInteger();
+                ProgressListener listener = (currentValue, maxValue, string) -> {
+                    if (currentValue == 1) {
+                        System.out.println("Starting EM iteration " + iterationCounter.getValue());
+                        iterationCounter.incValue();
+                    }
+                    if (currentValue % 1000 == 0) {
+                        System.out.println("E-step Automaton " + currentValue + "/" + maxValue);
+                    }
+                };
+
+                Pair<Integer, Double> iterationAndDiff = grammarAutomaton.trainEM(concreteDecompositionAutomata,
+                        dataRuleToGrammarRule, grammarRuleToDataRules, cli.iterations, cli.difference, false, listener);
+
+                System.out.println("EM stopped after iteration " + iterationAndDiff.left + " with difference " + iterationAndDiff.right);
+
+                System.out.println(grammarAutomaton);
+
+
+                Map<String, Rule> label2grammarRule = new HashMap<>();
+                for (Rule grammarRule : grammarAutomaton.getRuleSet()) {
+                    label2grammarRule.put(grammarRule.getLabel(grammarAutomaton), grammarRule);
+                }
+
+                // assign weights to dev set
+                for (TreeAutomaton<?> devAutomaton : concreteDecompositionAutomataDev) {
+                    for (Rule devRule : devAutomaton.getRuleSet()) {
+                        String label = devRule.getLabel(devAutomaton);
+                        if (devRule.getArity() == 0) {
+                            Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(label);
+                            String nodeName = constant.left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME); //TODO make this use the decomposition package
+                            constant.left.getNode(nodeName).setLabel(AmConllEntry.LEX_MARKER);
+                            label = grammarSupertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
+                        }
+                        if (label2grammarRule.containsKey(label)) {
+                            devRule.setWeight(label2grammarRule.get(label).getWeight());
+                        } else {
+                            devRule.setWeight(random.nextDouble());//just use random weight, don't matter too much
+                        }
+                    }
+                }
+            }
+
+
+            //write training set
+            List<AmConllSentence> outputCorpus = new ArrayList<>();
+            Iterator<DecompositionPackage> decompositionPackageIterator = decompositionPackages.iterator();
+            Iterator<SourceAssignmentAutomaton> originalAutomataIterator = originalDecompositionAutomata.iterator();
 
             for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
-                Map<Rule, Rule> rulesMapForThisAuto = new HashMap<>();
-                dataRuleToGrammarRule.add(rulesMapForThisAuto);
-                for (Rule dataRule : dataAutomaton.getRuleSet()) {
-                    List<String> children = new ArrayList<>();
-                    for (int child : dataRule.getChildren()) {
-                        children.add(dummyState);
-                    }
-                    String grammarLabel = dataRule.getLabel(dataAutomaton);
-                    // delexicalize the constants in grammar, for now assuming that the root is the lexical label.
-                    if (dataRule.getArity() == 0) {
-                        Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(grammarLabel);
-                        String nodeName = constant.left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME); //TODO make this use the decomposition package
-                        constant.left.getNode(nodeName).setLabel(AmConllEntry.LEX_MARKER);
-                        grammarLabel = grammarSupertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
-                    }
-
-                    Rule grammarRule = grammarAutomaton.createRule(dummyState, grammarLabel, children, random.nextDouble());
-                    rulesMapForThisAuto.put(dataRule, grammarRule);
-                    grammarRuleToDataRules.put(grammarRule, dataRule);//can just do it like this, if same grammar rule shows up multiple times, the ListMultimap will keep multiple entries
-                    grammarAutomaton.addRule(grammarRule);
+                Tree<String> chosenTree;
+                if (cli.algorithm.equals("EM") || cli.algorithm.equals("arbitraryViterbi")) {
+                    chosenTree = dataAutomaton.viterbi();
+                } else if (cli.algorithm.equals("random")) {
+                    chosenTree = dataAutomaton.getRandomTree();
+                } else {
+                    throw new IllegalArgumentException("Algorithm must be EM, random or arbitraryViterbi");
                 }
+                DecompositionPackage decompositionPackage = decompositionPackageIterator.next();
+                outputCorpus.add(originalAutomataIterator.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
             }
 
+            System.out.println("Entropy in train.amconll file: " + SupertagEntropy.computeSupertagEntropy(outputCorpus));
 
-            System.out.println(grammarAutomaton);
+            File trainPath = Paths.get(cli.outPath).toFile(); //,"train"
+            trainPath.mkdirs();
+            String amConllOutPath = Paths.get(cli.outPath, "train.amconll").toString();//,"train"
+            AmConllSentence.writeToFile(amConllOutPath, outputCorpus);
 
-            MutableInteger iterationCounter = new MutableInteger();
-            ProgressListener listener = (currentValue, maxValue, string) -> {
-                if (currentValue == 1) {
-                    System.out.println("Starting EM iteration "+iterationCounter.getValue());
-                    iterationCounter.incValue();
+            //write dev set
+            List<AmConllSentence> outputCorpusDev = new ArrayList<>();
+            Iterator<DecompositionPackage> decompositionPackageIteratorDev = decompositionPackagesDev.iterator();
+            Iterator<SourceAssignmentAutomaton> originalAutomataIteratorDev = originalDecompositionAutomataDev.iterator();
+
+            for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomataDev) {
+                Tree<String> chosenTree;
+                if (cli.algorithm.equals("EM") || cli.algorithm.equals("arbitraryViterbi")) {
+                    chosenTree = dataAutomaton.viterbi();
+                } else if (cli.algorithm.equals("random")) {
+                    chosenTree = dataAutomaton.getRandomTree();
+                } else {
+                    throw new IllegalArgumentException("Algorithm must be EM, random or arbitraryViterbi");
                 }
-                if (currentValue % 1000 == 0) {
-                    System.out.println("E-step Automaton " + currentValue + "/" + maxValue);
-                }
-            };
-
-            Pair<Integer, Double> iterationAndDiff = grammarAutomaton.trainEM(concreteDecompositionAutomata,
-                    dataRuleToGrammarRule, grammarRuleToDataRules, cli.iterations, cli.difference, false, listener);
-
-            System.out.println("EM stopped after iteration " + iterationAndDiff.left + " with difference " + iterationAndDiff.right);
-
-            System.out.println(grammarAutomaton);
-
-
-            Map<String, Rule> label2grammarRule = new HashMap<>();
-            for (Rule grammarRule : grammarAutomaton.getRuleSet()) {
-                label2grammarRule.put(grammarRule.getLabel(grammarAutomaton), grammarRule);
+                DecompositionPackage decompositionPackage = decompositionPackageIteratorDev.next();
+                outputCorpusDev.add(originalAutomataIteratorDev.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
             }
 
-            // assign weights to dev set
-            for (TreeAutomaton<?> devAutomaton : concreteDecompositionAutomataDev) {
-                for (Rule devRule : devAutomaton.getRuleSet()) {
-                    String label = devRule.getLabel(devAutomaton);
-                    if (devRule.getArity() == 0) {
-                        Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(label);
-                        String nodeName = constant.left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME); //TODO make this use the decomposition package
-                        constant.left.getNode(nodeName).setLabel(AmConllEntry.LEX_MARKER);
-                        label = grammarSupertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
-                    }
-                    if (label2grammarRule.containsKey(label)) {
-                        devRule.setWeight(label2grammarRule.get(label).getWeight());
-                    } else {
-                        devRule.setWeight(random.nextDouble());//just use random weight, don't matter too much
-                    }
-                }
-            }
+            File devPath = Paths.get(cli.outPath).toFile();//,"gold-dev"
+            devPath.mkdirs();
+            String amConllOutPathDev = Paths.get(cli.outPath, "dev.amconll").toString();//,"gold-dev"
+            AmConllSentence.writeToFile(amConllOutPathDev, outputCorpusDev);
+
+            //write supertag dictionary
+            String supertagDictionaryPath = Paths.get(cli.outPath, "supertagDictionary.txt").toString();//,"train"
+            supertagDictionary.writeToFile(supertagDictionaryPath);
         }
-
-
-        //write training set
-        List<AmConllSentence> outputCorpus = new ArrayList<>();
-        Iterator<DecompositionPackage> decompositionPackageIterator = decompositionPackages.iterator();
-        Iterator<SourceAssignmentAutomaton> originalAutomataIterator = originalDecompositionAutomata.iterator();
-
-        for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
-            Tree<String> chosenTree;
-            if (cli.algorithm.equals("EM") || cli.algorithm.equals("arbitraryViterbi")) {
-                chosenTree = dataAutomaton.viterbi();
-            } else if (cli.algorithm.equals("random")) {
-                chosenTree = dataAutomaton.getRandomTree();
-            } else {
-                throw new IllegalArgumentException("Algorithm must be EM, random or arbitraryViterbi");
-            }
-            DecompositionPackage decompositionPackage = decompositionPackageIterator.next();
-            outputCorpus.add(originalAutomataIterator.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
-        }
-
-        System.out.println("Entropy in train.amconll file: " + SupertagEntropy.computeSupertagEntropy(outputCorpus));
-
-        File trainPath = Paths.get(cli.outPath).toFile(); //,"train"
-        trainPath.mkdirs();
-        String amConllOutPath = Paths.get(cli.outPath, "train.amconll").toString();//,"train"
-        AmConllSentence.writeToFile(amConllOutPath, outputCorpus);
-
-        //write dev set
-        List<AmConllSentence> outputCorpusDev = new ArrayList<>();
-        Iterator<DecompositionPackage> decompositionPackageIteratorDev = decompositionPackagesDev.iterator();
-        Iterator<SourceAssignmentAutomaton> originalAutomataIteratorDev = originalDecompositionAutomataDev.iterator();
-
-        for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomataDev) {
-            Tree<String> chosenTree;
-            if (cli.algorithm.equals("EM") || cli.algorithm.equals("arbitraryViterbi")) {
-                chosenTree = dataAutomaton.viterbi();
-            } else if (cli.algorithm.equals("random")) {
-                chosenTree = dataAutomaton.getRandomTree();
-            } else {
-                throw new IllegalArgumentException("Algorithm must be EM, random or arbitraryViterbi");
-            }
-            DecompositionPackage decompositionPackage = decompositionPackageIteratorDev.next();
-            outputCorpusDev.add(originalAutomataIteratorDev.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
-        }
-
-        File devPath = Paths.get(cli.outPath).toFile();//,"gold-dev"
-        devPath.mkdirs();
-        String amConllOutPathDev = Paths.get(cli.outPath, "dev.amconll").toString();//,"gold-dev"
-        AmConllSentence.writeToFile(amConllOutPathDev, outputCorpusDev);
-
-        //write supertag dictionary
-        String supertagDictionaryPath = Paths.get(cli.outPath, "supertagDictionary.txt").toString();//,"train"
-        supertagDictionary.writeToFile(supertagDictionaryPath);
     }
 
     private void processCorpus(GraphReader2015 gr, AMRBlobUtils blobUtils,
