@@ -76,3 +76,6 @@ out/log_2020-01-29_17.24.36.txt
 .nb-gradle_backup/profiles/private/aux-config
 .idea/am-tools.iml
 .idea/compiler.xml
+examples/debugging_example_simplified.sdp
+examples/raised_spine_cycles_removed.amconll
+examples/raised_spine_cycles_removed_supertagDictionary.txt

@@ -211,12 +211,18 @@ public class DAGComponent {
     }
 
     public Tree<GraphNode> toTreeWithDuplicates() {
-        return toTreeWithDuplicatesRecursive(root);
+        return toTreeWithDuplicatesRecursive(root, new HashSet<>());
     }
 
-    private Tree<GraphNode> toTreeWithDuplicatesRecursive(DAGNode current) {
-        List<Tree<GraphNode>> childTrees = current.getChildren().stream()
-                .map(this::toTreeWithDuplicatesRecursive).collect(Collectors.toList());
+    private static Tree<GraphNode> toTreeWithDuplicatesRecursive(DAGNode current, Set<GraphNode> covered) {
+        List<Tree<GraphNode>> childTrees;
+        if (covered.contains(current.getNode())) {
+            childTrees = Collections.EMPTY_LIST;
+        } else {
+            covered.add(current.getNode());
+            childTrees = current.getChildren().stream()
+                    .map(child -> toTreeWithDuplicatesRecursive(child, covered)).collect(Collectors.toList());
+        }
         return Tree.create(current.getNode(), childTrees);
     }
 
