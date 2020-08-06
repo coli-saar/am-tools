@@ -11,14 +11,9 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -357,7 +352,10 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * @throws IOException
      */
     public static List<AmConllSentence> readFromFile(String filename) throws FileNotFoundException, IOException, ParseException {
-        return read(new FileReader(filename));
+        return read( new InputStreamReader(
+                new FileInputStream(filename),
+                Charset.forName("UTF-8").newDecoder()
+        ));
     }
     
     
