@@ -43,7 +43,7 @@ public abstract class DecompositionPackage {
      * @return
      */
     public String getTempSourceForNodeName(String nodeName)  {
-        return nodeName.replaceAll("_", "");
+        return "S"+nodeName.replaceAll("_", "");
     }
 
     /**

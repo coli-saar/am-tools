@@ -90,7 +90,7 @@ public class UCCADecompositionPackage extends DecompositionPackage{
 
     @Override
     public GraphNode getLexNodeFromGraphFragment(SGraph graphFragment) {
-        ArrayList<String> fragmentNodes = (ArrayList<String>) graphFragment.getAllNodeNames();
+        ArrayList<String> fragmentNodes = new ArrayList<>(graphFragment.getAllNodeNames());
         boolean hasLexNodes = fragmentNodes.retainAll(wordIds);
         assert(fragmentNodes.size() == 1);
         return sgraph.getNode(fragmentNodes.get(0));

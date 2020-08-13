@@ -14,6 +14,7 @@ import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
+import de.up.ling.tree.TokenMgrError;
 import de.up.ling.tree.Tree;
 import de.up.ling.tree.TreeBottomUpVisitor;
 import edu.stanford.nlp.util.Sets;
@@ -180,7 +181,7 @@ public class ComponentAnalysisToAMDep {
                     Pair<SGraph, ApplyModifyGraphAlgebra.Type> asGraph = new ApplyModifyGraphAlgebra().parseString(node2Constant(graphNode, graph));
                     asGraph.left.setEqualsMeansIsomorphy(false);//so that the AM dependency trees we use here keep track of node identity, which we need.
                     ret = new AMDependencyTree(asGraph);
-                } catch (ParserException e) {
+                } catch (ParserException | TokenMgrError e) {
                     e.printStackTrace();
                     ret=null;
                 }
