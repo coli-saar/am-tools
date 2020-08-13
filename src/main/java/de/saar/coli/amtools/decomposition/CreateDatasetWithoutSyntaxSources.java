@@ -197,6 +197,7 @@ public class CreateDatasetWithoutSyntaxSources {
             }
 
              */
+
             MRInstance inst = new MRInstance(sentence, graph, alignments);
             List<String> posTags = new ArrayList<String>();
             List<TaggedWord> mappedPosTags =  preprocData.getPosTags(id);
