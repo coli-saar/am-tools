@@ -103,12 +103,14 @@ public class AmConllWithSourcesCreator {
                     ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionPackage.getBlobUtils());
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
+                    System.out.println(result.toString());
 
                     // if multiple nodes in the graph belong to the same word
                     result = condenseNodesWithSameAlignment(result, decompositionPackage);
 
                     try {
                         SGraph resultGraph = result.evaluate().left;
+
                         resultGraph.removeNode("ART-ROOT");
 
                         graph.setEqualsMeansIsomorphy(false);

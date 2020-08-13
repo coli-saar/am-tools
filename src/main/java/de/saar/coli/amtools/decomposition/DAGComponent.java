@@ -78,7 +78,6 @@ public class DAGComponent {
 
     private void addRecursive(DAGNode node) {
         if (!allNodes.contains(node)) {
-            allNodes.add(node);
             graphNode2DAGNode.put(node.getNode(), node);
             for (DAGNode child : node.getChildren()) {
                 addRecursive(child);

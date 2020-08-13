@@ -2,14 +2,16 @@ package de.saar.coli.amtools.decomposition;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
-import de.saar.coli.amrtagging.mrp.ucca.NamedEntityMerger;
+import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.corpus.Corpus;
@@ -129,13 +131,15 @@ public class CreateDatasetWithoutSyntaxSources {
             }
         }
 
-        NamedEntityRecognizer neRecognizer;
+       /* NamedEntityRecognizer neRecognizer;
         if (cli.stanfordNerFilename != null) {
             neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), false);
         } else {
             neRecognizer = new UiucNamedEntityRecognizer(cli.uiucNerTagset);
         }
 
+
+        */
 
 
 
@@ -150,7 +154,8 @@ public class CreateDatasetWithoutSyntaxSources {
         List<SourceAssigner> sourceAssignerList = new ArrayList<>();
 
 
-        instances.parallelStream().forEach((Instance corpusInstance) -> {
+        //instances.parallelStream().forEach((Instance corpusInstance) -> {
+        for (Instance corpusInstance: corpus){
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
             String inputString = ((List<String>) corpusInstance.getInputObjects().get("input")).stream().collect(Collectors.joining(" "));
             String version = ((List<String>) corpusInstance.getInputObjects().get("version")).get(0);
@@ -184,26 +189,35 @@ public class CreateDatasetWithoutSyntaxSources {
 
 
             // merge named entities
-            NamedEntityMerger nemerger = new NamedEntityMerger(id, preprocData, neRecognizer);
+            /*NamedEntityMerger nemerger = new NamedEntityMerger(id, preprocData, neRecognizer);
 
             if (cli.mergeNamedEntities && neRecognizer != null) {
                 sentence = nemerger.merge(sentence);
                 alignments = nemerger.fixAlignments(alignments);
             }
 
-
+             */
             MRInstance inst = new MRInstance(sentence, graph, alignments);
-            List<String> mappedPosTags = nemerger.mapTags(de.up.ling.irtg.util.Util.mapToList(preprocData.getPosTags(id), TaggedWord::tag));
-            List<String> mappedLemmas = nemerger.mapTags(preprocData.getLemmas(id));
+            List<String> posTags = new ArrayList<String>();
+            List<TaggedWord> mappedPosTags =  preprocData.getPosTags(id);
+            for(TaggedWord posTag: mappedPosTags){
+                posTags.add(posTag.tag());
+            }
+
+            List<String> mappedLemmas = preprocData.getLemmas(id);
             List<CoreLabel> tokens = preprocData.getTokens(id); //Util.makeCoreLabelsForTokens(sentence);
             List<CoreLabel> netags = null;
 
+            /*
             try {
                 netags = neRecognizer.tag(tokens);
             } catch (PreprocessingException e) {
                 e.printStackTrace();
             }
             List<String> mappedNeTags = nemerger.mapTags(de.up.ling.irtg.util.Util.mapToList(netags, CoreLabel::ner));
+
+             */
+
 
             try {
                 inst.checkEverythingAligned();
@@ -216,7 +230,21 @@ public class CreateDatasetWithoutSyntaxSources {
 
             SGraph sgraph = inst.getGraph();
             graphCorpus.add(sgraph);
-            decompositionPackageList.add(new UCCADecompositionPackage(sgraph, inst, tokens, mappedPosTags, mappedLemmas, mappedNeTags));
+            Object[] UCCADecompositionPackageBundle = new Object[5];
+            UCCADecompositionPackageBundle[0] = sgraph;
+            UCCADecompositionPackageBundle[1] = inst;
+            UCCADecompositionPackageBundle[2] = tokens ;
+            UCCADecompositionPackageBundle[3] = posTags;
+            UCCADecompositionPackageBundle[4] = mappedLemmas;
+
+            AMRBlobUtils blobUtils;
+            blobUtils = new UCCABlobUtils();
+            decompositionPackageList.add(new UCCADecompositionPackage(UCCADecompositionPackageBundle, blobUtils));
+            List<GraphEdge> edges = new ArrayList<GraphEdge>(sgraph.getGraph().edgeSet());
+            sourceAssignerList.add(new OldSourceAssigner(edges));
+
+
+
 
 
             // case distinction: if a supertag dictionary path is given, use it and call dev version (since for creating the dev set, we use the training set supertag path)
@@ -225,11 +253,10 @@ public class CreateDatasetWithoutSyntaxSources {
             if (cli.vocab != null) {
                 try {
                     AmConllWithSourcesCreator.createDevCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, cli.vocab);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParserException e) {
+                } catch (IOException | ParserException e) {
                     e.printStackTrace();
                 }
+
             } else {
                 String supertagDictionaryPath = cli.outPath + "/" + cli.prefix + "_supertagDictionary.txt";
                 try {
@@ -240,6 +267,6 @@ public class CreateDatasetWithoutSyntaxSources {
 
             }
 
-        });
+        }
     }
 }

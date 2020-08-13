@@ -1,5 +1,6 @@
 package de.saar.coli.amtools.decomposition;
 
+import de.up.ling.irtg.algebra.graph.GraphEdge;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import se.liu.ida.nlp.sdp.toolkit.graph.Edge;
@@ -12,23 +13,24 @@ import java.util.regex.Pattern;
 public class OldSourceAssigner implements SourceAssigner{
     private final Map<IntSet, String> bestLabels;
 
-    public OldSourceAssigner(List<Edge> edges) {
+    public OldSourceAssigner(List<GraphEdge> edges) {
         bestLabels = new HashMap<>();
 
-        for (Edge e:edges) {
+        for (GraphEdge e:edges) {
             IntSet nodes = new IntOpenHashSet();
-            nodes.add(e.source);
-            nodes.add(e.target);
-            System.out.println("SOURCE");
-            System.out.println(e.source);
-            System.out.println("TARGET");
-            System.out.println(e.target);
-            System.out.println("EDGE LABEL");
-            System.out.println(e.label);
-            System.out.println("SOURCE NAME");
-            System.out.println(mapEdgeLabelToSource(e.label));
-            System.out.println("=======================================");
-            bestLabels.put(nodes, mapEdgeLabelToSource(e.label));
+            nodes.add(Integer.valueOf(e.getSource().getName()));
+            nodes.add(Integer.valueOf(e.getTarget().getName()));
+            //System.out.println(e.getLabel());
+            //System.out.println("SOURCE");
+            //System.out.println(e.getSource());
+            //System.out.println("TARGET");
+            //System.out.println(e.target);
+            //System.out.println("EDGE LABEL");
+            //System.out.println(e.label);
+            //System.out.println("SOURCE NAME");
+            //System.out.println(mapEdgeLabelToSource(e.label));
+            //System.out.println("=======================================");
+            bestLabels.put(nodes, mapEdgeLabelToSource(e.getLabel()));
         }
 
     }
