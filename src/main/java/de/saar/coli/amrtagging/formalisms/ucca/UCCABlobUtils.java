@@ -14,44 +14,65 @@ import de.up.ling.irtg.algebra.graph.SGraph;
  * @author JG
  */
 public class UCCABlobUtils extends AMRBlobUtils {
-     public static final String[] OUTBOUND_EDGES = new String[]{"C", "P", "S", "A", "N", "H", "L", "R", "LR", "LA"};
-    
-    
+    public static final String[] OUTBOUND_EDGES = new String[]{"C", "P", "S", "A", "N", "H", "L", "LR", "LA"};
+
+
     @Override
     public boolean isOutbound(GraphEdge edge) {
         //edge.getLabel()
         //throw new UnsupportedOperationException();
         //will this work??
         for (String regex : OUTBOUND_EDGES) {
-            if (edge.getLabel().matches(regex)) {
+            if (edge.getLabel().contains(regex)) {
                 return true;
             }
         }
-        return false;   
+        return false;
     }
-    
-    
+
+    public static String extractNumber(final String str) {
+
+        if(str == null || str.isEmpty()) return "";
+
+        StringBuilder sb = new StringBuilder();
+        boolean found = false;
+        for(char c : str.toCharArray()){
+            if(Character.isDigit(c)){
+                sb.append(c);
+                found = true;
+            } else if(found){
+                // If we already found a digit before and this char is not a digit, stop looping
+                break;
+            }
+        }
+
+        return sb.toString();
+    }
+
     @Override
     public String edge2Source(GraphEdge edge, SGraph graph){
-        if (edge.getLabel().equals("A") || edge.getLabel().equals("H")) {
-           return "a" ;
-        } else if(edge.getLabel().equals("C")) {
+        if (edge.getLabel().equals("A") || edge.getLabel().contains("H")) {
+            return "a" ;
+        } else if(edge.getLabel().contains("C")) {
             return "op";
-        } else if(edge.getLabel().equals("U")) {
-            return "pnct";
-        } else if(edge.getLabel().equals("F")) {
+        }else if(!extractNumber(edge.getLabel()).equals("")){
+            String suffix = extractNumber(edge.getLabel());
+            return "mod-" + suffix;
+        } else if(edge.getLabel().contains("F")) {
             return "aux";
-        } else { 
+        }else if(edge.getLabel().contains("U")) {
+            return "pnct";
+        } else {
             return "mod";
         }
-             
+
     }
-    
+
     @Override
     public boolean isConjEdgeLabel(String edgeLabel) {
         //throw new UnsupportedOperationException();
         return false;
-        
+
     }
 
     @Override
@@ -59,6 +80,6 @@ public class UCCABlobUtils extends AMRBlobUtils {
         //throw new UnsupportedOperationException();
         return false;
     }
-    
-    
+
+
 }

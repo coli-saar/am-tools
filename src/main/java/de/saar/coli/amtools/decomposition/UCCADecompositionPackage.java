@@ -1,11 +1,9 @@
 package de.saar.coli.amtools.decomposition;
 
-import de.saar.coli.amrtagging.Alignment;
-import de.saar.coli.amrtagging.AmConllEntry;
-import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
+import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.ling.CoreLabel;
@@ -13,18 +11,19 @@ import edu.stanford.nlp.simple.Sentence;
 
 import java.util.*;
 
-public class UCCADecompositionPackage extends DecompositionPackage{
+public class UCCADecompositionPackage extends DecompositionPackage {
+
+    public static final String[] orderedLexicalEdgeLabels = new String[]{"L", "P", "S", "N", "C", "A", "G", "R", "T", "D","U", "F", "H"};
+
     //private final static UCCABlobUtils blobUtils = new UCCABlobUtils();
     //private final AMRBlobUtils blobUtils;
 
 
     private final SGraph sgraph;
     private final MRInstance inst;
-    private final  List<CoreLabel> tokens;
+    private final List<CoreLabel> tokens;
     private final List<String> mappedPosTags;
     private final List<String> mappedLemmas;
-    //private final List<String> mappedNeTags;
-    public static ArrayList<String> wordIds;
     private final AMRBlobUtils blobUtils;
 
 
@@ -42,32 +41,49 @@ public class UCCADecompositionPackage extends DecompositionPackage{
     }
 
 
-
     @Override
     public AmConllSentence makeBaseAmConllSentence() {
         AmConllSentence sent = new AmConllSentence();
-        //for the word ids, we want all ids that correspond to lexical nodes
-        //ArrayList<String> wordIds = new ArrayList<>();
-
         List<Alignment> alignments = inst.getAlignments();
+        ArrayList<Integer> lexNodes = new ArrayList<>();
 
-        for (Alignment al: alignments){
+        for (Alignment al:alignments){
             for (String lexNode: al.lexNodes){
-                AmConllEntry amConllEntry = new AmConllEntry(Integer.parseInt(lexNode), sgraph.getSourceLabel(lexNode));
-                amConllEntry.setAligned(true);
-                amConllEntry.setHead(0);
-                amConllEntry.setEdgeLabel(AmConllEntry.IGNORE);
-                sent.add(amConllEntry);
-                wordIds.add(lexNode);
+                lexNodes.add(Integer.parseInt(lexNode));
             }
-
         }
 
-        sent.addLemmas(mappedLemmas);
-        sent.addPos(mappedPosTags);
-        //sent.addNEs(mappedNeTags);
+        Collections.sort(lexNodes);
 
 
+
+        System.out.println(alignments);
+
+        for (int lexNode : lexNodes) {
+            //System.out.println(lexNode);
+            //System.out.println(sgraph.getNode(String.valueOf(lexNode)));
+            //System.out.println("_______________________________");
+            AmConllEntry amConllEntry = new AmConllEntry(lexNode, sgraph.getNode(String.valueOf(lexNode)).toString());
+            amConllEntry.setAligned(true);
+            amConllEntry.setHead(0);
+            amConllEntry.setEdgeLabel(AmConllEntry.IGNORE);
+            sent.add(amConllEntry);
+        }
+
+
+
+
+
+
+        SizeFixer sizeFixer = new SizeFixer(mappedPosTags, tokens, mappedLemmas, sent.words());
+        Sentence stanfAn = new Sentence(inst.getSentence());
+        List<String> neTags = new ArrayList<>(stanfAn.nerTags());
+
+        List<List<String>> adjustedLemmasPosNe= sizeFixer.adjust(mappedPosTags, mappedLemmas, neTags);
+
+
+        sent.addLemmas(adjustedLemmasPosNe.get(0));
+        sent.addPos(adjustedLemmasPosNe.get(1));
 
 
         //artificial root. Is it necessary? UCCA graphs are already rooted.
@@ -80,29 +96,58 @@ public class UCCADecompositionPackage extends DecompositionPackage{
         artRoot.setLexLabel(AmConllEntry.LEMMA_PLACEHOLDER);
         sent.add(artRoot);
 
-        Sentence stanfAn = new Sentence(inst.getSentence());
-        List<String> neTags = new ArrayList<>(stanfAn.nerTags());
+        List<String> refinedNeTags = adjustedLemmasPosNe.get(2);
+        refinedNeTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
         neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        sent.addNEs(neTags);
+        System.out.println(refinedNeTags);
+        System.out.println(neTags);
+        sent.addNEs(refinedNeTags);
 
         return sent;
     }
 
     @Override
     public GraphNode getLexNodeFromGraphFragment(SGraph graphFragment) {
-        ArrayList<String> fragmentNodes = new ArrayList<>(graphFragment.getAllNodeNames());
-        boolean hasLexNodes = fragmentNodes.retainAll(wordIds);
-        assert(fragmentNodes.size() == 1);
-        return sgraph.getNode(fragmentNodes.get(0));
+        ArrayList<GraphNode> nodes = new ArrayList<GraphNode>(graphFragment.getGraph().vertexSet());
 
+        //look at the edgelabels in hierarchical order (in UCCA some nodes are more likely to be lexical than others)
+        if (nodes.size() == 1){
+            return nodes.get(0);
+        }
+
+        else {
+            for (String l : orderedLexicalEdgeLabels) {
+                for (GraphNode n : nodes) {
+                    for (GraphEdge e : graphFragment.getGraph().incomingEdgesOf(n)) {
+                        //discard our manipulations for old_raising and new_raising if there are any
+                        String edgeLabel = e.getLabel().split("-|_")[0];
+
+
+                        //use contains for the case of collapsed edges
+                        if (edgeLabel.equals(l) | edgeLabel.contains(l)) {
+
+                            return n;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        //System.out.println(graphFragment.toString());
+
+        return null;
     }
 
     @Override
     public int getSentencePositionForGraphFragment(SGraph graphFragment) {
-        System.out.println(tokens);
 
-        int lexNode = Integer.parseInt(getLexNodeFromGraphFragment(sgraph).toString());
-        return lexNode + 1;
+        String lexNode = getLexNodeFromGraphFragment(graphFragment).getName();
+
+        //1-based
+        int sentencePosition = Integer.parseInt(lexNode) + 1;
+        return sentencePosition;
+
 
         //because 1-based, using the node labels should be okay given that any contraction
         // must have occurred non-terminal edges
