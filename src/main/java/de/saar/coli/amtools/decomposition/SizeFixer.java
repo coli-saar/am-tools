@@ -35,7 +35,7 @@ public class SizeFixer {
 
 
 
-        Iterator<String> tokenIterator = mappedLemmas.iterator();
+        Iterator<CoreLabel> tokenIterator = tokens.iterator();
         Iterator<String> lemmaIterator = mappedLemmas.iterator();
         Iterator<String> posIterator = mappedPosTags.iterator();
         Iterator<String> sentIterator = sentWords.iterator();
@@ -43,7 +43,7 @@ public class SizeFixer {
 
 
 
-        System.out.println("__________________________");
+        //System.out.println("__________________________");
 
         //s is the potential multi-word token that we need to find. Everything is should be set according to this
         //in terms of length
@@ -52,8 +52,9 @@ public class SizeFixer {
         String pos = posIterator.next();
         String lemma = lemmaIterator.next();
         //tokens is the token list
-        String token = tokenIterator.next();
+        CoreLabel token = tokenIterator.next();
         String ne = neIterator.next();
+        //System.out.println(mappedPosTags);
 
         int i = 0;
         int sentSize = sentWords.size();
@@ -61,14 +62,15 @@ public class SizeFixer {
 
 
         while(i < sentSize){
-            if (s.toLowerCase().contains(token.toLowerCase())){
-                //System.out.println(s + " contains " + token);
+            //System.out.println(s + " contains " + token);
+            if (s.toLowerCase().equals(token.originalText().toLowerCase())||s.toLowerCase().contains(token.toString().toLowerCase()) && s.contains(" ")){
+                //System.out.println("True");
 
                 refinedLemmas.add(lemma);
                 refinedPos.add(pos);
                 refinedNes.add(ne);
 
-                System.out.println(i);
+                //System.out.println(i);
 
                 if (sentIterator.hasNext()) {
                     s = sentIterator.next();
@@ -78,9 +80,11 @@ public class SizeFixer {
             }
 
             else{
+                System.out.println("False");
                 pos = posIterator.next();
                 lemma = lemmaIterator.next();
                 token = tokenIterator.next();
+
                 ne = neIterator.next();
             }
 
@@ -97,7 +101,7 @@ public class SizeFixer {
         bundle.add(refinedLemmas);
         bundle.add(refinedPos);
         bundle.add(refinedNes);
-        System.out.println(refinedLemmas);
+        //System.out.println(refinedLemmas);
         return bundle;
 
     }

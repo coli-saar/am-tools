@@ -57,7 +57,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
 
 
 
-        System.out.println(alignments);
+        //System.out.println(alignments);
 
         for (int lexNode : lexNodes) {
             //System.out.println(lexNode);
@@ -99,8 +99,8 @@ public class UCCADecompositionPackage extends DecompositionPackage {
         List<String> refinedNeTags = adjustedLemmasPosNe.get(2);
         refinedNeTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
         neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        System.out.println(refinedNeTags);
-        System.out.println(neTags);
+        //System.out.println(refinedNeTags);
+        //System.out.println(neTags);
         sent.addNEs(refinedNeTags);
 
         return sent;

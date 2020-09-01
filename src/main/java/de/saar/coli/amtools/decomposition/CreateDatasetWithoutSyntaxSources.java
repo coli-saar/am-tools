@@ -264,7 +264,7 @@ public class CreateDatasetWithoutSyntaxSources {
             } else {
                 String supertagDictionaryPath = cli.outPath + "/" + cli.prefix + "_supertagDictionary.txt";
                 try {
-                    AmConllWithSourcesCreator.createTrainingCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, supertagDictionaryPath);
+                    AmConllWithSourcesCreatorParallel.createTrainingCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, supertagDictionaryPath);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

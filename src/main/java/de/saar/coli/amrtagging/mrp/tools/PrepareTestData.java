@@ -36,16 +36,16 @@ import static edu.illinois.cs.cogcomp.core.datastructures.ViewNames.NER_CONLL;
  */
 public class PrepareTestData {
     @Parameter(names = {"--mrp"}, description = "Path to the input.mrp")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/test/input.mrp";
+    private String corpusPath = "/Users/mariomagued/Desktop/thesis/actual_thesis/data/mrp/original_mrp/dev.mrp";
     
     @Parameter(names = {"--companion", "-c"}, description = "Path to companion data of test data, MRP file!")//, required = true)
-    private String companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/test/udpipe.mrp";
+    private String companion = "/Users/mariomagued/Desktop/thesis/actual_thesis/data/companion/udpipe.mrp";
     
     @Parameter(names = {"--train-companion", "-tc"}, description = "Path to companion data that doesn't contain the test set but the training set (CONLLU!)")//, required = true)
-    private String full_companion = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/companion/dm/dm_full.conllu";
+    private String full_companion = "/Users/mariomagued/Desktop/thesis/actual_thesis/data/companion/everything_no_dev.conllu";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/MRP/data/output/test";
+    private String outPath = "/Users/mariomagued/Desktop/thesis/actual_thesis/data/amconll/my_test.amconll";
     
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "test";
@@ -53,7 +53,7 @@ public class PrepareTestData {
     @Parameter(names={"--formalism","-f"}, description = "Formalism whose graphbank to prepare")//, required=true)
     private String formalism = "ucca";
 
-    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz")
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanfor9d NER model english.conll.4class.distsim.crf.ser.gz")
     private String stanfordNerFilename = null;
 
     @Parameter(names = {"--uiuc-ner-model"}, description = "Use UIUC NER tagger")
