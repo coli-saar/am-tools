@@ -239,7 +239,9 @@ public class AmConllWithSourcesCreatorParallel {
             }
         }
         //supertagCounter.add(dep.getHeadGraph().right.toString() + " | " + delexSupertag);
-        setSupertag(dep.getHeadGraph().left, dep.getHeadGraph().right, decompositionPackage, id, sent, supertagDictionary);
+        synchronized (supertagDictionary) {
+            setSupertag(dep.getHeadGraph().left, dep.getHeadGraph().right, decompositionPackage, id, sent, supertagDictionary);
+        }
     }
 
     /**

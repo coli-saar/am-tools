@@ -43,11 +43,12 @@ public class SupertagDictionary {
      if (cache.containsKey(dec)) {
        counts.put(dec, counts.get(dec)+1);
        return cache.get(dec);
+     } else {
+         String r = dec.toIsiAmrStringWithSources();
+         cache.put(dec, r);
+         counts.put(dec, 1);
+         return r;
      }
-     String r = dec.toIsiAmrStringWithSources();
-     cache.put(dec,r);
-     counts.put(dec,1);
-     return r;
    }
    
    /**

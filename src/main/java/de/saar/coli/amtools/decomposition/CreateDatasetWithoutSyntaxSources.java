@@ -253,23 +253,23 @@ public class CreateDatasetWithoutSyntaxSources {
         }
 
 
-            String amConllOutPath = cli.outPath + "/" + cli.prefix + ".amconll";
-            if (cli.vocab != null) {
-                try {
-                    AmConllWithSourcesCreator.createDevCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, cli.vocab);
-                } catch (IOException | ParserException e) {
-                    e.printStackTrace();
-                }
+        String amConllOutPath = cli.outPath + "/" + cli.prefix + ".amconll";
+        if (cli.vocab != null) {
+            try {
+                AmConllWithSourcesCreator.createDevCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, cli.vocab);
+            } catch (IOException | ParserException e) {
+                e.printStackTrace();
+            }
 
-            } else {
-                String supertagDictionaryPath = cli.outPath + "/" + cli.prefix + "_supertagDictionary.txt";
-                try {
-                    AmConllWithSourcesCreatorParallel.createTrainingCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, supertagDictionaryPath);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+        } else {
+            String supertagDictionaryPath = cli.outPath + "/" + cli.prefix + "_supertagDictionary.txt";
+            try {
+                AmConllWithSourcesCreatorParallel.createTrainingCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, supertagDictionaryPath);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
         }
+
     }
+}
