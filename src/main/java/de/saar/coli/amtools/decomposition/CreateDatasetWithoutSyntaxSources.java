@@ -131,7 +131,9 @@ public class CreateDatasetWithoutSyntaxSources {
             }
         }
 
-       /* NamedEntityRecognizer neRecognizer;
+       NamedEntityRecognizer neRecognizer;
+        NamedEntityRecognizer neRecognizerForMerging;
+
         if (cli.stanfordNerFilename != null) {
             neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), false);
         } else {
@@ -139,7 +141,7 @@ public class CreateDatasetWithoutSyntaxSources {
         }
 
 
-        */
+
 
 
 
@@ -155,7 +157,7 @@ public class CreateDatasetWithoutSyntaxSources {
 
 
         //instances.parallelStream().forEach((Instance corpusInstance) -> {
-        for (Instance corpusInstance: corpus){
+        for (Instance corpusInstance: corpus) {
             String id = ((List<String>) corpusInstance.getInputObjects().get("id")).get(0);
             String inputString = ((List<String>) corpusInstance.getInputObjects().get("input")).stream().collect(Collectors.joining(" "));
             String version = ((List<String>) corpusInstance.getInputObjects().get("version")).get(0);
@@ -200,8 +202,8 @@ public class CreateDatasetWithoutSyntaxSources {
 
             MRInstance inst = new MRInstance(sentence, graph, alignments);
             List<String> posTags = new ArrayList<String>();
-            List<TaggedWord> mappedPosTags =  preprocData.getPosTags(id);
-            for(TaggedWord posTag: mappedPosTags){
+            List<TaggedWord> mappedPosTags = preprocData.getPosTags(id);
+            for (TaggedWord posTag : mappedPosTags) {
                 posTags.add(posTag.tag());
             }
 
@@ -234,7 +236,7 @@ public class CreateDatasetWithoutSyntaxSources {
             Object[] UCCADecompositionPackageBundle = new Object[5];
             UCCADecompositionPackageBundle[0] = sgraph;
             UCCADecompositionPackageBundle[1] = inst;
-            UCCADecompositionPackageBundle[2] = tokens ;
+            UCCADecompositionPackageBundle[2] = tokens;
             UCCADecompositionPackageBundle[3] = posTags;
             UCCADecompositionPackageBundle[4] = mappedLemmas;
 
@@ -245,11 +247,12 @@ public class CreateDatasetWithoutSyntaxSources {
             sourceAssignerList.add(new OldSourceAssigner(edges));
 
 
-
-
-
             // case distinction: if a supertag dictionary path is given, use it and call dev version (since for creating the dev set, we use the training set supertag path)
             // if no supertag dictionary path is given, make one and call training version.
+
+        }
+
+
             String amConllOutPath = cli.outPath + "/" + cli.prefix + ".amconll";
             if (cli.vocab != null) {
                 try {
@@ -261,7 +264,7 @@ public class CreateDatasetWithoutSyntaxSources {
             } else {
                 String supertagDictionaryPath = cli.outPath + "/" + cli.prefix + "_supertagDictionary.txt";
                 try {
-                    AmConllWithSourcesCreator.createTrainingCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, supertagDictionaryPath);
+                    AmConllWithSourcesCreatorParallel.createTrainingCorpus(graphCorpus, decompositionPackageList, sourceAssignerList, amConllOutPath, supertagDictionaryPath);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -270,4 +273,3 @@ public class CreateDatasetWithoutSyntaxSources {
 
         }
     }
-}
