@@ -124,7 +124,7 @@ public class ToSDPCorpus {
         if (grW != null){
             grW.close();
         }
-        if (goldReader != null){
+        if (goldReader != null) {
            System.out.println("Labeled Scores");
            System.out.println("Precision "+scorer.getPrecision());
            System.out.println("Recall "+scorer.getRecall());
@@ -141,8 +141,7 @@ public class ToSDPCorpus {
            System.out.println("Recall "+scorer.getSemanticFramesRecall());
            System.out.println("F "+scorer.getSemanticFramesF1());
         }
- 
-        
+
     }
     
 
