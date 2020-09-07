@@ -195,9 +195,9 @@ public class ModifyAuxiliariesInDependencyTrees {
             }
         }
 
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/dm.amconll"), newAmDM);
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/pas.amconll"), newAmPAS);
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/psd.amconll"), newAmPSD);
+        AmConllSentence.writeToFile(cli.outputPath+"/dm.amconll", newAmDM);
+        AmConllSentence.writeToFile(cli.outputPath+"/pas.amconll", newAmPAS);
+        AmConllSentence.writeToFile(cli.outputPath+"/psd.amconll", newAmPSD);
 
         System.out.println("temp aux:");
         System.out.println(treeModifier.temporalAuxiliaries);

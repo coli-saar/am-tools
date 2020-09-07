@@ -14,6 +14,7 @@ import de.up.ling.tree.Tree;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -230,16 +231,32 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * 
      * @see #write(java.io.Writer, java.util.List) 
      *
+     * @param file
+     * @param sents
+     * @throws IOException
+     */
+    public static void writeToFile(File file, List<AmConllSentence> sents) throws IOException {
+        Writer w = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+        write(w, sents);
+        w.close();
+    }
+
+    /**
+     * Writes a list of ConllSentences to a file.
+     *
+     * @see #write(java.io.Writer, java.util.List)
+     *
      * @param filename
      * @param sents
      * @throws IOException
      */
     public static void writeToFile(String filename, List<AmConllSentence> sents) throws IOException {
-        write(new FileWriter(filename), sents);
+        writeToFile(new File(filename), sents);
     }
+
     
     /**
-     * Writes a list of ConllSentences to a writer.<p>
+     * Writes a list of ConllSentences to a writer. Does not close the writer.<p>
      * 
      * TODO: might want to set the
      * line of the objects to where it was written to file.
@@ -249,20 +266,18 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * @throws IOException
      */
     public static void write(Writer writer, List<AmConllSentence> sents) throws IOException {
-        BufferedWriter bw = new BufferedWriter(writer);
         
         for (AmConllSentence s : sents) {
             for (String key : s.attributes.keySet()) {
-                bw.write("#");
-                bw.write(key);
-                bw.write(":");
-                bw.write(s.getAttr(key));
-                bw.write("\n");
+                writer.write("#");
+                writer.write(key);
+                writer.write(":");
+                writer.write(s.getAttr(key));
+                writer.write("\n");
             }
-            bw.write(s.toString());
-            bw.write("\n");
+            writer.write(s.toString());
+            writer.write("\n");
         }
-        bw.close();
     }
     
     /**

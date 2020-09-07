@@ -306,9 +306,9 @@ public class ModifyDependencyTreesDetCopNeg {
             }
         }
 
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/dm.amconll"), newAmDM);
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/pas.amconll"), newAmPAS);
-        AmConllSentence.write(new FileWriter(cli.outputPath+"/psd.amconll"), newAmPSD);
+        AmConllSentence.writeToFile(cli.outputPath+"/dm.amconll", newAmDM);
+        AmConllSentence.writeToFile(cli.outputPath+"/pas.amconll", newAmPAS);
+        AmConllSentence.writeToFile(cli.outputPath+"/psd.amconll", newAmPSD);
 
         System.out.println("Decomposable graphs: " + decomposableGraphs);
         System.out.println("Problems "+ problems);

@@ -230,9 +230,9 @@ public class AllDependencyChanges {
         System.err.println("pattern coverage:");
         ModifyDependencyTreesDetCopNeg.patternCoverageLogger.printAllSorted();
 
-        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/dm.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsDM);
-        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/pas.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsPAS);
-        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(changer.outputPath+"/psd.amconll"), StandardCharsets.UTF_8), changer.intersectedDepsPSD);
+        AmConllSentence.writeToFile(changer.outputPath+"/dm.amconll", changer.intersectedDepsDM);
+        AmConllSentence.writeToFile(changer.outputPath+"/pas.amconll", changer.intersectedDepsPAS);
+        AmConllSentence.writeToFile(changer.outputPath+"/psd.amconll", changer.intersectedDepsPSD);
     }
 
     private void applyFix(Function<AmConllSentence, Function<AmConllSentence, Consumer<AmConllSentence>>> fixingFunction) {

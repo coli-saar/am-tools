@@ -195,9 +195,9 @@ public class ModifyPrepsInDependencyTrees {
             newAmPSD.add(psdDep);
         }
 
-        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(cli.outputPath+"/dm.amconll"), StandardCharsets.UTF_8.newEncoder()), newAmDM);
-        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(cli.outputPath+"/pas.amconll"), StandardCharsets.UTF_8.newEncoder()), newAmPAS);
-        AmConllSentence.write(new OutputStreamWriter(new FileOutputStream(cli.outputPath+"/psd.amconll"), StandardCharsets.UTF_8.newEncoder()), newAmPSD);
+        AmConllSentence.writeToFile(cli.outputPath+"/dm.amconll", newAmDM);
+        AmConllSentence.writeToFile(cli.outputPath+"/pas.amconll", newAmPAS);
+        AmConllSentence.writeToFile(cli.outputPath+"/psd.amconll", newAmPSD);
 
         System.out.println("Prepositions (220):");
         System.out.println(treeModifier.preps220);
