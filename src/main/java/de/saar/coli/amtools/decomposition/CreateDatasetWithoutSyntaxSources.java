@@ -232,10 +232,48 @@ public class CreateDatasetWithoutSyntaxSources {
             }
 
             SGraph sgraph = inst.getGraph();
-            graphCorpus.add(sgraph);
+            SGraph renamedSGraph = new SGraph();
+
+            for (String nodeName: sgraph.getAllNodeNames()){
+                renamedSGraph.addNode("n_" + nodeName, sgraph.getNode(nodeName).getLabel());
+            }
+            for (GraphEdge e:sgraph.getGraph().edgeSet()){
+                renamedSGraph.addEdge(renamedSGraph.getNode("n_" + e.getSource().getName()), renamedSGraph.getNode("n_" +e.getTarget().getName()), e.getLabel());
+            }
+
+            renamedSGraph.addSource("root", "n_" + sgraph.getNodeForSource("root"));
+            graphCorpus.add(renamedSGraph);
+
+
+            List<Alignment> renamedAls = new ArrayList<>();
+
+            for (String alstring:alStrings){
+                String[] renamedAlString = alstring.split("\\|\\|");
+                String actualAls = renamedAlString[0];
+                String tokenSpans = renamedAlString[1];
+                String weight = renamedAlString[2];
+
+                String newAls = "";
+
+                for(String n: actualAls.split("\\|")){
+                    String newNodeName = "n_" + n;
+                    if (newAls.equals("")){
+                        newAls = newNodeName;
+                    }
+
+                    else{
+                        newAls = "|" + newNodeName;
+                    }
+                }
+
+                renamedAls.add(Alignment.read(newAls + "||" + tokenSpans + "||" + weight));
+            }
+
+            MRInstance renamedInst = new MRInstance(sentence, renamedSGraph, renamedAls);
+
             Object[] UCCADecompositionPackageBundle = new Object[5];
-            UCCADecompositionPackageBundle[0] = sgraph;
-            UCCADecompositionPackageBundle[1] = inst;
+            UCCADecompositionPackageBundle[0] = renamedSGraph;
+            UCCADecompositionPackageBundle[1] = renamedInst;
             UCCADecompositionPackageBundle[2] = tokens;
             UCCADecompositionPackageBundle[3] = posTags;
             UCCADecompositionPackageBundle[4] = mappedLemmas;
@@ -243,8 +281,8 @@ public class CreateDatasetWithoutSyntaxSources {
             AMRBlobUtils blobUtils;
             blobUtils = new UCCABlobUtils();
             decompositionPackageList.add(new UCCADecompositionPackage(UCCADecompositionPackageBundle, blobUtils));
-            List<GraphEdge> edges = new ArrayList<GraphEdge>(sgraph.getGraph().edgeSet());
-            sourceAssignerList.add(new OldSourceAssigner(edges));
+            List<GraphEdge> renamedEdges = new ArrayList<GraphEdge>(renamedSGraph.getGraph().edgeSet());
+            sourceAssignerList.add(new OldSourceAssigner(renamedEdges, renamedInst));
 
 
             // case distinction: if a supertag dictionary path is given, use it and call dev version (since for creating the dev set, we use the training set supertag path)
