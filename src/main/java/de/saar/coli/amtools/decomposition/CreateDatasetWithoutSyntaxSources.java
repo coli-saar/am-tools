@@ -103,13 +103,13 @@ public class CreateDatasetWithoutSyntaxSources {
 
         Corpus corpus = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.corpusPath), loaderIRTG);
 
-        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
-        SupertagDictionary supertagDictionary = new SupertagDictionary();
-
-        if (cli.vocab != null) {
-            supertagDictionary.readFromFile(cli.vocab);
-        }
-        Reader fr = new FileReader(cli.corpusPath);
+//        ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
+//        SupertagDictionary supertagDictionary = new SupertagDictionary();
+//
+//        if (cli.vocab != null) {
+//            supertagDictionary.readFromFile(cli.vocab);
+//        }
+//        Reader fr = new FileReader(cli.corpusPath);
 
         List<Instance> instances = new ArrayList<>();
         corpus.iterator().forEachRemaining((Instance i) -> instances.add(i));

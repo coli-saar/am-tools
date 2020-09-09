@@ -266,7 +266,11 @@ public class AmConllWithSourcesCreator {
             }
         }
         graph.setEqualsMeansIsomorphy(true);
+        System.out.println("Dict size before: "+supertagDictionary.size());
+        System.out.println("Graph input: "+graph.toIsiAmrStringWithSources());
         String delexSupertag = supertagDictionary.getRepr(graph);
+        System.out.println("Representation out: "+delexSupertag);
+        System.out.println("Dict size after: "+supertagDictionary.size());
         headEntry.setDelexSupertag(delexSupertag);
         headEntry.setType(type);
     }

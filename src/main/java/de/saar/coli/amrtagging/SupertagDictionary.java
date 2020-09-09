@@ -84,7 +84,10 @@ public class SupertagDictionary {
      }
      br.close();
    }
-  
+
+   public int size() {
+       return cache.size();
+   }
   
  
 }
