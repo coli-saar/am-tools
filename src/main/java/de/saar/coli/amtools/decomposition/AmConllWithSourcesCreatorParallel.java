@@ -93,6 +93,7 @@ public class AmConllWithSourcesCreatorParallel {
                 System.out.println("processing graph with index "+i);
             }
             SGraph graph = graphCorpus.get(i);
+            System.out.println(graph.toString());
             DecompositionPackage decompositionPackage = decompositionPackageList.get(i);
             SourceAssigner sourceAssigner = sourceAssignerList.get(i);
 
@@ -102,7 +103,6 @@ public class AmConllWithSourcesCreatorParallel {
                 ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionPackage.getBlobUtils());
 
                 AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
-                System.out.println(result.toString());
 
                 // if multiple nodes in the graph belong to the same word
                 result = condenseNodesWithSameAlignment(result, decompositionPackage);

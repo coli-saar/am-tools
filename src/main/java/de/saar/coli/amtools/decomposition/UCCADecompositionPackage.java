@@ -49,7 +49,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
 
         for (Alignment al:alignments){
             for (String lexNode: al.lexNodes){
-                lexNodes.add(Integer.parseInt(lexNode));
+                lexNodes.add(Integer.parseInt(lexNode.split("_")[1]));
             }
         }
 
@@ -63,7 +63,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
             //System.out.println(lexNode);
             //System.out.println(sgraph.getNode(String.valueOf(lexNode)));
             //System.out.println("_______________________________");
-            AmConllEntry amConllEntry = new AmConllEntry(lexNode, sgraph.getNode(String.valueOf(lexNode)).toString());
+            AmConllEntry amConllEntry = new AmConllEntry(lexNode + 1, sgraph.getNode("n_" + String.valueOf(lexNode)).toString());
             amConllEntry.setAligned(true);
             amConllEntry.setHead(0);
             amConllEntry.setEdgeLabel(AmConllEntry.IGNORE);
@@ -87,7 +87,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
 
 
         //artificial root. Is it necessary? UCCA graphs are already rooted.
-        AmConllEntry artRoot = new AmConllEntry(sgraph.nodeCount(), SGraphConverter.ARTIFICAL_ROOT_LABEL);
+        AmConllEntry artRoot = new AmConllEntry(lexNodes.size() +1, SGraphConverter.ARTIFICAL_ROOT_LABEL);
         artRoot.setEdgeLabel(AmConllEntry.ROOT_SYM);
         artRoot.setHead(0);
         artRoot.setAligned(true);
@@ -145,7 +145,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
         String lexNode = getLexNodeFromGraphFragment(graphFragment).getName();
 
         //1-based
-        int sentencePosition = Integer.parseInt(lexNode) + 1;
+        int sentencePosition = Integer.parseInt(lexNode.split("_")[1]) + 1;
         return sentencePosition;
 
 
