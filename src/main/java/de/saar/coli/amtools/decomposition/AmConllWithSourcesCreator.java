@@ -262,7 +262,8 @@ public class AmConllWithSourcesCreator {
             GraphNode lexNode = decompositionPackage.getLexNodeFromGraphFragment(graph);
             if (lexNode != null) {
                 headEntry.setLexLabel(lexNode.getLabel());
-                lexNode.setLabel(AmConllEntry.LEX_MARKER);
+                // now relabel the node in a way that tells the graph that it needs to recompute its hashcode
+                graph.addNode(lexNode.getName(), AmConllEntry.LEX_MARKER);
             }
         }
         graph.setEqualsMeansIsomorphy(true);
