@@ -44,15 +44,15 @@ public class OldSourceAssigner implements SourceAssigner{
             //return "participant[participant]";
             return "participant";
         } else if (Operation.contains("P")){
-            return "process";
+            return "scene";
         } else if (Operation.contains("S")){
-            return "state";
+            return "scene";
         } else if (Operation.contains("L")){
             return "link";
         } else if(Operation.contains("C")) {
             return "op";
         } else if(Operation.contains("N")){
-            return "conj";
+            return "participant";
         } else if(Operation.equals("U")) {
             return "pnct";
         } else if(Operation.contains("F")) {
@@ -61,7 +61,6 @@ public class OldSourceAssigner implements SourceAssigner{
             return "scene";
         } else if(matcher.matches()){
             String modSufix = matcher.group(0);
-            System.out.println(modSufix);
             return "mod" + modSufix;
         } else {
             return "mod";
