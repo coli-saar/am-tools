@@ -83,7 +83,6 @@ public class OldSourceAssigner implements SourceAssigner{
         SGraph sgraph = inst.getGraph();
 
         Set<GraphEdge> incomingEdges = sgraph.getGraph().incomingEdgesOf(sgraph.getNode(childNode));
-        System.out.println(incomingEdges.toString());
         for(String l:orderedLexicalEdgeLabels){
             for (GraphEdge e:incomingEdges){
                 //just for checking
