@@ -228,7 +228,8 @@ public class CreateDatasetWithoutSyntaxSources {
                 System.err.println("Ignoring an exception:");
                 System.err.println("id " + id);
                 e.printStackTrace();
-                return; //skip this sentence
+                //return; //skip this sentence
+                continue;
             }
 
             SGraph sgraph = inst.getGraph();
