@@ -57,7 +57,7 @@ public class SourceAutomataCLI {
     private String corpusType = "DM";
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
-    private int nrSources = 1;
+    private int nrSources = 3;
 
     @Parameter(names = {"--iterations"}, description = "max number of EM iterations")//, required = true)
     private int iterations = 100;
@@ -134,19 +134,16 @@ public class SourceAutomataCLI {
             zipFile.write(Integer.toString(originalDecompositionAutomata.size()).getBytes());
             zipFile.closeEntry();
 
-            //write amconll file
-            ZipEntry amconllZip = new ZipEntry("corpus.amconll");
-            zipFile.putNextEntry(amconllZip);
-            Writer amConllWriter = new OutputStreamWriter(zipFile);
+            //create base amconll file
             List<AmConllSentence> baseAmConllSentences = decompositionPackages.stream().map(dp -> dp.makeBaseAmConllSentence()).collect(Collectors.toList());
-            AmConllSentence.write(amConllWriter, baseAmConllSentences);
-            amConllWriter.flush();
-            zipFile.closeEntry();
+
+
 
             ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
             for (int i = 0; i<originalDecompositionAutomata.size(); i++) {
                 SourceAssignmentAutomaton decomp = originalDecompositionAutomata.get(i);
                 DecompositionPackage decompositionPackage = decompositionPackages.get(i);
+                AmConllSentence amConllSentence = baseAmConllSentences.get(i);
 
                 Map<SourceAssignmentAutomaton.State, Integer> stateToWordPosition = new HashMap<>();
 
@@ -202,6 +199,9 @@ public class SourceAutomataCLI {
                                 new String[]{child0.toString(), child1.toString()});
                         fakeIRTGAutomaton.addRule(newRule);
                         rule2edge.put(newRule, new Pair(new Pair(wordPosition0, wordPosition1), operationLabel));
+
+                        //add edge existence into amconll sentence
+                        amConllSentence.get(wordPosition1-1).setHead(wordPosition0);
                     } else {
                         System.err.println("uh-oh, rule arity was "+rule.getArity());
                     }
@@ -254,6 +254,14 @@ public class SourceAutomataCLI {
 //                }
 
             }
+
+            //write AMConll file
+            ZipEntry amconllZip = new ZipEntry("corpus.amconll");
+            zipFile.putNextEntry(amconllZip);
+            Writer amConllWriter = new OutputStreamWriter(zipFile);
+            AmConllSentence.write(amConllWriter, baseAmConllSentences);
+            amConllWriter.flush();
+            zipFile.closeEntry();
 
             zipFile.finish();
 
