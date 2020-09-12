@@ -7,12 +7,8 @@ package de.saar.coli.amrtagging;
 
 import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+
+import java.io.*;
 import java.util.Hashtable; //synchronized collection
 
 /**
@@ -56,12 +52,16 @@ public class SupertagDictionary {
     * @param filename
     * @throws FileNotFoundException 
     */
-   public synchronized void writeToFile(String filename) throws FileNotFoundException{
-     PrintWriter pw = new PrintWriter(filename);
-     for (SGraph sg : cache.keySet()){
-       pw.println(cache.get(sg));
-     }
-     pw.close();
+   public synchronized void writeToFile(String filename) throws IOException {
+     FileWriter w = new FileWriter(filename);
+     writeToWriter(w);
+     w.close();
+   }
+
+   public synchronized void writeToWriter(Writer writer) throws IOException {
+       for (SGraph sg : cache.keySet()){
+           writer.write(cache.get(sg)+"\n");
+       }
    }
    
    /**

@@ -50,6 +50,25 @@ public class PyjniusHelper {
         return ret;
     }
 
+    public static float getTotalLogInside(float[] ruleWeights, Iterable<Rule> ruleIterable,
+                                                    TreeAutomaton<String> automaton) {
+        int i = 0;
+        for (Rule rule : ruleIterable) {
+            rule.setWeight(Math.exp(ruleWeights[i]));
+            i++;
+        }
+        Int2ObjectMap<Double> logInsides = automaton.logInside();
+        double totalInside = Double.NaN;
+        for (int finalState : automaton.getFinalStates()) {
+            if (Double.isNaN(totalInside)) {
+                totalInside = logInsides.get(finalState);
+            } else {
+                totalInside = logDoubleArithmeticSemiring.add(totalInside, logInsides.get(finalState));
+            }
+        }
+        return (float)totalInside;
+    }
+
     public static double assignRuleWeights(Rule[] rules, float[] weights) {
         CpuTimeStopwatch watch = new CpuTimeStopwatch();
         watch.record();

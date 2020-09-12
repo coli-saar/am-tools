@@ -44,20 +44,20 @@ import java.util.*;
 public class SourceAutomataCLI {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.sdp file)")//, required = true)
-    private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
+    private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\smallDev.sdp";
 
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.sdp file)")//, required = true)
     private String devCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where amconll and supertag dictionary files are created")//, required = true)
-    private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\";
+    private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\small\\";
 
 
     @Parameter(names = {"--corpusType", "-ct"}, description = "values can be DM, PAS or PSD, default is DM")//, required = true)
     private String corpusType = "DM";
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
-    private int nrSources = 3;
+    private int nrSources = 2;
 
     @Parameter(names = {"--iterations"}, description = "max number of EM iterations")//, required = true)
     private int iterations = 100;
@@ -125,145 +125,8 @@ public class SourceAutomataCLI {
 
         if (cli.algorithm.equals("automata")) {
 
-            //create zip file
-            ZipOutputStream zipFile = new ZipOutputStream(new FileOutputStream(Paths.get(cli.outPath, "automataData.zip").toFile()));
-
-            //write metadata file
-            ZipEntry meta = new ZipEntry("meta.txt");
-            zipFile.putNextEntry(meta);
-            zipFile.write(Integer.toString(originalDecompositionAutomata.size()).getBytes());
-            zipFile.closeEntry();
-
-            //create base amconll file
-            List<AmConllSentence> baseAmConllSentences = decompositionPackages.stream().map(dp -> dp.makeBaseAmConllSentence()).collect(Collectors.toList());
-
-
-
-            ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
-            for (int i = 0; i<originalDecompositionAutomata.size(); i++) {
-                SourceAssignmentAutomaton decomp = originalDecompositionAutomata.get(i);
-                DecompositionPackage decompositionPackage = decompositionPackages.get(i);
-                AmConllSentence amConllSentence = baseAmConllSentences.get(i);
-
-                Map<SourceAssignmentAutomaton.State, Integer> stateToWordPosition = new HashMap<>();
-
-                ConcreteTreeAutomaton<String> fakeIRTGAutomaton = new ConcreteTreeAutomaton<>();
-                Map<Rule, Pair<Integer, String>> rule2supertag = new HashMap<>();
-                Map<Rule, Pair<Pair<Integer, Integer>, String>> rule2edge = new HashMap<>();
-
-                decomp.processAllRulesBottomUp(rule -> {
-                    if (rule.getArity() == 0) {
-                        try {
-                            // we want a new rule format
-                            // state.toString() -> wordPosition_supertag
-                            // which is, below, parent.toString() -> newRuleLabel
-                            String oldRuleLabel = rule.getLabel(decomp);
-                            Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(oldRuleLabel);
-                            int wordPosition = decompositionPackage.getSentencePositionForGraphFragment(constant.left);
-                            SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
-                            // obtain delexicalized graph fragment
-                            GraphNode lexicalNode = decompositionPackage.getLexNodeFromGraphFragment(constant.left);
-                            lexicalNode.setLabel(AmConllEntry.LEX_MARKER);
-//                            String newRuleLabel = wordPosition+"_"
-//                                    + constant.left.toIsiAmrStringWithSources()+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
-
-                            String constantString = supertagDictionary.getRepr(constant.left)+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
-                            String newRuleLabel = constantString;
-                            //add rule to new automaton, with array of size 0 for children
-                            Rule newRule = fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel, new String[0]);
-                            fakeIRTGAutomaton.addRule(newRule);
-                            rule2supertag.put(newRule, new Pair<>(wordPosition, constantString));
-                            // add entry to state-to-word-position map
-                            stateToWordPosition.put(parent, wordPosition);
-                        } catch (ParserException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else if (rule.getArity() == 2) {
-                        // we want a new rule format
-                        // state.toString() -> i_j_oldRuleLabel(state0.toString(), state1.toString())
-                        // where below state = parent, state0 = child0, state1 = child1
-                        // and i = child0 wordPosition, j = child1 wordPosition
-                        SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
-                        SourceAssignmentAutomaton.State child0 = decomp.getStateForId(rule.getChildren()[0]);
-                        SourceAssignmentAutomaton.State child1 = decomp.getStateForId(rule.getChildren()[1]);
-                        int wordPosition0 = stateToWordPosition.get(child0);
-                        int wordPosition1 = stateToWordPosition.get(child1);
-                        int parentWordPosition = wordPosition0; // in AM operations, the left child is the head, and this rule reflects that.
-                        // add entry to state-to-word-position map
-                        stateToWordPosition.put(parent, parentWordPosition);
-                        // make and add new rule to new automaton
-//                        String newRuleLabel = wordPosition0+"_"+wordPosition1+"_"+rule.getLabel(decomp);
-                        String operationLabel = rule.getLabel(decomp);
-                        String newRuleLabel = operationLabel;
-                        Rule newRule = fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel,
-                                new String[]{child0.toString(), child1.toString()});
-                        fakeIRTGAutomaton.addRule(newRule);
-                        rule2edge.put(newRule, new Pair(new Pair(wordPosition0, wordPosition1), operationLabel));
-
-                        //add edge existence into amconll sentence
-                        amConllSentence.get(wordPosition1-1).setHead(wordPosition0);
-                    } else {
-                        System.err.println("uh-oh, rule arity was "+rule.getArity());
-                    }
-                });
-
-                // transfer final states over to new automaton
-                for (int finalStateID : decomp.getFinalStates()) {
-                    // a whole lot of converting IDs and states and strings..
-                    fakeIRTGAutomaton.addFinalState(fakeIRTGAutomaton.getIdForState(decomp.getStateForId(finalStateID).toString()));
-                }
-
-                System.out.println(fakeIRTGAutomaton);
-                System.out.println(fakeIRTGAutomaton.viterbi());
-
-                for (Rule rule : rule2supertag.keySet()) {
-                    System.out.println(rule.toString(fakeIRTGAutomaton));
-                    System.out.println(rule2supertag.get(rule));
-                }
-
-                //write supertagmap
-                ZipEntry supertagMapZip = new ZipEntry(i+".supertagmap");
-                zipFile.putNextEntry(supertagMapZip);
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(zipFile);
-                objectOutputStream.writeObject(rule2supertag);
-                objectOutputStream.flush();
-                zipFile.closeEntry();
-
-                //write edgemap
-                ZipEntry edgeMapZip = new ZipEntry(i+".edgemap");
-                zipFile.putNextEntry(edgeMapZip);
-                objectOutputStream = new ObjectOutputStream(zipFile);
-                objectOutputStream.writeObject(rule2edge);
-                objectOutputStream.flush();
-                zipFile.closeEntry();
-
-                //write automaton
-                ZipEntry automatonZip = new ZipEntry(i+".irtb");
-                zipFile.putNextEntry(automatonZip);
-                BinaryIrtgOutputCodec codec = new BinaryIrtgOutputCodec();
-                codec.write(new InterpretedTreeAutomaton(fakeIRTGAutomaton), zipFile);
-                zipFile.closeEntry();
-
-//                FileInputStream fileInputStream = new FileInputStream(file);
-//                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-//                HashMap<Rule, Pair<Integer, String>> fileObj = (HashMap<Rule, Pair<Integer, String>>) objectInputStream.readObject();
-//                objectInputStream.close();
-//                for (Rule rule : fileObj.keySet()) {
-//                    System.out.println(rule.toString(fakeIRTGAutomaton));
-//                    System.out.println(fileObj.get(rule));
-//                }
-
-            }
-
-            //write AMConll file
-            ZipEntry amconllZip = new ZipEntry("corpus.amconll");
-            zipFile.putNextEntry(amconllZip);
-            Writer amConllWriter = new OutputStreamWriter(zipFile);
-            AmConllSentence.write(amConllWriter, baseAmConllSentences);
-            amConllWriter.flush();
-            zipFile.closeEntry();
-
-            zipFile.finish();
+            createAutomataZip(originalDecompositionAutomata, decompositionPackages, supertagDictionary, "train", cli.outPath);
+            createAutomataZip(originalDecompositionAutomataDev, decompositionPackagesDev, supertagDictionary, "dev", cli.outPath);
 
         } else {
 
@@ -417,7 +280,7 @@ public class SourceAutomataCLI {
         int nondecomposeable = 0;
         Graph sdpGraph;
         while ((sdpGraph = gr.readGraph()) != null) {
-            if (index % 100 == 0) {
+            if (index % 500 == 0) {
                 System.err.println(index);
                 bucketCounter.printAllSorted();
             }
@@ -503,5 +366,164 @@ public class SourceAutomataCLI {
         bucketCounter.printAllSorted();
         successCounter.printAllSorted();
     }
+
+
+    private static void createAutomataZip(List<SourceAssignmentAutomaton> originalDecompositionAutomata,
+                                   List<DecompositionPackage> decompositionPackages,
+                                   SupertagDictionary supertagDictionary, String zipFileName, String outPath) throws IOException {
+        //create zip file
+        System.err.println("Writing zip file "+Paths.get(outPath, zipFileName+ ".zip"));
+        ZipOutputStream zipFile = new ZipOutputStream(new FileOutputStream(Paths.get(outPath, zipFileName+ ".zip").toFile()));
+
+        //write metadata file
+        ZipEntry meta = new ZipEntry("meta.txt");
+        zipFile.putNextEntry(meta);
+        zipFile.write(Integer.toString(originalDecompositionAutomata.size()).getBytes());
+        zipFile.closeEntry();
+
+        //create base amconll file
+        List<AmConllSentence> baseAmConllSentences = decompositionPackages.parallelStream().map(dp -> dp.makeBaseAmConllSentence()).collect(Collectors.toList());
+
+
+
+        ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
+        for (int i = 0; i<originalDecompositionAutomata.size(); i++) {
+            if (i % 500 == 0) {
+                System.err.println(i);
+            }
+            SourceAssignmentAutomaton decomp = originalDecompositionAutomata.get(i);
+            DecompositionPackage decompositionPackage = decompositionPackages.get(i);
+            AmConllSentence amConllSentence = baseAmConllSentences.get(i);
+
+            Map<SourceAssignmentAutomaton.State, Integer> stateToWordPosition = new HashMap<>();
+
+            ConcreteTreeAutomaton<String> fakeIRTGAutomaton = new ConcreteTreeAutomaton<>();
+            Map<Rule, Pair<Integer, String>> rule2supertag = new HashMap<>();
+            Map<Rule, Pair<Pair<Integer, Integer>, String>> rule2edge = new HashMap<>();
+
+            decomp.processAllRulesBottomUp(rule -> {
+                if (rule.getArity() == 0) {
+                    try {
+                        // we want a new rule format
+                        // state.toString() -> wordPosition_supertag
+                        // which is, below, parent.toString() -> newRuleLabel
+                        String oldRuleLabel = rule.getLabel(decomp);
+                        Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(oldRuleLabel);
+                        int wordPosition = decompositionPackage.getSentencePositionForGraphFragment(constant.left);
+                        SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
+                        // obtain delexicalized graph fragment
+                        GraphNode lexicalNode = decompositionPackage.getLexNodeFromGraphFragment(constant.left);
+                        constant.left.addNode(lexicalNode.getName(), AmConllEntry.LEX_MARKER);
+//                            String newRuleLabel = wordPosition+"_"
+//                                    + constant.left.toIsiAmrStringWithSources()+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
+
+                        String constantString = supertagDictionary.getRepr(constant.left)+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
+                        String newRuleLabel = constantString;
+                        //add rule to new automaton, with array of size 0 for children
+                        Rule newRule = fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel, new String[0]);
+                        fakeIRTGAutomaton.addRule(newRule);
+                        rule2supertag.put(newRule, new Pair<>(wordPosition, constantString));
+                        // add entry to state-to-word-position map
+                        stateToWordPosition.put(parent, wordPosition);
+                    } catch (ParserException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else if (rule.getArity() == 2) {
+                    // we want a new rule format
+                    // state.toString() -> i_j_oldRuleLabel(state0.toString(), state1.toString())
+                    // where below state = parent, state0 = child0, state1 = child1
+                    // and i = child0 wordPosition, j = child1 wordPosition
+                    SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
+                    SourceAssignmentAutomaton.State child0 = decomp.getStateForId(rule.getChildren()[0]);
+                    SourceAssignmentAutomaton.State child1 = decomp.getStateForId(rule.getChildren()[1]);
+                    int wordPosition0 = stateToWordPosition.get(child0);
+                    int wordPosition1 = stateToWordPosition.get(child1);
+                    int parentWordPosition = wordPosition0; // in AM operations, the left child is the head, and this rule reflects that.
+                    // add entry to state-to-word-position map
+                    stateToWordPosition.put(parent, parentWordPosition);
+                    // make and add new rule to new automaton
+//                        String newRuleLabel = wordPosition0+"_"+wordPosition1+"_"+rule.getLabel(decomp);
+                    String operationLabel = rule.getLabel(decomp);
+                    String newRuleLabel = operationLabel;
+                    Rule newRule = fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel,
+                            new String[]{child0.toString(), child1.toString()});
+                    fakeIRTGAutomaton.addRule(newRule);
+                    rule2edge.put(newRule, new Pair<>(new Pair<>(wordPosition0, wordPosition1), operationLabel));
+
+                    //add edge existence into amconll sentence
+                    amConllSentence.get(wordPosition1-1).setHead(wordPosition0);
+                } else {
+                    System.err.println("uh-oh, rule arity was "+rule.getArity());
+                }
+            });
+
+            // transfer final states over to new automaton
+            for (int finalStateID : decomp.getFinalStates()) {
+                // a whole lot of converting IDs and states and strings..
+                fakeIRTGAutomaton.addFinalState(fakeIRTGAutomaton.getIdForState(decomp.getStateForId(finalStateID).toString()));
+            }
+
+//                System.out.println(fakeIRTGAutomaton);
+//                System.out.println(fakeIRTGAutomaton.viterbi());
+
+//                for (Rule rule : rule2supertag.keySet()) {
+//                    System.out.println(rule.toString(fakeIRTGAutomaton));
+//                    System.out.println(rule2supertag.get(rule));
+//                }
+
+            //write supertagmap
+            ZipEntry supertagMapZip = new ZipEntry(i+".supertagmap");
+            zipFile.putNextEntry(supertagMapZip);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(zipFile);
+            objectOutputStream.writeObject(rule2supertag);
+            objectOutputStream.flush();
+            zipFile.closeEntry();
+
+            //write edgemap
+            ZipEntry edgeMapZip = new ZipEntry(i+".edgemap");
+            zipFile.putNextEntry(edgeMapZip);
+            objectOutputStream = new ObjectOutputStream(zipFile);
+            objectOutputStream.writeObject(rule2edge);
+            objectOutputStream.flush();
+            zipFile.closeEntry();
+
+            //write automaton
+            ZipEntry automatonZip = new ZipEntry(i+".irtb");
+            zipFile.putNextEntry(automatonZip);
+            BinaryIrtgOutputCodec codec = new BinaryIrtgOutputCodec();
+            codec.write(new InterpretedTreeAutomaton(fakeIRTGAutomaton), zipFile);
+            zipFile.closeEntry();
+
+//                FileInputStream fileInputStream = new FileInputStream(file);
+//                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+//                HashMap<Rule, Pair<Integer, String>> fileObj = (HashMap<Rule, Pair<Integer, String>>) objectInputStream.readObject();
+//                objectInputStream.close();
+//                for (Rule rule : fileObj.keySet()) {
+//                    System.out.println(rule.toString(fakeIRTGAutomaton));
+//                    System.out.println(fileObj.get(rule));
+//                }
+
+        }
+
+        //write AMConll file
+        ZipEntry amconllZip = new ZipEntry("corpus.amconll");
+        zipFile.putNextEntry(amconllZip);
+        Writer amConllWriter = new OutputStreamWriter(zipFile);
+        AmConllSentence.write(amConllWriter, baseAmConllSentences);
+        amConllWriter.flush();
+        zipFile.closeEntry();
+
+        //write supertag dictionary
+        ZipEntry supertagZip = new ZipEntry("supertags.txt");
+        zipFile.putNextEntry(supertagZip);
+        Writer supertagWriter = new OutputStreamWriter(zipFile);
+        supertagDictionary.writeToWriter(supertagWriter);
+        supertagWriter.flush();
+        zipFile.closeEntry();
+
+
+        zipFile.finish();
+    }
+
 
 }
