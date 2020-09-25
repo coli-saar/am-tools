@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition.analysis;
+package de.saar.coli.amtools.script;
 
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.AmConllEntry;
