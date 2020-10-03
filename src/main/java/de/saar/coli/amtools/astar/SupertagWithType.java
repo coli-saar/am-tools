@@ -47,8 +47,10 @@ public class SupertagWithType implements Serializable {
             SupertagWithType that = (SupertagWithType) o;
             return Objects.equals(graph, that.graph) &&
                     Objects.equals(type, that.type);
-        } catch(Exception e) {
+        } catch(ArrayIndexOutOfBoundsException e) {
+            System.err.println("Error in SupertagWithType#equals; returning false. This is probably https://github.com/coli-saar/alto/issues/61 and must not concern you further.");
             System.err.println(e);
+            System.err.println("The error occurred when comparing the following graphs:");
             System.err.println(this);
             System.err.println(o);
 

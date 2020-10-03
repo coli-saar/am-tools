@@ -57,7 +57,7 @@ public class SupertagDictionary {
     */
    public synchronized void writeToFile(String filename) throws FileNotFoundException{
      PrintWriter pw = new PrintWriter(filename);
-     for (SGraph sg : cache.keySet()){
+     for (SGraph sg : cache.keySet()) {
        pw.println(cache.get(sg));
      }
      pw.close();
