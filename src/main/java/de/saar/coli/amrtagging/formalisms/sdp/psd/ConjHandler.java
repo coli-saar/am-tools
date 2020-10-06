@@ -6,17 +6,27 @@
 package de.saar.coli.amrtagging.formalisms.sdp.psd;
 
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
+import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
+
+import de.up.ling.irtg.util.Counter;
+import edu.stanford.nlp.util.Sets;
 import org.jgrapht.graph.DirectedMultigraph;
+import se.liu.ida.nlp.sdp.toolkit.graph.Edge;
+import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
+import se.liu.ida.nlp.sdp.toolkit.graph.Node;
+import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
+import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 
 /**
  * A class for pre- and postprocessing that transforms conjunctions in PSD to a form that ressembles AMR (and back).
@@ -53,8 +63,8 @@ public class ConjHandler {
         for (GraphNode conjunctionNode : graph.vertexSet()){
             if (blobUtils.isConjunctionNode(g, conjunctionNode)){
                 for (GraphEdge e : g.getGraph().edgesOf(conjunctionNode)){
-                    if (!blobUtils.isBlobEdge(conjunctionNode, e) 
-                            && ! blobUtils.isConjEdgeLabel(e.getLabel())) { // don't redistribute conj labels
+                    if //(!blobUtils.isBlobEdge(conjunctionNode, e) &&
+                    (! blobUtils.isConjEdgeLabel(e.getLabel())) { // don't redistribute conj labels
                         for (GraphNode child : getConjChildren(g.getGraph(), conjunctionNode, blobUtils)){
                             GraphNode predicate = GeneralBlobUtils.otherNode(conjunctionNode, e);
                             GraphEdge newEdge;
@@ -105,12 +115,12 @@ public class ConjHandler {
                 for (GraphNode target : getConjChildren(graph ,conjunctionNode, blobUtils)){ //go over the conjoined nodes 
                     Map<Pair<GraphNode, String>, GraphEdge> edgesHere = new HashMap<>();
                     for (GraphEdge e : graph.edgesOf(target)){
-                        if (!blobUtils.isBlobEdge(target, e)) {
+                        //if (!blobUtils.isBlobEdge(target, e)) {
                             GraphNode other = GeneralBlobUtils.otherNode(target, e);
                             if (!other.equals(conjunctionNode)){
                                 edgesHere.put(new Pair(other, e.getLabel()), e);
                             }
-                        }
+                        //}
                     }
                     if (firstTarget) {
                         for (Entry<Pair<GraphNode, String>, GraphEdge> entry : edgesHere.entrySet()) {
@@ -162,7 +172,56 @@ public class ConjHandler {
         }
         return ret;
     }
-    
+
+
+    public static void main(String[] args) throws IOException {
+        GraphReader2015 gr = new GraphReader2015("C:\\Users\\Jonas\\Documents\\Work\\data\\sdp\\sdp2014_2015\\data\\2015\\en.psd.sdp");
+        Graph sdpGraph;
+        PSDBlobUtils blobUtils = new PSDBlobUtils();
+
+        int failedToReconstruct = 0;
+        int totalModified = 0;
+        Counter<String> edgeLabels = new Counter<>();
+
+        int i = 0;
+        while ((sdpGraph = gr.readGraph()) != null){
+            i++;
+            if (i % 100 == 0) {
+                System.err.println(i);
+            }
+            for (Node word : sdpGraph.getNodes()) {
+                if (word.pos.equals("CC")) {
+                    for (Edge edge : word.getOutgoingEdges()) {
+                        if (!edge.label.endsWith("member")) {
+                            edgeLabels.add(edge.label);
+                        }
+                    }
+                    for (Edge edge : word.getIncomingEdges()) {
+                        if (!edge.label.endsWith("member")) {
+                            edgeLabels.add(edge.label);
+                        }
+                    }
+                }
+            }
+
+
+            SGraph graph = SGraphConverter.toSGraph(sdpGraph).getGraph();
+            SGraph preprocessed = handleConj(graph, blobUtils);
+            SGraph postprocessed = restoreConj(preprocessed, blobUtils);
+            graph.setEqualsMeansIsomorphy(true);
+            if (!graph.equals(preprocessed)) {
+                totalModified++;
+            }
+            if (!graph.equals(postprocessed)) {
+                failedToReconstruct++;
+//                System.err.println(graph.toIsiAmrStringWithSources());
+//                System.err.println(postprocessed.toIsiAmrStringWithSources());
+            }
+        }
+        System.err.println("Graphs modified: "+totalModified);
+        System.err.println("Failed to reconstruct: "+failedToReconstruct);
+        edgeLabels.printAllSorted();
+    }
     
     
 }

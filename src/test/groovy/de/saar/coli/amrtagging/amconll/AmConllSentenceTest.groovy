@@ -57,6 +57,7 @@ class AmConllSentenceTest {
         List<AmConllSentence> sents = AmConllSentence.read(new StringReader(AMCONLL));
         StringWriter w = new StringWriter();
         AmConllSentence.write(w, sents);
+        w.close()
         
         String result = w.toString().trim();
         result = result.replaceAll("true", "True");
@@ -78,6 +79,7 @@ class AmConllSentenceTest {
         
         StringWriter w = new StringWriter();
         AmConllSentence.write(w, sents);
+        w.close()
         
         String result = w.toString().trim();
         result = result.replaceAll("true", "True");

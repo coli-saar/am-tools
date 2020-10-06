@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.preproc;
 
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.TaggedWord;
+
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public interface PreprocessedData {
      * Returns the POS tags of the sentence, one per token.
      * 
      * @param instanceId
-     * @return 
+     * @return
      */
     public List<TaggedWord> getPosTags(String instanceId);
     

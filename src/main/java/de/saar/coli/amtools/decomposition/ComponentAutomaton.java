@@ -90,7 +90,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             //compute main DAG component
             GraphNode root = this.graph.getNode(this.graph.getNodeForSource("root"));
             DAGComponent mainDAG = new DAGComponent(graph, root, blobUtils);
-            
+
             // get remaining connected components
             Collection<ConnectedComponent> connComps = ConnectedComponent.getAllConnectedComponents(graph, mainDAG.getAllAsGraphNodes());
             

@@ -25,7 +25,6 @@ public class DAGComponent {
     
     private final SGraph graph;
     private final DAGNode root;
-    private final AMRBlobUtils blobUtils;
     
     private final Set<DAGNode> allNodes;
     private final Map<GraphNode, DAGNode> graphNode2DAGNode;
@@ -39,7 +38,6 @@ public class DAGComponent {
         
         this.graph = graph;
         this.root = new DAGNode(graph, dagRoot, blobUtils);
-        this.blobUtils = blobUtils;
         
         allNodes = new HashSet<>();
         graphNode2DAGNode = new HashMap<>();
@@ -213,12 +211,18 @@ public class DAGComponent {
     }
 
     public Tree<GraphNode> toTreeWithDuplicates() {
-        return toTreeWithDuplicatesRecursive(root);
+        return toTreeWithDuplicatesRecursive(root, new HashSet<>());
     }
 
-    private Tree<GraphNode> toTreeWithDuplicatesRecursive(DAGNode current) {
-        List<Tree<GraphNode>> childTrees = current.getChildren().stream()
-                .map(this::toTreeWithDuplicatesRecursive).collect(Collectors.toList());
+    private static Tree<GraphNode> toTreeWithDuplicatesRecursive(DAGNode current, Set<GraphNode> covered) {
+        List<Tree<GraphNode>> childTrees;
+        if (covered.contains(current.getNode())) {
+            childTrees = Collections.EMPTY_LIST;
+        } else {
+            covered.add(current.getNode());
+            childTrees = current.getChildren().stream()
+                    .map(child -> toTreeWithDuplicatesRecursive(child, covered)).collect(Collectors.toList());
+        }
         return Tree.create(current.getNode(), childTrees);
     }
 

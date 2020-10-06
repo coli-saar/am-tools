@@ -11,14 +11,10 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -235,16 +231,32 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * 
      * @see #write(java.io.Writer, java.util.List) 
      *
+     * @param file
+     * @param sents
+     * @throws IOException
+     */
+    public static void writeToFile(File file, List<AmConllSentence> sents) throws IOException {
+        Writer w = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
+        write(w, sents);
+        w.close();
+    }
+
+    /**
+     * Writes a list of ConllSentences to a file.
+     *
+     * @see #write(java.io.Writer, java.util.List)
+     *
      * @param filename
      * @param sents
      * @throws IOException
      */
     public static void writeToFile(String filename, List<AmConllSentence> sents) throws IOException {
-        write(new FileWriter(filename), sents);
+        writeToFile(new File(filename), sents);
     }
+
     
     /**
-     * Writes a list of ConllSentences to a writer.<p>
+     * Writes a list of ConllSentences to a writer. Does not close the writer.<p>
      * 
      * TODO: might want to set the
      * line of the objects to where it was written to file.
@@ -254,20 +266,18 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * @throws IOException
      */
     public static void write(Writer writer, List<AmConllSentence> sents) throws IOException {
-        BufferedWriter bw = new BufferedWriter(writer);
         
         for (AmConllSentence s : sents) {
             for (String key : s.attributes.keySet()) {
-                bw.write("#");
-                bw.write(key);
-                bw.write(":");
-                bw.write(s.getAttr(key));
-                bw.write("\n");
+                writer.write("#");
+                writer.write(key);
+                writer.write(":");
+                writer.write(s.getAttr(key));
+                writer.write("\n");
             }
-            bw.write(s.toString());
-            bw.write("\n");
+            writer.write(s.toString());
+            writer.write("\n");
         }
-        bw.close();
     }
     
     /**
@@ -357,7 +367,10 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * @throws IOException
      */
     public static List<AmConllSentence> readFromFile(String filename) throws FileNotFoundException, IOException, ParseException {
-        return read(new FileReader(filename));
+        return read( new InputStreamReader(
+                new FileInputStream(filename),
+                Charset.forName("UTF-8").newDecoder()
+        ));
     }
     
     
@@ -420,7 +433,7 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * Given an index i, returns all entries that have head i. Current implementation is somewhat inefficient,
      * might need reimplementation if used in runtime-sensitive locations.
      * @param i the index of the word who's children to get, 0-based
-     * @return the children of entry i (which have i as head)
+     * @return the children of entry i (which have i as head), in sentence order
      */
     public List<AmConllEntry> getChildren(int i) {
         //when called for all indices, this is quadratic. Caching and running through all entries once could make it linear, but should be ok for now.
@@ -439,5 +452,24 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
         } else {
             return null;
         }
+    }
+
+    /**
+     * clones this sentence by cloning each entry and copying each attribute.
+     * @Author JG
+     * @return
+     */
+    @Override
+    public Object clone() {
+        AmConllSentence clone = new AmConllSentence();
+        // clone each entry
+        clone.addAll(this.stream().map(entry -> (AmConllEntry)entry.clone()).collect(Collectors.toList()));
+        for (String key : this.attributes.keySet()) {
+            clone.setAttr(key, this.attributes.get(key));
+        }
+        clone.lineNr = this.lineNr;
+        //modCount is some weird list thing, may as well copy I suppose
+        clone.modCount = this.modCount;
+        return clone;
     }
 }

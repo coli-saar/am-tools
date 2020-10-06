@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.amrtagging.formalisms.sdp.psd.tools;
+package de.saar.coli.amrtagging.formalisms.sdp.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -12,8 +12,6 @@ import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -21,6 +19,9 @@ import de.up.ling.tree.ParseException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import se.liu.ida.nlp.sdp.toolkit.graph.*;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
@@ -28,19 +29,21 @@ import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import se.liu.ida.nlp.sdp.toolkit.io.Constants;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphWriter2015;
 
 /**
- * Converts an AM Dependency corpus (amconll) into an SDP corpus (.sdp). 
+ * Takes an amconll corpus with edges attribute (encoding all edges) and puts them back into an SDP file.
  * @author matthias
  */
-public class ToSDPCorpus {
+public class RestoreEdges {
      @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus with decoded AM dependency trees")//, required = true)
-    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/meine_Daten/PSD-toy/generalized.amconll";
+    private String corpusPath = "/home/matthias/Schreibtisch/Hiwi/Koller/COLING_20/baseline-graph-parser/data/SemEval/2015/DM/dev/dev.amconll";
 
     @Parameter(names = {"--outFile", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/matthias/Schreibtisch/Hiwi/Koller/Datensets_sammeln/SDP/sdp2014_2015/data/2015/meine_Daten/PSD-toy/bla";
+    private String outPath = "/tmp/dm";
     
     @Parameter(names={"--gold","-g"}, description = "Path to gold corpus. Make sure it contains exactly the same instances, in the same order.")//, required=true)
     private String goldCorpus = null;
@@ -49,9 +52,8 @@ public class ToSDPCorpus {
     private boolean help=false;
    
     
-
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException{
-        ToSDPCorpus cli = new ToSDPCorpus();
+        RestoreEdges cli = new RestoreEdges();
         JCommander commander = new JCommander(cli);
         commander.setProgramName("constraint_extractor");
 
@@ -78,53 +80,75 @@ public class ToSDPCorpus {
         if (cli.outPath != null){
             grW = new GraphWriter2015(cli.outPath+".sdp");
         }
+        
         Scorer scorer = new Scorer();
+        
         for (AmConllSentence s : sents){
-            //prepare raw output without edges
+            // prepare raw output without edges
             String id = s.getAttr("id") != null ? s.getAttr("id") : "#NO-ID";
             if (! id.startsWith("#")) id = "#" + id;
             Graph sdpSent = new Graph(id);
             sdpSent.addNode(Constants.WALL_FORM, Constants.WALL_LEMMA, Constants.WALL_POS, false, false, Constants.WALL_SENSE); //some weird dummy node.
+            
+            // edges
+            String edges = s.getAttr("edges");
+            List<Edge> edgeObjects = new ArrayList<>();
+            Set<Integer> isPred = new HashSet<>();
+            
+            if (!edges.equals("[]")){
+                // Example for edges:
+                // [[4,1,"ARG1"],[1,3,"_and_c"],[5,4,"loc"],[6,4,"ARG1"],[6,7,"ARG2"]]
+                String[] triples = edges.split("\\],\\["); // split at ],[ 
+                // -> [[4,1,"ARG1"   1,3,"_and_c"   5,4,"loc"   6,4,"ARG1"  6,7,"ARG2"]]
+
+                for (String triple : triples){
+                    triple = triple.replace("[[", "").replace("]]","").replace("\"","");
+                    String[] parts = triple.split(",");
+                    int from = Integer.parseInt(parts[0]);
+                    int to = Integer.parseInt(parts[1]);
+                    String label = parts[2];
+
+                    edgeObjects.add(new Edge(0, from, to, label));
+                    isPred.add(from);
+                }
+            }
+            
+            // tops
+            Set<Integer> isTop = new HashSet<>();
+            
+            if (!s.getAttr("tops").equals("[]")){
+                String topsStr = s.getAttr("tops").replace("]","").replace("[","");
+
+                for (String top : topsStr.split(",")){
+                    isTop.add(Integer.parseInt(top));
+                }
+            }
 
             for (AmConllEntry word : s){ //build a SDP Graph with only the words copied from the input.
                 if (! word.getForm().equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)){
-                    sdpSent.addNode(word.getForm(), word.getLemma(), word.getPos(), false, false, "_");
+                    sdpSent.addNode(word.getForm(), word.getLemma(), word.getPos(), isTop.contains(word.getId()), isPred.contains(word.getId()), "_");
                 }
             }
-            boolean read = false;
-            try {
-                AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
-                SGraph evaluatedGraph = amdep.evaluate(true);
-                evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils()); //really important!
+            
+            for (Edge e : edgeObjects){
+                sdpSent.addEdge(e.source, e.target, e.label);
+            }
+            
 
-                Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
-                if (goldReader != null){
-                    read = true;
-                    Graph goldGraph = goldReader.readGraph();
-                    scorer.update(goldGraph, outputSent);
-                }
-                if (grW != null){
-                    grW.writeGraph(outputSent);
-                }
-            } catch (Exception ex){
-                System.err.println("In line "+s.getLineNr());
-                //AMDependencyTree amdep = AMDependencyTree.fromSentence(s);
-                //SGraph evaluatedGraph = amdep.evaluate(true);
-                //SGraphDrawer.draw(evaluatedGraph, "");
-                System.err.println("Ignoring exception:");
-                ex.printStackTrace();
-                System.err.println("Writing graph without edges instead");
-                grW.writeGraph(sdpSent);
-                if (!read && goldReader != null){
-                    Graph goldGraph = goldReader.readGraph();
-                    scorer.update(goldGraph, sdpSent);
-                }
+            if (goldReader != null){
+                Graph goldGraph = goldReader.readGraph();
+                scorer.update(goldGraph, sdpSent);
             }
+
+            if (grW != null){
+                grW.writeGraph(sdpSent);
+            }
+
         }
         if (grW != null){
             grW.close();
         }
-        if (goldReader != null) {
+        if (goldReader != null){
            System.out.println("Labeled Scores");
            System.out.println("Precision "+scorer.getPrecision());
            System.out.println("Recall "+scorer.getRecall());
@@ -141,7 +165,8 @@ public class ToSDPCorpus {
            System.out.println("Recall "+scorer.getSemanticFramesRecall());
            System.out.println("F "+scorer.getSemanticFramesF1());
         }
-
+ 
+        
     }
     
 

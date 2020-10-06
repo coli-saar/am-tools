@@ -456,6 +456,24 @@ public class AmConllEntry {
         hash = 37 * hash + Objects.hashCode(this.furtherAttributes);
         return hash;
     }
-    
-    
+
+    @Override
+    protected Object clone() {
+        AmConllEntry clone = new AmConllEntry(this.id, this.form);
+        clone.setEdgeLabel(this.edgeLabel);
+        clone.setHead(this.head);
+        clone.setType(this.type);
+        clone.setDelexSupertag(this.delexSupertag);
+        clone.setLexLabelWithoutReplacing(this.lexLabel);
+        clone.setNe(this.ne);
+        clone.setPos(this.pos);
+        clone.setLemma(this.lemma);
+        clone.setAligned(this.aligned);
+        clone.setReplacement(this.replacement);
+        clone.setRange(this.range);
+        for (String key : this.furtherAttributes.keySet()) {
+            clone.setFurtherAttribute(key, this.furtherAttributes.get(key));
+        }
+        return clone;
+    }
 }

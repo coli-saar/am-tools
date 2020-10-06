@@ -176,14 +176,15 @@ public class CreateCorpusParallel {
         cli.write(outCorpus,supertagDictionary);
         
     }
-        private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
-            if (outPath != null && prefix != null){
-                AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
-                if (vocab == null){ //only write vocab if it wasn't restored.
-                    supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
-                }
+
+    private void write(ArrayList<AmConllSentence> outCorpus, SupertagDictionary supertagDictionary) throws IOException{
+        if (outPath != null && prefix != null){
+            AmConllSentence.writeToFile(outPath+"/"+prefix+".amconll", outCorpus);
+            if (vocab == null){ //only write vocab if it wasn't restored.
+                supertagDictionary.writeToFile(outPath+"/"+prefix+"-supertags.txt");
             }
         }
+    }
         
  
         

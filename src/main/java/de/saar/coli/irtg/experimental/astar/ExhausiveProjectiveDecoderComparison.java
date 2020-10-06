@@ -280,7 +280,7 @@ public class ExhausiveProjectiveDecoderComparison {
         logW.close();
 
         // write parsed corpus to output file
-        AmConllSentence.write(new FileWriter(arguments.getOutFile()), corpus);
+        AmConllSentence.writeToFile(arguments.getOutFile(), corpus);
     }
 
     private static Tree<String> fixLexNotation(Tree<String> amTerm) {
