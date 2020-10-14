@@ -1,69 +1,95 @@
 package de.saar.coli.amtools.decomposition;
 
 import de.up.ling.irtg.automata.Rule;
+import de.up.ling.irtg.automata.RuleEvaluator;
+import de.up.ling.irtg.automata.RuleEvaluatorTopDown;
 import de.up.ling.irtg.automata.TreeAutomaton;
 import de.up.ling.irtg.codec.BinaryIrtgInputCodec;
 import de.up.ling.irtg.semiring.LogDoubleArithmeticSemiring;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class PyjniusHelper {
 
     static LogDoubleArithmeticSemiring logDoubleArithmeticSemiring = new LogDoubleArithmeticSemiring();
 
-    public static float[] computeOuterProbabilities(float[] ruleWeights, Iterable<Rule> ruleIterable,
-                                                    TreeAutomaton<String> automaton) {
+    public static float[] computeOuterProbabilities(float[] ruleWeights, List<Rule> allRulesInBottomUpOrder, int maxStateIDPlusOne, IntSet finalStates) {
         int i = 0;
-        for (Rule rule : ruleIterable) {
+        for (Rule rule : allRulesInBottomUpOrder) {
             rule.setWeight(Math.exp(ruleWeights[i]));
             i++;
         }
-        Int2ObjectMap<Double> logInsides = automaton.logInside();
-        Map<Integer, Double> logOutsides = automaton.logOutside(logInsides);
+        Double[] logInsides = TreeAutomaton.<Double>evaluateRuleListInSemiring(Double.class, LogDoubleArithmeticSemiring.INSTANCE,
+                rule -> Math.log(rule.getWeight()), allRulesInBottomUpOrder, maxStateIDPlusOne);
+        Double[] logOutsides = TreeAutomaton.evaluateRuleListInSemiringTopDown(Double.class, LogDoubleArithmeticSemiring.INSTANCE,
+                new RuleEvaluatorTopDown<Double>() {
+                    @Override
+                    public Double initialValue() {
+                        return 0.0;//0.0 is the 1.0 of log space
+                    }
+
+                    @Override
+                    public Double evaluateRule(Rule rule, int i) {
+                        Double ret = Math.log(rule.getWeight());
+                        for (int j = 0; j < rule.getArity(); j++) {
+                            if (j != i) {
+                                ret += logInsides[rule.getChildren()[j]];
+                            }
+                        }
+                        return ret;
+                    }
+                }, allRulesInBottomUpOrder, maxStateIDPlusOne, finalStates);
         double totalInside = Double.NaN;
-        for (int finalState : automaton.getFinalStates()) {
+        for (int finalState : finalStates) {
             if (Double.isNaN(totalInside)) {
-                totalInside = logInsides.get(finalState);
+                totalInside = logInsides[finalState];
             } else {
-                totalInside = logDoubleArithmeticSemiring.add(totalInside, logInsides.get(finalState));
+                totalInside = logDoubleArithmeticSemiring.add(totalInside, logInsides[finalState]);
             }
         }
         float[] ret = new float[ruleWeights.length]; // if ruleWeights has more weights than rules, then ret is 0 there
         // this is desired when using "fake rules" in python
         i = 0;
-        for (Rule rule : ruleIterable) {
-            float outerWeight = logOutsides.get(rule.getParent()).floatValue();
+        for (Rule rule : allRulesInBottomUpOrder) {
+            float outerWeight = logOutsides[rule.getParent()].floatValue();
             for (int child : rule.getChildren()) {
-                outerWeight += logInsides.get(child);
+                outerWeight += logInsides[child];
             }
-            outerWeight -= totalInside; // for normalization across automata
+            outerWeight -= totalInside; // for normalization across automata, or, from a different perspective, so that we get *log* inside loss.
             ret[i]=outerWeight;
             i++;
         }
         return ret;
     }
 
-    public static float getTotalLogInside(float[] ruleWeights, Iterable<Rule> ruleIterable,
-                                                    TreeAutomaton<String> automaton) {
+    public static float getTotalLogInside(float[] ruleWeights, List<Rule> allRulesInBottomUpOrder, int maxStateIDPlusOne, IntSet finalStates) {
         int i = 0;
-        for (Rule rule : ruleIterable) {
+        for (Rule rule : allRulesInBottomUpOrder) {
             rule.setWeight(Math.exp(ruleWeights[i]));
             i++;
         }
-        Int2ObjectMap<Double> logInsides = automaton.logInside();
+        Double[] logInsides = TreeAutomaton.evaluateRuleListInSemiring(Double.class, LogDoubleArithmeticSemiring.INSTANCE,
+                new RuleEvaluator<Double>() {
+                    @Override
+                    public Double evaluateRule(Rule rule) {
+                        return Math.log(rule.getWeight());
+                    }
+                }, allRulesInBottomUpOrder, maxStateIDPlusOne);
         double totalInside = Double.NaN;
-        for (int finalState : automaton.getFinalStates()) {
+        for (int finalState : finalStates) {
             if (Double.isNaN(totalInside)) {
-                totalInside = logInsides.get(finalState);
+                totalInside = logInsides[finalState];
             } else {
-                totalInside = logDoubleArithmeticSemiring.add(totalInside, logInsides.get(finalState));
+                totalInside = logDoubleArithmeticSemiring.add(totalInside, logInsides[finalState]);
             }
         }
         return (float)totalInside;
@@ -106,7 +132,7 @@ public class PyjniusHelper {
         TreeAutomaton<String> automaton = new BinaryIrtgInputCodec().read(
                 new FileInputStream("C:\\Users\\Jonas\\Documents\\Work\\GitHub\\am-parser\\example\\minimalDMautomata\\0.irtb"))
                 .getAutomaton();
-        float[] outerProbs = computeOuterProbabilities(ruleWeights, automaton.getRuleSet(), automaton);
+        float[] outerProbs = computeOuterProbabilities(ruleWeights, automaton.getAllRulesInBottomUpOrder(), automaton.getStateInterner().getNextIndex(), automaton.getFinalStates());
         System.out.println(Arrays.toString(outerProbs));
     }
 
