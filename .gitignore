@@ -76,3 +76,7 @@ out/log_2020-01-29_17.24.36.txt
 .nb-gradle_backup/profiles/private/aux-config
 .idea/am-tools.iml
 .idea/compiler.xml
+content.tex
+test.sdp
+train_pas_small.amconll
+train_small.amconll

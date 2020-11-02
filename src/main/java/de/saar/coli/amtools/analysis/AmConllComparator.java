@@ -3,6 +3,9 @@ package de.saar.coli.amtools.analysis;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.tree.ParseException;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -11,6 +14,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AmConllComparator {
+
+
+    public static void main(String[] args) throws IOException, ParseException {
+        List<AmConllSentence> gold = AmConllSentence.readFromFile("train_pas_small.amconll");
+        List<AmConllSentence> pred = AmConllSentence.readFromFile("train_small.amconll");
+        System.out.println(getF(gold, pred, true, true));
+        System.out.println(getF(gold, pred, false, false));
+        System.out.println(getF(gold, pred, true, false));
+    }
 
     /**
      * computes unlabeled f score between two AmConllSentences. The lists must not have equal size (ignores sentences
