@@ -75,8 +75,8 @@ public class PrepareTestData {
         }
         br.close();
 
-        PrintWriter goldEDM = new PrintWriter(cli.outPath+cli.prefix+"-gold.edm");
-        PrintWriter goldAMR = new PrintWriter(cli.outPath+cli.prefix+"-gold.amr.txt");
+        PrintWriter goldEDM = new PrintWriter(cli.outPath+"/"+cli.prefix+"-gold.edm");
+        PrintWriter goldAMR = new PrintWriter(cli.outPath+"/"+cli.prefix+"-gold.amr.txt");
 
         ArrayList<AmConllSentence> out = new ArrayList<AmConllSentence>();
         for (int i = 0; i < allGraphs.size(); i++){
