@@ -80,3 +80,12 @@ examples/debugging_example_simplified.sdp
 examples/raised_spine_cycles_removed.amconll
 examples/raised_spine_cycles_removed_supertagDictionary.txt
 temp
+content.tex
+examples/english-bidirectional-distsim.tagger
+examples/english.conll.4class.distsim.crf.ser.gz
+examples/namesDatesNumbers_AlsFixed.corpus
+examples/output/dev.zip
+examples/output/train.zip
+examples/test.sdp
+examples/train_pas_small.amconll
+examples/train_small.amconll

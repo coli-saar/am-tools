@@ -466,7 +466,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
                     ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
 
-                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
+                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
 
                     try {

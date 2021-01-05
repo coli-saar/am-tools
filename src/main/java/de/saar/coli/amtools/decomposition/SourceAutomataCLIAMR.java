@@ -7,41 +7,36 @@ import com.google.common.collect.ListMultimap;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
-import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
-import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
-import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
+import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
+import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.AMDependencyTree;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphNode;
-import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.StringAlgebra;
+import de.up.ling.irtg.algebra.graph.*;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
 import de.up.ling.irtg.automata.TreeAutomaton;
-import de.up.ling.irtg.codec.BinaryIrtgOutputCodec;
+import de.up.ling.irtg.corpus.Corpus;
+import de.up.ling.irtg.corpus.CorpusReadingException;
+import de.up.ling.irtg.corpus.Instance;
+import de.up.ling.irtg.hom.Homomorphism;
+import de.up.ling.irtg.signature.Signature;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.irtg.util.ProgressListener;
 import de.up.ling.tree.Tree;
-import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
-import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
-
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 
-public class SourceAutomataCLI {
+public class SourceAutomataCLIAMR {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.sdp file)")//, required = true)
     private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\smallDev.sdp";
@@ -53,11 +48,14 @@ public class SourceAutomataCLI {
     private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\small\\";
 
 
-    @Parameter(names = {"--corpusType", "-ct"}, description = "values can be DM, PAS or PSD, default is DM")//, required = true)
-    private String corpusType = "DM";
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz", required = true)
+    private String stanfordNerFilename;
+
+    @Parameter(names = {"--stanford-pos-model"}, description = "Path to the stanford POS tagger model file english-bidirectional-distsim.tagger", required = true)
+    private String stanfordPosFilename;
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
-    private int nrSources = 2;
+    private int nrSources = 4;
 
     @Parameter(names = {"--iterations"}, description = "max number of EM iterations")//, required = true)
     private int iterations = 100;
@@ -72,11 +70,11 @@ public class SourceAutomataCLI {
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
-    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException, CorpusReadingException {
 
         // read command line arguments
         // cli stands for CommandLineInterface
-        SourceAutomataCLI cli = new SourceAutomataCLI();
+        SourceAutomataCLIAMR cli = new SourceAutomataCLIAMR();
         JCommander commander = new JCommander(cli);
         try {
             commander.parse(args);
@@ -92,44 +90,62 @@ public class SourceAutomataCLI {
         }
 
 
+        NamedEntityRecognizer neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), true);
 
 
-        AMRBlobUtils blobUtils;
-        switch (cli.corpusType) {
-            case "DM": blobUtils = new DMBlobUtils(); break;
-            case "PAS": blobUtils = new PASBlobUtils(); break;
-            case "PSD": blobUtils = new PSDBlobUtils(); break;
-            default: throw new IllegalArgumentException("Illegal corpus type '"+cli.corpusType+"'. Legal are 'DM', 'PAS' and 'PSD'.");
-        }
+        AMRBlobUtils blobUtils = new AMRBlobUtils();
         SupertagDictionary supertagDictionary = new SupertagDictionary();//future: load from file for dev set (better: get dev scores from training EM)
 
+        // load data
+        InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton());
+        Signature dummySig = new Signature();
+        loaderIRTG.addInterpretation(new Interpretation<>(new GraphAlgebra(), new Homomorphism(dummySig, dummySig), "repgraph"));
+        loaderIRTG.addInterpretation(new Interpretation<>(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "repstring"));
+        loaderIRTG.addInterpretation(new Interpretation<>(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "string"));
+        loaderIRTG.addInterpretation(new Interpretation<>(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "spanmap"));
+        loaderIRTG.addInterpretation(new Interpretation<>(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "id"));
+        loaderIRTG.addInterpretation(new Interpretation<>(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "repalignment"));
+
+
+
         //get automata for training set
-        GraphReader2015 gr = new GraphReader2015(cli.trainingCorpusPath);
+
+        Corpus corpusTrain = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.trainingCorpusPath), loaderIRTG);
+
+        PreprocessedData preprocessedDataTrain = new StanfordPreprocessedData(cli.stanfordPosFilename);
+        ((StanfordPreprocessedData) preprocessedDataTrain).readTokenizedFromCorpus(corpusTrain);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomata = new ArrayList<>();
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
-        cli.processCorpus(gr, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
+        cli.processCorpus(corpusTrain, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages,
+                preprocessedDataTrain, neRecognizer);
 
 
         //get automata for dev set
-        GraphReader2015 grDev = new GraphReader2015(cli.devCorpusPath);
+        Corpus corpusDev = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.devCorpusPath), loaderIRTG);
+
+
+        PreprocessedData preprocessedDataDev = new StanfordPreprocessedData(cli.stanfordPosFilename);
+        ((StanfordPreprocessedData) preprocessedDataDev).readTokenizedFromCorpus(corpusDev);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomataDev = new ArrayList<>();
         List<SourceAssignmentAutomaton> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
-        cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
+        cli.processCorpus(corpusDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev,
+                preprocessedDataDev, neRecognizer);
 
 
         if (cli.algorithm.equals("automata")) {
 
-            createAutomataZip(originalDecompositionAutomata, decompositionPackages, supertagDictionary, "train", cli.outPath);
-            createAutomataZip(originalDecompositionAutomataDev, decompositionPackagesDev, supertagDictionary, "dev", cli.outPath);
+            SourceAutomataCLI.createAutomataZip(originalDecompositionAutomata, decompositionPackages, supertagDictionary, "train", cli.outPath);
+            SourceAutomataCLI.createAutomataZip(originalDecompositionAutomataDev, decompositionPackagesDev, supertagDictionary, "dev", cli.outPath);
 
         } else {
 
+            // WARNING code below is not tested for AMR yet
 
             if (cli.algorithm.equals("EM")) {
 
@@ -154,7 +170,7 @@ public class SourceAutomataCLI {
                         String grammarLabel = dataRule.getLabel(dataAutomaton);
                         // delexicalize the constants in grammar, for now assuming that the root is the lexical label.
                         if (dataRule.getArity() == 0) {
-                            Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(grammarLabel);
+                            Pair<SGraph, Type> constant = alg.parseString(grammarLabel);
                             String nodeName = constant.left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME); //TODO make this use the decomposition package
                             constant.left.getNode(nodeName).setLabel(AmConllEntry.LEX_MARKER);
                             grammarLabel = grammarSupertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
@@ -199,7 +215,7 @@ public class SourceAutomataCLI {
                     for (Rule devRule : devAutomaton.getRuleSet()) {
                         String label = devRule.getLabel(devAutomaton);
                         if (devRule.getArity() == 0) {
-                            Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(label);
+                            Pair<SGraph, Type> constant = alg.parseString(label);
                             String nodeName = constant.left.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME); //TODO make this use the decomposition package
                             constant.left.getNode(nodeName).setLabel(AmConllEntry.LEX_MARKER);
                             label = grammarSupertagDictionary.getRepr(constant.left) + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
@@ -268,9 +284,9 @@ public class SourceAutomataCLI {
         }
     }
 
-    private void processCorpus(GraphReader2015 gr, AMRBlobUtils blobUtils,
+    private void processCorpus(Corpus corpus, AMRBlobUtils blobUtils,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
-                                List<DecompositionPackage> decompositionPackages) throws IOException {
+                               List<DecompositionPackage> decompositionPackages, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer) throws IOException {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
         Counter<Integer> bucketCounter = new Counter<>();
@@ -278,23 +294,18 @@ public class SourceAutomataCLI {
         int index = 0;
         int fails = 0;
         int nondecomposeable = 0;
-        Graph sdpGraph;
-        while ((sdpGraph = gr.readGraph()) != null) {
+        for (Instance corpusInstance : corpus) {
             if (index % 500 == 0) {
                 System.err.println(index);
                 bucketCounter.printAllSorted();
             }
-            if (true) { //index == 1268
-                MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
-                SGraph graph = inst.getGraph();
-                if (corpusType.equals("PSD")) {
-                    graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils);
-                }
-
+            if (true) {
+                SGraph graph = (SGraph)corpusInstance.getInputObjects().get("repgraph");
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils);
+
+                    DecompositionPackage decompositionPackage = new AMRDecompositionPackage(corpusInstance, blobUtils, preprocessedData, neRecognizer);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
@@ -302,6 +313,9 @@ public class SourceAutomataCLI {
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
+                    for (Set<String> nodesInConstant : decompositionPackage.getMultinodeConstantNodeNames()) {
+                        result = contractMultinodeConstant(result, nodesInConstant, decompositionPackage);
+                    }
 
                     try {
                         SGraph resultGraph = result.evaluate().left;
@@ -342,22 +356,22 @@ public class SourceAutomataCLI {
                             System.err.println(index);
                             System.err.println(graph.toIsiAmrStringWithSources());
                             System.err.println(resultGraph.toIsiAmrStringWithSources());
-                            fails++;
+                            successCounter.add("fail");
                         }
-                    } catch (java.lang.Exception ex) {
+                    } catch (Exception ex) {
                         System.err.println(index);
 //                        System.err.println(graph.toIsiAmrStringWithSources());
 //                        System.err.println(result);
                         ex.printStackTrace();
-                        fails++;
+                        successCounter.add("fail");
                     }
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
-                } catch (java.lang.Exception ex) {
+                } catch (Exception ex) {
                     System.err.println(index);
 //                    System.err.println(graph.toIsiAmrStringWithSources());
                     ex.printStackTrace();
-                    fails++;
+                    successCounter.add("fail");
                 }
             }
 
@@ -368,162 +382,113 @@ public class SourceAutomataCLI {
     }
 
 
-    static void createAutomataZip(List<SourceAssignmentAutomaton> originalDecompositionAutomata,
-                                   List<DecompositionPackage> decompositionPackages,
-                                   SupertagDictionary supertagDictionary, String zipFileName, String outPath) throws IOException {
-        //create zip file
-        System.err.println("Writing zip file "+Paths.get(outPath, zipFileName+ ".zip"));
-        ZipOutputStream zipFile = new ZipOutputStream(new FileOutputStream(Paths.get(outPath, zipFileName+ ".zip").toFile()));
+    private static AMDependencyTree contractMultinodeConstant(AMDependencyTree amDep, Set<String> nodesInConstant, DecompositionPackage decompositionPackage) {
 
-        //write metadata file
-        ZipEntry meta = new ZipEntry("meta.txt");
-        zipFile.putNextEntry(meta);
-        zipFile.write(Integer.toString(originalDecompositionAutomata.size()).getBytes());
-        zipFile.closeEntry();
+        Set<AMDependencyTree> attachInThisTree = new HashSet<>();
+        Set<Pair<String, AMDependencyTree>> replaceThis = new HashSet<>();
 
-        //create base amconll file
-        List<AmConllSentence> baseAmConllSentences = decompositionPackages.parallelStream().map(dp -> dp.makeBaseAmConllSentence()).collect(Collectors.toList());
+        Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> result = buildContractedTree(amDep, attachInThisTree,
+                replaceThis, nodesInConstant, decompositionPackage, false);
+        AMDependencyTree toBeInserted = result.left;
+        List<Pair<String, AMDependencyTree>> attachBelow = result.right;
 
-
-
-        ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
-        for (int i = 0; i<originalDecompositionAutomata.size(); i++) {
-            if (i % 500 == 0) {
-                System.err.println(i);
+        if (attachInThisTree.size() > 1) {
+            throw new IllegalArgumentException("Constant to be contracted is disconnected");
+        } else {
+            try {
+                toBeInserted.evaluate();
+            } catch (Exception ex) {
+                throw new IllegalArgumentException("Constant to be contracted leads to illegal evaluation");
             }
-            SourceAssignmentAutomaton decomp = originalDecompositionAutomata.get(i);
-            DecompositionPackage decompositionPackage = decompositionPackages.get(i);
-            AmConllSentence amConllSentence = baseAmConllSentences.get(i);
-
-            Map<SourceAssignmentAutomaton.State, Integer> stateToWordPosition = new HashMap<>();
-
-            ConcreteTreeAutomaton<String> fakeIRTGAutomaton = new ConcreteTreeAutomaton<>();
-            Map<Rule, Pair<Integer, String>> rule2supertag = new HashMap<>();
-            Map<Rule, Pair<Pair<Integer, Integer>, String>> rule2edge = new HashMap<>();
-
-            decomp.processAllRulesBottomUp(rule -> {
-                if (rule.getArity() == 0) {
-                    try {
-                        // we want a new rule format
-                        // state.toString() -> wordPosition_supertag
-                        // which is, below, parent.toString() -> newRuleLabel
-                        String oldRuleLabel = rule.getLabel(decomp);
-                        Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(oldRuleLabel);
-                        int wordPosition = decompositionPackage.getSentencePositionForGraphFragment(constant.left);
-                        SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
-                        // obtain delexicalized graph fragment
-                        GraphNode lexicalNode = decompositionPackage.getLexNodeFromGraphFragment(constant.left);
-                        constant.left.addNode(lexicalNode.getName(), AmConllEntry.LEX_MARKER);
-//                            String newRuleLabel = wordPosition+"_"
-//                                    + constant.left.toIsiAmrStringWithSources()+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
-
-                        String constantString = supertagDictionary.getRepr(constant.left)+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+constant.right.toString();
-                        String newRuleLabel = constantString;
-                        //add rule to new automaton, with array of size 0 for children
-                        Rule newRule = fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel, new String[0]);
-                        fakeIRTGAutomaton.addRule(newRule);
-                        rule2supertag.put(newRule, new Pair<>(wordPosition, constantString));
-                        // add entry to state-to-word-position map
-                        stateToWordPosition.put(parent, wordPosition);
-                    } catch (ParserException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else if (rule.getArity() == 2) {
-                    // we want a new rule format
-                    // state.toString() -> i_j_oldRuleLabel(state0.toString(), state1.toString())
-                    // where below state = parent, state0 = child0, state1 = child1
-                    // and i = child0 wordPosition, j = child1 wordPosition
-                    SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
-                    SourceAssignmentAutomaton.State child0 = decomp.getStateForId(rule.getChildren()[0]);
-                    SourceAssignmentAutomaton.State child1 = decomp.getStateForId(rule.getChildren()[1]);
-                    int wordPosition0 = stateToWordPosition.get(child0);
-                    int wordPosition1 = stateToWordPosition.get(child1);
-                    int parentWordPosition = wordPosition0; // in AM operations, the left child is the head, and this rule reflects that.
-                    // add entry to state-to-word-position map
-                    stateToWordPosition.put(parent, parentWordPosition);
-                    // make and add new rule to new automaton
-//                        String newRuleLabel = wordPosition0+"_"+wordPosition1+"_"+rule.getLabel(decomp);
-                    String operationLabel = rule.getLabel(decomp);
-                    String newRuleLabel = operationLabel;
-                    Rule newRule = fakeIRTGAutomaton.createRule(parent.toString(), newRuleLabel,
-                            new String[]{child0.toString(), child1.toString()});
-                    fakeIRTGAutomaton.addRule(newRule);
-                    rule2edge.put(newRule, new Pair<>(new Pair<>(wordPosition0, wordPosition1), operationLabel));
-
-                    //add edge existence into amconll sentence
-                    amConllSentence.get(wordPosition1-1).setHead(wordPosition0);
-                } else {
-                    System.err.println("uh-oh, rule arity was "+rule.getArity());
-                }
-            });
-
-            // transfer final states over to new automaton
-            for (int finalStateID : decomp.getFinalStates()) {
-                // a whole lot of converting IDs and states and strings..
-                fakeIRTGAutomaton.addFinalState(fakeIRTGAutomaton.getIdForState(decomp.getStateForId(finalStateID).toString()));
+            AMDependencyTree replacement = new AMDependencyTree(toBeInserted.evaluate(), attachBelow.toArray(new Pair[attachBelow.size()]));
+            if (attachInThisTree.isEmpty()) {
+                return replacement;
+            } else {
+                AMDependencyTree attachHere = attachInThisTree.iterator().next();
+                attachHere.removeEdge(replaceThis.iterator().next().left, replaceThis.iterator().next().right);
+                attachHere.addEdge(replaceThis.iterator().next().left, replacement);
+                return amDep;
             }
-
-//                System.out.println(fakeIRTGAutomaton);
-//                System.out.println(fakeIRTGAutomaton.viterbi());
-
-//                for (Rule rule : rule2supertag.keySet()) {
-//                    System.out.println(rule.toString(fakeIRTGAutomaton));
-//                    System.out.println(rule2supertag.get(rule));
-//                }
-
-            //write supertagmap
-            ZipEntry supertagMapZip = new ZipEntry(i+".supertagmap");
-            zipFile.putNextEntry(supertagMapZip);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(zipFile);
-            objectOutputStream.writeObject(rule2supertag);
-            objectOutputStream.flush();
-            zipFile.closeEntry();
-
-            //write edgemap
-            ZipEntry edgeMapZip = new ZipEntry(i+".edgemap");
-            zipFile.putNextEntry(edgeMapZip);
-            objectOutputStream = new ObjectOutputStream(zipFile);
-            objectOutputStream.writeObject(rule2edge);
-            objectOutputStream.flush();
-            zipFile.closeEntry();
-
-            //write automaton
-            ZipEntry automatonZip = new ZipEntry(i+".irtb");
-            zipFile.putNextEntry(automatonZip);
-            BinaryIrtgOutputCodec codec = new BinaryIrtgOutputCodec();
-            codec.write(new InterpretedTreeAutomaton(fakeIRTGAutomaton), zipFile);
-            zipFile.closeEntry();
-
-//                FileInputStream fileInputStream = new FileInputStream(file);
-//                ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-//                HashMap<Rule, Pair<Integer, String>> fileObj = (HashMap<Rule, Pair<Integer, String>>) objectInputStream.readObject();
-//                objectInputStream.close();
-//                for (Rule rule : fileObj.keySet()) {
-//                    System.out.println(rule.toString(fakeIRTGAutomaton));
-//                    System.out.println(fileObj.get(rule));
-//                }
-
         }
 
-        //write AMConll file
-        ZipEntry amconllZip = new ZipEntry("corpus.amconll");
-        zipFile.putNextEntry(amconllZip);
-        Writer amConllWriter = new OutputStreamWriter(zipFile);
-        AmConllSentence.write(amConllWriter, baseAmConllSentences);
-        amConllWriter.flush();
-        zipFile.closeEntry();
-
-        //write supertag dictionary
-        ZipEntry supertagZip = new ZipEntry("supertags.txt");
-        zipFile.putNextEntry(supertagZip);
-        Writer supertagWriter = new OutputStreamWriter(zipFile);
-        supertagDictionary.writeToWriter(supertagWriter);
-        supertagWriter.flush();
-        zipFile.closeEntry();
-
-
-        zipFile.finish();
     }
 
+
+    /**
+     * returns the AMDependency tree that will give the contracted constant when evaluated, as well as the list of edges
+     * that need to be attached at its top. Calls itself recursively.
+     * @param amDep
+     * @param attachInThisTree attach the contraction result below this tree (is a set to determine invalid results:
+     * @param replaceThis
+     * @param nodesInConstant
+     * @param decompositionPackage
+     * @return
+     */
+    public static Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> buildContractedTree(AMDependencyTree amDep, Set<AMDependencyTree> attachInThisTree, Set<Pair<String, AMDependencyTree>> replaceThis,
+                                                       Set<String> nodesInConstant, DecompositionPackage decompositionPackage, boolean percolationRequired) {
+
+        if (isInNodeset(amDep.getHeadGraph(), decompositionPackage, nodesInConstant)) {
+            AMDependencyTree ret = new AMDependencyTree(amDep.getHeadGraph());
+            //then this node is in the constant to be contracted
+            List<Pair<String, AMDependencyTree>> attachBelow = new ArrayList<>();
+            for (Pair<String, AMDependencyTree> opAndChild : amDep.getOperationsAndChildren()) {
+                Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> rec =buildContractedTree(opAndChild.right,
+                        attachInThisTree, replaceThis, nodesInConstant, decompositionPackage, true);
+                if (isInNodeset(opAndChild.right.getHeadGraph(), decompositionPackage, nodesInConstant)) {
+                    AMDependencyTree retHere = rec.left;
+                    attachBelow.addAll(rec.right);
+                    ret.addEdge(opAndChild.left, retHere);
+                    for (Pair<String, AMDependencyTree> oneAttachedBelow : rec.right) {
+                        Type newHeadType = addAllToType(amDep.getHeadGraph().right, oneAttachedBelow.right.evaluate().right, getSource(oneAttachedBelow.left));
+                        ret.setHeadGraph(new Pair<>(ret.getHeadGraph().left, newHeadType));
+                    }
+                } else {
+                    if (percolationRequired && opAndChild.left.startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
+                        throw new IllegalArgumentException("Constant to be contracted leads to illegal MOD percolation");
+                    }
+                    attachBelow.add(opAndChild);
+                }
+            }
+            return new Pair<>(ret, attachBelow);
+        } else {
+            //then this node is not in the constant to be contracted. We call the function recursively on the children (passing the result up if there is one)
+            // and note whether the whole thing should be attached here.
+            Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> ret = null; // will pass up any result from below
+            for (Pair<String, AMDependencyTree> opAndChild : amDep.getOperationsAndChildren()) {
+                Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> rec = buildContractedTree(opAndChild.right,
+                        attachInThisTree, replaceThis, nodesInConstant, decompositionPackage, false);
+                if (rec != null) {
+                    ret = rec; // don't need to worry about overwriting / multiple results here; that will happen in the parent function (by checking that attachInThisTree is a singleton).
+                }
+                if (isInNodeset(opAndChild.right.getHeadGraph(), decompositionPackage, nodesInConstant)) {
+                    attachInThisTree.add(amDep);
+                    replaceThis.add(opAndChild);
+                }
+            }
+            return ret;
+        }
+
+    }
+
+    private static boolean isInNodeset(Pair<SGraph, Type> asgraph, DecompositionPackage decompositionPackage, Set<String> nodesInConstant) {
+        return nodesInConstant.contains(decompositionPackage.getLexNodeFromGraphFragment(asgraph.left).getName());
+    }
+
+    private static String getSource(String applyOperation) {
+        return applyOperation.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length());
+    }
+
+
+    private static Type addAllToType(Type origType, Type typeToAdd, String addAsChildOfThisSource) {
+        Type ret = origType;
+        for (String srcToAdd : typeToAdd.getAllSources()) {
+            ret = ret.addSource(srcToAdd);
+            ret = ret.setDependency(addAsChildOfThisSource, srcToAdd, srcToAdd);
+        }
+        for (Type.Edge edge : typeToAdd.getAllEdges()) {
+            ret = ret.setDependency(edge.getSource(), edge.getTarget(), edge.getLabel());
+        }
+        return ret;
+    }
 
 }

@@ -64,7 +64,7 @@ public class ComponentAnalysisToAMDep {
 
                     ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
 
-                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
+                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
                     try {
                         SGraph resultGraph = result.evaluate().left;
@@ -101,7 +101,7 @@ public class ComponentAnalysisToAMDep {
         System.err.println("Non-decomposeable: "+nondecomposeable);
     }
 
-    public AMDependencyTree componentAnalysis2AMDep(ComponentAutomaton componentAutomaton, SGraph graph) throws IllegalArgumentException {
+    public AMDependencyTree componentAnalysis2AMDep(ComponentAutomaton componentAutomaton) throws IllegalArgumentException {
         ConcreteTreeAutomaton<Pair<ConnectedComponent, DAGComponent>> auto = componentAutomaton.asConcreteTreeAutomatonTopDown();
         Tree<Rule> ruleTree;
         try {
