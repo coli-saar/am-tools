@@ -201,6 +201,6 @@ public class AMRDecompositionPackage extends DecompositionPackage {
 
     @Override
     public Set<Set<String>> getMultinodeConstantNodeNames() {
-        return alignments.stream().map(al -> al.nodes).collect(Collectors.toSet());
+        return alignments.stream().map(al -> al.nodes).filter(set -> set.size()>1).collect(Collectors.toSet());
     }
 }

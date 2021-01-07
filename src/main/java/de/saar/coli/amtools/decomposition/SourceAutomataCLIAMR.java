@@ -35,6 +35,7 @@ import de.up.ling.tree.Tree;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SourceAutomataCLIAMR {
 
@@ -290,7 +291,7 @@ public class SourceAutomataCLIAMR {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
         Counter<Integer> bucketCounter = new Counter<>();
-        Counter<String> successCounter = new Counter<>();
+        Counter<String> outcomeCounter = new Counter<>();
         int index = 0;
         int fails = 0;
         int nondecomposeable = 0;
@@ -304,8 +305,8 @@ public class SourceAutomataCLIAMR {
 
                 try {
 
+                    AMRDecompositionPackage decompositionPackage = new AMRDecompositionPackage(corpusInstance, blobUtils, preprocessedData, neRecognizer);
 
-                    DecompositionPackage decompositionPackage = new AMRDecompositionPackage(corpusInstance, blobUtils, preprocessedData, neRecognizer);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
@@ -313,86 +314,100 @@ public class SourceAutomataCLIAMR {
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
-                    for (Set<String> nodesInConstant : decompositionPackage.getMultinodeConstantNodeNames()) {
-                        result = contractMultinodeConstant(result, nodesInConstant, decompositionPackage);
+                    if (getDepthMax400(result) >= 400) {
+                        throw new IllegalArgumentException("unexpectedly high depth in AM tree!");
                     }
 
-                    try {
-                        SGraph resultGraph = result.evaluate().left;
-                        resultGraph.removeNode("ART-ROOT");
+                    for (Set<String> nodesInConstant : decompositionPackage.getMultinodeConstantNodeNames()) {
+                        result = contractMultinodeConstant(result, nodesInConstant, decompositionPackage, outcomeCounter);
+                    }
 
-                        graph.setEqualsMeansIsomorphy(false);
+                    SGraph resultGraph = result.evaluate().left;
+                    resultGraph.removeNode("ART-ROOT");
 
-                        if (graph.equals(resultGraph)) {
-                            SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
-                                    .makeAutomatonWithAllSourceCombinations(result, nrSources, decompositionPackage);
-                            ConcreteTreeAutomaton<SourceAssignmentAutomaton.State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
+                    graph.setEqualsMeansIsomorphy(false);
+
+                    if (graph.equals(resultGraph)) {
+                        SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
+                                .makeAutomatonWithAllSourceCombinations(result, nrSources, decompositionPackage);
+                        ConcreteTreeAutomaton<SourceAssignmentAutomaton.State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
-                            //System.out.println(result);
+                        //System.out.println(result);
 //                            System.out.println(concreteTreeAutomaton);
 //                            System.out.println(concreteTreeAutomaton.viterbi());
-                            if (concreteTreeAutomaton.viterbi() != null) {
-                                successCounter.add("success");
-                                concreteTreeAutomaton = (ConcreteTreeAutomaton<SourceAssignmentAutomaton.State>)concreteTreeAutomaton.reduceTopDown();
-                                concreteDecompositionAutomata.add(concreteTreeAutomaton);
-                                decompositionPackages.add(decompositionPackage);
-                                originalDecompositionAutomata.add(auto);
+                        if (concreteTreeAutomaton.viterbi() != null) {
+                            outcomeCounter.add("success");
+                            concreteTreeAutomaton = (ConcreteTreeAutomaton<SourceAssignmentAutomaton.State>)concreteTreeAutomaton.reduceTopDown();
+                            concreteDecompositionAutomata.add(concreteTreeAutomaton);
+                            decompositionPackages.add(decompositionPackage);
+                            originalDecompositionAutomata.add(auto);
 //                                if (concreteTreeAutomaton.getNumberOfRules() < 30) {
 //                                    System.err.println(concreteTreeAutomaton);
 //                                    System.err.println();
 //                                    System.err.println();
 //                                }
-                            } else {
-                                successCounter.add("fail");
-                            }
-//                            System.out.println(concreteTreeAutomaton.reduceTopDown().getNumberOfRules());
-                            int automatonSize = (int)concreteTreeAutomaton.reduceTopDown().getNumberOfRules();
-                            OptionalInt bucket = Arrays.stream(buckets).filter(bucketSize -> automatonSize > bucketSize).max();
-                            if (bucket.isPresent()) {
-                                bucketCounter.add(bucket.getAsInt());
-                            }
-//                            System.out.println();
                         } else {
-                            System.err.println(index);
-                            System.err.println(graph.toIsiAmrStringWithSources());
-                            System.err.println(resultGraph.toIsiAmrStringWithSources());
-                            successCounter.add("fail");
+                            outcomeCounter.add("fail");
+                            outcomeCounter.add("subfail no viterbi tree");
                         }
-                    } catch (Exception ex) {
+//                            System.out.println(concreteTreeAutomaton.reduceTopDown().getNumberOfRules());
+                        int automatonSize = (int)concreteTreeAutomaton.reduceTopDown().getNumberOfRules();
+                        OptionalInt bucket = Arrays.stream(buckets).filter(bucketSize -> automatonSize > bucketSize).max();
+                        if (bucket.isPresent()) {
+                            bucketCounter.add(bucket.getAsInt());
+                        }
+//                            System.out.println();
+                    } else {
                         System.err.println(index);
-//                        System.err.println(graph.toIsiAmrStringWithSources());
-//                        System.err.println(result);
-                        ex.printStackTrace();
-                        successCounter.add("fail");
+                        System.err.println("different evaluation result");
+                        System.err.println(graph.toIsiAmrStringWithSources());
+                        System.err.println(resultGraph.toIsiAmrStringWithSources());
+                        outcomeCounter.add("fail");
+                        outcomeCounter.add("subfail different evaluation result");
                     }
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
+                    outcomeCounter.add("fail");
+                    outcomeCounter.add("subfail deep decomp issue");
                 } catch (Exception ex) {
                     System.err.println(index);
+                    System.err.println("Error found in this graph");
+                    System.err.println(graph.toIsiAmrStringWithSources());
 //                    System.err.println(graph.toIsiAmrStringWithSources());
                     ex.printStackTrace();
-                    successCounter.add("fail");
+                    outcomeCounter.add("fail");
+                    outcomeCounter.add("subfail "+ex.toString());
                 }
             }
 
             index++;
         }
         bucketCounter.printAllSorted();
-        successCounter.printAllSorted();
+        outcomeCounter.printAllSorted();
     }
 
 
-    private static AMDependencyTree contractMultinodeConstant(AMDependencyTree amDep, Set<String> nodesInConstant, DecompositionPackage decompositionPackage) {
+    private static AMDependencyTree contractMultinodeConstant(AMDependencyTree amDep, Set<String> nodesInConstant, DecompositionPackage decompositionPackage,
+                                                              Counter<String> outcomeCounter) {
 
         Set<AMDependencyTree> attachInThisTree = new HashSet<>();
         Set<Pair<String, AMDependencyTree>> replaceThis = new HashSet<>();
 
-        Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> result = buildContractedTree(amDep, attachInThisTree,
-                replaceThis, nodesInConstant, decompositionPackage, false);
+        Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> result;
+        try {
+            result = buildContractedTree(amDep, attachInThisTree,
+                    replaceThis, nodesInConstant, decompositionPackage, false);
+        } catch (IllegalArgumentException ex) {
+            outcomeCounter.add("subfail illegal MOD move");
+            throw ex;
+        }
         AMDependencyTree toBeInserted = result.left;
         List<Pair<String, AMDependencyTree>> attachBelow = result.right;
 
-        if (attachInThisTree.size() > 1) {
+        int virtuallyAttachAtTop = isInNodeset(amDep.getHeadGraph(), decompositionPackage, nodesInConstant)? 1 : 0;
+
+        if (attachInThisTree.size() +virtuallyAttachAtTop > 1) {
+            outcomeCounter.add("subfail disconnected alignment");
             throw new IllegalArgumentException("Constant to be contracted is disconnected");
         } else {
             try {
@@ -490,5 +505,26 @@ public class SourceAutomataCLIAMR {
         }
         return ret;
     }
+
+    private static int getDepthMax400(AMDependencyTree amDep) {
+        return getDepthMax400Recursion(amDep, 1);
+    }
+    private static int getDepthMax400Recursion(AMDependencyTree amDep, int currentDepth) {
+        if (currentDepth >= 400) {
+            return 400;
+        } else {
+            if (amDep.getOperationsAndChildren().isEmpty()) {
+                return currentDepth;
+            } else {
+                int max = 0;
+                for (Pair<String, AMDependencyTree> opAndChild : amDep.getOperationsAndChildren()) {
+                    int childDepth = getDepthMax400Recursion(opAndChild.right, currentDepth+1);
+                    max = Math.max(max, childDepth);
+                }
+                return max;
+            }
+        }
+    }
+
 
 }
