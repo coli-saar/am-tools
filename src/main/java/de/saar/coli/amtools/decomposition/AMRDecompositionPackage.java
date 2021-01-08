@@ -144,7 +144,7 @@ public class AMRDecompositionPackage extends DecompositionPackage {
         Sentence stanfSent = new Sentence(expandedWords);
         lemmas = stanfSent.lemmas();
         try {
-            nerTags = neRecognizer.tag(preprocessedData.getTokens(id));
+            nerTags = neRecognizer.tag(Util.makeCoreLabelsForTokens(expandedWords));
         } catch (PreprocessingException e) {
             throw new RuntimeException(e); // don't expect this to happen really, and don't see the need to bother with error handling. If it happens, this will do -- JG
         }
