@@ -160,6 +160,13 @@ public class AMRDecompositionPackage extends DecompositionPackage {
         amSent.addLemmas(ourLemmas);
         amSent.addNEs(ners);
 
+        for (Alignment al : alignments) {
+            if (!al.lexNodes.isEmpty()) {
+                String lexLabel = graph.getNode(al.lexNodes.iterator().next()).getLabel();
+                amSent.get(al.span.start).setLexLabel(lexLabel);  // both amSent.get and span.start are 0-based
+            }
+        }
+
         return amSent;
     }
 

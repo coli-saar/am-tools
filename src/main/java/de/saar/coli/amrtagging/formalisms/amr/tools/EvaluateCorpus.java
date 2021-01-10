@@ -52,6 +52,10 @@ public class EvaluateCorpus {
    
    @Parameter(names = {"--keep-aligned"}, description = "keep index of token position in node label")
     private boolean keepAligned = false;
+
+    @Parameter(names = {"--add-sense-to-nn-label"}, description = "if true, adds a -01 suffix to all lexlabel predictions by the neural network\n" +
+            "     *                          that have no sense suffix but belong to a node with outgoing ARGx edges")
+    private boolean addSenseToNNLabel = false;
    
    @Parameter(names = {"--th"}, description = "Threshold for relabeler. Default: 10")
     private int threshold = 10;
@@ -101,7 +105,7 @@ public class EvaluateCorpus {
             l = new PrintWriter(cli.outPath+"/labels.txt");
             indices = new PrintWriter(cli.outPath+"/indices.txt");
         } else {
-             relabeler = new Relabel(cli.wordnet, null, cli.lookup, cli.threshold, 0,false);
+             relabeler = new Relabel(cli.wordnet, null, cli.lookup, cli.threshold, 0,false, cli.addSenseToNNLabel);
         }
 
         int index = 0;
