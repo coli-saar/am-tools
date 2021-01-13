@@ -39,8 +39,10 @@ public class AMRDecompositionPackage extends DecompositionPackage {
     private final PreprocessedData preprocessedData;
     private final NamedEntityRecognizer neRecognizer;
     private final String id;
+    private final boolean useLexLabelReplacement;
 
-    public AMRDecompositionPackage(Instance instance, AMRBlobUtils blobUtils, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer) {
+    public AMRDecompositionPackage(Instance instance, AMRBlobUtils blobUtils, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
+                                   boolean useLexLabelReplacement) {
         this.blobUtils = blobUtils;
         graph = (SGraph)instance.getInputObjects().get("repgraph");
         sent = (List)instance.getInputObjects().get("repstring");
@@ -89,7 +91,7 @@ public class AMRDecompositionPackage extends DecompositionPackage {
 
         this.preprocessedData = preprocessedData;
         this.neRecognizer = neRecognizer;
-
+        this.useLexLabelReplacement = useLexLabelReplacement;
     }
 
     @Override
@@ -110,7 +112,7 @@ public class AMRDecompositionPackage extends DecompositionPackage {
         for (int positionInSentence = 0; positionInSentence < sent.size(); positionInSentence++) {
             String wordForm = literals.get(positionInSentence).replace(LITERAL_JOINER, "_");
             AmConllEntry e = new AmConllEntry(positionInSentence + 1, wordForm);
-
+            e.setLexLabel("NULL"); // just a baseline initialization; content labels come below
             amSent.add(e);
             ners.add("O");
 
@@ -163,7 +165,11 @@ public class AMRDecompositionPackage extends DecompositionPackage {
         for (Alignment al : alignments) {
             if (!al.lexNodes.isEmpty()) {
                 String lexLabel = graph.getNode(al.lexNodes.iterator().next()).getLabel();
-                amSent.get(al.span.start).setLexLabel(lexLabel);  // both amSent.get and span.start are 0-based
+                if (useLexLabelReplacement) {
+                    amSent.get(al.span.start).setLexLabel(lexLabel);  // both amSent.get and span.start are 0-based
+                } else {
+                    amSent.get(al.span.start).setLexLabelWithoutReplacing(lexLabel);
+                }
             }
         }
 

@@ -58,6 +58,10 @@ public class SourceAutomataCLIAMR {
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
     private int nrSources = 4;
 
+
+    @Parameter(names = {"--useLexLabelReplacement"}, description = "If true, does the preprocessing step where lexical node labels can be replaced with lemma/token replacement markers")
+    private boolean useLexLabelReplacement=false;
+
     @Parameter(names = {"--iterations"}, description = "max number of EM iterations")//, required = true)
     private int iterations = 100;
 
@@ -121,7 +125,7 @@ public class SourceAutomataCLIAMR {
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
         cli.processCorpus(corpusTrain, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages,
-                preprocessedDataTrain, neRecognizer);
+                preprocessedDataTrain, neRecognizer, cli.useLexLabelReplacement);
 
 
         //get automata for dev set
@@ -136,7 +140,7 @@ public class SourceAutomataCLIAMR {
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
         cli.processCorpus(corpusDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev,
-                preprocessedDataDev, neRecognizer);
+                preprocessedDataDev, neRecognizer, cli.useLexLabelReplacement);
 
 
         if (cli.algorithm.equals("automata")) {
@@ -287,7 +291,8 @@ public class SourceAutomataCLIAMR {
 
     private void processCorpus(Corpus corpus, AMRBlobUtils blobUtils,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
-                               List<DecompositionPackage> decompositionPackages, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer) throws IOException {
+                               List<DecompositionPackage> decompositionPackages, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
+                               boolean useLexLabelReplacement) throws IOException {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
         Counter<Integer> bucketCounter = new Counter<>();
@@ -305,7 +310,7 @@ public class SourceAutomataCLIAMR {
 
                 try {
 
-                    AMRDecompositionPackage decompositionPackage = new AMRDecompositionPackage(corpusInstance, blobUtils, preprocessedData, neRecognizer);
+                    AMRDecompositionPackage decompositionPackage = new AMRDecompositionPackage(corpusInstance, blobUtils, preprocessedData, neRecognizer, useLexLabelReplacement);
 
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
@@ -333,7 +338,7 @@ public class SourceAutomataCLIAMR {
                         ConcreteTreeAutomaton<SourceAssignmentAutomaton.State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
                         //System.out.println(result);
-//                            System.out.println(concreteTreeAutomaton);
+//                        System.out.println(concreteTreeAutomaton);
 //                            System.out.println(concreteTreeAutomaton.viterbi());
                         if (concreteTreeAutomaton.viterbi() != null) {
                             outcomeCounter.add("success");
