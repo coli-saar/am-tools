@@ -32,6 +32,7 @@ import de.up.ling.tree.Tree;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
+import java.nio.file.Files;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -122,6 +123,7 @@ public class SourceAutomataCLI {
 
         cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
 
+        Files.createDirectories(Paths.get(cli.outPath));
 
         if (cli.algorithm.equals("automata")) {
 

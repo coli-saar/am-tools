@@ -33,6 +33,7 @@ import de.up.ling.irtg.util.ProgressListener;
 import de.up.ling.tree.Tree;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -142,6 +143,7 @@ public class SourceAutomataCLIAMR {
         cli.processCorpus(corpusDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev,
                 preprocessedDataDev, neRecognizer, cli.useLexLabelReplacement);
 
+        Files.createDirectories(Paths.get(cli.outPath));
 
         if (cli.algorithm.equals("automata")) {
 
@@ -370,10 +372,14 @@ public class SourceAutomataCLIAMR {
                         outcomeCounter.add("fail");
                         outcomeCounter.add("subfail different evaluation result");
                     }
-                } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
+                } catch (DAGComponent.NoEdgeToRequiredModifieeException ex ) {
                     nondecomposeable++;
                     outcomeCounter.add("fail");
-                    outcomeCounter.add("subfail deep decomp issue");
+                    outcomeCounter.add("subfail deep decomp issue: NoEdgeToRequiredModifieeException");
+                } catch (DAGComponent.CyclicGraphException ex) {
+                    nondecomposeable++;
+                    outcomeCounter.add("fail");
+                    outcomeCounter.add("subfail deep decomp issue: CyclicGraphException");
                 } catch (Exception ex) {
                     System.err.println(index);
                     System.err.println("Error found in this graph");
@@ -395,7 +401,7 @@ public class SourceAutomataCLIAMR {
     private static AMDependencyTree contractMultinodeConstant(AMDependencyTree amDep, Set<String> nodesInConstant, DecompositionPackage decompositionPackage,
                                                               Counter<String> outcomeCounter) {
 
-        Set<AMDependencyTree> attachInThisTree = new HashSet<>();
+        List<AMDependencyTree> attachInThisTree = new ArrayList<>();
         Set<Pair<String, AMDependencyTree>> replaceThis = new HashSet<>();
 
         Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> result;
@@ -444,7 +450,7 @@ public class SourceAutomataCLIAMR {
      * @param decompositionPackage
      * @return
      */
-    public static Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> buildContractedTree(AMDependencyTree amDep, Set<AMDependencyTree> attachInThisTree, Set<Pair<String, AMDependencyTree>> replaceThis,
+    public static Pair<AMDependencyTree, List<Pair<String, AMDependencyTree>>> buildContractedTree(AMDependencyTree amDep, List<AMDependencyTree> attachInThisTree, Set<Pair<String, AMDependencyTree>> replaceThis,
                                                        Set<String> nodesInConstant, DecompositionPackage decompositionPackage, boolean percolationRequired) {
 
         if (isInNodeset(amDep.getHeadGraph(), decompositionPackage, nodesInConstant)) {
@@ -458,9 +464,18 @@ public class SourceAutomataCLIAMR {
                     AMDependencyTree retHere = rec.left;
                     attachBelow.addAll(rec.right);
                     ret.addEdge(opAndChild.left, retHere);
-                    for (Pair<String, AMDependencyTree> oneAttachedBelow : rec.right) {
-                        Type newHeadType = addAllToType(amDep.getHeadGraph().right, oneAttachedBelow.right.evaluate().right, getSource(oneAttachedBelow.left));
-                        ret.setHeadGraph(new Pair<>(ret.getHeadGraph().left, newHeadType));
+                    // fix type for evaluation later
+                    if (opAndChild.left.startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
+                        for (Pair<String, AMDependencyTree> opAndChildBelow : rec.right) {
+                            Type newHeadType = addAllToType(amDep.getHeadGraph().right, opAndChildBelow.right.evaluate().right, getSource(opAndChildBelow.left), null);
+                            ret.setHeadGraph(new Pair<>(ret.getHeadGraph().left, newHeadType));
+                        }
+                    } else {
+                        // OP_APPLICATION
+                        for (Pair<String, AMDependencyTree> opAndChildBelow : rec.right) {
+                            Type newHeadType = addAllToType(amDep.getHeadGraph().right, opAndChildBelow.right.evaluate().right, getSource(opAndChildBelow.left), getSource(opAndChild.left));
+                            ret.setHeadGraph(new Pair<>(ret.getHeadGraph().left, newHeadType));
+                        }
                     }
                 } else {
                     if (percolationRequired && opAndChild.left.startsWith(ApplyModifyGraphAlgebra.OP_MODIFICATION)) {
@@ -499,11 +514,15 @@ public class SourceAutomataCLIAMR {
     }
 
 
-    private static Type addAllToType(Type origType, Type typeToAdd, String addAsChildOfThisSource) {
+    private static Type addAllToType(Type origType, Type typeToAdd, String parentSourceToAdd, String addAsChildOfThisSource) {
         Type ret = origType;
+        ret = ret.addSource(parentSourceToAdd);
+        if (addAsChildOfThisSource != null) {
+            ret = ret.setDependency(addAsChildOfThisSource, parentSourceToAdd, parentSourceToAdd);
+        }
         for (String srcToAdd : typeToAdd.getAllSources()) {
             ret = ret.addSource(srcToAdd);
-            ret = ret.setDependency(addAsChildOfThisSource, srcToAdd, srcToAdd);
+            ret = ret.setDependency(parentSourceToAdd, srcToAdd, srcToAdd);
         }
         for (Type.Edge edge : typeToAdd.getAllEdges()) {
             ret = ret.setDependency(edge.getSource(), edge.getTarget(), edge.getLabel());
@@ -533,3 +552,28 @@ public class SourceAutomataCLIAMR {
 
 
 }
+
+// TODO add these as tests
+
+//In their decision .
+//0-1 1-2 2-3 3-4
+//(t2<root> / thing  :ARG1-of (d / decide-01  :ARG0 (t / they)))
+//(t2<root> / thing  :ARG1-of (d / decide-01  :ARG0 (t / they)))
+//In their decision .
+//t!||1-2||1.0 d!|t2||2-3||1.0
+//t!||1-2||0.6 d!||2-3||0.64 d!|t2||2-3||0.64
+//t!||1-2||0.6 d!||2-3||0.64 d!|t2||2-3||0.64
+//bolt-eng-DF-170-181103-8883574_0086.1 ::date 2015-08-20T05:09:43 ::annotator SDL-AMR-09 ::preferred
+//t!||1-2||0.6 d!|t2||2-3||0.64
+//
+// NOTE this is as above, but one edge turned to change MOD to APP, just for testing
+//In their decision .
+//0-1 1-2 2-3 3-4
+//(t2<root> / thing  :ARG1 (d / decide-01  :ARG0 (t / they)))
+//(t2<root> / thing  :ARG1 (d / decide-01  :ARG0 (t / they)))
+//In their decision .
+//t!||1-2||1.0 d!|t2||2-3||1.0
+//t!||1-2||0.6 d!||2-3||0.64 d!|t2||2-3||0.64
+//t!||1-2||0.6 d!||2-3||0.64 d!|t2||2-3||0.64
+//bolt-eng-DF-170-181103-8883574_0086.1 ::date 2015-08-20T05:09:43 ::annotator SDL-AMR-09 ::preferred
+//t!||1-2||0.6 d!|t2||2-3||0.64
