@@ -325,9 +325,11 @@ public class SourceAutomataCLIAMR {
                         throw new IllegalArgumentException("unexpectedly high depth in AM tree!");
                     }
 
+
                     for (Set<String> nodesInConstant : decompositionPackage.getMultinodeConstantNodeNames()) {
                         result = contractMultinodeConstant(result, nodesInConstant, decompositionPackage, outcomeCounter);
                     }
+
 
                     SGraph resultGraph = result.evaluate().left;
                     resultGraph.removeNode("ART-ROOT");
@@ -553,8 +555,9 @@ public class SourceAutomataCLIAMR {
 
 }
 
-// TODO add these as tests
+// TODO add these as tests. Notation is from the NamesDates....AlsFixed_sorted.corpus
 
+//next two should work
 //In their decision .
 //0-1 1-2 2-3 3-4
 //(t2<root> / thing  :ARG1-of (d / decide-01  :ARG0 (t / they)))
@@ -577,3 +580,38 @@ public class SourceAutomataCLIAMR {
 //t!||1-2||0.6 d!||2-3||0.64 d!|t2||2-3||0.64
 //bolt-eng-DF-170-181103-8883574_0086.1 ::date 2015-08-20T05:09:43 ::annotator SDL-AMR-09 ::preferred
 //t!||1-2||0.6 d!|t2||2-3||0.64
+//
+// next two should fail with disjoint alignment
+//Interesting ... interesting
+//0-1 1-2 2-3
+//(a<root> / and  :op2 (i2 / interest-01)  :op1 (i / interest-01))
+//(a<root> / and  :op1 (i / interest-01)  :op2 (i2 / interest-01))
+//Interesting ... interesting
+//i!|i2!||0-1||1.0 a!||1-2||0.1
+//i2!||0-1||0.88 i2!||2-3||0.88 i2!|i!||0-1||0.88 i2!|i!||2-3||0.88 i!||0-1||0.88 i!||2-3||0.88
+//i2!||0-1||0.88 i2!||2-3||0.88 i2!|i!||0-1||0.88 i2!|i!||2-3||0.88 i!||0-1||0.88 i!||2-3||0.88 a!||1-2||0.1
+//bolt12_3988_7647.1 ::date 2012-11-29T18:26:22 ::annotator SDL-AMR-09 ::preferred
+//i!|i2!||0-1||0.88
+//
+//Type of Fraud and Abuse
+//0-1 1-2 2-3 3-4 4-5
+//(a<root> / and  :op1 (t / type-03  :ARG2 (d / defraud-01))  :op2 (t2 / type-03  :ARG2 (a2 / abuse-01)))
+//(a<root> / and  :op1 (t / type-03  :ARG2 (d / defraud-01))  :op2 (t2 / type-03  :ARG2 (a2 / abuse-01)))
+//Type of Fraud and Abuse
+//t!|t2!||0-1||1.0 d!||2-3||1.0 a!||3-4||1.0 a2!||4-5||1.0
+//t!|t2!||0-1||1.0 t2!||0-1||1.0 d!||2-3||0.642857 a!||3-4||1.0 t!||0-1||1.0 a2!||4-5||1.0
+//t!|t2!||0-1||1.0 t2!||0-1||1.0 d!||2-3||0.642857 a!||3-4||1.0 t!||0-1||1.0 a2!||4-5||1.0
+//bolt-eng-DF-170-181105-8850229_0054.14 ::date 2015-12-05T05:49:56 ::annotator SDL-AMR-09 ::preferred
+//t!|t2!||0-1||1.0 d!||2-3||0.642857 a!||3-4||1.0 a2!||4-5||1.0
+
+//  this one should be classified as a problematic multinode-alignment (merges two nodes before the apply is possible)
+//Thanks for clarifying
+//0-1 1-2 2-3
+//(t<root> / thank-01  :ARG0 (i / i)  :ARG2 (c / clarify-10  :ARG0 (y / you  :ARG1-of t)))
+//(t<root> / thank-01  :ARG0 (i / i)  :ARG1 (y / you  :ARG0-of (c / clarify-10  :ARG2-of t)))
+//Thanks for clarifying
+//t!|y||0-1||1.0 c!||2-3||1.0 i!||1-2||0.1
+//t!|y||0-1||0.1 c!||2-3||1.0 t!||0-1||1.0 i!||2-3||0.02
+//t!|y||0-1||0.1 c!||2-3||1.0 t!||0-1||1.0 i!||2-3||0.02
+//bolt-eng-DF-170-181103-8882529_0237.6 ::date 2015-11-21T09:37:34 ::annotator SDL-AMR-09 ::preferred
+//t!|y||0-1||1.0 c!||2-3||1.0
