@@ -1,22 +1,20 @@
 package de.saar.coli.amtools.decomposition;
 
-import de.up.ling.irtg.automata.Rule;
-import de.up.ling.irtg.automata.RuleEvaluator;
-import de.up.ling.irtg.automata.RuleEvaluatorTopDown;
-import de.up.ling.irtg.automata.TreeAutomaton;
+import de.saar.basic.Pair;
+import de.up.ling.irtg.automata.*;
 import de.up.ling.irtg.codec.BinaryIrtgInputCodec;
 import de.up.ling.irtg.semiring.LogDoubleArithmeticSemiring;
+import de.up.ling.irtg.semiring.ViterbiWithBackpointerSemiring;
 import de.up.ling.irtg.util.CpuTimeStopwatch;
+import de.up.ling.tree.Tree;
+import de.up.ling.tree.TreeBottomUpVisitor;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PyjniusHelper {
 
@@ -94,6 +92,79 @@ public class PyjniusHelper {
         }
         return (float)totalInside;
     }
+
+
+    public static Pair<List<Rule>, Double> getViterbi(float[] ruleWeights, List<Rule> allRulesInBottomUpOrder, int maxStateIDPlusOne, IntSet finalStates) {
+        int i = 0;
+        for (Rule rule : allRulesInBottomUpOrder) {
+            rule.setWeight(Math.exp(ruleWeights[i]));
+            i++;
+        }
+        ;
+        Pair<Double, Rule>[] map = TreeAutomaton.evaluateRuleListInSemiring((Class<Pair<Double, Rule>>) new Pair<Double, Rule>(null, null).getClass(),
+                ViterbiWithBackpointerSemiring.INSTANCE,
+                (rule -> new Pair<>(rule.getWeight(), rule)), allRulesInBottomUpOrder, maxStateIDPlusOne);
+        // find final state with highest weight
+        int bestFinalState = -1;
+        double weightBestFinalState = Double.NEGATIVE_INFINITY;
+
+        for (int s : finalStates) {
+            Pair<Double, Rule> result = map[s];
+
+            // ignore final states that (for some crazy reason) can't
+            // be expanded
+            if (result.right != null) {
+                if (map[s].left > weightBestFinalState) {
+                    bestFinalState = s;
+                    weightBestFinalState = map[s].left;
+                }
+            }
+        }
+
+        if( bestFinalState <= 0 ) {
+            // no final state with weight > -inf found
+            return null;
+        }
+
+//        assert bestFinalState > -1 : "Viterbi failed: no useful final state found";
+
+        // extract best tree from backpointers
+        Tree<Rule> bestTree = extractTreeFromViterbi(bestFinalState, map, 0);
+
+        List<Rule> allRules = new ArrayList<>();
+        bestTree.dfs((TreeBottomUpVisitor<Rule, Void>) (node, childrenValues) -> {
+            allRules.add(node.getLabel());
+            return null;
+        });
+
+        return new Pair(allRules, weightBestFinalState);
+    }
+
+
+    private static Tree<Rule> extractTreeFromViterbi(int state, Pair<Double, Rule>[] map, int depth) {
+
+        if (map[state] != null) {
+
+            Rule backpointer = map[state].right;
+            List<Tree<Rule>> childTrees = new ArrayList<>();
+
+            for (int child : backpointer.getChildren()) {
+                Tree<Rule> childTree = extractTreeFromViterbi(child, map, depth + 1);
+
+                childTrees.add(childTree);
+            }
+
+            Tree<Rule> ret = Tree.create(backpointer, childTrees);
+            return ret;
+        } else {
+            System.err.println("(no entries for " + state + ")");
+        }
+
+//        System.err.println(getStateForId(state) + " -> null");
+        return null; // if language is empty, return null
+    }
+
+
 
     public static double assignRuleWeights(Rule[] rules, float[] weights) {
         CpuTimeStopwatch watch = new CpuTimeStopwatch();

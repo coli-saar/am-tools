@@ -605,6 +605,7 @@ public class SourceAutomataCLIAMR {
 //t!|t2!||0-1||1.0 d!||2-3||0.642857 a!||3-4||1.0 a2!||4-5||1.0
 
 //  this one should be classified as a problematic multinode-alignment (merges two nodes before the apply is possible)
+//  TODO currently just gives null pointer exception
 //Thanks for clarifying
 //0-1 1-2 2-3
 //(t<root> / thank-01  :ARG0 (i / i)  :ARG2 (c / clarify-10  :ARG0 (y / you  :ARG1-of t)))
