@@ -20,6 +20,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -358,7 +361,7 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * @throws IOException
      */
     public static List<AmConllSentence> readFromFile(String filename) throws FileNotFoundException, IOException, ParseException {
-        return read(new FileReader(filename));
+        return read(Files.newBufferedReader(Paths.get(filename), StandardCharsets.UTF_8));
     }
 
     /**
