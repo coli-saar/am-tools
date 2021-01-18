@@ -16,6 +16,8 @@ import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -37,9 +39,15 @@ public class CountSources {
      */
     public static void main(String[] args) throws IOException, ParseException, ParserException {
 
+        // Change these as needed
+        String corpus = "AMR-2017";
+        String epoch = "57";
+
         // read in the file and make it into a list of type AmConllSentence
-        String amconllFilePath = "/home/mego/Documents/amconll_files/PAS_auto3_dev_epoch_32.amconll";
+        String amconllFilePath = "/home/mego/Documents/amconll_files/training/" + corpus + "_amconll_list_train_epoch" + epoch + ".amconll";
         List<AmConllSentence> amConllSentences = AmConllSentence.readFromFile(amconllFilePath);
+
+        System.err.println("Counting sources incident to edge labels in " + amconllFilePath + "\n");
 
         // a map for storing the edge labels and the count of the sources they are incident to
         Map<String, Counter<String>> counterMap = new HashMap<>();
@@ -72,22 +80,48 @@ public class CountSources {
             }
         }
 
-        // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
-        // comparator to sort it.
-        List<String> sortedKeys = new ArrayList<>(counterMap.keySet());
-        sortedKeys.sort((label1, label2) -> {
-            int totalCount1 = counterMap.get(label1).sum();
-            int totalCount2 = counterMap.get(label2).sum();
-            return -Integer.compare(totalCount1, totalCount2);
-        });
-
-        // Print to std error since that's how counterMap.get(graph).printAllSorted() does it
-        for (String label : sortedKeys) {
-            System.err.println(label + "  ####  " + counterMap.get(label).sum());
-            counterMap.get(label).printAllSorted();
-            System.err.println();
+        // create file to print to
+        String outFilename = "/home/mego/Documents/amconll_files/analysis/sources_" + corpus + "_epoch" + epoch + ".txt";
+        try {
+            File myObj = new File(outFilename);
+            if (myObj.createNewFile()) {
+                System.out.println("File created: " + myObj.getName());
+            } else {
+                System.out.println("Overwriting existing file");
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
         }
 
+        // write source counts to file
+        try {
+            FileWriter myWriter = new FileWriter(outFilename);
+
+            // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
+            // comparator to sort it.
+            List<String> sortedKeys = new ArrayList<>(counterMap.keySet());
+            sortedKeys.sort((label1, label2) -> {
+                int totalCount1 = counterMap.get(label1).sum();
+                int totalCount2 = counterMap.get(label2).sum();
+                return -Integer.compare(totalCount1, totalCount2);
+            });
+
+            // Print to std error since that's how counterMap.get(graph).printAllSorted() does it
+            for (String label : sortedKeys) {
+                myWriter.write(label + "  ####  " + counterMap.get(label).sum());
+                myWriter.write("\n");
+                counterMap.get(label).writeAllSorted(myWriter);
+                myWriter.write("\n");
+            }
+
+            myWriter.close();
+            System.out.println("Successfully wrote to the file.");
+
+        } catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
 
     }
     
