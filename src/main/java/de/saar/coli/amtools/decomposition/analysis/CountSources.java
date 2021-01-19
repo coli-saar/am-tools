@@ -42,6 +42,8 @@ public class CountSources {
         // Change these as needed
         String corpus = "AMR-2017";
         String epoch = "57";
+        int numberOfExamples = 5; // for printing example IDs
+
 
         // read in the file and make it into a list of type AmConllSentence
         String amconllFilePath = "/home/mego/Documents/amconll_files/training/" + corpus + "_amconll_list_train_epoch" + epoch + ".amconll";
@@ -50,7 +52,7 @@ public class CountSources {
         System.err.println("Counting sources incident to edge labels in " + amconllFilePath + "\n");
 
         // a map for storing the edge labels and the count of the sources they are incident to
-        Map<String, Counter<String>> counterMap = new HashMap<>();
+        Map<String, Pair<Counter<String>, ArrayList<String>>> counterMap = new HashMap<>();
 
         // for every word in the corpus, add the incoming edge labels and sources to counterMap
         for (AmConllSentence sent : amConllSentences) {
@@ -67,14 +69,18 @@ public class CountSources {
 
                     for (GraphEdge edge : edges) {
                         String label = edge.getLabel();
-                        // get the current counter for this edge label, making it if it doesn't exist yet
-                        Counter<String> counterForLabel = counterMap.get(label);
-                        if (counterForLabel == null) {
-                            counterForLabel = new Counter<>();
-                            counterMap.put(label, counterForLabel);
+                        // get the current counter and list for this edge label, making it if it doesn't exist yet
+                        Pair<Counter<String>, ArrayList<String>> pair = counterMap.get(label);
+                        if (pair == null) {
+                            pair = new Pair<>(new Counter<>(), new ArrayList<>());
+                            counterMap.put(label, pair);
                         }
                         // add the source
-                        counterForLabel.add(source);
+                        pair.getLeft().add(source);
+
+                        // add the sentence ID
+                        pair.getRight().add(sent.getId());
+
                     }
                 }
             }
@@ -102,17 +108,33 @@ public class CountSources {
             // comparator to sort it.
             List<String> sortedKeys = new ArrayList<>(counterMap.keySet());
             sortedKeys.sort((label1, label2) -> {
-                int totalCount1 = counterMap.get(label1).sum();
-                int totalCount2 = counterMap.get(label2).sum();
+                int totalCount1 = counterMap.get(label1).getLeft().sum();
+                int totalCount2 = counterMap.get(label2).getLeft().sum();
                 return -Integer.compare(totalCount1, totalCount2);
             });
 
-            // Print to std error since that's how counterMap.get(graph).printAllSorted() does it
+            // Print for each graph edge label
             for (String label : sortedKeys) {
-                myWriter.write(label + "  ####  " + counterMap.get(label).sum());
+                myWriter.write(label + "  ####  " + counterMap.get(label).getLeft().sum());
                 myWriter.write("\n");
-                counterMap.get(label).writeAllSorted(myWriter);
+                counterMap.get(label).getLeft().writeAllSorted(myWriter);
                 myWriter.write("\n");
+
+                // print examples
+                myWriter.write("Examples: ");
+                ArrayList<String> examples = counterMap.get(label).getRight();
+
+                // just numberOfExamples, randomly selected (or all we have)
+                Random rand = new Random();
+                ArrayList<String> subsetExamples = new ArrayList<>();
+
+                for (int i = 0; i < Math.min(numberOfExamples, examples.size()); i++) {
+                        int randomIndex = rand.nextInt(examples.size());
+                        subsetExamples.add(examples.get(randomIndex));
+                        examples.remove(randomIndex);
+                }
+                myWriter.write(subsetExamples.toString());
+                myWriter.write("\n\n");
             }
 
             myWriter.close();
