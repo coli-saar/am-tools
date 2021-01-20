@@ -36,7 +36,7 @@ public class RawAMRCorpus2TrainingData {
     private String grammarFile;
 
     @Parameter(names = {"--corefSplit"}, description = "Removes reentrant edges that the AM algebra can't handle.")
-    private boolean corefSplit = true;
+    private boolean corefSplit = false;
 
     @Parameter(names = {"--maxNodes", "-m"}, description = "maximum number of nodes for instances to be kept in the final corpus")
     private int maxNodes = -1;

@@ -95,7 +95,7 @@ public class ToSDPCorpus {
             try {
                 AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
                 SGraph evaluatedGraph = amdep.evaluate(true);
-                evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils()); //really important!
+                evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils(), false); //really important!
 
                 Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
                 if (goldReader != null){

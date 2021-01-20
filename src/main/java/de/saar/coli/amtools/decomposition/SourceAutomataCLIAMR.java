@@ -278,6 +278,7 @@ public class SourceAutomataCLIAMR {
                 }
                 DecompositionPackage decompositionPackage = decompositionPackageIteratorDev.next();
                 outputCorpusDev.add(originalAutomataIteratorDev.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
+                //TODO the above does not add the ROOT edge label to the root!
             }
 
             File devPath = Paths.get(cli.outPath).toFile();//,"gold-dev"

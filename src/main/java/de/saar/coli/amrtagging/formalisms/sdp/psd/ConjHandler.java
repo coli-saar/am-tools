@@ -33,38 +33,48 @@ import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
  * @author matthias
  */
 public class ConjHandler {
-    
+
     public static final HashSet<String> CONJ_EDGES = new HashSet<>(Arrays.asList("CONJ.member"));
-    
+
     /**
      * Approximate inverse of conjunction handling.
      * @param g
      * @param blobUtils
-     * @return 
+     * @param legacyACL19 if true, does not shift edges counting as belonging to the conjunct blobs, as in the ACL19 paper.
+     *                    if false, it shifts all edges, as we since found out is better.
+     * @return
      */
-    public static SGraph restoreConj(SGraph g, PSDBlobUtils blobUtils){
+    public static SGraph restoreConj(SGraph g, PSDBlobUtils blobUtils, boolean legacyACL19){
         SGraph before = g;
         before.setEqualsMeansIsomorphy(true);
-        SGraph after = restoreConjIteration(before, blobUtils);
+        SGraph after = restoreConjIteration(before, blobUtils, legacyACL19);
         while (before.getGraph().edgeSet().size() < after.getGraph().edgeSet().size()
                 && before.getGraph().edgeSet().size() < 10000) {
-             // the <10000 check is just so the loop is guaranteed to finish
+            // the <10000 check is just so the loop is guaranteed to finish
             before = after;
             before.setEqualsMeansIsomorphy(true);
-            after = restoreConjIteration(after, blobUtils);
+            after = restoreConjIteration(after, blobUtils, legacyACL19);
         }
         return after;
     }
-    
-    public static SGraph restoreConjIteration(SGraph g, PSDBlobUtils blobUtils){
+
+    private static SGraph restoreConjIteration(SGraph g, PSDBlobUtils blobUtils, boolean legacyACL19){
         SGraph output = g.merge(new SGraph()); //make copy of g
         DirectedMultigraph<GraphNode,GraphEdge> graph = output.getGraph();
-        
+
         for (GraphNode conjunctionNode : graph.vertexSet()){
             if (blobUtils.isConjunctionNode(g, conjunctionNode)){
                 for (GraphEdge e : g.getGraph().edgesOf(conjunctionNode)){
-                    if //(!blobUtils.isBlobEdge(conjunctionNode, e) &&
-                    (! blobUtils.isConjEdgeLabel(e.getLabel())) { // don't redistribute conj labels
+                    boolean shiftEdge;
+                    if (legacyACL19) {
+                        // legacy: only shift blob edges of nodes outside the conjunction
+                        // don't redistribute conj labels
+                        shiftEdge = !blobUtils.isBlobEdge(conjunctionNode, e) && !blobUtils.isConjEdgeLabel(e.getLabel());
+                    } else {
+                        // don't redistribute conj labels
+                        shiftEdge = !blobUtils.isConjEdgeLabel(e.getLabel());
+                    }
+                    if (shiftEdge) {
                         for (GraphNode child : getConjChildren(g.getGraph(), conjunctionNode, blobUtils)){
                             GraphNode predicate = GeneralBlobUtils.otherNode(conjunctionNode, e);
                             GraphEdge newEdge;
@@ -75,52 +85,60 @@ public class ConjHandler {
                                 newEdge = new GraphEdge(child,predicate,e.getLabel());
                                 graph.addEdge(child,predicate, newEdge);
                             }
-                            
+
                         }
                         graph.removeEdge(e);
                     }
                 }
             }
         }
-        
+
         return output;
     }
-    
+
     /**
      * Transform coordination structures to be manageable for the AM algebra, see ACL 2019 paper.
      * @param g
      * @param blobUtils
+     * @param legacyACL19 if true, does not shift edges counting as belonging to the conjunct blobs, as in the ACL19 paper.
+     *                    if false, it shifts all edges, as we since found out is better.
      * @return
-     * @throws IllegalArgumentException 
+     * @throws IllegalArgumentException
      */
-    public static SGraph handleConj(SGraph g, PSDBlobUtils blobUtils) throws IllegalArgumentException{
+    public static SGraph handleConj(SGraph g, PSDBlobUtils blobUtils, boolean legacyACL19) throws IllegalArgumentException{
         SGraph before = g;
         before.setEqualsMeansIsomorphy(true);
-        SGraph after = handleConjIteration(before, blobUtils);
+        SGraph after = handleConjIteration(before, blobUtils, legacyACL19);
         while (before.getGraph().edgeSet().size() > after.getGraph().edgeSet().size()) {
             before = after;
             before.setEqualsMeansIsomorphy(true);
-            after = handleConjIteration(after, blobUtils);
+            after = handleConjIteration(after, blobUtils, legacyACL19);
         }
         return after;
     }
-    
-    public static SGraph handleConjIteration(SGraph g, PSDBlobUtils blobUtils) throws IllegalArgumentException{
+
+    private static SGraph handleConjIteration(SGraph g, PSDBlobUtils blobUtils, boolean legacyACL19) throws IllegalArgumentException{
         SGraph output = g.merge(new SGraph()); //make copy of g
         DirectedMultigraph<GraphNode,GraphEdge> graph = output.getGraph();
         for (GraphNode conjunctionNode : graph.vertexSet()){
             if (blobUtils.isConjunctionNode(output, conjunctionNode)){ //found a conjunction conjunctionNode
                 Map<Pair<GraphNode, String>, HashSet<GraphEdge>> matchingEdges = new HashMap<>();
                 boolean firstTarget = true;
-                for (GraphNode target : getConjChildren(graph ,conjunctionNode, blobUtils)){ //go over the conjoined nodes 
+                for (GraphNode target : getConjChildren(graph ,conjunctionNode, blobUtils)){ //go over the conjoined nodes
                     Map<Pair<GraphNode, String>, GraphEdge> edgesHere = new HashMap<>();
                     for (GraphEdge e : graph.edgesOf(target)){
-                        //if (!blobUtils.isBlobEdge(target, e)) {
+                        boolean isRelevantEdge;
+                        if (legacyACL19) {
+                            isRelevantEdge = !blobUtils.isBlobEdge(target, e);
+                        } else {
+                            isRelevantEdge = true;
+                        }
+                        if (isRelevantEdge) {
                             GraphNode other = GeneralBlobUtils.otherNode(target, e);
                             if (!other.equals(conjunctionNode)){
                                 edgesHere.put(new Pair(other, e.getLabel()), e);
                             }
-                        //}
+                        }
                     }
                     if (firstTarget) {
                         for (Entry<Pair<GraphNode, String>, GraphEdge> entry : edgesHere.entrySet()) {
@@ -161,8 +179,8 @@ public class ConjHandler {
         }
         return output;
     }
-    
-    
+
+
     private static Set<GraphNode> getConjChildren(DirectedMultigraph<GraphNode,GraphEdge> g,GraphNode conj, PSDBlobUtils blobUtils){
         HashSet<GraphNode> ret = new HashSet<>();
         for (GraphEdge e : g.edgesOf(conj)){
@@ -206,8 +224,8 @@ public class ConjHandler {
 
 
             SGraph graph = SGraphConverter.toSGraph(sdpGraph).getGraph();
-            SGraph preprocessed = handleConj(graph, blobUtils);
-            SGraph postprocessed = restoreConj(preprocessed, blobUtils);
+            SGraph preprocessed = handleConj(graph, blobUtils, false);
+            SGraph postprocessed = restoreConj(preprocessed, blobUtils, false);
             graph.setEqualsMeansIsomorphy(true);
             if (!graph.equals(preprocessed)) {
                 totalModified++;
@@ -222,6 +240,6 @@ public class ConjHandler {
         System.err.println("Failed to reconstruct: "+failedToReconstruct);
         edgeLabels.printAllSorted();
     }
-    
-    
+
+
 }

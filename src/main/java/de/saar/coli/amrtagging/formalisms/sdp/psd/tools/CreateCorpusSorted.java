@@ -182,7 +182,7 @@ public class CreateCorpusSorted {
                 ConcreteAlignmentSignatureBuilder sigBuilder =
                     new PSDConcreteSignatureBuilder(inst.getGraph(), inst.getAlignments(), new PSDBlobUtils());
 
-                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)sigBuilder.getBlobUtils()), inst.getAlignments());
+                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)sigBuilder.getBlobUtils(), false), inst.getAlignments());
 
                 AlignmentTrackingAutomaton auto = ConcreteAlignmentTrackingAutomaton.create(modified,sigBuilder, false);
                 auto.processAllRulesBottomUp(null);
