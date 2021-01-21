@@ -37,7 +37,7 @@ public class CountSupertags {
     public static void main(String[] args) throws IOException, ParseException, ParserException {
 
         // read in the file and make it into a list of type AmConllSentence
-        String amconllFilePath = "/home/mego/Documents/amconll_files/PAS_auto3_dev_epoch_32.amconll";
+        String amconllFilePath = "/home/mego/Documents/amconll_files/training/DM.amconll";
         List<AmConllSentence> amConllSentences = AmConllSentence.readFromFile(amconllFilePath);
 
         // a map for storing the sourceless delexicalised constants and their supertags,

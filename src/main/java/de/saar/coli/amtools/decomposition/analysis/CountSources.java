@@ -28,13 +28,13 @@ import java.util.*;
 public class CountSources {
 
     /**
-     * Given a map from strings to lists, returns a counter with same keys, values as size of values
-     * @param map Map from Strings to ArrayList of AMConllSentences
-     * @return Counter for Strings
+     * Given a map from any type of keys to lists, returns a counter with same keys, values as size of values
+     * @param map Map from objects to ArrayList of AMConllSentences
+     * @return Counter
      */
-    public static Counter<String> map2counter(Map<String, List<AmConllSentence>> map) {
-        Counter<String> counter = new Counter<>();
-        for (String key: map.keySet()
+    public static <E> Counter<E> map2counter(Map<E, List<AmConllSentence>> map) {
+        Counter<E> counter = new Counter<>();
+        for (E key: map.keySet()
              ) {
             counter.add(key, map.get(key).size());
 
