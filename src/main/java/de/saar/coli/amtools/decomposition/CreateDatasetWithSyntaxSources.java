@@ -97,7 +97,7 @@ public class CreateDatasetWithSyntaxSources {
             MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
             SGraph graph = inst.getGraph();
             if (cli.corpusType.equals("PSD")) {
-                graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils);
+                graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils, false);  // TODO make consistent with SourceAutomataCLI
             }
             graphCorpus.add(graph);
             decompositionPackageList.add(new SDPDecompositionPackage(sdpGraph, blobUtils));

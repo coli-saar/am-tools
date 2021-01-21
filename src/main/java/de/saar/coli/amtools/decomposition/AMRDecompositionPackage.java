@@ -43,6 +43,7 @@ public class AMRDecompositionPackage extends DecompositionPackage {
 
     public AMRDecompositionPackage(Instance instance, AMRBlobUtils blobUtils, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
                                    boolean useLexLabelReplacement) {
+        // TODO use "_" instead of "NULL" if no lex label
         this.blobUtils = blobUtils;
         graph = (SGraph)instance.getInputObjects().get("repgraph");
         sent = (List)instance.getInputObjects().get("repstring");

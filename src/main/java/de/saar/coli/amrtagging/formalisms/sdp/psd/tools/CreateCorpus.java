@@ -144,7 +144,7 @@ public class CreateCorpus {
                 //System.out.println(inst.getGraph());
 //                System.err.println(inst.getSentence());
 //                System.err.println(inst.getGraph());
-                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils), inst.getAlignments());
+                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils, false), inst.getAlignments());
 //                System.err.println(modified.getSentence());
 //                System.err.println(modified.getGraph());
                 ConcreteAlignmentSignatureBuilder sigBuilder =
@@ -180,7 +180,7 @@ public class CreateCorpus {
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
 
-                    SGraph alignedGraph = ConjHandler.restoreConj(amdep.evaluate(true), (PSDBlobUtils)sigBuilder.getBlobUtils());
+                    SGraph alignedGraph = ConjHandler.restoreConj(amdep.evaluate(true), (PSDBlobUtils)sigBuilder.getBlobUtils(), false);
                     Graph emptyCopy = new Graph(sdpGraph.id);
                     sdpGraph.getNodes().forEach(node -> emptyCopy.addNode(node.form, node.lemma, node.pos, false,false, ""));
 

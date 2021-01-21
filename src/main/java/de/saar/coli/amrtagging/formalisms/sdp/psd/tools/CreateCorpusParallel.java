@@ -143,7 +143,7 @@ public class CreateCorpusParallel {
                     //System.out.println(inst.getGraph());
     //                System.err.println(inst.getSentence());
     //                System.err.println(inst.getGraph());
-                    MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils), inst.getAlignments());
+                    MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils, false), inst.getAlignments());
                     ConcreteAlignmentSignatureBuilder sigBuilder =
                         new PSDConcreteSignatureBuilder(modified.getGraph(), modified.getAlignments(), blobUtils);
     //                System.err.println(modified.getSentence());
