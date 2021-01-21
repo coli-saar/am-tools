@@ -28,6 +28,101 @@ import java.util.*;
 public class CountSources {
 
     /**
+     * Write a summary of a map of maps, e.g. source to map from edge label to examples
+     * Prints in order of frequency (most to least)
+     * @param map organisation of sentences. map from key to inner key to AmConllSentence
+     * @param outpath absolute path to dir for writing. Writes to summary.txt in this directory
+     * @param heading String to print at the top of the file
+     * @param <F> something hashable, usually String
+     * @param <E> something hashable, usually String or Pair
+     */
+    public static <F,E> void writeSummary(Map<F, Map<E, List<AmConllSentence>>> map, String outpath, String heading) {
+        // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
+        // comparator to sort it.
+        List<F> sortedKeys = new ArrayList<>(map.keySet());
+        sortedKeys.sort((label1, label2) -> {
+            int totalCount1 = 0;
+            for (E source : map.get(label1).keySet()
+            ) {
+                totalCount1 += map.get(label1).get(source).size();
+            }
+            int totalCount2 = 0;
+            for (E source : map.get(label2).keySet()
+            ) {
+                totalCount2 += map.get(label2).get(source).size();
+            }
+            return -Integer.compare(totalCount1, totalCount2);
+        });
+
+        // create text file to print counts to
+        String outFilename = outpath + "/summary.txt";
+        createFile(outFilename);
+
+        // write to the file
+        try {
+            FileWriter myWriter = new FileWriter(outFilename);
+
+            myWriter.write(heading + "\n\n");
+            // Print for each graph edge label
+            for (F label : sortedKeys) {
+                myWriter.write(label + "  ####  " + map.get(label).size());
+                myWriter.write("\n");
+                // make a counter so we can use writeAllSorted()
+                map2counter(map.get(label)).writeAllSorted(myWriter);
+                myWriter.write("\n");
+
+            }
+            myWriter.close();
+            System.out.println("Successfully wrote to the summary file.");
+
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Write examples of each variety in a map to an amconll file
+     * Note this is for maps to maps
+     * @param map organisation of sentences. map from key to inner key to AmConllSentence
+     * @param outpath absolute path for writing. Will have "examples/" appended and files will be named key_innerKey
+     * @param <F> something hashable, usually String
+     * @param <E> something hashable, usually String or Pair
+     * @throws IOException for writeToFile
+     */
+    public static <F,E> void writeExamples(Map<F, Map<E, List<AmConllSentence>>> map, String outpath) throws IOException {
+        for (F key : map.keySet()) {
+            // write examples to files for this label and each source
+            for (E innerKey : map.get(key).keySet()
+            ) {
+                String exampleFilename = outpath + "examples/" + key + "_" + innerKey + ".amconll";
+                createFile(exampleFilename);
+                // write to the example file
+                AmConllSentence.writeToFile(exampleFilename, map.get(key).get(innerKey));
+            }
+        }
+    }
+
+    /**
+     * Creates a file in this location
+     * @param pathToFile path to file including its name
+     */
+    public static void createFile(String pathToFile) {
+        try {
+            File myObj = new File(pathToFile);
+            if (myObj.createNewFile()) {
+                System.out.println("File created: " + myObj.getName());
+            } else {
+                System.out.println("Overwriting existing file");
+            }
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
      * Given a map from any type of keys to lists, returns a counter with same keys, values as size of values
      * @param map Map from objects to ArrayList of AMConllSentences
      * @return Counter
@@ -94,80 +189,15 @@ public class CountSources {
                 }
             }
         }
+        // write the files
+        writeSummary(map, outpath, "Sources by graph edge label in " + corpus);
+        writeExamples(map, outpath);
 
 
-        // write source counts to file
-        // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
-        // comparator to sort it.
-        List<String> sortedKeys = new ArrayList<>(map.keySet());
-        sortedKeys.sort((label1, label2) -> {
-            int totalCount1 = 0;
-            for (String source: map.get(label1).keySet()
-                 ) {
-                totalCount1 += map.get(label1).get(source).size();
-            }
-            int totalCount2 = 0;
-            for (String source: map.get(label2).keySet()
-            ) {
-                totalCount2 += map.get(label2).get(source).size();
-            }
-            return -Integer.compare(totalCount1, totalCount2);
-        });
 
-        // create text file to print counts to
-        String outFilename = outpath + "summary.txt";
-        try {
-            File myObj = new File(outFilename);
-            if (myObj.createNewFile()) {
-                System.out.println("File created: " + myObj.getName());
-            } else {
-                System.out.println("Overwriting existing file");
-            }
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
 
-        try {
-            FileWriter myWriter = new FileWriter(outFilename);
 
-            myWriter.write("Summary of " + corpus + " edges incident to sources\n\n");
-            // Print for each graph edge label
-            for (String label : sortedKeys) {
-                myWriter.write(label + "  ####  " + map.get(label).size());
-                myWriter.write("\n");
-                // make a counter so we can use writeAllSorted()
-                map2counter(map.get(label)).writeAllSorted(myWriter);
-                myWriter.write("\n");
 
-                // write examples to files for this label and each source
-                for (String source: map.get(label).keySet()
-                     ) {
-                    // make the file
-                    String exampleFilename = outpath + "examples/" + label + "_" + source + ".amconll";
-                    try {
-                        File myObj = new File(exampleFilename);
-                        if (myObj.createNewFile()) {
-                            System.out.println("File created: " + myObj.getName());
-                        } else {
-                            System.out.println("Overwriting existing file");
-                        }
-                    } catch (IOException e) {
-                        System.out.println("An error occurred.");
-                        e.printStackTrace();
-                    }
-                    // write to the example file
-                    AmConllSentence.writeToFile(exampleFilename, map.get(label).get(source));
-                }
-            }
-
-            myWriter.close();
-            System.out.println("Successfully wrote to the summary file.");
-
-        } catch (IOException e) {
-                System.out.println("An error occurred.");
-                e.printStackTrace();
-            }
 
     }
     
