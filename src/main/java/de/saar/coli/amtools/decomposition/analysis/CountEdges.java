@@ -8,13 +8,17 @@ package de.saar.coli.amtools.decomposition.analysis;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amtools.decomposition.analysis.CountSources;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -35,22 +39,65 @@ public class CountEdges {
      */
     public static void main(String[] args) throws IOException, ParseException, ParserException {
 
+        String corpus = "AMR3";
+        String outpath = "/home/mego/Documents/amconll_files/analysis/training/" + corpus + "/am_edges/";
+        String heading = "Edges in " + corpus;
+
+
         // read in the file and make it into a list of type AmConllSentence
-        String amconllFilePath = "/home/mego/Documents/amconll_files/PAS_auto3_dev_epoch_32.amconll";
+        String amconllFilePath = "/home/mego/Documents/amconll_files/training/" + corpus + ".amconll";
         List<AmConllSentence> amConllSentences = AmConllSentence.readFromFile(amconllFilePath);
 
+
         // Store the counts of the edge labels in edgeCounter
-        Counter<String> edgeCounter = new Counter<>();
+        Map<String, List<AmConllSentence>> map = new HashMap<>();
 
         // for every word in the corpus, add the incoming edge label to edgeCounter
         for (AmConllSentence sent : amConllSentences) {
             for (AmConllEntry word : sent) {
-                edgeCounter.add(word.getEdgeLabel());
+                List<AmConllSentence> examples = map.computeIfAbsent(word.getEdgeLabel(), k -> new ArrayList<>());
+                examples.add(sent);
+                map.put(word.getEdgeLabel(), examples);
             }
         }
 
         // print them out in order of frequency
-        edgeCounter.printAllSorted();
+        List<String> sortedKeys = new ArrayList<>(map.keySet());
+        sortedKeys.sort((label1, label2) -> {
+            int totalCount1 = map.get(label1).size();
+            int totalCount2 = map.get(label2).size();
+            return -Integer.compare(totalCount1, totalCount2);
+        });
+        // create text file to print counts to
+        Files.createDirectories(Paths.get(outpath + "/examples/"));
+        String outFilename = outpath + "/summary.txt";
+        CountSources.createFile(outFilename);
+
+        // write to the file
+        try {
+            FileWriter myWriter = new FileWriter(outFilename);
+
+            myWriter.write(heading + "\n\n");
+            // Print for each graph edge label
+            for (int i=0; i < sortedKeys.size(); i++) {
+                String label = sortedKeys.get(i);
+                myWriter.write(i + ". " + label + "  ####  " + map.get(label).size());
+                myWriter.write("\n");
+                myWriter.write("\n");
+
+                String exampleFilename = outpath + "examples/" + sortedKeys.get(i) + ".amconll";
+                CountSources.createFile(exampleFilename);
+                // write to the example file
+                AmConllSentence.writeToFile(exampleFilename, map.get(sortedKeys.get(i)));
+
+            }
+            myWriter.close();
+            System.out.println("Successfully wrote to the summary file.");
+
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
 
     }
     

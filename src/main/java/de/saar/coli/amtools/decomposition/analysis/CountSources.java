@@ -5,11 +5,9 @@
  */
 package de.saar.coli.amtools.decomposition.analysis;
 
-import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -19,6 +17,8 @@ import de.up.ling.tree.ParseException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -36,7 +36,7 @@ public class CountSources {
      * @param <F> something hashable, usually String
      * @param <E> something hashable, usually String or Pair
      */
-    public static <F,E> void writeSummary(Map<F, Map<E, List<AmConllSentence>>> map, String outpath, String heading) {
+    public static <F,E> void writeSummary(Map<F, Map<E, List<AmConllSentence>>> map, String outpath, String heading) throws IOException {
         // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
         // comparator to sort it.
         List<F> sortedKeys = new ArrayList<>(map.keySet());
@@ -55,6 +55,7 @@ public class CountSources {
         });
 
         // create text file to print counts to
+        Files.createDirectories(Paths.get(outpath));
         String outFilename = outpath + "/summary.txt";
         createFile(outFilename);
 
@@ -64,8 +65,9 @@ public class CountSources {
 
             myWriter.write(heading + "\n\n");
             // Print for each graph edge label
-            for (F label : sortedKeys) {
-                myWriter.write(label + "  ####  " + map.get(label).size());
+            for (int i=0; i < sortedKeys.size(); i++) {
+                F label = sortedKeys.get(i);
+                myWriter.write(i + ". " + label + "  ####  " + map.get(label).size());
                 myWriter.write("\n");
                 // make a counter so we can use writeAllSorted()
                 map2counter(map.get(label)).writeAllSorted(myWriter);
@@ -90,15 +92,51 @@ public class CountSources {
      * @param <E> something hashable, usually String or Pair
      * @throws IOException for writeToFile
      */
-    public static <F,E> void writeExamples(Map<F, Map<E, List<AmConllSentence>>> map, String outpath) throws IOException {
-        for (F key : map.keySet()) {
+    public static <F,E> void writeExamples(Map<F, Map<E, List<AmConllSentence>>> map, String outpath, Boolean numbers) throws IOException {
+        List<F> sortedKeys = new ArrayList<>(map.keySet());
+        if (numbers) {
+
+            sortedKeys.sort((label1, label2) -> {
+                int totalCount1 = 0;
+                for (E source : map.get(label1).keySet()
+                ) {
+                    totalCount1 += map.get(label1).get(source).size();
+                }
+                int totalCount2 = 0;
+                for (E source : map.get(label2).keySet()
+                ) {
+                    totalCount2 += map.get(label2).get(source).size();
+                }
+                return -Integer.compare(totalCount1, totalCount2);
+            });
+        }
+        Files.createDirectories(Paths.get(outpath + "examples/"));
+        for (Integer i = 0; i < sortedKeys.size(); i++) {
             // write examples to files for this label and each source
-            for (E innerKey : map.get(key).keySet()
-            ) {
-                String exampleFilename = outpath + "examples/" + key + "_" + innerKey + ".amconll";
+            List<E> sortedInnerKeys = new ArrayList<>(map.get(sortedKeys.get(i)).keySet());
+            if (numbers) {
+                final F finalKey = sortedKeys.get(i);
+                sortedInnerKeys.sort((label1, label2) -> {
+                    int totalCount1 = map.get(finalKey).get(label1).size();
+                    int totalCount2 = map.get(finalKey).get(label2).size();
+                    return -Integer.compare(totalCount1, totalCount2);
+                });
+            }
+
+            for (Integer j = 0; j < sortedInnerKeys.size(); j++) {
+                String key;
+                String innerKeyRep;
+                if (numbers) {
+                    key = i.toString();
+                    innerKeyRep = j.toString();
+                } else {
+                    key = sortedKeys.get(i).toString();
+                    innerKeyRep = sortedInnerKeys.get(j).toString();
+                }
+                String exampleFilename = outpath + "examples/" + key + "_" + innerKeyRep + ".amconll";
                 createFile(exampleFilename);
                 // write to the example file
-                AmConllSentence.writeToFile(exampleFilename, map.get(key).get(innerKey));
+                AmConllSentence.writeToFile(exampleFilename, map.get(sortedKeys.get(i)).get(sortedInnerKeys.get(j)));
             }
         }
     }
@@ -191,7 +229,7 @@ public class CountSources {
         }
         // write the files
         writeSummary(map, outpath, "Sources by graph edge label in " + corpus);
-        writeExamples(map, outpath);
+        writeExamples(map, outpath, false);
 
 
 
