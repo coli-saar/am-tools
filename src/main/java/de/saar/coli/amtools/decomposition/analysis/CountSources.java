@@ -27,6 +27,20 @@ import java.util.*;
  */
 public class CountSources {
 
+    /**
+     * Given a map from strings to lists, returns a counter with same keys, values as size of values
+     * @param map Map from Strings to ArrayList of AMConllSentences
+     * @return Counter for Strings
+     */
+    public static Counter<String> map2counter(Map<String, List<AmConllSentence>> map) {
+        Counter<String> counter = new Counter<>();
+        for (String key: map.keySet()
+             ) {
+            counter.add(key, map.get(key).size());
+
+        }
+        return counter;
+    }
 
     /**
      * Given an amconll file of am-parser output, counts the sources by incoming edge label
@@ -39,22 +53,21 @@ public class CountSources {
      */
     public static void main(String[] args) throws IOException, ParseException, ParserException {
 
-        // Change these as needed
-        String corpus = "AMR-2017";
-        String epoch = "57";
-        int numberOfExamples = 5; // for printing example IDs
+        // Change this as needed
+        String corpus = "DM";
 
+        String outpath = "/home/mego/Documents/amconll_files/analysis/training/" + corpus + "/sources/";
 
         // read in the file and make it into a list of type AmConllSentence
-        String amconllFilePath = "/home/mego/Documents/amconll_files/training/" + corpus + "_amconll_list_train_epoch" + epoch + ".amconll";
+        String amconllFilePath = "/home/mego/Documents/amconll_files/training/" + corpus + ".amconll";
         List<AmConllSentence> amConllSentences = AmConllSentence.readFromFile(amconllFilePath);
 
         System.err.println("Counting sources incident to edge labels in " + amconllFilePath + "\n");
 
-        // a map for storing the edge labels and the count of the sources they are incident to
-        Map<String, Pair<Counter<String>, ArrayList<String>>> counterMap = new HashMap<>();
+        // a map for storing the edge labels and the sources they are incident to. With each source we store the sentence
+        Map<String, Map<String, List<AmConllSentence>>> map = new HashMap<>();
 
-        // for every word in the corpus, add the incoming edge labels and sources to counterMap
+        // for every word in the corpus, add the incoming edge labels and sources to map
         for (AmConllSentence sent : amConllSentences) {
             for (AmConllEntry word : sent) {
                 // get the graph constant
@@ -69,25 +82,40 @@ public class CountSources {
 
                     for (GraphEdge edge : edges) {
                         String label = edge.getLabel();
-                        // get the current counter and list for this edge label, making it if it doesn't exist yet
-                        Pair<Counter<String>, ArrayList<String>> pair = counterMap.get(label);
-                        if (pair == null) {
-                            pair = new Pair<>(new Counter<>(), new ArrayList<>());
-                            counterMap.put(label, pair);
-                        }
-                        // add the source
-                        pair.getLeft().add(source);
+                        // get the current map for this edge label, making it if it doesn't exist yet
+                        Map<String, List<AmConllSentence>> mapForEdge = map.computeIfAbsent(label, k -> new HashMap<>());
 
-                        // add the sentence ID
-                        pair.getRight().add(sent.getId());
-
+                        // get the examples for this source, making it if it doesn't exist yet
+                        List<AmConllSentence> currentExamples = mapForEdge.computeIfAbsent(source, k -> new ArrayList<>());
+                        // add the sentence and put the updated example list back
+                        currentExamples.add(sent);
+                        mapForEdge.put(source, currentExamples);
                     }
                 }
             }
         }
 
-        // create file to print to
-        String outFilename = "/home/mego/Documents/amconll_files/analysis/sources_" + corpus + "_epoch" + epoch + ".txt";
+
+        // write source counts to file
+        // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
+        // comparator to sort it.
+        List<String> sortedKeys = new ArrayList<>(map.keySet());
+        sortedKeys.sort((label1, label2) -> {
+            int totalCount1 = 0;
+            for (String source: map.get(label1).keySet()
+                 ) {
+                totalCount1 += map.get(label1).get(source).size();
+            }
+            int totalCount2 = 0;
+            for (String source: map.get(label2).keySet()
+            ) {
+                totalCount2 += map.get(label2).get(source).size();
+            }
+            return -Integer.compare(totalCount1, totalCount2);
+        });
+
+        // create text file to print counts to
+        String outFilename = outpath + "summary.txt";
         try {
             File myObj = new File(outFilename);
             if (myObj.createNewFile()) {
@@ -100,45 +128,41 @@ public class CountSources {
             e.printStackTrace();
         }
 
-        // write source counts to file
         try {
             FileWriter myWriter = new FileWriter(outFilename);
 
-            // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
-            // comparator to sort it.
-            List<String> sortedKeys = new ArrayList<>(counterMap.keySet());
-            sortedKeys.sort((label1, label2) -> {
-                int totalCount1 = counterMap.get(label1).getLeft().sum();
-                int totalCount2 = counterMap.get(label2).getLeft().sum();
-                return -Integer.compare(totalCount1, totalCount2);
-            });
-
+            myWriter.write("Summary of " + corpus + " edges incident to sources\n\n");
             // Print for each graph edge label
             for (String label : sortedKeys) {
-                myWriter.write(label + "  ####  " + counterMap.get(label).getLeft().sum());
+                myWriter.write(label + "  ####  " + map.get(label).size());
                 myWriter.write("\n");
-                counterMap.get(label).getLeft().writeAllSorted(myWriter);
+                // make a counter so we can use writeAllSorted()
+                map2counter(map.get(label)).writeAllSorted(myWriter);
                 myWriter.write("\n");
 
-                // print examples
-                myWriter.write("Examples: ");
-                ArrayList<String> examples = counterMap.get(label).getRight();
-
-                // just numberOfExamples, randomly selected (or all we have)
-                Random rand = new Random();
-                ArrayList<String> subsetExamples = new ArrayList<>();
-
-                for (int i = 0; i < Math.min(numberOfExamples, examples.size()); i++) {
-                        int randomIndex = rand.nextInt(examples.size());
-                        subsetExamples.add(examples.get(randomIndex));
-                        examples.remove(randomIndex);
+                // write examples to files for this label and each source
+                for (String source: map.get(label).keySet()
+                     ) {
+                    // make the file
+                    String exampleFilename = outpath + "examples/" + label + "_" + source + ".amconll";
+                    try {
+                        File myObj = new File(exampleFilename);
+                        if (myObj.createNewFile()) {
+                            System.out.println("File created: " + myObj.getName());
+                        } else {
+                            System.out.println("Overwriting existing file");
+                        }
+                    } catch (IOException e) {
+                        System.out.println("An error occurred.");
+                        e.printStackTrace();
+                    }
+                    // write to the example file
+                    AmConllSentence.writeToFile(exampleFilename, map.get(label).get(source));
                 }
-                myWriter.write(subsetExamples.toString());
-                myWriter.write("\n\n");
             }
 
             myWriter.close();
-            System.out.println("Successfully wrote to the file.");
+            System.out.println("Successfully wrote to the summary file.");
 
         } catch (IOException e) {
                 System.out.println("An error occurred.");
