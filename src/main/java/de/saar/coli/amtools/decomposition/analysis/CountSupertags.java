@@ -37,12 +37,18 @@ public class CountSupertags {
      */
     public static void main(String[] args) throws IOException, ParseException, ParserException {
 
-        /// Change this as needed
-        String corpus = "AMR3";
-        String outpath = "/home/mego/Documents/amconll_files/analysis/training/" + corpus + "/supertags/";
+        // Change this as needed
+        // input will be pathPrefix + corporaFolder + corpus.amconll  (e.g. ... /training/AMR4.amconll)
+        // output will be pathPrefix + /analysis/ + corporaFolder + corpus + /supertags/ (e.g. ... /analysis/training/AMR4/supertags/)
+        String corpus = args[2];  // AMR
+        String corporaFolder = args[1];  //EM
+        String pathPrefix = args[0];  //"/home/mego/Documents/amconll_files/";
+
+        String heading = "Supertags sorted by graph constant in " + corporaFolder + "/" + corpus;
+        String outpath = pathPrefix + "analysis/" + corporaFolder  + "/" + corpus + "/supertags/";
 
         // read in the file and make it into a list of type AmConllSentence
-        String amconllFilePath = "/home/mego/Documents/amconll_files/training/" + corpus + ".amconll";
+        String amconllFilePath = pathPrefix + corporaFolder  + "/" + corpus + ".amconll";
         List<AmConllSentence> amConllSentences = AmConllSentence.readFromFile(amconllFilePath);
 
         System.err.println("Counting supertags for graphs in " + amconllFilePath + "\n");
@@ -69,7 +75,7 @@ public class CountSupertags {
         }
 
         System.out.println("Writing summary");
-        CountSources.writeSummary(map, outpath, "Supertags sorted by graph constant in " + corpus);
+        CountSources.writeSummary(map, outpath, heading);
 
         System.out.println("Writing examples");
         CountSources.writeExamples(map, outpath, true);

@@ -111,7 +111,7 @@ public class CountSources {
             });
         }
         Files.createDirectories(Paths.get(outpath + "examples/"));
-        for (Integer i = 0; i < sortedKeys.size(); i++) {
+        for (int i = 0; i < sortedKeys.size(); i++) {
             // write examples to files for this label and each source
             List<E> sortedInnerKeys = new ArrayList<>(map.get(sortedKeys.get(i)).keySet());
             if (numbers) {
@@ -123,12 +123,12 @@ public class CountSources {
                 });
             }
 
-            for (Integer j = 0; j < sortedInnerKeys.size(); j++) {
+            for (int j = 0; j < sortedInnerKeys.size(); j++) {
                 String key;
                 String innerKeyRep;
                 if (numbers) {
-                    key = i.toString();
-                    innerKeyRep = j.toString();
+                    key = Integer.toString(i);
+                    innerKeyRep = Integer.toString(j);
                 } else {
                     key = sortedKeys.get(i).toString();
                     innerKeyRep = sortedInnerKeys.get(j).toString();
@@ -187,12 +187,18 @@ public class CountSources {
     public static void main(String[] args) throws IOException, ParseException, ParserException {
 
         // Change this as needed
-        String corpus = "DM";
+        // input will be pathPrefix + corporaFolder + corpus.amconll  (e.g. ... /training/AMR4.amconll)
+        // output will be pathPrefix + /analysis/ + corporaFolder + corpus + /supertags/ (e.g. ... /analysis/training/AMR4/sources/)
+        String corpus = args[2];  // AMR
+        String corporaFolder = args[1];  //EM
+        String pathPrefix = args[0];  //"/home/mego/Documents/amconll_files/";
 
-        String outpath = "/home/mego/Documents/amconll_files/analysis/training/" + corpus + "/sources/";
+        // output path
+        String outpath = pathPrefix + "analysis/" + corporaFolder + "/" + corpus + "/sources/";
+        String heading = "Sources by graph edge label in " + corporaFolder + "/" + corpus;
 
         // read in the file and make it into a list of type AmConllSentence
-        String amconllFilePath = "/home/mego/Documents/amconll_files/training/" + corpus + ".amconll";
+        String amconllFilePath = pathPrefix + corporaFolder + "/" + corpus + ".amconll";
         List<AmConllSentence> amConllSentences = AmConllSentence.readFromFile(amconllFilePath);
 
         System.err.println("Counting sources incident to edge labels in " + amconllFilePath + "\n");
@@ -228,7 +234,7 @@ public class CountSources {
             }
         }
         // write the files
-        writeSummary(map, outpath, "Sources by graph edge label in " + corpus);
+        writeSummary(map, outpath, heading);
         writeExamples(map, outpath, false);
 
 
