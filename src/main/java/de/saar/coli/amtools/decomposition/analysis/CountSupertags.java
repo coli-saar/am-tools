@@ -13,6 +13,7 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
+import de.saar.coli.amtools.decomposition.analysis.CountSources;
 
 import java.io.IOException;
 import java.util.*;
@@ -36,15 +37,26 @@ public class CountSupertags {
      */
     public static void main(String[] args) throws IOException, ParseException, ParserException {
 
+        // Change this as needed
+        // input will be pathPrefix + corporaFolder + corpus.amconll  (e.g. ... /training/AMR4.amconll)
+        // output will be pathPrefix + /analysis/ + corporaFolder + corpus + /supertags/ (e.g. ... /analysis/training/AMR4/supertags/)
+        String corpus = args[2];  // AMR
+        String corporaFolder = args[1];  //EM
+        String pathPrefix = args[0];  //"/home/mego/Documents/amconll_files/";
+
+        String heading = "Supertags sorted by graph constant in " + corporaFolder + "/" + corpus;
+        String outpath = pathPrefix + "analysis/" + corporaFolder  + "/" + corpus + "/supertags/";
+
         // read in the file and make it into a list of type AmConllSentence
-        String amconllFilePath = "/home/mego/Documents/amconll_files/PAS_auto3_dev_epoch_32.amconll";
+        String amconllFilePath = pathPrefix + corporaFolder  + "/" + corpus + ".amconll";
         List<AmConllSentence> amConllSentences = AmConllSentence.readFromFile(amconllFilePath);
 
-        // a map for storing the sourceless delexicalised constants and their supertags,
-        // where the supertags are Pairs of String representation of the SGraph and its Type
-        Map<SGraph, Counter<Pair<String, Type>>> counterMap = new HashMap<>();
+        System.err.println("Counting supertags for graphs in " + amconllFilePath + "\n");
 
-        // for every word in the corpus, add the graphs and supertags to counterMap
+        // a map for storing the graphs and their types. With each graph we store the sentence
+        Map<SGraph, Map<Pair<String, Type>, List<AmConllSentence>>> map = new HashMap<>();
+
+        // for every word in the corpus, add the graphs and supertags to map
         for (AmConllSentence sent : amConllSentences) {
             for (AmConllEntry word : sent) {
                 // delexicalise and remove all sources but the root
@@ -52,31 +64,21 @@ public class CountSupertags {
                 noSourceGraph = noSourceGraph.forgetSourcesExcept(Collections.singleton("root"));
                 noSourceGraph.setEqualsMeansIsomorphy(true); // to ignore node names in the equality check
                 // get the current counter for this graph, making it if it doesn't exist yet
-                Counter<Pair<String, Type>> counterForNoSourceGraph = counterMap.get(noSourceGraph);
-                if (counterForNoSourceGraph == null) {
-                    counterForNoSourceGraph = new Counter<>();
-                    counterMap.put(noSourceGraph, counterForNoSourceGraph);
-                }
-                // add the supertag
-                counterForNoSourceGraph.add(new Pair<>(word.getDelexSupertag(), word.getType()));
+                Map<Pair<String, Type>, List<AmConllSentence>> mapForNoSourceGraph =
+                        map.computeIfAbsent(noSourceGraph, k -> new HashMap<>());
+                Pair<String, Type> supertag = new Pair<>(word.getDelexSupertag(), word.getType());
+                List<AmConllSentence> currentExamples =
+                        mapForNoSourceGraph.computeIfAbsent(supertag, k -> new ArrayList<>());
+                currentExamples.add(sent);
+                mapForNoSourceGraph.put(supertag, currentExamples);
             }
         }
 
-        // To print the graphs in order of frequency (most to least), make a list and then use the (negative) int
-        // comparator to sort it.
-        List<SGraph> sortedKeys = new ArrayList<>(counterMap.keySet());
-        sortedKeys.sort((sGraph1, sGraph2) -> {
-            int totalCount1 = counterMap.get(sGraph1).sum();
-            int totalCount2 = counterMap.get(sGraph2).sum();
-            return -Integer.compare(totalCount1, totalCount2);
-        });
+        System.out.println("Writing summary");
+        CountSources.writeSummary(map, outpath, heading);
 
-        // Print to std error since that's how counterMap.get(graph).printAllSorted() does it
-        for (SGraph graph : sortedKeys) {
-            System.err.println(graph.toIsiAmrStringWithSources() + "  ####  " + counterMap.get(graph).sum());
-            counterMap.get(graph).printAllSorted();
-            System.err.println();
-        }
+        System.out.println("Writing examples");
+        CountSources.writeExamples(map, outpath, true);
 
 
     }
