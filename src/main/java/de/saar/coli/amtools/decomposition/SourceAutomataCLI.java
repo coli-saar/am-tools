@@ -60,6 +60,9 @@ public class SourceAutomataCLI {
     @Parameter(names = {"--useLegacyPSDpreprocessing"}, description = "displays help if this is the only command")
     private boolean legacyPSD=false;
 
+    @Parameter(names = {"--noPSDpreprocessing"}, description = "displays help if this is the only command")
+    private boolean noPSDPreprocessing=false;
+
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
     private int nrSources = 2;
 
@@ -114,7 +117,7 @@ public class SourceAutomataCLI {
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
-        cli.processCorpus(gr, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages, cli.legacyPSD);
+        cli.processCorpus(gr, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages, cli.legacyPSD, cli.noPSDPreprocessing);
 
 
         //get automata for dev set
@@ -124,7 +127,7 @@ public class SourceAutomataCLI {
         List<SourceAssignmentAutomaton> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
-        cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev, cli.legacyPSD);
+        cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev, cli.legacyPSD, cli.noPSDPreprocessing);
 
         Files.createDirectories(Paths.get(cli.outPath));
 
@@ -275,7 +278,7 @@ public class SourceAutomataCLI {
 
     private void processCorpus(GraphReader2015 gr, AMRBlobUtils blobUtils,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
-                                List<DecompositionPackage> decompositionPackages, boolean legacyPSD) throws IOException {
+                                List<DecompositionPackage> decompositionPackages, boolean legacyPSD, boolean noPSDPreprocessing) throws IOException {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
         Counter<Integer> bucketCounter = new Counter<>();
@@ -292,7 +295,7 @@ public class SourceAutomataCLI {
             if (true) { //index == 1268
                 MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
                 SGraph graph = inst.getGraph();
-                if (corpusType.equals("PSD")) {
+                if (corpusType.equals("PSD") && !noPSDPreprocessing) {
                     graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils, legacyPSD);
                 }
 
