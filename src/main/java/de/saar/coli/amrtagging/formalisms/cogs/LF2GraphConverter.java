@@ -2,40 +2,37 @@ package de.saar.coli.amrtagging.formalisms.cogs;
 
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.MRInstance;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Argument;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Term;
 import org.apache.commons.lang.NotImplementedException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Converts <code>COGSLogicalForm</code> to a <code>SGraph</code><br>
  *
  * Version 1: very AMR-like<br>
- * - arguments of a term (x_i, John, a) become nodes<br>
- * - predicate names become edges unless it's a term with only one argument ( boy(x1) ), then it's part of the x_i node
- * - iota: we treat iota as some special term: `* boy ( x _ 1 ) ;` transformed to `the.iota( the, x_1_boy )`<br>
- * - prepositions: the <i>nmod.preposition</i> edge belongs to the noun of the PP (not the modifed noun!)<br>
+ * - arguments of a term (<i>x_i, John, a</i>) become nodes<br>
+ * - predicate names become edges unless it's a term with only one argument (<i>boy(x_1)</i>), then it's part of the <i>x_i</i> node
+ * - iota: we treat iota as some special term: <i>* boy(x_1);</i> transformed to <i>the.iota(the, x_1_boy)</i><br>
+ * - prepositions: the <i>nmod.preposition</i> edge belongs to the noun of the PP (not the modified noun!)<br>
  * - primitives: treated as graphs with open sources...<br>
  * TODO: missing implementation:
  * - Alignment: is is 0-indexed or 1-indexed? currently assumes 0-indexed. Check what Alignment wants and maybe change..
- * - refactoring this giant method into smaller ones
- * - non-primitives need to have a root node: how to determine which one it is?
- * - lemma for lambda primitive: how to get lemma from the formula?
+ * - refactoring (is there duplicate code or very similar code that could be a method on its own?)
  * - node names for indices: just the number or better <code>x_i</code> ?
  * - what is a node name (not label) for proper names? need to recover in postprocessing something?
  * TODO: Problems
  * - alignments for determiners and proper names rely on heuristics and hope (see to-do-notes below)
  * - same would hold for prepositions, but the current encoding transforms them to edges (only nodes need alignments)
+ * - for non-primitives we have to heuristically select a root node (heuristic: no incoming edges)
  * @author piaw (weissenh)
  * Created April 2021
  */
 public class LF2GraphConverter {
-    public static final String ROOT_SOURCE_STRING = "root";
     public static final String LEMMA_SEPARATOR = "~~";  // "x_1~~boy", "x_4~~want", "x_e~~giggle", "u~~Ava"
     public static final String IOTA_EDGE_LABEL = "iota";
     public static final String IOTA_NODE_LABEL = "the";
@@ -54,7 +51,7 @@ public class LF2GraphConverter {
         Argument lexarg = logicalForm.getLexicalArgumentForLambda();
         GraphNode lexicalNode = graph.getNode(lexarg.getName());
         String lexnodename = lexicalNode.getName();
-        graph.addSource(ROOT_SOURCE_STRING, lexnodename);
+        graph.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME, lexnodename);
         // * for each predicate (if binary) add edge
         //   on the target node of that edge we add a source (=lambda variable!)
         String lemma = null;
@@ -84,20 +81,28 @@ public class LF2GraphConverter {
         return new MRInstance(sentenceTokens, graph, alignments);
     }
 
-    // todo IMPORTANT missing assignment of root node!
+    // todo giant method: refactor into smaller ones if possible? (maybe together with lambdatosgraph)?
     private static MRInstance IotaToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
         assert (logicalForm.getFormulaType() == COGSLogicalForm.AllowedFormulaTypes.IOTA);
         assert (sentenceTokens.size() > 0);
         List<Alignment> alignments = new ArrayList<>();
         SGraph graph = new SGraph();
+        // while building the graph we take note of nodes which can't be root nodes (why? see further below)
+        Set<GraphNode> notCandidatesForRoot = new HashSet<>();
         // ** Graph
         // * node for each distinct argument (including proper names!)
-        for (Argument arg: logicalForm.getArgumentSet()) { graph.addNode(arg.getName(), null); }
+        for (Argument arg: logicalForm.getArgumentSet()) {
+            GraphNode n = graph.addNode(arg.getName(), null); // indices don't receive a label (yet)
+            if (arg.isProperName()) { n.setLabel(arg.getName());}  // but proper names do
+            assert(!arg.isLambdaVar()); // we are in a non-primtive, there clearly shouldn't be lambda variables
+        }
         // * iotas:
-        //   - node for each iota (node has label "the")
-        //   - iota edge (label: "iota")
-        //   - label the noun node with the noun lemma
-        //   - align the noun node according to the index
+        /* - node for each iota (node has label "the")
+         * - iota edge (label: "iota")
+         * - label the noun node with the noun lemma
+         * - align the noun node according to the index
+         * - neither ne noun node nor the determiner node can be candidates for the root node
+         */
         GraphNode nounNode;
         for (Term t: logicalForm.getPrefixTerms()) {  // for each iota term
             // get the 'noun' node
@@ -123,9 +128,14 @@ public class LF2GraphConverter {
             alignments.add(new Alignment(determinerNode.getName(), nounArgument.getIndex()-1));
             // add an iota-edge
             graph.addEdge(determinerNode, nounNode, IOTA_EDGE_LABEL);
+            // the determiner node isn't going to be the root
+            // the noun is also not a root (should be a verb, right?) todo check this assumption?
+            notCandidatesForRoot.add(determinerNode);
+            notCandidatesForRoot.add(nounNode);
         }
         // * add lemma as a label for each node corresponding to the first argument in some term
         // * edge for each term excluding unary
+        // * target nodes of edges can't be candiates for the root node (root node should have no incoming edges)
         GraphNode lemmaNode;
         for (Term t: logicalForm.getConjunctionTerms()) {
             // set lemma for the source node
@@ -144,6 +154,10 @@ public class LF2GraphConverter {
                 Argument targetArg = t.getArguments().get(1);
                 GraphNode targetNode = graph.getNode(targetArg.getName());
                 graph.addEdge(lemmaNode, targetNode, t.getPredicate().getDelexPredAsString());
+                // the target node can't be a root node because it has an incoming edge (the one just created)
+                // note: this assumes that there are no 'reverse' edges.
+                // prepositions are not an exception:  cookie.nmod.beside(x_cookie, x_noun) : x_noun is not a root node
+                notCandidatesForRoot.add(targetNode);
             }
         }
         // ** Alignment heuristic for proper names:
@@ -161,12 +175,36 @@ public class LF2GraphConverter {
                 int token_position = sentenceTokens.indexOf(argument.getName());
                 assert(token_position != -1);
                 alignments.add(new Alignment(properNameNode.getName(), token_position));
+                // todo proper name nodes are also not roots, need a verb:
+                notCandidatesForRoot.add(properNameNode);
             }
+        }
+        // ** determine to which node to add the special root source
+        /*
+        * Unfortunately, the SGraph and GraphNode classes don't provide the option to search for nodes based on the
+        * number of incoming edges. Therefore, I decided to -while building the graph- note down which nodes can't be
+        * root nodes (see <code>notCandidatesForRoot</code>). The remaining nodes are root candidates and we hope that
+        * there is always just one root candidate, otherwise throws a RuntimeException
+        */
+        Set<GraphNode> rootCandidates = new HashSet<>();
+        for (String nodename: graph.getAllNodeNames()) {
+            GraphNode n = graph.getNode(nodename);
+            if (!notCandidatesForRoot.contains(n)) { rootCandidates.add(n); }
+        }
+        if (rootCandidates.size()!= 1) {  // 0 or more than 1 node that could function as a root node
+            throw new RuntimeException("Need a single node as the root node: couldn't decide on one. " +
+                    "number of root candidate nodes: " + rootCandidates.size());
+        }
+        else { // exactly one element
+            GraphNode rootNode = rootCandidates.iterator().next();
+            graph.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME, rootNode.getName());
         }
         return new MRInstance(sentenceTokens, graph, alignments);
     }
 
     public static MRInstance toSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
+        Objects.requireNonNull(logicalForm);
+        Objects.requireNonNull(sentenceTokens);
         if (sentenceTokens.size() == 0 ) { throw new RuntimeException("Empty sentence not allowed"); }
         switch (logicalForm.getFormulaType()) {
             case LAMBDA:
@@ -185,13 +223,13 @@ public class LF2GraphConverter {
                 Argument propername = logicalForm.getNamePrimitive();
                 // ** Graph: add node with the proper name as label and make it the root
                 GraphNode node = graph.addAnonymousNode(propername.getName()); // todo what about lemma? needed?
-                graph.addSource(ROOT_SOURCE_STRING, node.getName());
+                graph.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME, node.getName());
                 // ** Alignments: align to first and only word in the sentence
                 alignments.add(new Alignment(node.getName(), 0));
                 return new MRInstance(sentenceTokens, graph, alignments);
             default:
-                assert (false);
-                return null;
+                // assert (false);
+                throw new RuntimeException("There must be some formula type added but this method wasn't adapted.");
         }
     }
 
