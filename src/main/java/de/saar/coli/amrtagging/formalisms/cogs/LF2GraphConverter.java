@@ -23,7 +23,6 @@ import java.util.*;
  * TODO: missing implementation:
  * - Alignment: is is 0-indexed or 1-indexed? currently assumes 0-indexed. Check what Alignment wants and maybe change..
  * - refactoring (is there duplicate code or very similar code that could be a method on its own?)
- * - node names for indices: just the number or better <code>x_i</code> ?
  * - what is a node name (not label) for proper names? need to recover in postprocessing something?
  * TODO: Problems
  * - alignments for determiners and proper names rely on heuristics and hope (see to-do-notes below)
@@ -33,11 +32,13 @@ import java.util.*;
  * Created April 2021
  */
 public class LF2GraphConverter {
-    public static final String LEMMA_SEPARATOR = "~~";  // "x_1~~boy", "x_4~~want", "x_e~~giggle", "u~~Ava"
+    public static final String LEMMA_SEPARATOR = "~~";  // "x_1~~boy", "x_4~~want", "x_e~~giggle", "x_Ava~~Ava"
     public static final String IOTA_EDGE_LABEL = "iota";
     public static final String IOTA_NODE_LABEL = "the";
+    public static final String NODE_NAME_PREFIX = "x_";
 
     private static MRInstance LambdaToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
+        // e.g.    hold   LAMBDA a . LAMBDA b . LAMBDA e . hold . agent ( e , b ) AND hold . theme ( e , a )
         assert(logicalForm.getFormulaType() == COGSLogicalForm.AllowedFormulaTypes.LAMBDA);
         assert(sentenceTokens.size() == 1);
         List<Alignment> alignments = new ArrayList<>();
@@ -45,11 +46,11 @@ public class LF2GraphConverter {
         // ** Graph
         // - node for each lambda variable
         Set<Argument> lambdaargs = logicalForm.getArgumentSet();
-        for (Argument arg: lambdaargs) { graph.addNode(arg.getName(), null); }
-        // * need to find which node 'aligns' with the lemma:
+        for (Argument arg: lambdaargs) { graph.addNode(NODE_NAME_PREFIX+arg.getName(), null); }
+        // * need to find which node 'aligns' with the lemma (e.g. `e` as it is the first argument in each term):
         //  this becomes the root node (and latter also lemma added to the node label)
         Argument lexarg = logicalForm.getLexicalArgumentForLambda();
-        GraphNode lexicalNode = graph.getNode(lexarg.getName());
+        GraphNode lexicalNode = graph.getNode(NODE_NAME_PREFIX+lexarg.getName());
         String lexnodename = lexicalNode.getName();
         graph.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME, lexnodename);
         // * for each predicate (if binary) add edge
@@ -61,9 +62,9 @@ public class LF2GraphConverter {
             else { assert(lemma.equals(tmp)); }
             if (t.hasTwoArguments()) {
                 Argument firstArg = t.getArguments().get(0);
-                GraphNode firstNode = graph.getNode(firstArg.getName());
+                GraphNode firstNode = graph.getNode(NODE_NAME_PREFIX+firstArg.getName());
                 Argument secondArg = t.getArguments().get(1);
-                GraphNode secondNode = graph.getNode(secondArg.getName());
+                GraphNode secondNode = graph.getNode(NODE_NAME_PREFIX+secondArg.getName());
                 String label = t.getPredicate().getDelexPredAsString();
                 // todo assert(term.pred.lemma == firstArgNode lemma)
                 graph.addEdge(firstNode, secondNode, label);
@@ -75,9 +76,11 @@ public class LF2GraphConverter {
         assert(lemma != null);  // should have seen at least one term
         lexicalNode.setLabel(lexarg.getName()+LEMMA_SEPARATOR+lemma);
         // ** Alignments
-        //  only the 'lexical'/'lemma' node (== the root) is aligned.
-        //  The rest are unlabeled nodes with sources. There is only one word in the input, so at position 0.
-        alignments.add(new Alignment(lexnodename, 0));
+        //  We align all nodes (the 'lemma' node and even the unlabeled nodes with just sources) to the token.
+        //  There is only one word in the input, so at position 0.
+        for (String nodename: graph.getAllNodeNames()) {
+            alignments.add(new Alignment(nodename, 0));
+        }
         return new MRInstance(sentenceTokens, graph, alignments);
     }
 
@@ -92,7 +95,7 @@ public class LF2GraphConverter {
         // ** Graph
         // * node for each distinct argument (including proper names!)
         for (Argument arg: logicalForm.getArgumentSet()) {
-            GraphNode n = graph.addNode(arg.getName(), null); // indices don't receive a label (yet)
+            GraphNode n = graph.addNode(NODE_NAME_PREFIX+arg.getName(), null); // indices don't receive a label (yet)
             if (arg.isProperName()) { n.setLabel(arg.getName());}  // but proper names do
             assert(!arg.isLambdaVar()); // we are in a non-primtive, there clearly shouldn't be lambda variables
         }
@@ -109,14 +112,17 @@ public class LF2GraphConverter {
             assert(t.getValency()==1);  // not binary predicate, but unary one
             Argument nounArgument = t.getArguments().get(0);
             assert(nounArgument.isIndex());
-            nounNode = graph.getNode(nounArgument.getName());
+            nounNode = graph.getNode(NODE_NAME_PREFIX+nounArgument.getName());
             // add lemma to the 'noun' node
             assert(nounNode.getLabel() == null);
             nounNode.setLabel(t.getLemma());
             // add alignment for the 'noun' node
             alignments.add(new Alignment(nounNode.getName(), nounArgument.getIndex()));
             // add new determiner node
-            GraphNode determinerNode = graph.addAnonymousNode(IOTA_NODE_LABEL);
+            int detindx = nounArgument.getIndex()-1;
+            GraphNode determinerNode = graph.addNode(NODE_NAME_PREFIX+detindx, IOTA_NODE_LABEL);
+            // TODO at first ,this node was an anonymous one, but that lead to a NullPointerException
+            // GraphNode determinerNode = graph.addAnonymousNode(IOTA_NODE_LABEL);
             // todo for future extensions this heuristic may become a problem:
             /* How to align the determiner node?
              * - the logical form doesn't specify (no index for it!) which token it belongs to
@@ -125,7 +131,7 @@ public class LF2GraphConverter {
              * - IMPORTANT: we can only use this heuristic faithfully because we know that the COGS dataset
              *   doesn't contain any pre-nominal modifiers like adjectives
              * */
-            alignments.add(new Alignment(determinerNode.getName(), nounArgument.getIndex()-1));
+            alignments.add(new Alignment(determinerNode.getName(), detindx));
             // add an iota-edge
             graph.addEdge(determinerNode, nounNode, IOTA_EDGE_LABEL);
             // the determiner node isn't going to be the root
@@ -141,7 +147,7 @@ public class LF2GraphConverter {
             // set lemma for the source node
             Argument firstArg = t.getArguments().get(0);
             assert(firstArg.isIndex());
-            lemmaNode = graph.getNode(firstArg.getName());
+            lemmaNode = graph.getNode(NODE_NAME_PREFIX+firstArg.getName());
             assert(lemmaNode.getLabel() == null || lemmaNode.getLabel().equals(t.getLemma()));
             // if node doesn't have this lemma label already: add it and also add alignment
             if (lemmaNode.getLabel() == null) {
@@ -152,7 +158,7 @@ public class LF2GraphConverter {
             // if there is a second argument, we add an edge:
             if (t.hasTwoArguments()) {
                 Argument targetArg = t.getArguments().get(1);
-                GraphNode targetNode = graph.getNode(targetArg.getName());
+                GraphNode targetNode = graph.getNode(NODE_NAME_PREFIX+targetArg.getName());
                 graph.addEdge(lemmaNode, targetNode, t.getPredicate().getDelexPredAsString());
                 // the target node can't be a root node because it has an incoming edge (the one just created)
                 // note: this assumes that there are no 'reverse' edges.
@@ -171,7 +177,7 @@ public class LF2GraphConverter {
         GraphNode properNameNode;
         for (Argument argument: logicalForm.getArgumentSet()) {
             if (argument.isProperName()) {
-                properNameNode = graph.getNode(argument.getName());
+                properNameNode = graph.getNode(NODE_NAME_PREFIX+argument.getName());
                 int token_position = sentenceTokens.indexOf(argument.getName());
                 assert(token_position != -1);
                 alignments.add(new Alignment(properNameNode.getName(), token_position));
@@ -222,7 +228,9 @@ public class LF2GraphConverter {
                 SGraph graph = new SGraph();
                 Argument propername = logicalForm.getNamePrimitive();
                 // ** Graph: add node with the proper name as label and make it the root
-                GraphNode node = graph.addAnonymousNode(propername.getName()); // todo what about lemma? needed?
+                GraphNode node = graph.addNode(NODE_NAME_PREFIX+"0", propername.getName()); // todo what about lemma? needed?
+                // TODO at first ,this node was an anonymous one, but that lead to NullPointerException:
+                // GraphNode node = graph.addAnonymousNode(propername.getName());
                 graph.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME, node.getName());
                 // ** Alignments: align to first and only word in the sentence
                 alignments.add(new Alignment(node.getName(), 0));
