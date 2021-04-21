@@ -37,6 +37,23 @@ public class LF2GraphConverter {
     public static final String IOTA_NODE_LABEL = "the";
     public static final String NODE_NAME_PREFIX = "x_";
 
+    /// Method for converting 1-word primitive to an SGraph (plus alignments and sentence tokens) eg. `Ava\tAva`
+    private static MRInstance NameToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
+        assert(sentenceTokens.size() == 1);
+        List<Alignment> alignments = new ArrayList<>();
+        SGraph graph = new SGraph();
+        Argument propername = logicalForm.getNamePrimitive();
+        // ** Graph: add node with the proper name as label and make it the root
+        GraphNode node = graph.addNode(NODE_NAME_PREFIX+"0", propername.getName()); // todo what about lemma? needed?
+        // TODO at first ,this node was an anonymous one, but that lead to NullPointerException:
+        // GraphNode node = graph.addAnonymousNode(propername.getName());
+        graph.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME, node.getName());
+        // ** Alignments: align to first and only word in the sentence
+        alignments.add(new Alignment(node.getName(), 0));
+        return new MRInstance(sentenceTokens, graph, alignments);
+    }
+
+    /// Method to convert primitive with lambdas to an SGraph (plus alignments and sentence tokens)
     private static MRInstance LambdaToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
         // e.g.    hold   LAMBDA a . LAMBDA b . LAMBDA e . hold . agent ( e , b ) AND hold . theme ( e , a )
         assert(logicalForm.getFormulaType() == COGSLogicalForm.AllowedFormulaTypes.LAMBDA);
@@ -85,6 +102,7 @@ public class LF2GraphConverter {
     }
 
     // todo giant method: refactor into smaller ones if possible? (maybe together with lambdatosgraph)?
+    /// Method to convert non-primitive logical form (>= 0 terms as prefix) to SGraph (plus alignments and sentence)
     private static MRInstance IotaToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
         assert (logicalForm.getFormulaType() == COGSLogicalForm.AllowedFormulaTypes.IOTA);
         assert (sentenceTokens.size() > 0);
@@ -208,6 +226,14 @@ public class LF2GraphConverter {
         return new MRInstance(sentenceTokens, graph, alignments);
     }
 
+    /**
+     * The method transforms a logicalForm to an SGraph, plus alignments to the sentenceTokens
+     *
+     * @param logicalForm parsed COGS logical form
+     * @param sentenceTokens input tokens: needed for the alignments
+     * @return MRInstance covering the SGraph, the alignments and the sentenceTokens
+     * TODO: input validation (currently done as assertions instead of exceptions, also in sub-methods...)
+     */
     public static MRInstance toSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
         Objects.requireNonNull(logicalForm);
         Objects.requireNonNull(sentenceTokens);
@@ -223,18 +249,7 @@ public class LF2GraphConverter {
                 }
                 return IotaToSGraph(logicalForm, sentenceTokens);
             case NAME:
-                assert(sentenceTokens.size() == 1);
-                List<Alignment> alignments = new ArrayList<>();
-                SGraph graph = new SGraph();
-                Argument propername = logicalForm.getNamePrimitive();
-                // ** Graph: add node with the proper name as label and make it the root
-                GraphNode node = graph.addNode(NODE_NAME_PREFIX+"0", propername.getName()); // todo what about lemma? needed?
-                // TODO at first ,this node was an anonymous one, but that lead to NullPointerException:
-                // GraphNode node = graph.addAnonymousNode(propername.getName());
-                graph.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME, node.getName());
-                // ** Alignments: align to first and only word in the sentence
-                alignments.add(new Alignment(node.getName(), 0));
-                return new MRInstance(sentenceTokens, graph, alignments);
+                return NameToSGraph(logicalForm, sentenceTokens);
             default:
                 // assert (false);
                 throw new RuntimeException("There must be some formula type added but this method wasn't adapted.");
