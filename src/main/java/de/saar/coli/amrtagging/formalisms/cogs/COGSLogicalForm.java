@@ -43,8 +43,8 @@ public class COGSLogicalForm {
 
     // ---------Constructors ---------------------------------------------------
     public COGSLogicalForm(List<String> logicalFormTokens) {
-        this.lfTokens = logicalFormTokens;
-        parseLogicalForm(logicalFormTokens);
+        this.lfTokens = Objects.requireNonNull(logicalFormTokens);
+        parseLogicalForm(this.lfTokens);
     }
 
     /*
@@ -159,7 +159,7 @@ public class COGSLogicalForm {
     // todo get predicate names
     public String toString() { return String.join(" ", lfTokens); }
 
-    private void setFormulaType(AllowedFormulaTypes type) { formulaType = type; }
+    private void setFormulaType(AllowedFormulaTypes type) { formulaType = Objects.requireNonNull(type); }
 
     //
     // -----Parsing ----------------------------------------------------------------
@@ -191,7 +191,7 @@ public class COGSLogicalForm {
                     currentArg = new Argument(current_token);
                     args_accumulator.add(currentArg);
                     expect_comma_next = true;
-                    // have flag expect comman next
+                    // have flag expect comma next
                 }
                 // do nothing of token is 'x' or '_'
             }
@@ -365,7 +365,7 @@ public class COGSLogicalForm {
         private int index = -1;
 
         public Argument(String token) {  // shouldn't throw NumberFormatException, but maybe does?
-            this.raw = token;
+            this.raw = Objects.requireNonNull(token);
             if (token.matches("[0-9]+")) {
                 argumentType = AllowedArgumentTypes.INDEX;
             }
@@ -428,7 +428,10 @@ public class COGSLogicalForm {
         private final List<String> name_parts;
 
         public Predicate(List<String> tokens) {
-            assert(0 < tokens.size() && tokens.size() <= 3);
+            Objects.requireNonNull(tokens);
+            if (!(0 < tokens.size() && tokens.size() <= 3)) {
+                throw new IllegalArgumentException("Input should consists of 1,2 or 3 tokens!");
+            }
             this.name_parts = tokens;
         }
 
@@ -453,8 +456,12 @@ public class COGSLogicalForm {
         private final List<Argument> arguments;
 
         public Term(List<String> predicate, List<Argument> arguments) {  // note: arguments assumed to be one Argument per index (so without x _ , )
+            Objects.requireNonNull(predicate);
+            Objects.requireNonNull(arguments);
             int argslength = arguments.size();
-            assert(0 < argslength && argslength <= 2);
+            if (!(0 < argslength && argslength <= 2)) {
+                throw new IllegalArgumentException("Should have 1 or 2 arguments!");
+            }
             this.predicate = new Predicate(predicate);
             this.arguments = arguments;
             // transform strings to Argument s and fill array with them
@@ -474,7 +481,7 @@ public class COGSLogicalForm {
         /// returns first Argument (that is assumed to be the 'lemma'/'lexical' argument)
         public Argument getLemmaArgument() { return arguments.get(0); }
         /// the first argument of the predicate is assumed to be the index (0-based) for the sentence token
-        public int getLemmaIndex() throws NumberFormatException {  // exception only thrown if logical form illformed
+        public int getLemmaIndex() throws NumberFormatException {  // exception only thrown if logical form ill-formed
             return getLemmaArgument().getIndex();
         }
 

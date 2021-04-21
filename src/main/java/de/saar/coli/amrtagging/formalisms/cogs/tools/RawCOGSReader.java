@@ -3,6 +3,7 @@ package de.saar.coli.amrtagging.formalisms.cogs.tools;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * RawCOGSReader takes filename and returns CogsSamples (word and logical form tokens, generalization types) one by one
@@ -20,6 +21,7 @@ public class RawCOGSReader {
     private int linenumber;
 
     public RawCOGSReader(String filename) throws FileNotFoundException {
+        Objects.requireNonNull(filename);
         this.linenumber = 0;
         this.filename = filename;
         this.reader = new BufferedReader(new FileReader(this.filename));
@@ -55,6 +57,7 @@ public class RawCOGSReader {
         public final String generalizationType;
 
         public CogsSample(String line) throws RuntimeException {
+            Objects.requireNonNull(line);
             List<String> columns = Arrays.asList(line.split("\t"));
             if (columns.size()!= 3) {  // columns: sentence, logical form, generalization_type
                 throw new RuntimeException("Each line must consist of 3 columns (tab-separated): " +
