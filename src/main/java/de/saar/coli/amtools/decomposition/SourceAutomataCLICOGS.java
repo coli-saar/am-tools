@@ -11,6 +11,7 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSBlobUtils;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm;
 import de.saar.coli.amrtagging.formalisms.cogs.LF2GraphConverter;
+import de.saar.coli.amrtagging.formalisms.cogs.tools.RawCOGSReader;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.AMDependencyTree;
@@ -41,8 +42,9 @@ import java.util.zip.ZipOutputStream;
 public class SourceAutomataCLICOGS {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.tsv file)")//, required = true)
-    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
-//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/data/train.tsv";
+//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
+//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
+    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/toy/toy2.tsv";
 
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.tsv file)")//, required = true)
     private String devCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/dev20.tsv";
@@ -84,6 +86,7 @@ public class SourceAutomataCLICOGS {
             return;
         }
         boolean noPrimitives = true;  // exclude primitives for now todo change later! (inly debugging)
+        System.out.println("-------->> IMPORTANT: Excluding primitives for debugging? " + noPrimitives + " <<--------");
 
         AMRBlobUtils blobUtils = new COGSBlobUtils();
 
@@ -123,28 +126,12 @@ public class SourceAutomataCLICOGS {
 
     // todo transform this into a class or have a separate file for this? this is a very general function...
     private static List<MRInstance> getSamplesFromFile(String filename, boolean noPrimitives) throws IOException {
-        BufferedReader samplesBR = new BufferedReader(new FileReader(filename));
+        RawCOGSReader reader = new RawCOGSReader(filename);
         List<MRInstance> samples = new ArrayList<>();
-        String line;
-        int lineno = 0;
-        while (samplesBR.ready()) {
-            line = samplesBR.readLine();
-            List<String> samplerow = Arrays.asList(line.split("\t"));
-            lineno += 1;
-            // todo maybe check if line is empty? is there a better exception class than runtime exception?
-            if (samplerow.size()!= 3) {  // rows: sentence, logical form, generalization_type
-                throw new RuntimeException("Each line must consist of 3 rows (tab-separated): " +
-                        "Failed for " + lineno+"\n");
-            }
-            String sentence = samplerow.get(0);
-            String logicalformstr = samplerow.get(1);
-            String gen_type = samplerow.get(2);
-
-            List<String> src_tokens = Arrays.asList(sentence.split(" "));  // ["The", "boy", "wanted", "to", "go", "."]
-            List<String> tgt_tokens = Arrays.asList(logicalformstr.split(" "));  // ["*", "boy", "(", "x", "_", "1", ")", ";", "want" , ... ]
-
-            COGSLogicalForm lf = new COGSLogicalForm(tgt_tokens);
-            MRInstance mr = LF2GraphConverter.toSGraph(lf, src_tokens);
+        while (reader.hasNext()) {
+            RawCOGSReader.CogsSample sample = reader.getNextSample();
+            COGSLogicalForm lf = new COGSLogicalForm(sample.tgt_tokens);
+            MRInstance mr = LF2GraphConverter.toSGraph(lf, sample.src_tokens);
             try {
                 if (!noPrimitives || lf.getFormulaType()== COGSLogicalForm.AllowedFormulaTypes.IOTA) {
                     samples.add(mr);
@@ -152,7 +139,7 @@ public class SourceAutomataCLICOGS {
                 mr.checkEverythingAligned();
 //                samples.add(mr);
             } catch (MRInstance.UnalignedNode unalignedNode) {
-                System.err.println("Alignment problem detected for following logical form: " + logicalformstr);
+                System.err.println("Alignment problem detected for following logical form: " + sample.getLogicalFormAsString());
                 // System.err.println("Unaligned for LF type: " + lf.getFormulaType());
                 if (lf.getFormulaType() != COGSLogicalForm.AllowedFormulaTypes.LAMBDA) {
                     unalignedNode.printStackTrace();
@@ -161,7 +148,7 @@ public class SourceAutomataCLICOGS {
                     // System.err.println("to do: fix the lambda alignment problem");
                 // }
             } catch (MRInstance.MultipleAlignments multipleAlignments) {
-                System.err.println("Alignment problem detected for following logical form: " + logicalformstr);
+                System.err.println("Alignment problem detected for following logical form: " + sample.getLogicalFormAsString());
                 // System.err.println("Multiple Aligned for LF type: " + lf.getFormulaType());
                 multipleAlignments.printStackTrace();
             }
@@ -173,10 +160,10 @@ public class SourceAutomataCLICOGS {
     // mostly copied from AMR version (SourceAutomataCLIAMR) and SDP one (SourceAutomataCLI)
     private void processCorpus(List<MRInstance> corpus, AMRBlobUtils blobUtils,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
-                               List<DecompositionPackage> decompositionPackages) throws IOException {
+                               List<DecompositionPackage> decompositionPackages) {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
-        Counter<Integer> bucketCounter = new Counter<>();
+        Counter<Integer> bucketCounter = new Counter<>();  // count automata sizes
         Counter<String> successCounter = new Counter<>();
         int index = 0;
         int fails = 0;
@@ -184,9 +171,12 @@ public class SourceAutomataCLICOGS {
         for (MRInstance inst: corpus) {
             if (index % 500 == 0) {
                 System.err.println("At instance number " + index);
-                bucketCounter.printAllSorted();
+                // bucketCounter.printAllSorted();  // automata sizes
             }
             if (true) { //index == 1268
+                // if lf.formula type == lambda  : expect many "has root at unlabeled node. This may not be right at this point (cf ComponentAnalysisToAMDep)."
+                // System.err.println("Sentence: "+inst.getSentence());
+                // System.err.println("Index: "+index);
                 SGraph graph = inst.getGraph();
                 try {
                     DecompositionPackage decompositionPackage = new COGSDecompositionPackage(inst, blobUtils);
