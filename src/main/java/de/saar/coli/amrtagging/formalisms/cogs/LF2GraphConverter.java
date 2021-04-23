@@ -2,17 +2,19 @@ package de.saar.coli.amrtagging.formalisms.cogs;
 
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.MRInstance;
+import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.AllowedFormulaTypes;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Argument;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Term;
-import org.apache.commons.lang.NotImplementedException;
+import org.jgrapht.graph.DirectedMultigraph;
 
 import java.util.*;
 
 /**
- * Converts <code>COGSLogicalForm</code> to a <code>SGraph</code><br>
+ * Converts <code>COGSLogicalForm</code> to a <code>SGraph</code> and back (MRInstance to logical form)<br>
  *
  * Version 1: very AMR-like<br>
  * - arguments of a term (<i>x_i, John, a</i>) become nodes<br>
@@ -32,7 +34,7 @@ import java.util.*;
  * Created April 2021
  */
 public class LF2GraphConverter {
-    public static final String LEMMA_SEPARATOR = "~~";  // "x_1~~boy", "x_4~~want", "x_e~~giggle", "x_Ava~~Ava"
+    public static final String LEMMA_SEPARATOR = "~~";  // todo currently only used for lambdavar "x_e~~giggle", "x_Ava~~Ava"
     public static final String IOTA_EDGE_LABEL = "iota";
     public static final String IOTA_NODE_LABEL = "the";
     public static final String NODE_NAME_PREFIX = "x_";
@@ -56,7 +58,7 @@ public class LF2GraphConverter {
     /// Method to convert primitive with lambdas to an SGraph (plus alignments and sentence tokens)
     private static MRInstance LambdaToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
         // e.g.    hold   LAMBDA a . LAMBDA b . LAMBDA e . hold . agent ( e , b ) AND hold . theme ( e , a )
-        assert(logicalForm.getFormulaType() == COGSLogicalForm.AllowedFormulaTypes.LAMBDA);
+        assert(logicalForm.getFormulaType() == AllowedFormulaTypes.LAMBDA);
         assert(sentenceTokens.size() == 1);
         List<Alignment> alignments = new ArrayList<>();
         SGraph graph = new SGraph();
@@ -104,7 +106,7 @@ public class LF2GraphConverter {
     // todo giant method: refactor into smaller ones if possible? (maybe together with lambdatosgraph)?
     /// Method to convert non-primitive logical form (>= 0 terms as prefix) to SGraph (plus alignments and sentence)
     private static MRInstance IotaToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
-        assert (logicalForm.getFormulaType() == COGSLogicalForm.AllowedFormulaTypes.IOTA);
+        assert (logicalForm.getFormulaType() == AllowedFormulaTypes.IOTA);
         assert (sentenceTokens.size() > 0);
         List<Alignment> alignments = new ArrayList<>();
         SGraph graph = new SGraph();
@@ -115,7 +117,7 @@ public class LF2GraphConverter {
         for (Argument arg: logicalForm.getArgumentSet()) {
             GraphNode n = graph.addNode(NODE_NAME_PREFIX+arg.getName(), null); // indices don't receive a label (yet)
             if (arg.isProperName()) { n.setLabel(arg.getName());}  // but proper names do
-            assert(!arg.isLambdaVar()); // we are in a non-primtive, there clearly shouldn't be lambda variables
+            assert(!arg.isLambdaVar()); // we are in a non-primitive, there clearly shouldn't be lambda variables
         }
         // * iotas:
         /* - node for each iota (node has label "the")
@@ -256,14 +258,282 @@ public class LF2GraphConverter {
         }
     }
 
+    private static boolean isProperName(String token) {
+        // todo with full regex match or just first char? how to keep in sync with other conversion direction?
+        if (token.length() == 0) {return false;} // todo what to do with empty string?
+        char firstChar = token.charAt(0);
+        return Character.isUpperCase(firstChar);
+    }
+
+    /// Checks: alignment always of span 1, one node per alignment only, valid indices as alignment
+    private static void checkForValidAlignments(List<Alignment> alignments, int sentLength) throws RuntimeException, IndexOutOfBoundsException {
+        // todo throw more specific exceptions than runtime exception
+        for (Alignment a: alignments) {
+            if (!a.span.isSingleton()) {
+                throw new RuntimeException("Alignments need to be of span 1. Not true for " + a);
+            }
+            if (a.nodes.size() != 1) {
+                throw new RuntimeException("Alignments need to be for one node only. Not true for " + a);
+            }
+            int start = a.span.start;
+            if (!(0 <= start && start < sentLength)) {  // assumes 0-indexed // todo rather ignore invalid ones???
+                throw new IndexOutOfBoundsException("Alignment starts need to be valid sentence positions. " +
+                        "Not true for " + a + " and sentence length: " + sentLength);
+            }
+        }
+    }
+
+    /// decide on the formula type based on the sentence  (could also do graph, but its harder)
+    private static AllowedFormulaTypes decideOnType(List<String> tokens) {
+        if (tokens.size() == 1) {
+            String firstToken = tokens.get(0);
+            assert(firstToken.length()>0);
+            if (isProperName(firstToken)) { return AllowedFormulaTypes.NAME; }
+            else { return AllowedFormulaTypes.LAMBDA;}
+        }
+        else { return AllowedFormulaTypes.IOTA; }
+    }
+
+    // todo test this
+    private static COGSLogicalForm nameToLForm(MRInstance mr) {
+        List<String> sentenceTokens = mr.getSentence();
+        int sentLength = sentenceTokens.size();
+        assert(sentLength == 1);
+        SGraph sg = mr.getGraph();
+        // List<Alignment> alignments = mr.getAlignments();  // we ignore alignments here todo input validation?
+        Collection<String> nodeNames = sg.getAllNodeNames();
+        assert(nodeNames.size() == 1);
+        String onlyNode = nodeNames.iterator().next();
+        String label = sg.getNode(onlyNode).getLabel();  // todo directly label or need to postprocess node label? e.g.e_Ava
+        return new COGSLogicalForm(Collections.singletonList(label)); // LF is basically 'Ava' or as token list: ['Ava']
+        // return new COGSLogicalForm(mr.getSentence());  // this would be cheating
+    }
+
+    // todo test this implementation, also adapt (other direction: lf2graph currently not working)
+    private static COGSLogicalForm lambdaToLForm(MRInstance mr) {
+        // x_e / "e~~want"     x_b<b>/null
+        List<String> sentenceTokens = mr.getSentence();
+        int sentLength = sentenceTokens.size();
+        assert(sentLength == 1);
+        SGraph sg = mr.getGraph();
+        DirectedMultigraph<GraphNode, GraphEdge> meg = sg.getGraph();
+        // List<Alignment> alignments = mr.getAlignments();  // we ignore alignments here todo input validation?
+        Collection<String> nodeNames = sg.getAllNodeNames();
+
+        List<Term> conjuncts = new ArrayList<>();
+        List<Argument> lambdavars = new ArrayList<>();
+
+        // Step 1: (Node iter) get all arguments, (and unary predicates: iteration over nodes will get them for free)
+        Map<String, Argument> arguments = new HashMap<>();
+        String nodelabel; GraphNode node;
+        String lemma = null;
+        for (String nodename: nodeNames) {
+            node = sg.getNode(nodename);
+            nodelabel = node.getLabel();
+            // (1) create Argument object (lambda var!!) todo check for lambda var and not proper name, index
+            String argname;
+            // todo maybe transform into a function: getLambdaVarName( node ): either from label or from source
+            if (nodelabel == null) {
+                // assume that there is a source
+                Collection<String> srcs = sg.getSourcesAtNode(nodename);
+                assert(srcs.size()==1);
+                argname = srcs.iterator().next();
+            }
+            else {
+                // assume no source except root? assume contains ~~   //e~want
+                assert(nodelabel.contains(LEMMA_SEPARATOR));
+                String[] parts = nodelabel.split(LEMMA_SEPARATOR);
+                argname = parts[0];
+                assert(argname.equals("a") || argname.equals("b") || argname.equals("e")); // todo do this check here?
+                assert(lemma == null);
+                lemma = parts[1];
+            }
+            Argument arg = new Argument(argname);
+            lambdavars.add(arg);
+            arguments.put(nodename, arg);
+        }
+        // (2) predicates: if one node only one unary, otherwise only binary
+        if (nodeNames.size()==1) {  // unary predicate
+            // what about preposition edges? todo assume no prep edges here
+            // build term with just one argument
+            List<String> pred = new ArrayList<>();
+            pred.add(lemma);
+            assert(lambdavars.size()==1);
+            Term t = new Term(pred, lambdavars);
+            conjuncts.add(t);
+        }
+        else {  // binary predicates
+            for (GraphEdge edge: meg.edgeSet()) {  // similar to iota...
+                GraphNode source = edge.getSource();
+                GraphNode target = edge.getTarget();
+                String label = edge.getLabel();  // agent, theme...
+                assert(!label.equals(IOTA_EDGE_LABEL));
+                assert(lemma != null);  // todo what if no lemma? rather do exception here?
+                String fulllabel = lemma+"."+label;
+                List<String> pred = Arrays.asList(fulllabel.split("\\."));  // split at literal ., not regex .
+
+                // (2) get the two arguments // todo assert they are in arguments?
+                Argument one = arguments.get(source.getName());
+                Argument two = arguments.get(target.getName());
+                assert(one.isLambdaVar() && two.isLambdaVar());
+                // (3) build term and add it to the conjunction
+                Term term = new Term(pred, new ArrayList<>(Arrays.asList(one, two)));
+                conjuncts.add(term);
+            }
+        }
+        Argument[] lvs = lambdavars.toArray(new Argument[0]);
+        return new COGSLogicalForm(lvs, conjuncts);  // lvs are assumed to be sorted in the constructor call
+    }
+
+    // todo test this
+    private static COGSLogicalForm iotaToLForm(MRInstance mr) {
+        List<String> sentenceTokens = mr.getSentence();
+        int sentLength = sentenceTokens.size();
+        assert(sentLength > 1);
+        SGraph sg = mr.getGraph();
+        DirectedMultigraph<GraphNode, GraphEdge> meg = sg.getGraph();
+        List<Alignment> alignments = mr.getAlignments();  // Alignment is set of nodes and span.start, span.end
+
+        // Input validate alignments todo rather ignore invalid indices???
+
+        // Step 0: (Alignment iter) Convenient map for node names to sentence positions, also for lemmas
+        Map<String, Integer> nodeName2Index = new HashMap<>();  // node name -> start of aligned span (span size == 1)
+        Map<String, String> nodeName2Lemma = new HashMap<>();  // node name -> lemma (relevant for re-lexicalization)
+        for (Alignment a: alignments) {
+            assert(a.span.isSingleton());
+            assert(a.nodes.size()==1);
+            String nodename = a.nodes.iterator().next(); // get first and only element in that set
+            Integer start = a.span.start;  // todo assume 0-indexed
+            assert(!nodeName2Index.containsKey(nodename));// todo do I need to check for overwrites?
+            nodeName2Index.put(nodename, start);
+            assert(!nodeName2Lemma.containsKey(nodename));// todo do I need to check for overwrites?
+//            String lemma;
+            GraphNode node = sg.getNode(nodename);
+            nodeName2Lemma.put(nodename, node.getLabel());  // todo label equals lemma: always true?
+//            String[] parts = node.getLabel().split(LEMMA_SEPARATOR);
+//            if (parts.length == 2) {
+//                lemma = parts[1];
+//                nodeName2Lemma.put(nodename, lemma);
+//            } // if it doesn't have
+//            assert (parts.length <= 2);  // todo input validation with exceptions rather than assert?
+        } // also assume 0-indexed?
+        // todo also see whether other conversion direction can be simplified? found way to access edges
+
+        List<Term> conjuncts = new ArrayList<>();
+        List<Term> iotas = new ArrayList<>();
+
+        // Step 1: (Node iter) get all arguments, (and unary predicates: iteration over nodes will get them for free)
+        Map<String, Argument> arguments = new HashMap<>();
+        Collection<String> nodes = sg.getAllNodeNames();
+        String nodelabel; GraphNode node;
+        for (String nodename: nodes) {
+            node = sg.getNode(nodename);
+            nodelabel = node.getLabel();
+            // (1) create Argument object
+            // - Argument can either be Index, ProperName, the, ...( LambdaVar)
+            // - todo where to get String for argument from? Lemma? Full Nodelabel?
+            // - todo refactor this into separate function that can also be used my lambda...
+            Argument arg;
+            String lemmaOrNodeLabel = nodeName2Lemma.getOrDefault(nodename, nodelabel);
+            if (isProperName(lemmaOrNodeLabel)) { // todo lemma or full nodelabel?
+                arg = new Argument(lemmaOrNodeLabel);
+            }
+            else {  // todo here more options: index, propername, iota-the, lambda-var
+                arg = new Argument(nodeName2Index.get(nodename));
+            }
+            arguments.put(nodename, arg);
+
+            // (2) find nodes for which unary predicate should be added.
+            // Nodes must have 0 outgoing edges ('nmod'=preposition edges don't count) and shouldn't be proper names
+            // (NB: only searching for iota edges would miss the indefinite NPs: 'a cookie' : ..AND cookie(x_1) AND...)
+            // outDegree = meg.outDegreeOf(node); // what about preposition edges?
+            int outDegree = 0;  // todo transform to method OutDegreeMinusPrepEdge?
+            for (GraphEdge edge: meg.outgoingEdgesOf(node)) {
+                if (!edge.getLabel().startsWith("nmod")) {  // todo magic string nmod
+                    outDegree += 1;
+                    break;  // don't care if outdegree 1 or higher: care about 0 vs >0
+                }
+            } // for outgoing edges
+            if (outDegree == 0 && !arg.isProperName()) {
+                // build term with just one argument
+                List<String> pred = new ArrayList<>();
+                pred.add(lemmaOrNodeLabel);  // todo lemma? not Nodelabel
+                List<Argument> args = new ArrayList<>();
+                args.add(arg);
+                Term t = new Term(pred, args);
+                // decide whether to put it into prefix (iotas) or in conjunction (conjuncts)
+                //  i.e. whether we find an incoming iota edge
+                boolean isIota = false;
+                for (GraphEdge edge: meg.incomingEdgesOf(node)) {
+                    if (edge.getLabel().equals(IOTA_EDGE_LABEL)) {
+                        isIota = true;
+                        break;
+                    }  // if found iota edge
+                }  // for incoming edges
+                if (isIota) { iotas.add(t); }
+                else { conjuncts.add(t); }
+            }
+        }
+
+        // Step 2: get binary predicates/terms
+        for (GraphEdge edge: meg.edgeSet()) {
+            GraphNode source = edge.getSource();
+            GraphNode target = edge.getTarget();
+            String label = edge.getLabel();  // agent, nmod.in ,
+
+            // (0) exclude special iota edges: they are just to signal that their target node is part of the iota prefix
+            if (label.equals(IOTA_EDGE_LABEL)) { continue; }
+            // (1) add lemma of the source node to the predicate name ('re-lexicalize')
+            String lemma = nodeName2Lemma.get(source.getName());
+            assert(lemma != null);  // todo what if no lemma? rather do exception here?
+            String fulllabel = lemma+"."+label;
+            List<String> pred = Arrays.asList(fulllabel.split("\\."));  // split at literal ., not regex .
+
+            // (2) get the two arguments // todo assert they are in arguments?
+            Argument one = arguments.get(source.getName());  // todo assert that one is an Index? (except lambda)
+            Argument two = arguments.get(target.getName());  // todo assert can be index, name (except lambda)
+            // (3) build term and add it to the conjunction
+            Term term = new Term(pred, new ArrayList<>(Arrays.asList(one, two)));
+            conjuncts.add(term);
+        }
+
+        // Step 3: sort terms in prefix and conjunction separately based on index
+        // assumed to implicitly happen in constructor of COGSLogicalForm
+        // Step 4: Build COGSLogicalForm and return it
+        return new COGSLogicalForm(iotas, conjuncts);
+    }
+
+    // todo IMPORTANT don't decide on tokens which formula type: remember can't assert that graph matches input
+    //  (model could choose to predict a lambda term for a proper name primitive)
+    // reverse of toSGraph
+    /**
+     * Converting an SGraph back to the logical form style of COGS (for post-processing, evaluation)
+     *
+     * @param mr MRInstance covering the SGraph, the sentence tokens and alignments
+     * @return parsed COGSLogicalForm
+     */
     public static COGSLogicalForm toLogicalForm(MRInstance mr) {
-        // reverse of toSGraph
-        // what kind of formula? LAMBDA, NAME or IOTA?
-        // - split graphs  (uh: primitives, preposition...)
-        // - revert iota
-        // - add unary predicates (no outgoing edges (modula nmod ones) and not a proper Name? ): either put in conjunction or in prefix?
-        // - re-lexicalize edges
-        // - sort terms based on indices
-        throw new NotImplementedException("Not implemented yet");
+        Objects.requireNonNull(mr);
+        List<String> sentenceTokens = mr.getSentence();
+        int sentLength = sentenceTokens.size();
+        assert(sentLength > 0);  // todo input validation with exception rather than assert
+        // SGraph sg = mr.getGraph();
+        List<Alignment> alignments = mr.getAlignments();
+        checkForValidAlignments(alignments, sentLength);  // if checks fail can throw exceptions
+
+        // 1. what kind of formula? NAME, LAMBDA, IOTA?
+        AllowedFormulaTypes type = decideOnType(sentenceTokens);  // todo decide based on graph!! can't assume we have a 'good' graph
+        // todo input validation: if type NAME: only one node expected, ...in LAMBDA no 'iota' edge, ...
+        switch (type) {
+            case LAMBDA:
+                return lambdaToLForm(mr);
+            case IOTA:
+                return iotaToLForm(mr);
+            case NAME:
+                return nameToLForm(mr);
+            default:
+                // assert (false);
+                throw new RuntimeException("There must be some formula type added but this method wasn't adapted.");
+        }
     }
 }

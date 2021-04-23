@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-// TODO: add a constructor for the postprocessing use case (graph to logical form...)
 // TODO: question: should the logical form contain the input sentence in order to ground the indices?
 // TODO: use a parser generator for parsing (antlr?) instead of my DIY parser (future me, please forgive me)
 // TODO: test parsing
@@ -46,6 +45,46 @@ public class COGSLogicalForm {
         this.lfTokens = Objects.requireNonNull(logicalFormTokens);
         parseLogicalForm(this.lfTokens);
     }
+
+    public COGSLogicalForm(List<Term> iotas, List<Term> conjuncts) {
+        Objects.requireNonNull(iotas);
+        Objects.requireNonNull(conjuncts);
+        if (conjuncts.size()== 0) {
+            throw new IllegalArgumentException("List of conjunct terms need to be non-empty!");
+        }
+        setFormulaType(AllowedFormulaTypes.IOTA);
+        this.prefixTerms = sortTerms(iotas);
+        this.conjuncts = sortTerms(conjuncts);
+        // todo check that this works and lfTokens contains reasonable tokens?
+        this.lfTokens = Arrays.asList(getStringFromTerms().split(" "));
+    }
+
+    // todo I couldn't do List<Argument> because of a class with the above constructor using List<Term> iota: type erasure problem
+    // right now I have to cast the lambdas back and forth (array vs list), that's really ugly and should be changed
+    // todo little bit duplicated code for lambda and iota constructor (conjuncts)
+    public COGSLogicalForm(Argument[] lambdas, List<Term> conjuncts) {
+        Objects.requireNonNull(lambdas);
+        Objects.requireNonNull(conjuncts);
+        if (conjuncts.size() == 0) {
+            throw new IllegalArgumentException("List of conjunct terms need to be non-empty!");
+        }
+        if (lambdas.length == 0) {
+            throw new IllegalArgumentException("We need at least one lambda Argument for the prefix!");
+        }
+        for (Argument a: lambdas) {
+            if (!a.isLambdaVar()) {
+                throw new IllegalArgumentException("Arguments must be lambda variables! (e.g. no indices/names!)");
+            }
+        }
+        setFormulaType(AllowedFormulaTypes.LAMBDA);
+        List<Argument> lvs = Arrays.asList(lambdas);
+        lvs.sort(Comparator.comparing((Argument a) -> a.raw));  // sort lambda variables by raw string:  a < b < e
+        this.lambdas = lvs;
+        this.conjuncts = sortTerms(conjuncts);
+        // todo check that this works and lfTokens contains reasonable tokens?
+        this.lfTokens = Arrays.asList(getStringFromTerms().split(" "));
+    }
+
 
     /*
     // DEBUG: used for debugging the parsing functionality
@@ -346,6 +385,53 @@ public class COGSLogicalForm {
         this.conjuncts = parseConjunction(tokens, current_idx);
     }
 
+    /// sorts terms based on indices and returns list sorted: todo test sorting
+    private List<Term> sortTerms(List<Term> terms) {
+        Objects.requireNonNull(terms);
+        // if list has 0 or only 1 element, it's trivially sorted, so can directly return
+        if (terms.size() < 2) { return terms; }
+        terms.sort(new Term.TermComparer());
+        return terms;
+    }
+
+    // todo magic strings all over
+    // todo test this function
+    /// convert the logical form to a string based on the Terms (conjuncts, iotas) and Arguments (lambda vars, name)
+    private String getStringFromTerms() {
+        assert(formulaType != null);
+        AllowedFormulaTypes type = getFormulaType();
+        if (type == AllowedFormulaTypes.NAME) { return namePrimitive.toString(); }
+        else {  // not a NAME: IOTA or LAMBDA
+            StringBuilder sb = new StringBuilder();
+            // handle formula type specific prefix
+            if (type == AllowedFormulaTypes.IOTA) {
+                for (Term t: this.prefixTerms) {
+                    sb.append("* ");
+                    sb.append(t.toString());
+                    sb.append(" ; ");
+                }
+            }
+            else if (type == AllowedFormulaTypes.LAMBDA) {
+                for (Argument a: this.lambdas) {
+                    sb.append("LAMBDA ");
+                    sb.append(a.toString());
+                    sb.append(" . ");
+                }
+            }
+            else { throw new RuntimeException("new formula type added but forgot to change this method mb?"); }
+            // common conjunction:
+            int conjunctionSize = this.conjuncts.size();
+            for (int i = 0; i < conjunctionSize; i++) {
+                Term t = this.conjuncts.get(i);
+                sb.append(t.toString());
+                if (i != conjunctionSize-1) {  // for all except last conjunct: add AND
+                    sb.append(" AND ");
+                }
+            }
+            return sb.toString();
+        }
+    }
+
     //
     // --------- inner classes -------------------------------------------------
     //
@@ -363,6 +449,15 @@ public class COGSLogicalForm {
         private final AllowedArgumentTypes argumentType;
         private final String raw;
         private int index = -1;
+
+        public Argument(int index) {
+            if (index < 0) {
+                throw new IndexOutOfBoundsException("Indices must be non-negative!");
+            }
+            this.raw = String.valueOf(index);
+            this.index = index;
+            this.argumentType = AllowedArgumentTypes.INDEX;
+        }
 
         public Argument(String token) {  // shouldn't throw NumberFormatException, but maybe does?
             this.raw = Objects.requireNonNull(token);
@@ -389,7 +484,10 @@ public class COGSLogicalForm {
         public boolean isProperName() { return argumentType == AllowedArgumentTypes.PROPERNAME;}
         public int getIndex() { return index; }  // only call that if you know that it is a proper index
         public String getName() { return raw; }
-        public String toString() { return raw; }
+        public String toString() {
+            if (isIndex()) { return "x _ "+raw; } // todo magic string "x _ "
+            return raw;
+        }
 
         @Override
         public int hashCode() {
@@ -480,9 +578,13 @@ public class COGSLogicalForm {
         public String getLemma() { return predicate.getLemma();}
         /// returns first Argument (that is assumed to be the 'lemma'/'lexical' argument)
         public Argument getLemmaArgument() { return arguments.get(0); }
-        /// the first argument of the predicate is assumed to be the index (0-based) for the sentence token
-        public int getLemmaIndex() throws NumberFormatException {  // exception only thrown if logical form ill-formed
-            return getLemmaArgument().getIndex();
+        /// the first argument of the predicate is assumed to be the index (0-based) for the sentence token (except for lambda var)
+        public int getLemmaIndex() throws RuntimeException {  // throws exception if first argument not index (but lambda var)
+            Argument a = getLemmaArgument();
+            if (a.isIndex()) {return a.getIndex();}
+            else {
+                throw new RuntimeException("First argument is not an index, can't return meaningful number!");
+            }
         }
 
         public String toString() {  // todo make more efficient?
@@ -493,5 +595,81 @@ public class COGSLogicalForm {
             }
             return predicate.toString()+"("+String.join(" , ", args)+")";
         }
+
+        // todo test this class!!!!
+        /**
+         * Compares two terms for the purpose of sorting them (relevant for exact match for instance):
+         * - term with smaller first argument index goes first
+         * - if same first index, check whether second index is the same (only if both are indices)
+         * - otherwise, rely on delexicalized predicate to sort terms
+         * */
+        public static class TermComparer implements Comparator<Term> {
+            /* Train 100 examples
+             * L18: lend . agent ( x _ 1 , Liam ) AND lend . theme ( x _ 1 , x _ 3 ) AND lend . recipient ( x _ 1 , Audrey )
+             * --> sorting based on 'agent', 'theme', 'recipient' if first argument is equal?
+             * L14: LAMBDA a . LAMBDA e . smile . agent ( e , a )
+             * L5: LAMBDA a . LAMBDA b . LAMBDA e . pack . agent ( e , b ) AND pack . theme ( e , a )
+             * --> sort b < a as second argument, or as above based on 'agent' vs 'theme' ?
+             * L54: hope . agent ( x _ 1 , Emma ) AND hope . ccomp ( x _ 1 , x _ 5 )
+             * L3: try . agent ( x _ 1 , Emma ) AND try . xcomp ( x _ 1 , x _ 3 )
+             * L19: cloud ( x _ 3 ) AND cloud . nmod . in ( x _ 3 , x _ 6 )
+             * --> lower valency term goes first?
+             * conclusions: (not sure)
+             * - first argument index: smaller goes first
+             * - if same first argument: lower valency goes first / based on delexicalized predicate name (agent < theme...),
+             */
+            @Override
+            public int compare(Term o1, Term o2) {
+                Objects.requireNonNull(o1); Objects.requireNonNull(o2);
+                // return -1 if o1 < o2, return 0 if o1 == o2, return +1 if o1 > o2
+                /*
+                (a)  sgn(compare(x, y)) == -sgn(compare(y, x)) for all x and y. (This implies that compare(x, y) must throw an exception if and only if compare(y, x) throws an exception.)
+                (b) The implementor must also ensure that the relation is transitive: ((compare(x, y)>0) && (compare(y, z)>0)) implies compare(x, z)>0.
+                (c) Finally, the implementor must ensure that compare(x, y)==0 implies that sgn(compare(x, z))==sgn(compare(y, z)) for all z.
+                (d) not strictly required that (compare(x, y)==0) == (x.equals(y)).  any comparator that violates this condition should clearly indicate this fact. The recommended language is "Note: this comparator imposes orderings that are inconsistent with equals."
+                */
+                if (o1.equals(o2)) {return 0;}
+                // todo comparison between lambda vars and indices is not defined?
+                // (1) first argument index
+                Argument firstArgO1 = o1.getLemmaArgument();
+                Argument firstArgO2 = o2.getLemmaArgument();
+                if (firstArgO1.isProperName() || firstArgO2.isProperName()) {
+                    throw new IllegalArgumentException("Ill-formed logical form? First argument of term can't be proper name.");
+                }
+                if (firstArgO1.isIndex() != firstArgO2.isIndex()) {  // todo better check needed for 3 types!!! (inpput validation)
+                    throw new ClassCastException("Can't compare first arguments of different type");
+                }
+                if (firstArgO1.isLambdaVar() && firstArgO2.isLambdaVar() && !firstArgO1.equals(firstArgO2)) {
+                    throw new IllegalArgumentException("Undefined what to do with two terms whose first arguments are different lambda variables");
+                }
+                if (firstArgO1.isIndex() && firstArgO2.isIndex()) {  // compare two indices (first, then second if possible)
+                    int o1idx = firstArgO1.getIndex();
+                    int o2idx = firstArgO2.getIndex();
+                    if (o1idx < o2idx) { return -1;}
+                    if (o1idx > o2idx) { return 1;}
+                    // if first arguments are equal indices and second arguments are indices too, compare them:
+                    if (o1idx == o2idx && o1.hasTwoArguments() && o2.hasTwoArguments()) {
+                        Argument sndArgO1 = o1.getArguments().get(1);
+                        Argument sndArgO2 = o2.getArguments().get(1);
+                        if (sndArgO1.isIndex() && sndArgO2.isIndex()) {
+                            int cmp = Integer.compare(sndArgO1.getIndex(), sndArgO2.getIndex());
+                            if (cmp != 0) return cmp;  // if not same second argument index, we can make a choice here
+                        }
+                    }
+                }
+
+                // (2) valency: lower valency first:   cloud(3) < cloud.nmod.in(3,1)
+                if (o1.getValency() != o2.getValency()) { // for different valency: the lower one goes first
+                    return o1.getValency() < o2.getValency()?-1:1;
+                }
+                // (3) second part of predicate names:  agent < theme ...
+                assert(o1.getValency()==o2.getValency() && o1.getValency()==2);
+                assert(o1.getLemma().equals(o2.getLemma()));
+                String predO1 = o1.getPredicate().getDelexPredAsString();
+                String predO2 = o2.getPredicate().getDelexPredAsString();
+                assert(predO1 != null && predO2 != null);
+                return predO1.compareTo(predO2);
+            }
+        } // comparator<term>
     }
 }
