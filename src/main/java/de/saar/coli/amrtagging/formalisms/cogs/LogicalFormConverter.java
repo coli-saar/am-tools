@@ -1,27 +1,31 @@
 package de.saar.coli.amrtagging.formalisms.cogs;
 
+import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
+import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.AllowedFormulaTypes;
+import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Argument;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Term;
+import de.up.ling.tree.ParseException;
 import org.jgrapht.graph.DirectedMultigraph;
 
 import java.util.*;
 
 /**
- * Converts <code>COGSLogicalForm</code> to a <code>SGraph</code> and back (MRInstance to logical form)<br>
+ * Converts <code>COGSLogicalForm</code> to a <code>SGraph</code> and back (AmConLLSentence to logical form)<br>
  *
  * Version 1: very AMR-like<br>
  * - arguments of a term (<i>x_i, John, a</i>) become nodes<br>
  * - predicate names become edges unless it's a term with only one argument (<i>boy(x_1)</i>), then it's part of the <i>x_i</i> node
  * - iota: we treat iota as some special term: <i>* boy(x_1);</i> transformed to <i>the.iota(the, x_1_boy)</i><br>
  * - prepositions: the <i>nmod.preposition</i> edge belongs to the noun of the PP (not the modified noun!)<br>
- * - primitives: treated as graphs with open sources...<br>
+ * - primitives: treated as graphs with potentially open sources...<br>
  * TODO: missing implementation:
  * - Alignment: is is 0-indexed or 1-indexed? currently assumes 0-indexed. Check what Alignment wants and maybe change..
  * - refactoring (is there duplicate code or very similar code that could be a method on its own?)
@@ -29,11 +33,11 @@ import java.util.*;
  * TODO: Problems
  * - alignments for determiners and proper names rely on heuristics and hope (see to-do-notes below)
  * - same would hold for prepositions, but the current encoding transforms them to edges (only nodes need alignments)
- * - for non-primitives we have to heuristically select a root node (heuristic: no incoming edges)
+ * - for non-primitives we have to heuristically select a root node (heuristic: no incoming edges, excluding nmod ones)
  * @author piaw (weissenh)
  * Created April 2021
  */
-public class LF2GraphConverter {
+public class LogicalFormConverter {
     public static final String LEMMA_SEPARATOR = "~~";  // todo currently only used for lambdavar "x_e~~giggle", "x_Ava~~Ava"
     public static final String IOTA_EDGE_LABEL = "iota";
     public static final String IOTA_NODE_LABEL = "the";
@@ -501,6 +505,31 @@ public class LF2GraphConverter {
         // assumed to implicitly happen in constructor of COGSLogicalForm
         // Step 4: Build COGSLogicalForm and return it
         return new COGSLogicalForm(iotas, conjuncts);
+    }
+
+    // todo test this!
+    // todo alignments extract 0- or 1-based?
+    // todo problem [some primitives]: align=true for AlignedAMDependencyTree.evaluate() enforces empty type!
+    public static COGSLogicalForm toLogicalForm(AmConllSentence amSent) throws ParserException, ParseException, AlignedAMDependencyTree.ConllParserException {
+        Objects.requireNonNull(amSent);
+        // makes use to toLogicalForm(MRInstance): to built an MRInstance we need
+        // a list of words, a list of alignments and an SGraph
+
+        // (1) list of words:
+        List<String> tokens = amSent.words();  // todo do I have to take care of any artificial root?
+
+        // (2) SGraph and list of alignments:
+        // to do: for primitives (diagnose? 1 word sentence?), directly use supertag as SGraph if possible? Alignments are trivial
+        AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(amSent);
+        // todo problem align=true enforces empty type!!!
+        SGraph evaluatedGraph = amdep.evaluate(true); // get graphs with alignment annotations in graph nodes
+        List<Alignment> alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
+        AlignedAMDependencyTree.stripAlignments(evaluatedGraph);  // get rid of the alignment markers in the graph nodes
+        // todo alignments: 0- or 1-based? do I have to postprocess them? (in/decrement by one?)
+
+        // (3) we have everything to built an MRInstance and call toLogicalForm on that!
+        MRInstance mr = new MRInstance(tokens, evaluatedGraph, alignments);
+        return toLogicalForm(mr);
     }
 
     // todo IMPORTANT don't decide on tokens which formula type: remember can't assert that graph matches input

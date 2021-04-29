@@ -14,8 +14,8 @@ import java.util.List;
  *
  * After the COGS logical forms have been converted into a <code>SGraph</code>
  * (plus alignments: all bundled in a <code>MRInstance</code>)
- * using the <code>LF2GraphConverter</code>, we can use this package to decompose the graph together with the
- * <code>COGSBlobUitls</code> (a subclass of <code>AMRBlobUtils</code>).<br>
+ * using the <code>LogicalFormConverter</code>, we can use this package to decompose the graph together with the
+ * <code>COGSBlobUtils</code> (a subclass of <code>AMRBlobUtils</code>).<br>
  * References: The COGS Paper: <a href="https://www.aclweb.org/anthology/2020.emnlp-main.731/">Kim and Linzen, 2020</a>
  *
  * @author pia (weissenh)
@@ -31,7 +31,7 @@ public class COGSDecompositionPackage extends DecompositionPackage {
         assert(mrInstance.getSentence().size()>0);
     }
 
-    // todo do I have to add an artifical root?
+    // todo do I have to add an artificial root?
     @Override
     public AmConllSentence makeBaseAmConllSentence() {
         List<String> sentence = mrInstance.getSentence();
@@ -82,7 +82,7 @@ public class COGSDecompositionPackage extends DecompositionPackage {
     }
 
     /**
-     * For a sub-s-graph, return the corresponding lexical node, that is, the node which should be delaxicalized in the
+     * For a sub-s-graph, return the corresponding lexical node, that is, the node which should be delexicalized in the
      * supertag, and whose label should fill the "lexical label" column in the amconll file.
      *
      * @param graphFragment from which we would like to get the lexical node

@@ -7,7 +7,7 @@ import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSBlobUtils;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm;
-import de.saar.coli.amrtagging.formalisms.cogs.LF2GraphConverter;
+import de.saar.coli.amrtagging.formalisms.cogs.LogicalFormConverter;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
@@ -23,11 +23,13 @@ import java.util.ArrayList;
  * Create COGS training data. Takes COGS TSV-file (input, output, gentype) and writes AMCoNLL file
  *
  * TODO check whether postprocessing works (graph1 -> am dep tree -> graph2; assert graph1 equals graph2)
+ * TODO edge2source missing
  * @author piaw (weissenh)
  */
 public class CreateCorpus {
     @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus (.tsv)")  //, required = true)
-    private String corpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train.tsv";
+    private String corpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/toy/toy2.tsv";
+    // private String corpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train.tsv";
     // private String corpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train_100.tsv";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")  //, required = true)
@@ -87,7 +89,7 @@ public class CreateCorpus {
             }
             counter++;
             COGSLogicalForm lf = new COGSLogicalForm(sample.tgt_tokens);
-            MRInstance inst = LF2GraphConverter.toSGraph(lf, sample.src_tokens);
+            MRInstance inst = LogicalFormConverter.toSGraph(lf, sample.src_tokens);
             //System.out.println(inst.getSentence());
             //System.out.println(inst.getAlignments());
             //System.out.println(inst.getGraph());

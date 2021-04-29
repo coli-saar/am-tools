@@ -10,7 +10,7 @@ import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSBlobUtils;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm;
-import de.saar.coli.amrtagging.formalisms.cogs.LF2GraphConverter;
+import de.saar.coli.amrtagging.formalisms.cogs.LogicalFormConverter;
 import de.saar.coli.amrtagging.formalisms.cogs.tools.RawCOGSReader;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
@@ -42,13 +42,14 @@ import java.util.zip.ZipOutputStream;
 public class SourceAutomataCLICOGS {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.tsv file)")//, required = true)
-//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
-//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
-    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/toy/toy2.tsv";
+//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train_100.tsv";
+//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train.tsv";
+    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
+//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/toy/toy2.tsv";
 
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.tsv file)")//, required = true)
     private String devCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/dev20.tsv";
-//    private String devCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/data/dev.tsv";
+//    private String devCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/dev.tsv";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where amconll and supertag dictionary files are created")//, required = true)
     private String outPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/amconll/";
@@ -87,6 +88,8 @@ public class SourceAutomataCLICOGS {
         }
         boolean noPrimitives = true;  // exclude primitives for now todo change later! (inly debugging)
         System.out.println("-------->> IMPORTANT: Excluding primitives for debugging? " + noPrimitives + " <<--------");
+        System.out.println("Train set: " + cli.trainingCorpusPath);
+        System.out.println("Dev set:   " + cli.devCorpusPath);
 
         AMRBlobUtils blobUtils = new COGSBlobUtils();
 
@@ -131,7 +134,7 @@ public class SourceAutomataCLICOGS {
         while (reader.hasNext()) {
             RawCOGSReader.CogsSample sample = reader.getNextSample();
             COGSLogicalForm lf = new COGSLogicalForm(sample.tgt_tokens);
-            MRInstance mr = LF2GraphConverter.toSGraph(lf, sample.src_tokens);
+            MRInstance mr = LogicalFormConverter.toSGraph(lf, sample.src_tokens);
             try {
                 if (!noPrimitives || lf.getFormulaType()== COGSLogicalForm.AllowedFormulaTypes.IOTA) {
                     samples.add(mr);
@@ -169,7 +172,7 @@ public class SourceAutomataCLICOGS {
         int fails = 0;
         int nondecomposeable = 0;
         for (MRInstance inst: corpus) {
-            if (index % 500 == 0) {
+            if (index % 2000 == 0) {
                 System.err.println("At instance number " + index);
                 // bucketCounter.printAllSorted();  // automata sizes
             }
@@ -275,8 +278,8 @@ public class SourceAutomataCLICOGS {
 
         ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
         for (int i = 0; i<originalDecompositionAutomata.size(); i++) {
-            if (i % 500 == 0) {
-                System.err.println(i);
+            if (i % 1000 == 0) {
+                System.err.println("Writing instance ... " + i);
             }
             SourceAssignmentAutomaton decomp = originalDecompositionAutomata.get(i);
             DecompositionPackage decompositionPackage = decompositionPackages.get(i);

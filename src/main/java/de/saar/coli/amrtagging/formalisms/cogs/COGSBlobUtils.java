@@ -36,7 +36,7 @@ public class COGSBlobUtils extends AMRBlobUtils {
      */
     public static final String[] OUTBOUND_EDGES = new String[]{
             "agent", "theme", "recipient", "xcomp", "ccomp",
-            LF2GraphConverter.IOTA_EDGE_LABEL
+            LogicalFormConverter.IOTA_EDGE_LABEL
     };
 
 
