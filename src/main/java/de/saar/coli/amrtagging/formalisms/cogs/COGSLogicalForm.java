@@ -454,7 +454,7 @@ public class COGSLogicalForm {
             if (index < 0) {
                 throw new IndexOutOfBoundsException("Indices must be non-negative!");
             }
-            this.raw = String.valueOf(index);
+            this.raw = "x _ " + index;  // String.valueOf(index);
             this.index = index;
             this.argumentType = AllowedArgumentTypes.INDEX;
         }
@@ -593,10 +593,12 @@ public class COGSLogicalForm {
                 Argument a = arguments.get(i);
                 args[i] = a.raw;
             }
-            return predicate.toString()+"("+String.join(" , ", args)+")";
+            return predicate.toString()+" ( "+String.join(" , ", args)+" )";
         }
 
         // todo test this class!!!!
+        // todo wrong sorting (delex pred) right now: sort based on token position even for proper names!
+        // todo for lambdas: does b > a or is it just that b happens to be the agent?
         /**
          * Compares two terms for the purpose of sorting them (relevant for exact match for instance):
          * - term with smaller first argument index goes first
@@ -604,19 +606,20 @@ public class COGSLogicalForm {
          * - otherwise, rely on delexicalized predicate to sort terms
          * */
         public static class TermComparer implements Comparator<Term> {
-            /* Train 100 examples
-             * L18: lend . agent ( x _ 1 , Liam ) AND lend . theme ( x _ 1 , x _ 3 ) AND lend . recipient ( x _ 1 , Audrey )
-             * --> sorting based on 'agent', 'theme', 'recipient' if first argument is equal?
-             * L14: LAMBDA a . LAMBDA e . smile . agent ( e , a )
-             * L5: LAMBDA a . LAMBDA b . LAMBDA e . pack . agent ( e , b ) AND pack . theme ( e , a )
-             * --> sort b < a as second argument, or as above based on 'agent' vs 'theme' ?
-             * L54: hope . agent ( x _ 1 , Emma ) AND hope . ccomp ( x _ 1 , x _ 5 )
-             * L3: try . agent ( x _ 1 , Emma ) AND try . xcomp ( x _ 1 , x _ 3 )
-             * L19: cloud ( x _ 3 ) AND cloud . nmod . in ( x _ 3 , x _ 6 )
-             * --> lower valency term goes first?
-             * conclusions: (not sure)
-             * - first argument index: smaller goes first
-             * - if same first argument: lower valency goes first / based on delexicalized predicate name (agent < theme...),
+            /* (1) LAMBDAS:sort b < a as second argument, or based on 'agent' vs 'theme' ?
+             *     LAMBDA a . LAMBDA e . smile . agent ( e , a )
+             *     LAMBDA a . LAMBDA b . LAMBDA e . pack . agent ( e , b ) AND pack . theme ( e , a )
+             * (2) non-primitives:
+             * (2.1) sort with increasing index of arguments:
+             *     want . agent ( x _ 2 , x _ 1 ) AND want . xcomp ( x _ 2 , x _ 4 ) AND go . agent ( x _ 4 , x _ 1 )
+             *     like . theme ( x _ 3 , x _ 1 ) AND like . agent ( x _ 3 , x _ 6 )
+             * (2.2) lower valency first
+             *     cloud ( x _ 3 ) AND cloud . nmod . in ( x _ 3 , x _ 6 )
+             * (2.3) proper names are implicitly replaced with `x _ i` where `i` is the position in the sentence todo do this
+             *     lend . recipient ( x _ 2 , William ) AND lend . theme ( x _ 2 , x _ 4 ) AND lend . agent ( x _ 2 , x _ 7 )
+             *     lend . recipient ( x _ 3 , x _ 1 ) AND lend . theme ( x _ 3 , x _ 5 ) AND lend . agent ( x _ 3 , Emma )
+             *     return . agent ( x _ 1 , Ava ) AND return . theme ( x _ 1 , x _ 3 ) AND return . recipient ( x _ 1 , Emma )
+             *     forward . agent ( x _ 1 , Isabella ) AND forward . theme ( x _ 1 , x _ 3 ) AND forward . recipient ( x _ 1 , Emma )
              */
             @Override
             public int compare(Term o1, Term o2) {
@@ -636,7 +639,7 @@ public class COGSLogicalForm {
                 if (firstArgO1.isProperName() || firstArgO2.isProperName()) {
                     throw new IllegalArgumentException("Ill-formed logical form? First argument of term can't be proper name.");
                 }
-                if (firstArgO1.isIndex() != firstArgO2.isIndex()) {  // todo better check needed for 3 types!!! (inpput validation)
+                if (firstArgO1.isIndex() != firstArgO2.isIndex()) {  // todo better check needed for 3 types!!! (input validation)
                     throw new ClassCastException("Can't compare first arguments of different type");
                 }
                 if (firstArgO1.isLambdaVar() && firstArgO2.isLambdaVar() && !firstArgO1.equals(firstArgO2)) {
