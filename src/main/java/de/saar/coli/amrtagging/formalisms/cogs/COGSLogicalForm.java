@@ -479,6 +479,19 @@ public class COGSLogicalForm {
             }
         }
 
+        // todo this is a hack to make sorting easier (proper names implicitly sorted by index in sentence, but this is not visible in the LF
+        public void setIndexForProperName(int index) {
+            if (isProperName()) {
+                if (index < 0) {
+                    throw new IllegalArgumentException("Index can't be a negative number!");
+                }
+                this.index = index;
+            }
+            else {
+                throw new RuntimeException("Can only set index for proper name!");
+            }
+        }
+
         public boolean isIndex() { return argumentType == AllowedArgumentTypes.INDEX;}
         public boolean isLambdaVar() { return argumentType == AllowedArgumentTypes.LAMBDAVAR;}
         public boolean isProperName() { return argumentType == AllowedArgumentTypes.PROPERNAME;}
@@ -633,9 +646,10 @@ public class COGSLogicalForm {
                 */
                 if (o1.equals(o2)) {return 0;}
                 // todo comparison between lambda vars and indices is not defined?
-                // (1) first argument index
                 Argument firstArgO1 = o1.getLemmaArgument();
                 Argument firstArgO2 = o2.getLemmaArgument();
+
+                // validity checks
                 if (firstArgO1.isProperName() || firstArgO2.isProperName()) {
                     throw new IllegalArgumentException("Ill-formed logical form? First argument of term can't be proper name.");
                 }
@@ -645,16 +659,20 @@ public class COGSLogicalForm {
                 if (firstArgO1.isLambdaVar() && firstArgO2.isLambdaVar() && !firstArgO1.equals(firstArgO2)) {
                     throw new IllegalArgumentException("Undefined what to do with two terms whose first arguments are different lambda variables");
                 }
+
+                // (1) first argument index
                 if (firstArgO1.isIndex() && firstArgO2.isIndex()) {  // compare two indices (first, then second if possible)
                     int o1idx = firstArgO1.getIndex();
                     int o2idx = firstArgO2.getIndex();
                     if (o1idx < o2idx) { return -1;}
                     if (o1idx > o2idx) { return 1;}
-                    // if first arguments are equal indices and second arguments are indices too, compare them:
+                    // if first arguments are equal indices and second arguments are not lambda vars, compare them:
+                    // (implicitly proper names should have indices too...otherwise this might fail)
                     if (o1idx == o2idx && o1.hasTwoArguments() && o2.hasTwoArguments()) {
                         Argument sndArgO1 = o1.getArguments().get(1);
                         Argument sndArgO2 = o2.getArguments().get(1);
-                        if (sndArgO1.isIndex() && sndArgO2.isIndex()) {
+                        //if (sndArgO1.isIndex() && sndArgO2.isIndex()) {
+                        if (!sndArgO1.isLambdaVar() && !sndArgO2.isLambdaVar()) {
                             int cmp = Integer.compare(sndArgO1.getIndex(), sndArgO2.getIndex());
                             if (cmp != 0) return cmp;  // if not same second argument index, we can make a choice here
                         }
@@ -665,7 +683,7 @@ public class COGSLogicalForm {
                 if (o1.getValency() != o2.getValency()) { // for different valency: the lower one goes first
                     return o1.getValency() < o2.getValency()?-1:1;
                 }
-                // (3) second part of predicate names:  agent < theme ...
+                // todo shouldn't be necessary anymore? (3) second part of predicate names:  agent < theme ...
                 assert(o1.getValency()==o2.getValency() && o1.getValency()==2);
                 assert(o1.getLemma().equals(o2.getLemma()));
                 String predO1 = o1.getPredicate().getDelexPredAsString();

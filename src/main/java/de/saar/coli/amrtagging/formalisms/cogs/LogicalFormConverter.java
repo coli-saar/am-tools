@@ -441,6 +441,7 @@ public class LogicalFormConverter {
             String lemmaOrNodeLabel = nodeName2Lemma.getOrDefault(nodename, nodelabel);
             if (isProperName(lemmaOrNodeLabel)) { // todo lemma or full nodelabel?
                 arg = new Argument(lemmaOrNodeLabel);
+                arg.setIndexForProperName(nodeName2Index.get(nodename));
             }
             else {  // todo here more options: index, propername, iota-the, lambda-var
                 arg = new Argument(nodeName2Index.get(nodename));
@@ -514,6 +515,12 @@ public class LogicalFormConverter {
         Objects.requireNonNull(amSent);
         // makes use to toLogicalForm(MRInstance): to built an MRInstance we need
         // a list of words, a list of alignments and an SGraph
+        if (amSent.words().size()==1) {
+            // not all primitives have sources beside the root node, but some. and for these, evaluate(true) will
+            // remove the sources
+            // assuming no artificial root
+            System.err.println("toLF: Possible primitive: open sources might get stripped");  // todo!
+        }
 
         // (1) list of words:
         List<String> tokens = amSent.words();  // todo do I have to take care of any artificial root?
@@ -525,6 +532,7 @@ public class LogicalFormConverter {
         SGraph evaluatedGraph = amdep.evaluate(true); // get graphs with alignment annotations in graph nodes
         List<Alignment> alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
         AlignedAMDependencyTree.stripAlignments(evaluatedGraph);  // get rid of the alignment markers in the graph nodes
+        // todo is the evaluate(true)+stripAlignments producing the same graph as evaluate(false) ??
         // todo alignments: 0- or 1-based? do I have to postprocess them? (in/decrement by one?)
 
         // (3) we have everything to built an MRInstance and call toLogicalForm on that!
