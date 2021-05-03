@@ -23,6 +23,7 @@ import de.up.ling.irtg.automata.Rule;
 import de.up.ling.irtg.automata.TreeAutomaton;
 import de.up.ling.irtg.codec.BinaryIrtgOutputCodec;
 import de.up.ling.irtg.util.Counter;
+import de.up.ling.tree.Tree;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.io.*;
@@ -63,8 +64,9 @@ public class SourceAutomataCLICOGS {
     // @Parameter(names = {"--difference"}, description = "difference in log likelihood for early EM stopping")//, required = true)
     // private double difference = 0.1;
 
-    @Parameter(names = {"--algorithm", "-a"}, description = "so far, only allowed option is: automata")//, required = true)
-    private String algorithm = "automata";
+    @Parameter(names = {"--algorithm", "-a"}, description = "so far, only allowed options are 'automata' and 'random' (the former is the default)")//, required = true)
+    private String algorithm = "random";
+    //private String algorithm = "automata";
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -90,6 +92,7 @@ public class SourceAutomataCLICOGS {
         System.out.println("-------->> IMPORTANT: Excluding primitives for debugging? " + noPrimitives + " <<--------");
         System.out.println("Train set: " + cli.trainingCorpusPath);
         System.out.println("Dev set:   " + cli.devCorpusPath);
+        System.out.println("Output path: " + cli.outPath);
 
         AMRBlobUtils blobUtils = new COGSBlobUtils();
 
@@ -104,7 +107,6 @@ public class SourceAutomataCLICOGS {
 
         cli.processCorpus(trainCorpus, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
 
-/*
         //get automata for dev set
         List<MRInstance> devCorpus = getSamplesFromFile(cli.devCorpusPath, noPrimitives);
 
@@ -113,17 +115,57 @@ public class SourceAutomataCLICOGS {
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
         cli.processCorpus(devCorpus, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
-        // todo also deen to comment line createAutomataZip...
-*/
+
         Files.createDirectories(Paths.get(cli.outPath));
 
         if (cli.algorithm.equals("automata")) {
             createAutomataZip(originalDecompositionAutomata, decompositionPackages, supertagDictionary, "train", cli.outPath);
-            // createAutomataZip(originalDecompositionAutomataDev, decompositionPackagesDev, supertagDictionary, "dev", cli.outPath);
+            createAutomataZip(originalDecompositionAutomataDev, decompositionPackagesDev, supertagDictionary, "dev", cli.outPath);
 
         } else {
-            throw new NotImplementedException("For COGS only 'automata' option implemented so far");
-            // see SDP or AMR for other options
+            if (cli.algorithm.equals("random")) {
+                // copied from SourceAutomataCLI.java
+                //write training set
+                List<AmConllSentence> outputCorpus = new ArrayList<>();
+                Iterator<DecompositionPackage> decompositionPackageIterator = decompositionPackages.iterator();
+                Iterator<SourceAssignmentAutomaton> originalAutomataIterator = originalDecompositionAutomata.iterator();
+                for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
+                    Tree<String> chosenTree = dataAutomaton.getRandomTree();
+                    DecompositionPackage decompositionPackage = decompositionPackageIterator.next();
+                    outputCorpus.add(originalAutomataIterator.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
+                }
+
+                System.out.println("Entropy in train.amconll file: " + SupertagEntropy.computeSupertagEntropy(outputCorpus));
+
+                File trainPath = Paths.get(cli.outPath).toFile(); //,"train"
+                trainPath.mkdirs();
+                String amConllOutPath = Paths.get(cli.outPath, "train.amconll").toString();//,"train"
+                AmConllSentence.writeToFile(amConllOutPath, outputCorpus);
+
+                //write dev set
+                List<AmConllSentence> outputCorpusDev = new ArrayList<>();
+                Iterator<DecompositionPackage> decompositionPackageIteratorDev = decompositionPackagesDev.iterator();
+                Iterator<SourceAssignmentAutomaton> originalAutomataIteratorDev = originalDecompositionAutomataDev.iterator();
+
+                for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomataDev) {
+                    Tree<String> chosenTree = dataAutomaton.viterbi();
+                    DecompositionPackage decompositionPackage = decompositionPackageIteratorDev.next();
+                    outputCorpusDev.add(originalAutomataIteratorDev.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
+                }
+
+                File devPath = Paths.get(cli.outPath).toFile();//,"gold-dev"
+                devPath.mkdirs();
+                String amConllOutPathDev = Paths.get(cli.outPath, "dev.amconll").toString();//,"gold-dev"
+                AmConllSentence.writeToFile(amConllOutPathDev, outputCorpusDev);
+
+                //write supertag dictionary
+                String supertagDictionaryPath = Paths.get(cli.outPath, "supertagDictionary.txt").toString();//,"train"
+                supertagDictionary.writeToFile(supertagDictionaryPath);
+            }
+            else {
+                throw new NotImplementedException("For COGS only 'automata' and 'random' option implemented so far");
+                // see SDP or AMR for other options
+            }
         }
     }
 
@@ -159,7 +201,6 @@ public class SourceAutomataCLICOGS {
         return samples;
     }
 
-    // todo change process corpus to fit cogs
     // mostly copied from AMR version (SourceAutomataCLIAMR) and SDP one (SourceAutomataCLI)
     private void processCorpus(List<MRInstance> corpus, AMRBlobUtils blobUtils,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
