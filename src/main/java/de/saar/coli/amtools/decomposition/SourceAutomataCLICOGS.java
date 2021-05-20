@@ -232,7 +232,6 @@ public class SourceAutomataCLICOGS {
 //                if (CHECK FOR PRIMITIVE) {
     //                List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> allConstants = new ArrayList<>();
     //                //TODO fill this list with all allowed constants for that primitive
-    //                DecompositionPackage decompositionPackage = ;//TODO make decomposition package for primitive
     //                ConcreteTreeAutomaton<String> primitiveAutomaton = new ConcreteTreeAutomaton<>();
     //                String primitiveAutomatonState = "X"; // doesn't really matter what the state is
     //                primitiveAutomaton.addFinalState(primitiveAutomaton.addState(primitiveAutomatonState));
@@ -242,8 +241,9 @@ public class SourceAutomataCLICOGS {
     //                    primitiveAutomaton.addRule(primitiveAutomaton.createRule(primitiveAutomatonState, ruleLabel, Collections.EMPTY_LIST));
     //                }
     //                concreteDecompositionAutomata.add(primitiveAutomaton);
-    //                decompositionPackages.add(decompositionPackage);
     //                originalDecompositionAutomata.add(primitiveAutomaton);
+     //               DecompositionPackage decompositionPackage = ;//TODO make decomposition package for primitive
+    //                decompositionPackages.add(decompositionPackage);
 //                } else {
 
                 //TODO this next section is only for non-primitives
