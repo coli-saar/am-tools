@@ -102,7 +102,7 @@ public class SourceAutomataCLICOGS {
         List<MRInstance> trainCorpus = getSamplesFromFile(cli.trainingCorpusPath, noPrimitives);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomata = new ArrayList<>();
-        List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
+        List<TreeAutomaton<?>> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
         cli.processCorpus(trainCorpus, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
@@ -111,7 +111,7 @@ public class SourceAutomataCLICOGS {
         List<MRInstance> devCorpus = getSamplesFromFile(cli.devCorpusPath, noPrimitives);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomataDev = new ArrayList<>();
-        List<SourceAssignmentAutomaton> originalDecompositionAutomataDev = new ArrayList<>();
+        List<TreeAutomaton<?>> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
         cli.processCorpus(devCorpus, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
@@ -128,11 +128,14 @@ public class SourceAutomataCLICOGS {
                 //write training set
                 List<AmConllSentence> outputCorpus = new ArrayList<>();
                 Iterator<DecompositionPackage> decompositionPackageIterator = decompositionPackages.iterator();
-                Iterator<SourceAssignmentAutomaton> originalAutomataIterator = originalDecompositionAutomata.iterator();
+                Iterator<TreeAutomaton<?>> originalAutomataIterator = originalDecompositionAutomata.iterator();
                 for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomata) {
                     Tree<String> chosenTree = dataAutomaton.getRandomTree();
                     DecompositionPackage decompositionPackage = decompositionPackageIterator.next();
-                    outputCorpus.add(originalAutomataIterator.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
+                    //TODO the next line just assumes that we have only SourceAssignmentAutomaton in this list.
+                    // Won't work with primitives! -- JG
+                    outputCorpus.add(((SourceAssignmentAutomaton)originalAutomataIterator.next()).tree2amConll(
+                            chosenTree, decompositionPackage, supertagDictionary));
                 }
 
                 System.out.println("Entropy in train.amconll file: " + SupertagEntropy.computeSupertagEntropy(outputCorpus));
@@ -145,12 +148,15 @@ public class SourceAutomataCLICOGS {
                 //write dev set
                 List<AmConllSentence> outputCorpusDev = new ArrayList<>();
                 Iterator<DecompositionPackage> decompositionPackageIteratorDev = decompositionPackagesDev.iterator();
-                Iterator<SourceAssignmentAutomaton> originalAutomataIteratorDev = originalDecompositionAutomataDev.iterator();
+                Iterator<TreeAutomaton<?>> originalAutomataIteratorDev = originalDecompositionAutomataDev.iterator();
 
                 for (TreeAutomaton<?> dataAutomaton : concreteDecompositionAutomataDev) {
                     Tree<String> chosenTree = dataAutomaton.viterbi();
                     DecompositionPackage decompositionPackage = decompositionPackageIteratorDev.next();
-                    outputCorpusDev.add(originalAutomataIteratorDev.next().tree2amConll(chosenTree, decompositionPackage, supertagDictionary));
+                    //TODO the next line just assumes that we have only SourceAssignmentAutomaton in this list.
+                    // Won't work with primitives! -- JG
+                    outputCorpusDev.add(((SourceAssignmentAutomaton)originalAutomataIterator.next()).tree2amConll(
+                            chosenTree, decompositionPackage, supertagDictionary));
                 }
 
                 File devPath = Paths.get(cli.outPath).toFile();//,"gold-dev"
@@ -203,7 +209,7 @@ public class SourceAutomataCLICOGS {
 
     // mostly copied from AMR version (SourceAutomataCLIAMR) and SDP one (SourceAutomataCLI)
     private void processCorpus(List<MRInstance> corpus, AMRBlobUtils blobUtils,
-                               List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
+                               List<TreeAutomaton<?>> concreteDecompositionAutomata, List<TreeAutomaton<?>> originalDecompositionAutomata,
                                List<DecompositionPackage> decompositionPackages) {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
@@ -221,6 +227,26 @@ public class SourceAutomataCLICOGS {
                 // if lf.formula type == lambda  : expect many "has root at unlabeled node. This may not be right at this point (cf ComponentAnalysisToAMDep)."
                 // System.err.println("Sentence: "+inst.getSentence());
                 // System.err.println("Index: "+index);
+
+                //TODO this next section is only for primitives
+//                if (CHECK FOR PRIMITIVE) {
+    //                List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> allConstants = new ArrayList<>();
+    //                //TODO fill this list with all allowed constants for that primitive
+    //                DecompositionPackage decompositionPackage = ;//TODO make decomposition package for primitive
+    //                ConcreteTreeAutomaton<String> primitiveAutomaton = new ConcreteTreeAutomaton<>();
+    //                String primitiveAutomatonState = "X"; // doesn't really matter what the state is
+    //                primitiveAutomaton.addFinalState(primitiveAutomaton.addState(primitiveAutomatonState));
+    //                for (Pair<SGraph, ApplyModifyGraphAlgebra.Type> asGraph : allConstants) {
+    //                    String ruleLabel = asGraph.left.toIsiAmrStringWithSources() + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP
+    //                            + asGraph.right.toString();
+    //                    primitiveAutomaton.addRule(primitiveAutomaton.createRule(primitiveAutomatonState, ruleLabel, Collections.EMPTY_LIST));
+    //                }
+    //                concreteDecompositionAutomata.add(primitiveAutomaton);
+    //                decompositionPackages.add(decompositionPackage);
+    //                originalDecompositionAutomata.add(primitiveAutomaton);
+//                } else {
+
+                //TODO this next section is only for non-primitives
                 SGraph graph = inst.getGraph();
                 try {
                     DecompositionPackage decompositionPackage = new COGSDecompositionPackage(inst, blobUtils);
@@ -299,7 +325,7 @@ public class SourceAutomataCLICOGS {
 
 
     // todo just copied from sourceautomatacli: can I prevent copying code???
-    static void createAutomataZip(List<SourceAssignmentAutomaton> originalDecompositionAutomata,
+    static void createAutomataZip(List<TreeAutomaton<?>> originalDecompositionAutomata,
                                   List<DecompositionPackage> decompositionPackages,
                                   SupertagDictionary supertagDictionary, String zipFileName, String outPath) throws IOException {
         //create zip file
@@ -322,11 +348,11 @@ public class SourceAutomataCLICOGS {
             if (i % 1000 == 0) {
                 System.err.println("Writing instance ... " + i);
             }
-            SourceAssignmentAutomaton decomp = originalDecompositionAutomata.get(i);
+            TreeAutomaton<?> decomp = originalDecompositionAutomata.get(i);
             DecompositionPackage decompositionPackage = decompositionPackages.get(i);
             AmConllSentence amConllSentence = baseAmConllSentences.get(i);
 
-            Map<SourceAssignmentAutomaton.State, Integer> stateToWordPosition = new HashMap<>();
+            Map<Object, Integer> stateToWordPosition = new HashMap<>();
 
             ConcreteTreeAutomaton<String> fakeIRTGAutomaton = new ConcreteTreeAutomaton<>();
             Map<Rule, Pair<Integer, String>> rule2supertag = new HashMap<>();
@@ -341,7 +367,7 @@ public class SourceAutomataCLICOGS {
                         String oldRuleLabel = rule.getLabel(decomp);
                         Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(oldRuleLabel);
                         int wordPosition = decompositionPackage.getSentencePositionForGraphFragment(constant.left);
-                        SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
+                        Object parent = decomp.getStateForId(rule.getParent());
                         // obtain delexicalized graph fragment
                         GraphNode lexicalNode = decompositionPackage.getLexNodeFromGraphFragment(constant.left);
                         constant.left.addNode(lexicalNode.getName(), AmConllEntry.LEX_MARKER);
@@ -364,9 +390,9 @@ public class SourceAutomataCLICOGS {
                     // state.toString() -> i_j_oldRuleLabel(state0.toString(), state1.toString())
                     // where below state = parent, state0 = child0, state1 = child1
                     // and i = child0 wordPosition, j = child1 wordPosition
-                    SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
-                    SourceAssignmentAutomaton.State child0 = decomp.getStateForId(rule.getChildren()[0]);
-                    SourceAssignmentAutomaton.State child1 = decomp.getStateForId(rule.getChildren()[1]);
+                    Object parent = decomp.getStateForId(rule.getParent());
+                    Object child0 = decomp.getStateForId(rule.getChildren()[0]);
+                    Object child1 = decomp.getStateForId(rule.getChildren()[1]);
                     int wordPosition0 = stateToWordPosition.get(child0);
                     int wordPosition1 = stateToWordPosition.get(child1);
                     int parentWordPosition = wordPosition0; // in AM operations, the left child is the head, and this rule reflects that.
