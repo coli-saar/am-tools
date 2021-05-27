@@ -63,6 +63,7 @@ public class ToCOGSCorpus {
 
         boolean excludePrimitives = true;  // todo make this a command line flag!!!!
         System.out.println("Excluding primitives? " + excludePrimitives);
+        System.out.println("Input file: " + cli.corpusPath);
 
         List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
 
@@ -190,15 +191,16 @@ public class ToCOGSCorpus {
         if (goldReader != null) {
             double result;
 
-            System.out.println("Exact match accuracy");
+            // NB: numbers will be extracted using regexes in eval_commands.libsonnet of the am-parser
+            // System.out.println("Exact match accuracy");
             result = totalSentencesSeen > 0 ? (float) totalExactMatches / totalSentencesSeen : 0;
             result *= 100;  // 95% should be displayed as '95' instead of 0.95
-            System.out.println(String.format(java.util.Locale.US,"%.2f", result));
+            System.out.println("Exact match accuracy: " + String.format(java.util.Locale.US,"%.2f", result));
             // 2 decimal places, use US locale to determine character for decimal point
 
-            System.out.println("Average token-level edit distance");
+            // System.out.println("Average token-level edit distance");
             result = totalSentencesSeen > 0 ? (float) totalEditDistance / totalSentencesSeen : 0;
-            System.out.println(String.format(java.util.Locale.US,"%.2f", result));
+            System.out.println("Average token-level edit distance: " + String.format(java.util.Locale.US,"%.2f", result));
         }
 
 
