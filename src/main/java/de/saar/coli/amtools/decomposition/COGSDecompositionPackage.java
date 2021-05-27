@@ -24,6 +24,8 @@ public class COGSDecompositionPackage extends DecompositionPackage {
 
     private final AMRBlobUtils blobUtils;  ///< actually COGSBlobUtils when initialized (AMRBlobUtils is the superclass)
     private final MRInstance mrInstance;  ///< contains tokens of the sentence, an sGraph and a list of alignments
+    private final boolean useLexLabelReplacement = false;  ///< if true, lex label can be $LEMMA$ or $WORD$
+    // for now we don't use this replacement for simplicity reasons
 
     public COGSDecompositionPackage(MRInstance mrInstance, AMRBlobUtils blobUtils) {
         this.blobUtils = blobUtils;
@@ -65,6 +67,19 @@ public class COGSDecompositionPackage extends DecompositionPackage {
             amConllEntry.setNe(AmConllEntry.DEFAULT_NULL);  // todo _ or O ? could I be more informative? proper name?
             // add them to the AMConLLSentence
             sent.add(amConllEntry);
+        }
+
+        // we need to add the lexical labels (column 8 in the AMCoNLL format) for the supertags
+        // code below based on AMRDecompositionPackage
+        for (Alignment al : alignments) {
+            if (!al.lexNodes.isEmpty()) {
+                String lexLabel = graph.getNode(al.lexNodes.iterator().next()).getLabel();
+                if (useLexLabelReplacement) {
+                    sent.get(al.span.start).setLexLabel(lexLabel);  // both amSent.get and span.start are 0-based
+                } else {
+                    sent.get(al.span.start).setLexLabelWithoutReplacing(lexLabel);
+                }
+            }
         }
         // add artificial root
         /*
