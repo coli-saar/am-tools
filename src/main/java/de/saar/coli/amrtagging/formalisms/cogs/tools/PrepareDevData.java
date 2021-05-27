@@ -2,6 +2,7 @@ package de.saar.coli.amrtagging.formalisms.cogs.tools;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
+// todo: what about the lexical labels that makeBaseAmConllSentence inserts? get rid of them?
 /** Prepares Dev Data for COGS: basically amconll with only tokens and other columns contain dummy values. </br>
  *
  * Took inspiration from <code>amrtagging/formalisms/sdp/tools/PrepareDevData.java</code>, but since the files produced
@@ -26,7 +28,8 @@ import java.util.ArrayList;
  * */
 public class PrepareDevData {
     @Parameter(names = {"--corpus", "-c"}, description = "Points to the input corpus (tsv) or subset thereof")//, required = true)
-    private String corpusPath = "/home/wurzel/HiwiAK/cogs2021/COGS/data/dev.tsv";
+    private String corpusPath = "/home/wurzel/HiwiAK/cogs2021/small/dev100.tsv";
+//    private String corpusPath = "/home/wurzel/HiwiAK/cogs2021/COGS/data/dev.tsv";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
     private String outPath = "/home/wurzel/HiwiAK/cogs2021/amconll/";
@@ -83,6 +86,13 @@ public class PrepareDevData {
             // dev doesn't contain primitives, test probably also not.
             COGSDecompositionPackage decompositionPackage = new COGSDecompositionPackage(mrInstance, blobUtils);
             AmConllSentence currentSent = decompositionPackage.makeBaseAmConllSentence();
+
+            // removing lex labels: todo should I remove lex labels?
+            // if this sentence is used for prediction the lex label shouldn't be given but rather predicted
+            for (AmConllEntry entry: currentSent) {
+                entry.setLexLabelWithoutReplacing(AmConllEntry.DEFAULT_NULL);
+            }
+
             out.add(currentSent);
         }
         AmConllSentence.writeToFile(cli.outPath+"/"+cli.prefix+".amconll", out);
