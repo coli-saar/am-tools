@@ -37,6 +37,9 @@ public class ToCOGSCorpus {
 //    private final String goldCorpus = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train.tsv";
     private String goldCorpus = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
 
+    @Parameter(names = {"--verbose"}, description = "if this flag is set, prints more information (to the error stream")
+    private boolean verbose=false;
+
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
@@ -73,6 +76,10 @@ public class ToCOGSCorpus {
             System.out.println("Output file: " + cli.outPath);
             graphWriter = new PrintWriter(cli.outPath);
         }
+        if (cli.verbose) {
+            System.err.println("Verbosity flag has been set: " +
+                    "will print information about gold-prediction mismatches to the error stream!");
+        }
 
         // todo scorer?
         int totalSentencesSeen = 0;
@@ -91,7 +98,21 @@ public class ToCOGSCorpus {
             // AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(amsent);
             // SGraph evaluatedGraph = amdep.evaluate(true);
             // Step 2: Convert this graph to logical form
-            COGSLogicalForm predictedLF = LogicalFormConverter.toLogicalForm(amsent);
+            COGSLogicalForm predictedLF;
+            String predicedLFString = "";  // "INVALIDLF"
+            try {
+                predictedLF = LogicalFormConverter.toLogicalForm(amsent);
+                predicedLFString = predictedLF.toString();
+            }
+            catch (IllegalArgumentException illegalArgumentException) {  // todo can I use a cogs specific conversion exception instead?
+                // Exception in thread "main" java.lang.IllegalArgumentException: Ill-formed logical form? First argument of term can't be proper name.
+                // todo maybe not raise exception there?
+                System.err.println("Something went wrong during converting the graph back to a COGS logical form");
+                System.err.println("Proceed with '"+predicedLFString+"' as dummy logical form output.");
+                //System.err.println(illegalArgumentException.getMessage());
+                //illegalArgumentException.printStackTrace();
+                predictedLF = null;
+            }
             // Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
 
             // Step 3: if gold data available: get graph there too and evaluate
@@ -111,7 +132,7 @@ public class ToCOGSCorpus {
                     sample = goldReader.getNextSample();
                     genType = sample.generalizationType;
                 }
-                if (!sample.src_tokens.equals(tokens)) {
+                if (cli.verbose && !sample.src_tokens.equals(tokens)) {
                     System.err.println("--Currently processing the nth sentence, where n=" + totalSentencesSeen);
                     System.err.println("--Tokens from Gold:    " + sample.src_tokens);
                     System.err.println("--Tokens from amconll: " + tokens);
@@ -129,28 +150,28 @@ public class ToCOGSCorpus {
                 // todo edit distance: where to get tokens from? toString and then whitespace split?
                 // -- Levenshtein token-level edit distance
                 String[] tokens1 = goldLF.toString().split(" ");
-                String[] tokens2 = predictedLF.toString().split(" ");
+                String[] tokens2 = predicedLFString.split(" ");
                 int editDistance = cli.getEditDistance(tokens1, tokens2);
                 totalEditDistance += editDistance;
 
                 // -- Exact match: todo no need to compare strings here, just rely on token-edit distance == 0 or not?
-                boolean exactMatch = goldLF.toString().equals(predictedLF.toString());
+                boolean exactMatch = goldLF.toString().equals(predicedLFString);
                 assert((editDistance == 0) == exactMatch);  // edit distance is 0 if and only if we have an exact match
                 if (exactMatch) {
                     totalExactMatches += 1;
                 }
-                else {
+                else if (cli.verbose) {
                     System.err.println("Not exact match for sentence number " + totalSentencesSeen + " at input file line "+ amsent.getLineNr());
                     System.err.println("Edit distance: " + editDistance);
                     System.err.println("Gold:   " + goldLF.toString());
-                    System.err.println("System: " + predictedLF.toString());
+                    System.err.println("System: " + predicedLFString);
                 }
             }
 
             // Step 4: Write the graph (the one based on the amconll sentence) to file [if output path was provided]
             if (graphWriter != null) {
                 // todo use string builder? check correctness?
-                graphWriter.println(String.join(" ", tokens)+"\t"+predictedLF.toString()+"\t"+genType);
+                graphWriter.println(String.join(" ", tokens)+"\t"+predicedLFString+"\t"+genType);
             }
             /*} catch (Exception ex) {
                 System.err.printf("In line %d, id=%s: ignoring exception.\n", amsent.getLineNr(), id);
