@@ -43,17 +43,13 @@ import java.util.zip.ZipOutputStream;
 public class SourceAutomataCLICOGS {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.tsv file)")//, required = true)
-//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train_100.tsv";
-//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train.tsv";
-    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
-//    private String trainingCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/toy/toy2.tsv";
+    private String trainingCorpusPath = "/home/wurzel/HiwiAK/cogs2021/small/train1k_nonprim.tsv";
 
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.tsv file)")//, required = true)
-    private String devCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/dev20.tsv";
-//    private String devCorpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/dev.tsv";
+    private String devCorpusPath = "/home/wurzel/HiwiAK/cogs2021/small/dev100.tsv";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where amconll and supertag dictionary files are created")//, required = true)
-    private String outPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/amconll/";
+    private String outPath = "/home/wurzel/HiwiAK/cogs2021/amconll/";
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to  (default = 3)")//, required = true)
     private int nrSources = 3;
@@ -65,8 +61,11 @@ public class SourceAutomataCLICOGS {
     // private double difference = 0.1;
 
     @Parameter(names = {"--algorithm", "-a"}, description = "so far, only allowed options are 'automata' and 'random' (the former is the default)")//, required = true)
-    private String algorithm = "random";
-    //private String algorithm = "automata";
+    // private String algorithm = "random";  // todo so far won't work with primitives!!!!
+    private String algorithm = "automata";
+
+//    @Parameter(names = {"--noPrimitives"}, description = "if this flag is set, primitives are excluded/ignored")
+//    private boolean noPrimitives=false;
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -88,7 +87,7 @@ public class SourceAutomataCLICOGS {
             commander.usage();
             return;
         }
-        boolean noPrimitives = true;  // exclude primitives for now todo change later! (inly debugging)
+        boolean noPrimitives = true;  // exclude primitives for now todo change later! (only debugging)
         System.out.println("-------->> IMPORTANT: Excluding primitives for debugging? " + noPrimitives + " <<--------");
         System.out.println("Train set: " + cli.trainingCorpusPath);
         System.out.println("Dev set:   " + cli.devCorpusPath);
@@ -223,29 +222,68 @@ public class SourceAutomataCLICOGS {
                 System.err.println("At instance number " + index);
                 // bucketCounter.printAllSorted();  // automata sizes
             }
-            if (true) { //index == 1268
-                // if lf.formula type == lambda  : expect many "has root at unlabeled node. This may not be right at this point (cf ComponentAnalysisToAMDep)."
-                // System.err.println("Sentence: "+inst.getSentence());
-                // System.err.println("Index: "+index);
+            //if (true) { //index == 1268
+            // if lf.formula type == lambda  : expect many "has root at unlabeled node. This may not be right at this point (cf ComponentAnalysisToAMDep)."
+            // System.err.println("Sentence: "+inst.getSentence());
+            // System.err.println("Index: "+index);
 
-                //TODO this next section is only for primitives
-//                if (CHECK FOR PRIMITIVE) {
-    //                List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> allConstants = new ArrayList<>();
-    //                //TODO fill this list with all allowed constants for that primitive
-    //                ConcreteTreeAutomaton<String> primitiveAutomaton = new ConcreteTreeAutomaton<>();
-    //                String primitiveAutomatonState = "X"; // doesn't really matter what the state is
-    //                primitiveAutomaton.addFinalState(primitiveAutomaton.addState(primitiveAutomatonState));
-    //                for (Pair<SGraph, ApplyModifyGraphAlgebra.Type> asGraph : allConstants) {
-    //                    String ruleLabel = asGraph.left.toIsiAmrStringWithSources() + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP
-    //                            + asGraph.right.toString();
-    //                    primitiveAutomaton.addRule(primitiveAutomaton.createRule(primitiveAutomatonState, ruleLabel, Collections.EMPTY_LIST));
-    //                }
-    //                concreteDecompositionAutomata.add(primitiveAutomaton);
-    //                originalDecompositionAutomata.add(primitiveAutomaton);
-     //               DecompositionPackage decompositionPackage = ;//TODO make decomposition package for primitive
-    //                decompositionPackages.add(decompositionPackage);
-//                } else {
+            //TODO this next section is only for primitives
+            //Primitives need a special treatment because they _can_ contain open sources
+            // (at least verb primitives do, nouns would be fine)
+            //TODO primitive identification through sentence lengths or open sources (which would exclude nouns?)
+            boolean isPrimitive = (inst.getSentence().size() == 1);
+            if (isPrimitive) {
+                System.err.println("WARNING: Code here shouldn't be executed, because it is incomplete so far.");
+                List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> allConstants = new ArrayList<>();
+                //TODO fill this list with all allowed constants for that primitive
+                // make a function out of it?
+                SGraph graph = inst.getGraph();
+                // find sources:
+                Set<String> allSourcesExceptRoot = graph.getAllSources();
+                allSourcesExceptRoot.remove(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
 
+                if (allSourcesExceptRoot.isEmpty()) {  // only root source, no open sources
+                    // if there are no open sources beyond the root node, the list of allConstants only consist of
+                    // the graph we have already (which has the empty type)
+                    allConstants.add(new Pair<>(graph, ApplyModifyGraphAlgebra.Type.EMPTY_TYPE)); // todo actually type of root?
+                }
+                else {  // there are open sources beyond the root node
+                    // we need to replace the sources with the placeholder sources s0, s1, ... all combinations of it
+                    // todo implement
+                    // all placeholder sources
+                    Set<String> placeholderSourceNames = new HashSet<>();
+                    for (int i = 0; i < nrSources; ++i) {
+                        placeholderSourceNames.add("S"+i);  // todo this is violating DRY and can result in inconsistencies
+                        // see SourceAssignmentAutomaton.makeSource
+                    }
+                    if (allSourcesExceptRoot.size() > placeholderSourceNames.size()) {
+                        // constant contains more distinct sources than there are placeholder sources,
+                        // but each source should be unique within a graph constant,
+                        // so we can't map all sources to placeholder sources :(
+                        throw new RuntimeException("Not enough distinct placeholder sources!");
+                    }
+
+                    // todo so far only one constant
+                    List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> constants = getConstantsWithPlaceholderSources(graph, placeholderSourceNames);
+                    allConstants.addAll(constants);
+                } // else // there are open sources beyond the root node
+
+                ConcreteTreeAutomaton<String> primitiveAutomaton = new ConcreteTreeAutomaton<>();
+                String primitiveAutomatonState = "X"; // doesn't really matter what the state is
+                primitiveAutomaton.addFinalState(primitiveAutomaton.addState(primitiveAutomatonState));
+                for (Pair<SGraph, ApplyModifyGraphAlgebra.Type> asGraph : allConstants) {
+                    String ruleLabel = asGraph.left.toIsiAmrStringWithSources() + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP
+                            + asGraph.right.toString();
+                    primitiveAutomaton.addRule(primitiveAutomaton.createRule(primitiveAutomatonState, ruleLabel, Collections.EMPTY_LIST));
+                }
+                concreteDecompositionAutomata.add(primitiveAutomaton);
+                originalDecompositionAutomata.add(primitiveAutomaton);
+                // todo why can't we use the normal COGSDecompositionPackage?
+                DecompositionPackage decompositionPackage = new COGSPrimitiveDecompositionPackage(inst, blobUtils);//TODO make decomposition package for primitive
+                decompositionPackages.add(decompositionPackage);
+                // todo do we also want to print stats successcounter, automata sizes and so on?
+            } // is primitive
+            else {  // is not a primitive
                 //TODO this next section is only for non-primitives
                 SGraph graph = inst.getGraph();
                 try {
@@ -310,8 +348,9 @@ public class SourceAutomataCLICOGS {
 //                    System.err.println(graph.toIsiAmrStringWithSources());
                     ex.printStackTrace();
                     fails++;
-                }
-            } // if true
+                } // try-catch
+            } // else (non-primitive)
+            // } // if (true)
 
             index++;
         }
@@ -482,5 +521,39 @@ public class SourceAutomataCLICOGS {
         zipFile.finish();
     }
 
+    static List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> getConstantsWithPlaceholderSources(SGraph graph, Set<String> placeholderSources) {
+        // q: how to get the placeholder source names?
+        // q: how to get all combinations? cross product but with all sources distinct in the tuple <s0,s0> not allowed
+        Set<String> allSourcesExceptRoot = graph.getAllSources();
+        allSourcesExceptRoot.remove(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
 
+        // all placeholder sources
+        List<String> placeholderSourceNames = new ArrayList<>(placeholderSources);
+
+        // all nodes
+        List<GraphNode> sourceNodes = new ArrayList<>();
+        List<String> oldSourceList = new ArrayList<>();
+        for (String source: allSourcesExceptRoot) {
+            String nodeName = graph.getNodeForSource(source);
+            GraphNode node = graph.getNode(nodeName);
+            sourceNodes.add(node);
+            oldSourceList.add(source);
+        }
+
+        List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> constants = new ArrayList<>();
+        // get constants with placeholder source name combinations instead of old sources
+        // similar to SourceAssignmentAutomaton.getAllMaps (private method)
+        // mapping: node(index in sourceNodes) - source(index in placeHolderSourceNames)
+        // todo so far only one
+        // todo maybe see SourceAssignmentAutomaton ? getAllMaps
+        ApplyModifyGraphAlgebra.Type newType = ApplyModifyGraphAlgebra.Type.EMPTY_TYPE;
+        newType.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
+        SGraph newSgraph = graph;  // we don't need to copy it since renameSource will leave graph unmodifed and return a new graph instead!
+        for (int i=0; i < sourceNodes.size(); ++i) {
+            newSgraph = newSgraph.renameSource(oldSourceList.get(i), placeholderSourceNames.get(i));
+            newType = newType.addSource(placeholderSourceNames.get(i));  // no requests
+        }
+        constants.add(new Pair<>(newSgraph, newType));
+        return constants;
+    }
 }
