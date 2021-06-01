@@ -8,12 +8,13 @@ import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm;
 import de.saar.coli.amrtagging.formalisms.cogs.LogicalFormConverter;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static org.apache.commons.lang3.math.NumberUtils.min;
 
@@ -32,10 +33,8 @@ public class ToCOGSCorpus {
     private String outPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/predictions.tsv";
 
     @Parameter(names={"--gold","-g"}, description = "Path to gold corpus. Make sure it contains exactly the same instances, in the same order.")//, required=true)
-//    private final String goldCorpus = null; //"/PATH/TO/TSVFILE.tsv";
-//    private final String goldCorpus = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train_100.tsv";
-//    private final String goldCorpus = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/cogsdata/train.tsv";
-    private String goldCorpus = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
+    private String goldCorpus = null; // "/PATH/TO/TSVFILE.tsv";
+    // private String goldCorpus = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
 
     @Parameter(names = {"--verbose"}, description = "if this flag is set, prints more information (to the error stream")
     private boolean verbose=false;
@@ -86,6 +85,10 @@ public class ToCOGSCorpus {
         int totalSentencesSeen = 0;
         int totalExactMatches = 0;
         int totalEditDistance = 0;
+        // for each type and for each metric in (Exact match, edit distance) compute score
+        Map<String, Float> type2editdsum = new HashMap<>();  // active_to_passive  -> 5.7 (summation of edit distances)
+        Map<String, Float> type2exactmsum = new HashMap<>();  // active_to_passive  -> 3.0 (summation of exact matches)
+        Counter<String> type2count = new Counter<>(); // active_to_passive -> 12 (seen 12 samples)
 
         for (AmConllSentence amsent : sents) {
             totalSentencesSeen += 1;
@@ -108,9 +111,11 @@ public class ToCOGSCorpus {
             catch (IllegalArgumentException illegalArgumentException) {  // todo can I use a cogs specific conversion exception instead?
                 // Exception in thread "main" java.lang.IllegalArgumentException: Ill-formed logical form? First argument of term can't be proper name.
                 // todo maybe not raise exception there?
-                System.err.println("Something went wrong during converting the graph back to a COGS logical form");
-                System.err.println("Proceed with '"+predicedLFString+"' as dummy logical form output.");
-                //System.err.println(illegalArgumentException.getMessage());
+                // sentence number " + totalSentencesSeen + " at input file line "+ amsent.getLineNr()
+                System.err.println("Sentence no. "+ totalSentencesSeen+" at input file line: " + amsent.getLineNr() +
+                        ": Error during graph to COGS logical form conversion: " +
+                        "Proceed with '"+predicedLFString+"' as dummy logical form output. " +
+                        "Error message: '"+illegalArgumentException.getMessage()+"'.");
                 //illegalArgumentException.printStackTrace();
                 predictedLF = null;
             }
@@ -154,15 +159,23 @@ public class ToCOGSCorpus {
                 String[] tokens2 = predicedLFString.split(" ");
                 int editDistance = cli.getEditDistance(tokens1, tokens2);
                 totalEditDistance += editDistance;
+                Float current = type2editdsum.getOrDefault(genType, 0.0F);
+                type2editdsum.put(genType, current+editDistance);
+                type2count.add(genType);
 
                 // -- Exact match: todo no need to compare strings here, just rely on token-edit distance == 0 or not?
                 boolean exactMatch = goldLF.toString().equals(predicedLFString);
                 assert((editDistance == 0) == exactMatch);  // edit distance is 0 if and only if we have an exact match
+                if (!type2exactmsum.containsKey(genType)) {
+                    type2exactmsum.put(genType, 0.0F);
+                }
                 if (exactMatch) {
                     totalExactMatches += 1;
+                    current = type2exactmsum.get(genType);
+                    type2exactmsum.put(genType, current+1);
                 }
                 else if (cli.verbose) {
-                    System.err.println("Not exact match for sentence number " + totalSentencesSeen + " at input file line "+ amsent.getLineNr());
+                    System.err.println("--No exact match for sentence number " + totalSentencesSeen + " at input file line "+ amsent.getLineNr()+" :");
                     System.err.println("Edit distance: " + editDistance);
                     System.err.println("Gold:   " + goldLF.toString());
                     System.err.println("System: " + predicedLFString);
@@ -201,6 +214,22 @@ public class ToCOGSCorpus {
             // System.out.println("Average token-level edit distance");
             result = totalSentencesSeen > 0 ? (float) totalEditDistance / totalSentencesSeen : 0;
             System.out.println("Average token-level edit distance: " + String.format(java.util.Locale.US,"%.2f", result));
+
+            // metrics per generalization type if verbose output requested
+            if (cli.verbose) {
+                System.out.println("Per generalization type scores:  (type TAB average edit distance TAB exact match TAB #samples)");
+                List<Object2IntMap.Entry<String>> sorted = type2count.getAllSorted();
+                for (Object2IntMap.Entry e: sorted) {
+                    int count = e.getIntValue();
+                    String type = (String) e.getKey();
+                    Float editdAvg = type2editdsum.get(type) / count;
+                    Float exactmAvg = type2exactmsum.get(type) / count;
+                    System.out.println("\t"+type
+                            +"\t"+ String.format(java.util.Locale.US,"%.2f", editdAvg)
+                            +"\t"+ String.format(java.util.Locale.US,"%.2f", exactmAvg)
+                            +"\t"+ count);
+                }
+            } // if verbose
         }
 
 
