@@ -43,10 +43,10 @@ import java.util.zip.ZipOutputStream;
 public class SourceAutomataCLICOGS {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.tsv file)")//, required = true)
-    private String trainingCorpusPath = "/home/wurzel/HiwiAK/cogs2021/small/train1k_nonprim.tsv";
+    private String trainingCorpusPath = "/home/wurzel/HiwiAK/cogs2021/COGS/data/train.tsv";
 
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.tsv file)")//, required = true)
-    private String devCorpusPath = "/home/wurzel/HiwiAK/cogs2021/small/dev100.tsv";
+    private String devCorpusPath = "/home/wurzel/HiwiAK/cogs2021/COGS/data/dev.tsv";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where amconll and supertag dictionary files are created")//, required = true)
     private String outPath = "/home/wurzel/HiwiAK/cogs2021/amconll/";
@@ -64,8 +64,8 @@ public class SourceAutomataCLICOGS {
     // private String algorithm = "random";  // todo so far won't work with primitives!!!!
     private String algorithm = "automata";
 
-//    @Parameter(names = {"--noPrimitives"}, description = "if this flag is set, primitives are excluded/ignored")
-//    private boolean noPrimitives=false;
+    @Parameter(names = {"--noPrimitives"}, description = "if this flag is set, primitives are excluded/ignored")
+    private boolean noPrimitives=false;
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -87,8 +87,7 @@ public class SourceAutomataCLICOGS {
             commander.usage();
             return;
         }
-        boolean noPrimitives = true;  // exclude primitives for now todo change later! (only debugging)
-        System.out.println("-------->> IMPORTANT: Excluding primitives for debugging? " + noPrimitives + " <<--------");
+        System.out.println("-------->> IMPORTANT: Excluding primitives for debugging? " + cli.noPrimitives + " <<--------");
         System.out.println("Train set: " + cli.trainingCorpusPath);
         System.out.println("Dev set:   " + cli.devCorpusPath);
         System.out.println("Output path: " + cli.outPath);
@@ -98,7 +97,7 @@ public class SourceAutomataCLICOGS {
         SupertagDictionary supertagDictionary = new SupertagDictionary();//future: load from file for dev set (better: get dev scores from training EM)
 
         //get automata for training set
-        List<MRInstance> trainCorpus = getSamplesFromFile(cli.trainingCorpusPath, noPrimitives);
+        List<MRInstance> trainCorpus = getSamplesFromFile(cli.trainingCorpusPath, cli.noPrimitives);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomata = new ArrayList<>();
         List<TreeAutomaton<?>> originalDecompositionAutomata = new ArrayList<>();
@@ -107,7 +106,7 @@ public class SourceAutomataCLICOGS {
         cli.processCorpus(trainCorpus, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
 
         //get automata for dev set
-        List<MRInstance> devCorpus = getSamplesFromFile(cli.devCorpusPath, noPrimitives);
+        List<MRInstance> devCorpus = getSamplesFromFile(cli.devCorpusPath, cli.noPrimitives);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomataDev = new ArrayList<>();
         List<TreeAutomaton<?>> originalDecompositionAutomataDev = new ArrayList<>();
@@ -227,16 +226,12 @@ public class SourceAutomataCLICOGS {
             // System.err.println("Sentence: "+inst.getSentence());
             // System.err.println("Index: "+index);
 
-            //TODO this next section is only for primitives
-            //Primitives need a special treatment because they _can_ contain open sources
+            // Primitives need a special treatment because they _can_ contain open sources
             // (at least verb primitives do, nouns would be fine)
             //TODO primitive identification through sentence lengths or open sources (which would exclude nouns?)
             boolean isPrimitive = (inst.getSentence().size() == 1);
-            if (isPrimitive) {
-                System.err.println("WARNING: Code here shouldn't be executed, because it is incomplete so far.");
+            if (isPrimitive) {  // this next section is only for primitives
                 List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> allConstants = new ArrayList<>();
-                //TODO fill this list with all allowed constants for that primitive
-                // make a function out of it?
                 SGraph graph = inst.getGraph();
                 // find sources:
                 Set<String> allSourcesExceptRoot = graph.getAllSources();
@@ -245,29 +240,23 @@ public class SourceAutomataCLICOGS {
                 if (allSourcesExceptRoot.isEmpty()) {  // only root source, no open sources
                     // if there are no open sources beyond the root node, the list of allConstants only consist of
                     // the graph we have already (which has the empty type)
-                    allConstants.add(new Pair<>(graph, ApplyModifyGraphAlgebra.Type.EMPTY_TYPE)); // todo actually type of root?
+                    allConstants.add(new Pair<>(graph, ApplyModifyGraphAlgebra.Type.EMPTY_TYPE)); // root doesn't count
                 }
                 else {  // there are open sources beyond the root node
-                    // we need to replace the sources with the placeholder sources s0, s1, ... all combinations of it
-                    // todo implement
-                    // all placeholder sources
-                    Set<String> placeholderSourceNames = new HashSet<>();
-                    for (int i = 0; i < nrSources; ++i) {
-                        placeholderSourceNames.add("S"+i);  // todo this is violating DRY and can result in inconsistencies
-                        // see SourceAssignmentAutomaton.makeSource
+                    // we need to replace the placeholder sources with the generalizable ones
+                    // Step 1: Check if there are enough generalizable sources
+                    if (allSourcesExceptRoot.size() > nrSources) {
+                        // each source should be unique within a graph constant, but if there are
+                        // e.g. 2 placeholder sources, but we only want 1 generalizable source, we can't do this
+                        // todo count failure here and move on to next sample instead of terminating? fails++;
+                        throw new RuntimeException("Not enough distinct generalizable sources!");
                     }
-                    if (allSourcesExceptRoot.size() > placeholderSourceNames.size()) {
-                        // constant contains more distinct sources than there are placeholder sources,
-                        // but each source should be unique within a graph constant,
-                        // so we can't map all sources to placeholder sources :(
-                        throw new RuntimeException("Not enough distinct placeholder sources!");
-                    }
-
-                    // todo so far only one constant
-                    List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> constants = getConstantsWithPlaceholderSources(graph, placeholderSourceNames);
+                    // Step 2: Get a list of constants where placeholder sources were replaced by generalizable ones.
+                    List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> constants = getConstantsWithGeneralizableSources(graph, nrSources);
                     allConstants.addAll(constants);
                 } // else // there are open sources beyond the root node
 
+                // Building the automaton
                 ConcreteTreeAutomaton<String> primitiveAutomaton = new ConcreteTreeAutomaton<>();
                 String primitiveAutomatonState = "X"; // doesn't really matter what the state is
                 primitiveAutomaton.addFinalState(primitiveAutomaton.addState(primitiveAutomatonState));
@@ -278,13 +267,14 @@ public class SourceAutomataCLICOGS {
                 }
                 concreteDecompositionAutomata.add(primitiveAutomaton);
                 originalDecompositionAutomata.add(primitiveAutomaton);
-                // todo why can't we use the normal COGSDecompositionPackage?
-                DecompositionPackage decompositionPackage = new COGSPrimitiveDecompositionPackage(inst, blobUtils);//TODO make decomposition package for primitive
+                //TODO why can't we use the normal COGSDecompositionPackage?
+//                DecompositionPackage decompositionPackage = new COGSDecompositionPackage(inst, blobUtils);
+                DecompositionPackage decompositionPackage = new COGSPrimitiveDecompositionPackage(inst, blobUtils);
                 decompositionPackages.add(decompositionPackage);
-                // todo do we also want to print stats successcounter, automata sizes and so on?
+                //TODO do we also want to print stats success counter, automata sizes and so on?
             } // is primitive
             else {  // is not a primitive
-                //TODO this next section is only for non-primitives
+                //this next section is only for non-primitives
                 SGraph graph = inst.getGraph();
                 try {
                     DecompositionPackage decompositionPackage = new COGSDecompositionPackage(inst, blobUtils);
@@ -521,39 +511,30 @@ public class SourceAutomataCLICOGS {
         zipFile.finish();
     }
 
-    static List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> getConstantsWithPlaceholderSources(SGraph graph, Set<String> placeholderSources) {
-        // q: how to get the placeholder source names?
-        // q: how to get all combinations? cross product but with all sources distinct in the tuple <s0,s0> not allowed
+    static List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> getConstantsWithGeneralizableSources(SGraph graph, int nrSources) {
+        // NOTE: this copies some code from SourceAssignmentAutomaton.makeAutomatonWithAllSourceCombinations
+        List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> constants = new ArrayList<>();
         Set<String> allSourcesExceptRoot = graph.getAllSources();
         allSourcesExceptRoot.remove(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
 
-        // all placeholder sources
-        List<String> placeholderSourceNames = new ArrayList<>(placeholderSources);
-
-        // all nodes
-        List<GraphNode> sourceNodes = new ArrayList<>();
-        List<String> oldSourceList = new ArrayList<>();
-        for (String source: allSourcesExceptRoot) {
-            String nodeName = graph.getNodeForSource(source);
-            GraphNode node = graph.getNode(nodeName);
-            sourceNodes.add(node);
-            oldSourceList.add(source);
-        }
-
-        List<Pair<SGraph, ApplyModifyGraphAlgebra.Type>> constants = new ArrayList<>();
-        // get constants with placeholder source name combinations instead of old sources
-        // similar to SourceAssignmentAutomaton.getAllMaps (private method)
-        // mapping: node(index in sourceNodes) - source(index in placeHolderSourceNames)
-        // todo so far only one
-        // todo maybe see SourceAssignmentAutomaton ? getAllMaps
-        ApplyModifyGraphAlgebra.Type newType = ApplyModifyGraphAlgebra.Type.EMPTY_TYPE;
-        newType.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
-        SGraph newSgraph = graph;  // we don't need to copy it since renameSource will leave graph unmodifed and return a new graph instead!
-        for (int i=0; i < sourceNodes.size(); ++i) {
-            newSgraph = newSgraph.renameSource(oldSourceList.get(i), placeholderSourceNames.get(i));
-            newType = newType.addSource(placeholderSourceNames.get(i));  // no requests
-        }
-        constants.add(new Pair<>(newSgraph, newType));
+        // get all mappings from placeholder sources (a,b,e) to generalizable sources (S0,S1,S2...)
+        List<Map<String, String>> allAssignments = SourceAssignmentAutomaton.getAllMaps(allSourcesExceptRoot, nrSources);
+        for (Map<String, String> sourceAssignment : allAssignments) {
+            // sourceAssignment.get(placeholderSource) --> generalizableSource
+            ApplyModifyGraphAlgebra.Type newType = ApplyModifyGraphAlgebra.Type.EMPTY_TYPE;
+            // not necessary to add root? newType.addSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
+            for (String oldSource : allSourcesExceptRoot) {
+                // could also just add everything in keySet of sourceAssignment
+                newType = newType.addSource(sourceAssignment.get(oldSource));
+            }
+            //TODO: type has no requests. Is that what we want?
+            SGraph newSGraph = graph;  // we don't need to copy it since renameSource will leave graph unmodified and return a new graph instead!
+            for (String source : allSourcesExceptRoot) {
+                newSGraph = newSGraph.renameSource(source, sourceAssignment.get(source));
+            }
+            Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = new Pair<>(newSGraph, newType);
+            constants.add(constant);
+        }  // for each possible placeholder source to generalizable source mapping
         return constants;
     }
 }
