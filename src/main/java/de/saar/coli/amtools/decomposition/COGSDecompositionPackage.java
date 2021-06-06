@@ -22,9 +22,9 @@ import java.util.List;
  */
 public class COGSDecompositionPackage extends DecompositionPackage {
 
-    private final AMRBlobUtils blobUtils;  ///< actually COGSBlobUtils when initialized (AMRBlobUtils is the superclass)
-    private final MRInstance mrInstance;  ///< contains tokens of the sentence, an sGraph and a list of alignments
-    private final boolean useLexLabelReplacement = false;  ///< if true, lex label can be $LEMMA$ or $WORD$
+    protected final AMRBlobUtils blobUtils;  ///< actually COGSBlobUtils when initialized (AMRBlobUtils is the superclass)
+    protected final MRInstance mrInstance;  ///< contains tokens of the sentence, an sGraph and a list of alignments
+    protected final boolean useLexLabelReplacement = false;  ///< if true, lex label can be $LEMMA$ or $WORD$
     // for now we don't use this replacement for simplicity reasons
 
     public COGSDecompositionPackage(MRInstance mrInstance, AMRBlobUtils blobUtils) {
