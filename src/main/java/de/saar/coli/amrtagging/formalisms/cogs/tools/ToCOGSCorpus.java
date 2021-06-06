@@ -7,7 +7,6 @@ import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm;
 import de.saar.coli.amrtagging.formalisms.cogs.LogicalFormConverter;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -85,10 +84,12 @@ public class ToCOGSCorpus {
         int totalSentencesSeen = 0;
         int totalExactMatches = 0;
         int totalEditDistance = 0;
+        int illformednessErrors = 0;
         // for each type and for each metric in (Exact match, edit distance) compute score
         Map<String, Float> type2editdsum = new HashMap<>();  // active_to_passive  -> 5.7 (summation of edit distances)
         Map<String, Float> type2exactmsum = new HashMap<>();  // active_to_passive  -> 3.0 (summation of exact matches)
         Counter<String> type2count = new Counter<>(); // active_to_passive -> 12 (seen 12 samples)
+        Counter<String> illformedErrorsPerGenTypeCntr = new Counter<>();
 
         for (AmConllSentence amsent : sents) {
             totalSentencesSeen += 1;
@@ -96,7 +97,7 @@ public class ToCOGSCorpus {
             //if (! id.startsWith("#")) id = "#" + id;
             List<String> tokens = amsent.words();  // todo any art-root I have to exclude?
 
-            boolean read = false;
+            boolean isIllformed = false;
             /*try {*/
             // Step 1: Evaluate predicted AM dep tree to graph
             // AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(amsent);
@@ -112,6 +113,8 @@ public class ToCOGSCorpus {
                 // Exception in thread "main" java.lang.IllegalArgumentException: Ill-formed logical form? First argument of term can't be proper name.
                 // todo maybe not raise exception there?
                 // sentence number " + totalSentencesSeen + " at input file line "+ amsent.getLineNr()
+                isIllformed = true;
+                illformednessErrors += 1;
                 System.err.println("Sentence no. "+ totalSentencesSeen+" at input file line: " + amsent.getLineNr() +
                         ": Error during graph to COGS logical form conversion: " +
                         "Proceed with '"+predicedLFString+"' as dummy logical form output. " +
@@ -145,7 +148,9 @@ public class ToCOGSCorpus {
                     throw new RuntimeException("Sentence of amconll and gold file don't match! " +
                             "AmConLL sentence line no: " + amsent.getLineNr());
                 }
-
+                if (isIllformed) {
+                    illformedErrorsPerGenTypeCntr.add(genType);
+                }
 
                 // (b) get logical form
                 COGSLogicalForm goldLF = new COGSLogicalForm(sample.tgt_tokens);
@@ -176,9 +181,9 @@ public class ToCOGSCorpus {
                 }
                 else if (cli.verbose) {
                     System.err.println("--No exact match for sentence number " + totalSentencesSeen + " at input file line "+ amsent.getLineNr()+" :");
-                    System.err.println("Edit distance: " + editDistance);
-                    System.err.println("Gold:   " + goldLF.toString());
-                    System.err.println("System: " + predicedLFString);
+                    System.err.println("  Edit distance: " + editDistance + " || Gen type: " + genType);
+                    System.err.println("  Gold:   " + goldLF.toString());
+                    System.err.println("  System: " + predicedLFString);
                 }
             }
 
@@ -215,19 +220,46 @@ public class ToCOGSCorpus {
             result = totalSentencesSeen > 0 ? (float) totalEditDistance / totalSentencesSeen : 0;
             System.out.println("Average token-level edit distance: " + String.format(java.util.Locale.US,"%.2f", result));
 
+            System.out.println("Ill-formedness errors: " + illformednessErrors);
+
             // metrics per generalization type if verbose output requested
             if (cli.verbose) {
-                System.out.println("Per generalization type scores:  (type TAB average edit distance TAB exact match TAB #samples)");
-                List<Object2IntMap.Entry<String>> sorted = type2count.getAllSorted();
-                for (Object2IntMap.Entry e: sorted) {
-                    int count = e.getIntValue();
-                    String type = (String) e.getKey();
+                System.out.println("Ill-formedness errors per generalization type:");
+                // errorsPerGenTypeCntr.printAllSorted(); // writes to stderr
+                List<Object2IntMap.Entry<String>> entryList = illformedErrorsPerGenTypeCntr.getAllSorted();
+                for (Object2IntMap.Entry<String> entry : entryList) {
+                    System.out.println("\t" + entry.getIntValue() + "\t" + entry.getKey() );
+                }
+
+                System.out.println("Per generalization type scores:");
+                System.out.println("\t#samples\tgenType\texact match\tavg. edit distance\tavg. edit distance error cases only");
+                // preparation: get all seen types in the right order
+                ArrayList<String> genTypesSorted = cli.getGenTypesSorted();
+                Set<String> seenTypes = type2count.getAllSeen();
+                Set<String> noDupl = new HashSet<>();
+                for (String type: seenTypes) {  // todo: don't do this: for each seenType iterate over 21-sized list!
+                    if (!genTypesSorted.contains(type)) {
+                        noDupl.add(type);
+                    }
+                }
+                genTypesSorted.addAll(noDupl);
+
+                // Print one line per seen generalization type
+                for (String type: genTypesSorted) {
+                    int count = type2count.get(type);
+                    if (count == 0) {
+                        continue;
+                    }
+                    Float exactMatchCount = type2exactmsum.get(type);
+                    Float exactmAvg = exactMatchCount / count;
                     Float editdAvg = type2editdsum.get(type) / count;
-                    Float exactmAvg = type2exactmsum.get(type) / count;
-                    System.out.println("\t"+type
-                            +"\t"+ String.format(java.util.Locale.US,"%.2f", editdAvg)
+                    Float editdAvgErrorOnly = exactMatchCount == count ? 0.0F : type2editdsum.get(type) / (count-exactMatchCount);
+                    System.out.println("\t"+count
+                            +"\t"+ type
                             +"\t"+ String.format(java.util.Locale.US,"%.2f", exactmAvg)
-                            +"\t"+ count);
+                            +"\t"+ String.format(java.util.Locale.US,"%.2f", editdAvg)
+                            +"\t"+ String.format(java.util.Locale.US,"%.2f", editdAvgErrorOnly)
+                            );
                 }
             } // if verbose
         }
@@ -291,6 +323,18 @@ public class ToCOGSCorpus {
         return v0[length2];
     }
 
+    public ArrayList<String> getGenTypesSorted() {
+        // generalization types sorted as in COGS paper
+        return new ArrayList<>(Arrays.asList(
+                "subj_to_obj_common", "subj_to_obj_proper", "obj_to_subj_common", "obj_to_subj_proper",
+                "prim_to_subj_common", "prim_to_subj_proper", "prim_to_obj_common", "prim_to_obj_proper",
+                "prim_to_inf_arg", "obj_pp_to_subj_pp", "cp_recursion", "pp_recursion",
+                "active_to_passive", "passive_to_active", "obj_omitted_transitive_to_transitive", "unacc_to_transitive",
+                "do_dative_to_pp_dative", "pp_dative_to_do_dative",
+                "only_seen_as_transitive_subj_as_unacc_subj", "only_seen_as_unacc_subj_as_obj_omitted_transitive_subj",
+                "only_seen_as_unacc_subj_as_unerg_subj"
+        ));
+    }
 
 
 }
