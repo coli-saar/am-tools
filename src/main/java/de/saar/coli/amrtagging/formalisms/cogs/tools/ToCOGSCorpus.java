@@ -218,7 +218,7 @@ public class ToCOGSCorpus {
 
             // System.out.println("Average token-level edit distance");
             result = totalSentencesSeen > 0 ? (float) totalEditDistance / totalSentencesSeen : 0;
-            System.out.println("Average token-level edit distance: " + String.format(java.util.Locale.US,"%.2f", result));
+            System.out.println("Average token-level edit distance: " + String.format(java.util.Locale.US,"%.4f", result));
 
             System.out.println("Ill-formedness errors: " + illformednessErrors);
 
