@@ -122,6 +122,18 @@ public class ToCOGSCorpus {
                 //illegalArgumentException.printStackTrace();
                 predictedLF = null;
             }
+            catch (AlignedAMDependencyTree.ConllParserException ex) {
+                // e.g. "There seems to be no root for this AmConllSentence. Line .."
+                // (once occurred when it wasn't properly trained)
+                isIllformed = true;
+                illformednessErrors += 1;
+                System.err.println("Sentence no. "+ totalSentencesSeen+" at input file line: " + amsent.getLineNr() +
+                        ": AM dependency tree has a problem: " +
+                        "Proceed with '"+predicedLFString+"' as dummy logical form output. " +
+                        "Error message: '"+ex.getMessage()+"'.");
+                //ex.printStackTrace();
+                predictedLF = null;
+            }
             // Graph outputSent = SGraphConverter.toSDPGraph(evaluatedGraph, sdpSent); //add edges
 
             // Step 3: if gold data available: get graph there too and evaluate
