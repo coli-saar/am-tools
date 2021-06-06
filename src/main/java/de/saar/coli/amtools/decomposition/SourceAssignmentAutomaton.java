@@ -132,7 +132,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     }
 
 
-    private static List<Map<String, String>> getAllMaps(Set<String> inputSources, int nrSources) {
+    public static List<Map<String, String>> getAllMaps(Set<String> inputSources, int nrSources) {
         if (inputSources.size() > nrSources) {
             return Collections.emptyList();
         }
