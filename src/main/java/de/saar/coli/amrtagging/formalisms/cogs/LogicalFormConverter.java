@@ -13,6 +13,7 @@ import de.up.ling.irtg.algebra.graph.SGraph;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Argument;
 import de.saar.coli.amrtagging.formalisms.cogs.COGSLogicalForm.Term;
 import de.up.ling.tree.ParseException;
+import org.apache.commons.lang.NotImplementedException;
 import org.jgrapht.graph.DirectedMultigraph;
 
 import java.util.*;
@@ -30,6 +31,7 @@ import java.util.*;
  * - Alignment: is is 0-indexed or 1-indexed? currently assumes 0-indexed. Check what Alignment wants and maybe change..
  * - refactoring (is there duplicate code or very similar code that could be a method on its own?)
  * - what is a node name (not label) for proper names? need to recover in postprocessing something?
+ * - conversion of graph back to lambda logical form (due to need to pick the correct lambda var...)
  * TODO: Problems
  * - alignments for determiners and proper names rely on heuristics and hope (see to-do-notes below)
  * - same would hold for prepositions, but the current encoding transforms them to edges (only nodes need alignments)
@@ -38,7 +40,6 @@ import java.util.*;
  * Created April 2021
  */
 public class LogicalFormConverter {
-    public static final String LEMMA_SEPARATOR = "~~";  // todo currently only used for lambdavar "x_e~~giggle", "x_Ava~~Ava"
     public static final String IOTA_EDGE_LABEL = "iota";
     public static final String IOTA_NODE_LABEL = "the";
     public static final String NODE_NAME_PREFIX = "x_";
@@ -97,10 +98,10 @@ public class LogicalFormConverter {
         }
         // * add the lemma to the lexical(= root) node
         assert(lemma != null);  // should have seen at least one term
-        lexicalNode.setLabel(lexarg.getName()+LEMMA_SEPARATOR+lemma);
+        lexicalNode.setLabel(lemma);
         // ** Alignments
         //  We align all nodes (the 'lemma' node and even the unlabeled nodes with just sources) to the token.
-        //  There is only one word in the input, so at position 0.
+        //  There is only one word in the input, so at position 0. // todo what if we only align the lexical node of a primtive?
         for (String nodename: graph.getAllNodeNames()) {
             alignments.add(new Alignment(nodename, 0));
         }
@@ -315,7 +316,6 @@ public class LogicalFormConverter {
 
     // todo test this implementation, also adapt (other direction: lf2graph currently not working)
     private static COGSLogicalForm lambdaToLForm(MRInstance mr) {
-        // x_e / "e~~want"     x_b<b>/null
         List<String> sentenceTokens = mr.getSentence();
         int sentLength = sentenceTokens.size();
         assert(sentLength == 1);
@@ -344,13 +344,18 @@ public class LogicalFormConverter {
                 argname = srcs.iterator().next();
             }
             else {
-                // assume no source except root? assume contains ~~   //e~want
-                assert(nodelabel.contains(LEMMA_SEPARATOR));
-                String[] parts = nodelabel.split(LEMMA_SEPARATOR);
-                argname = parts[0];
-                assert(argname.equals("a") || argname.equals("b") || argname.equals("e")); // todo do this check here?
-                assert(lemma == null);
-                lemma = parts[1];
+                throw new NotImplementedException("Lambda Graph to LF not implemented yet");
+                // if we don't place the lambda variable (a, b, e) in the lexical label: how to we select the
+                // correct one in order to achieve exact match /loss-less conversion?
+                // can we exploit heuristics?
+                // (noun: a, verb: e is root, transitive verb: b-agent,theme-a, intransitive verb: agent/theme is a
+//                // assume no source except root? assume contains ~~   //e~want
+//                assert(nodelabel.contains("~~"));
+//                String[] parts = nodelabel.split("~~");
+//                argname = parts[0];
+//                assert(argname.equals("a") || argname.equals("b") || argname.equals("e")); // todo do this check here?
+//                assert(lemma == null);
+//                lemma = parts[1];
             }
             Argument arg = new Argument(argname);
             lambdavars.add(arg);
