@@ -90,6 +90,8 @@ public class ToCOGSCorpus {
         Map<String, Float> type2exactmsum = new HashMap<>();  // active_to_passive  -> 3.0 (summation of exact matches)
         Counter<String> type2count = new Counter<>(); // active_to_passive -> 12 (seen 12 samples)
         Counter<String> illformedErrorsPerGenTypeCntr = new Counter<>();
+        Counter<String> recursionDepths2count = new Counter<>();  // recursion depth evaluation
+        Counter<String> recursionDepths2success = new Counter<>();
 
         for (AmConllSentence amsent : sents) {
             totalSentencesSeen += 1;
@@ -197,6 +199,14 @@ public class ToCOGSCorpus {
                     System.err.println("  Gold:   " + goldLF.toString());
                     System.err.println("  System: " + predicedLFString);
                 }
+                if (cli.verbose && genType.endsWith("recursion")) { // cp/pp recursion: depth
+                    int depth = cli.getRecursionDepth(genType, sample.src_tokens);
+//                    String key = genType+depth;
+                    String key = depth <= 5 ? genType+depth : genType+">5";
+//                    String key = depth <= 5 ? genType+"<=5" : genType+">5";
+                    recursionDepths2count.add(key);
+                    if (exactMatch) { recursionDepths2success.add(key); }
+                }
             }
 
             // Step 4: Write the graph (the one based on the amconll sentence) to file [if output path was provided]
@@ -273,6 +283,19 @@ public class ToCOGSCorpus {
                             +"\t"+ String.format(java.util.Locale.US,"%.2f", editdAvgErrorOnly)
                             );
                 }
+
+                // Recursion depths:
+                System.out.println("Recursion depths:\nKey\tcount\tsuccesses\tsuccess rate");
+                for (String key: recursionDepths2count.getAllSeen()) {
+                    int count = recursionDepths2count.get(key);
+                    int successes = recursionDepths2success.get(key);
+                    assert(count > 0);
+                    float success_rate = successes / (float) count;
+                    System.out.println("\t"+key
+                            +"\t"+count+"\t"
+                            +successes+"\t"
+                            +String.format(java.util.Locale.US,"%.2f", success_rate));
+                }
             } // if verbose
         }
 
@@ -346,6 +369,25 @@ public class ToCOGSCorpus {
                 "only_seen_as_transitive_subj_as_unacc_subj", "only_seen_as_unacc_subj_as_obj_omitted_transitive_subj",
                 "only_seen_as_unacc_subj_as_unerg_subj"
         ));
+    }
+
+    public int getRecursionDepth(String genType, List<String> src_tokens) {
+        int depth = -1;
+        // todo: for counting can I use some built in count function on list, should i use regexes?
+        // todo: test this function
+        if (genType.startsWith("cp")) { // count number of "that"
+            depth = 0;
+            for (String token: src_tokens) {
+                if (token.equals("that")) { depth++; }
+            }
+        }
+        else if (genType.startsWith("pp")) { // count number of prepositions
+            depth = 0;
+            for (String token: src_tokens) {
+                if (token.equals("on") || token.equals("in") || token.equals("beside")) { depth++; }
+            }
+        }
+        return depth;
     }
 
 
