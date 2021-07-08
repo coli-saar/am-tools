@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.io.PrintStream;
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 // import org.codehaus.groovy.runtime.powerassert.SourceText;
 
@@ -474,5 +475,25 @@ public class EdgeProbabilities implements Serializable {
     public int getRootEdgeId() {
         return rootEdgeId;
     }
-    
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner("\n");
+        for (int from : probs.keySet()) {
+            Int2ObjectMap<Int2DoubleMap> nestedMap = probs.get(from);
+            for (int to : nestedMap.keySet()) {
+                sj.add("["+from+","+to+"]");
+                Int2DoubleMap scoreMap = nestedMap.get(to);
+                for (int labelID : scoreMap.keySet()) {
+                    sj.add(labelID + ": " + scoreMap.get(labelID));
+                }
+
+            }
+        }
+        return "EdgeProbabilities{" +
+                "probs=" + sj.toString() +
+                ", ignoreEdgeId=" + ignoreEdgeId +
+                ", rootEdgeId=" + rootEdgeId +
+                '}';
+    }
 }

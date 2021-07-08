@@ -266,7 +266,7 @@ public class Astar {
             // Skip rules maintain the invariant that the root of an item is not NULL.
 
             // skip to the right
-            if (it.getEnd() < N) {
+            if (it.getEnd() <= N) {
                 Item skipRight = makeSkipItem(it, it.getStart(), it.getEnd() + 1, it.getEnd());
 
                 if (skipRight != null) {
@@ -321,8 +321,17 @@ public class Astar {
         double nullProb = tagp.get(skippedPosition, tagp.getNullSupertagId());        // log P(supertag = NULL | skippedPosition)
         double ignoreProb = edgep.get(0, skippedPosition, edgep.getIgnoreEdgeId());   // log P(inedge = IGNORE from 0 | skippedPosition)
 
+        if (debug) {
+            System.err.println("trying to skip index " + skippedPosition + " for item " + originalItem);
+            System.err.println("Null tag prob: "+nullProb);
+            System.err.println("Ignore edge prob: "+ignoreProb);
+        }
+
         if (nullProb + ignoreProb < FAKE_NEG_INFINITY / 2) {
             // either NULL or IGNORE didn't exist - probably IGNORE
+            if (debug) {
+                System.err.println("skip failed, either NULL or IGNORE didn't exist");
+            }
             return null;
         }
 
@@ -337,6 +346,9 @@ public class Astar {
         itemAfterSkip.setOutsideEstimate(outside.evaluate(itemAfterSkip));
         itemAfterSkip.setCreatedByOperation(-1, originalItem, null); // -1 is arbitrary, the thing that counts is that right=null
 
+        if (debug) {
+            System.err.println("successfully skipped, yielding item " + itemAfterSkip);
+        }
         return itemAfterSkip;
     }
 
@@ -483,6 +495,9 @@ public class Astar {
         @Parameter(names = "--print-data", description = "Write the relevant data in the last line")
         private boolean printAmConll = false;
 
+        @Parameter(names = "--debug", description = "Print (somewhat verbose) debug information")
+        private boolean printDebug = false;
+
         @Parameter(names = {"--limit-items", "-L"}, description = "Break off A* search unsuccessfully after dequeueing this many items")
         private int limitItems = -1;
 
@@ -583,6 +598,12 @@ public class Astar {
 
         List<SupertagProbabilities> tagp = scoreReader.getSupertagProbabilities();
 
+        if (arguments.printDebug) {
+            System.err.println("Supertag lexicon:");
+            System.err.println(scoreReader.getSupertagLexicon());
+            System.err.println("Edge label lexicon:");
+            System.err.println(scoreReader.getEdgeLabelLexicon());
+        }
 
 
         // calculate edge-label lexicon
@@ -658,9 +679,19 @@ public class Astar {
                     try {
                         w.record();
 
+
+                        if (arguments.printDebug) {
+                            System.err.println("\nSupertag probabilities for sentence "+ii+":");
+                            System.err.println(tagp.get(ii));
+                            System.err.println("Edge probabilities for sentence "+ii+":");
+                            System.err.println(scoreReader.getEdgeProbabilities().get(ii));
+                        }
+
                         astar = new Astar(scoreReader.getEdgeProbabilities().get(ii), tagp.get(ii), scoreReader.getIdToSupertag(), scoreReader.getSupertagLexicon(), scoreReader.getEdgeLabelLexicon(), typeLexicon, arguments.outsideEstimatorString, true);
                         astar.setBias(arguments.bias);
                         astar.setDeclutterAgenda(arguments.declutter);
+
+                        astar.setDebug(arguments.printDebug);
 
                         if (!arguments.logToStderr) {
                             astar.setLogger((s) -> {
