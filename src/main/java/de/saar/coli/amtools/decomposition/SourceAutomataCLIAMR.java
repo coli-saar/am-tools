@@ -331,8 +331,15 @@ public class SourceAutomataCLIAMR {
                         result = contractMultinodeConstant(result, nodesInConstant, decompositionPackage, outcomeCounter);
                     }
 
-
-                    SGraph resultGraph = result.evaluate().left;
+                    SGraph resultGraph;
+                    try {
+                        resultGraph = result.evaluate().left;
+                    } catch (NullPointerException nullEx) {
+                        nondecomposeable++;
+                        outcomeCounter.add("fail");
+                        outcomeCounter.add("subfail NullPointerException during evaluation");
+                        continue;
+                    }
                     resultGraph.removeNode("ART-ROOT");
 
                     graph.setEqualsMeansIsomorphy(false);
@@ -377,10 +384,14 @@ public class SourceAutomataCLIAMR {
                     }
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException ex ) {
                     nondecomposeable++;
+                    System.err.println("deep decomp issue: NoEdgeToRequiredModifieeException (size "+graph.getGraph().vertexSet().size()+")");
+                    System.err.println(graph.toIsiAmrStringWithSources());
                     outcomeCounter.add("fail");
                     outcomeCounter.add("subfail deep decomp issue: NoEdgeToRequiredModifieeException");
                 } catch (DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
+                    System.err.println("deep decomp issue: CyclicGraphException (size "+graph.getGraph().vertexSet().size()+")");
+                    System.err.println(graph.toIsiAmrStringWithSources());
                     outcomeCounter.add("fail");
                     outcomeCounter.add("subfail deep decomp issue: CyclicGraphException");
                 } catch (Exception ex) {
@@ -404,6 +415,10 @@ public class SourceAutomataCLIAMR {
     private static AMDependencyTree contractMultinodeConstant(AMDependencyTree amDep, Set<String> nodesInConstant, DecompositionPackage decompositionPackage,
                                                               Counter<String> outcomeCounter) {
 
+        if (amDep == null) {
+            return null; // we handle that elsewhere
+        }
+
         List<AMDependencyTree> attachInThisTree = new ArrayList<>();
         Set<Pair<String, AMDependencyTree>> replaceThis = new HashSet<>();
 
@@ -412,7 +427,10 @@ public class SourceAutomataCLIAMR {
             result = buildContractedTree(amDep, attachInThisTree,
                     replaceThis, nodesInConstant, decompositionPackage, false);
         } catch (IllegalArgumentException ex) {
-            outcomeCounter.add("subfail illegal MOD move");
+            System.err.println("illegal MOD move in constant contraction");
+            System.err.println(nodesInConstant.toString());
+            System.err.println(amDep.toString());
+//            outcomeCounter.add("subfail illegal MOD move");
             throw ex;
         }
         AMDependencyTree toBeInserted = result.left;
@@ -421,7 +439,7 @@ public class SourceAutomataCLIAMR {
         int virtuallyAttachAtTop = isInNodeset(amDep.getHeadGraph(), decompositionPackage, nodesInConstant)? 1 : 0;
 
         if (attachInThisTree.size() +virtuallyAttachAtTop > 1) {
-            outcomeCounter.add("subfail disconnected alignment");
+//            outcomeCounter.add("subfail disconnected alignment");
             throw new IllegalArgumentException("Constant to be contracted is disconnected");
         } else {
             try {
