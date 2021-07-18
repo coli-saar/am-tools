@@ -67,6 +67,9 @@ public class SourceAutomataCLICOGS {
     @Parameter(names = {"--noPrimitives"}, description = "if this flag is set, primitives are excluded/ignored")
     private boolean noPrimitives=false;
 
+    @Parameter(names = {"--reifyprep", "-r"}, description = "if set, prepositions are reified (node instead of edge) (default: false)")
+    private boolean reifyPrepositions=false;  // todo is this working
+
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
@@ -91,6 +94,11 @@ public class SourceAutomataCLICOGS {
         System.out.println("Train set: " + cli.trainingCorpusPath);
         System.out.println("Dev set:   " + cli.devCorpusPath);
         System.out.println("Output path: " + cli.outPath);
+
+        System.out.println("Reify prepositions? " + cli.reifyPrepositions);
+        if (cli.reifyPrepositions) {
+            LogicalFormConverter.DO_PREP_REIFICATION = true;
+        }
 
         AMRBlobUtils blobUtils = new COGSBlobUtils();
 

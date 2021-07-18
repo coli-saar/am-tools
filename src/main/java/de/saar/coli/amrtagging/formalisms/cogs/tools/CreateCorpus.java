@@ -41,6 +41,9 @@ public class CreateCorpus {
     @Parameter(names = {"--vocab", "-v"}, description = "vocab file containing supertags (e.g. points to training vocab when doing dev/test files)")
     private String vocab = null;
 
+    @Parameter(names = {"--reifyprep", "-r"}, description = "if set, prepositions are reified (node instead of edge) (default: false)")
+    private boolean reifyPrepositions=false;  // todo is this working
+
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug = false;
 
@@ -73,6 +76,11 @@ public class CreateCorpus {
         ArrayList<AmConllSentence> outCorpus = new ArrayList<>();
         SupertagDictionary supertagDictionary = new SupertagDictionary();
         Scorer overall = new Scorer();
+
+        System.out.println("Reify prepositions? " + cli.reifyPrepositions);
+        if (cli.reifyPrepositions) { // todo debugging set to true
+            LogicalFormConverter.DO_PREP_REIFICATION = true;
+        }
 
         if (cli.vocab != null) {
             supertagDictionary.readFromFile(cli.vocab);
