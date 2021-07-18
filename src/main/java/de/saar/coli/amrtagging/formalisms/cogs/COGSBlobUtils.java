@@ -28,15 +28,18 @@ public class COGSBlobUtils extends AMRBlobUtils {
      * Which edges should belong to their source node?<br>
      * - the usually frame edges (<i>agent, theme, recipient, xcomp, ccomp</i>): their source node is the verb<br>
      * - the special <i>iota</i> edge: its source node is the determiner node<br>
+     * - if preposition reification: the outgoing edges from the preposition node (op1, op2)
      *
-     * (the opposite is inbound edges)<br>
-     * - since we decided to put the preposition edges ( <code>nmod.preposition</code> ) into the graph constant of the
+     * (the opposite is inbound edges, implicit)<br>
+     * - if no preposition reification:
+     *   since we decided to put the preposition edges ( <code>nmod.preposition</code> ) into the graph constant of the
      *   PP-noun, the edge should belong to the target node (the PP noun) instead of the source node (the modified noun)
      *   note: COGS dataset contains 3 prepositions: <code>"nmod.beside", "nmod.in", "nmod.on"</code>
      */
     public static final String[] OUTBOUND_EDGES = new String[]{
             "agent", "theme", "recipient", "xcomp", "ccomp",
-            LogicalFormConverter.IOTA_EDGE_LABEL
+            LogicalFormConverter.IOTA_EDGE_LABEL,
+            LogicalFormConverter.NMOD_EDGE_1_LABEL, LogicalFormConverter.NMOD_EDGE_2_LABEL
     };
 
 
