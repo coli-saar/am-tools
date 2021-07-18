@@ -1,5 +1,6 @@
 package de.saar.coli.amrtagging.formalisms.cogs;
 
+import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AlignedAMDependencyTree;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.AmConllSentence;
@@ -27,6 +28,7 @@ import java.util.*;
  * - iota: we treat iota as some special term: <i>* boy(x_1);</i> transformed to <i>the.iota(the, x_1_boy)</i><br>
  * - prepositions: the <i>nmod.preposition</i> edge belongs to the noun of the PP (not the modified noun!)<br>
  * - primitives: treated as graphs with potentially open sources...<br>
+ * NEW: option <code>DO_PREP_REIFICATION</code> to reify nmod.prep edges to nodes!!!
  * TODO: missing implementation:
  * - Alignment: is is 0-indexed or 1-indexed? currently assumes 0-indexed. Check what Alignment wants and maybe change..
  * - refactoring (is there duplicate code or very similar code that could be a method on its own?)
@@ -34,15 +36,19 @@ import java.util.*;
  * - conversion of graph back to lambda logical form (due to need to pick the correct lambda var...)
  * TODO: Problems
  * - alignments for determiners and proper names rely on heuristics and hope (see to-do-notes below)
- * - same would hold for prepositions, but the current encoding transforms them to edges (only nodes need alignments)
- * - for non-primitives we have to heuristically select a root node (heuristic: no incoming edges, excluding nmod ones)
+ * - same holds for prepositions if reified, but if not reified, is only edge (only nodes need alignments)
+ * - for non-primitives we have to heuristically select a root node (heuristic: no incoming edges, excluding nmod ones:
+ *   if prepositions reified preposition nodes also aren't allowed as root nodes)
  * @author piaw (weissenh)
  * Created April 2021
  */
 public class LogicalFormConverter {
     public static final String IOTA_EDGE_LABEL = "iota";
     public static final String IOTA_NODE_LABEL = "the";
+    public static final String NMOD_EDGE_1_LABEL = "nmod.op1";
+    public static final String NMOD_EDGE_2_LABEL = "nmod.op2";
     public static final String NODE_NAME_PREFIX = "x_";
+    public static boolean DO_PREP_REIFICATION = false; // nmod.in as an edge, or reify to a node?
 
     /// Method for converting 1-word primitive to an SGraph (plus alignments and sentence tokens) eg. `Ava\tAva`
     private static MRInstance NameToSGraph(COGSLogicalForm logicalForm, List<String> sentenceTokens) {
@@ -166,7 +172,7 @@ public class LogicalFormConverter {
         }
         // * add lemma as a label for each node corresponding to the first argument in some term
         // * edge for each term excluding unary
-        // * target nodes of edges can't be candiates for the root node (root node should have no incoming edges)
+        // * target nodes of edges can't be candidates for the root node (root node should have no incoming edges)
         GraphNode lemmaNode;
         for (Term t: logicalForm.getConjunctionTerms()) {
             // set lemma for the source node
@@ -180,15 +186,46 @@ public class LogicalFormConverter {
                 // add alignment for the lemma node
                 alignments.add(new Alignment(lemmaNode.getName(), firstArg.getIndex()));
             }
-            // if there is a second argument, we add an edge:
-            if (t.hasTwoArguments()) {
+            // if there is a second argument, we add an edge (for non-preposition):
+            if (t.hasTwoArguments()) { //
+                int predLength = t.getPredicate().getLength();  // walk.agent : length 2, shoe.nmod.in : length 3
+
                 Argument targetArg = t.getArguments().get(1);
-                GraphNode targetNode = graph.getNode(NODE_NAME_PREFIX+targetArg.getName());
-                graph.addEdge(lemmaNode, targetNode, t.getPredicate().getDelexPredAsString());
-                // the target node can't be a root node because it has an incoming edge (the one just created)
-                // note: this assumes that there are no 'reverse' edges.
-                // prepositions are not an exception:  cookie.nmod.beside(x_cookie, x_noun) : x_noun is not a root node
-                notCandidatesForRoot.add(targetNode);
+                GraphNode targetNode = graph.getNode(NODE_NAME_PREFIX + targetArg.getName());
+
+                if (predLength == 2 || !DO_PREP_REIFICATION) {
+                    graph.addEdge(lemmaNode, targetNode, t.getPredicate().getDelexPredAsString());
+                    // the target node can't be a root node because it has an incoming edge (the one just created)
+                    // note: this assumes that there are no 'reverse' edges.
+                    // prepositions are not an exception:  cookie.nmod.beside(x_cookie, x_noun) : x_noun is not a root node
+                    notCandidatesForRoot.add(targetNode);
+                }
+                else if (DO_PREP_REIFICATION && predLength == 3) {
+                    String preposition = t.getPredicate().getNameParts().get(predLength-1); // in / on / beside
+                    assert(t.getPredicate().getNameParts().get(1).equals("nmod"));  // todo magic string nmod
+                    // e.g. "shoe on the table" : shoe.nmod.on(x_0, x_3)
+                    // more general:  noun1 prep det noun2 : noun1.nmod.prep(x_noun1, x_noun2)
+                    // noun1 (lemmaNode, firstArg)  and noun2 (targetArg, targetNode)
+                    assert(targetArg.isIndex());  // in dataset we don't see "on/in/beside Eva"
+                    assert(firstArg.getIndex()+1 == targetArg.getIndex()-2);
+                    // todo: this preposition index is another heuristic licences by the dataset
+                    // int prepIndex = firstArg.getIndex()+1; // preposition directly follows noun1 (strictly right-branching)
+                    int prepIndex = targetArg.getIndex()-2; // preposition two positions before noun2 (determiner in between)
+                    // 1. new node for preposition ( x_1 / on )
+                    GraphNode prepositionNode = graph.addNode(NODE_NAME_PREFIX+prepIndex, preposition);
+                    // 2. preposition node is aligned to preposition index
+                    alignments.add(new Alignment(prepositionNode.getName(), prepIndex));
+                    // 3. preposition nodes can't be the root although it will have no incoming edges,
+                    //    and the node for the second noun has an incoming edge, so not a root candidate either
+                    notCandidatesForRoot.add(prepositionNode);
+                    notCandidatesForRoot.add(targetNode);
+                    // 4. edges prepnode to noun1 (op1) and noun2 (op2)
+                    graph.addEdge(prepositionNode, lemmaNode, NMOD_EDGE_1_LABEL);
+                    graph.addEdge(prepositionNode, targetNode, NMOD_EDGE_2_LABEL);
+                }
+                else {
+                    assert(false); // shouldn't happpen: only predicates of length 2 or 3
+                }
             }
         }
         // ** Alignment heuristic for proper names:
@@ -431,6 +468,9 @@ public class LogicalFormConverter {
         List<Term> conjuncts = new ArrayList<>();
         List<Term> iotas = new ArrayList<>();
 
+        List<GraphNode> prepositionNodes = new ArrayList<>();
+        List<Pair<GraphNode, GraphNode>> prepNouns = new ArrayList<>();
+
         // Step 1: (Node iter) get all arguments, (and unary predicates: iteration over nodes will get them for free)
         Map<String, Argument> arguments = new HashMap<>();
         Collection<String> nodes = sg.getAllNodeNames();
@@ -438,6 +478,39 @@ public class LogicalFormConverter {
         for (String nodename: nodes) {
             node = sg.getNode(nodename);
             nodelabel = node.getLabel();
+
+            // (0) exclude prepositions: detected based on the 2 outgoing nmod edges todo check for DO_PREP_REIFICATION or not necessary?
+            boolean foundOp1 = false;
+            boolean foundOp2 = false;
+            GraphNode noun1 = null;
+            GraphNode noun2 = null;
+            for (GraphEdge edge: meg.outgoingEdgesOf(node)) {
+                if (foundOp1 && foundOp2) {
+                    break;  // todo or check for more edges? shouldn't exist if well-formed?
+                }
+                if (edge.getLabel().equals(NMOD_EDGE_1_LABEL)) {
+                    noun1 = edge.getTarget();
+                    foundOp1 = true;
+                }
+                if (edge.getLabel().equals(NMOD_EDGE_2_LABEL)) {
+                    noun2 = edge.getTarget();
+                    foundOp2 = true;
+                }
+            }
+            if (foundOp1 && foundOp2) {
+                prepositionNodes.add(node);
+                prepNouns.add(new Pair<>(noun1, noun2));
+                //continue;  // for a preposition node, we don't want to create an argument
+                // however if graph is kinda illformed and has incoming edge, not creating an argument will result in a
+                // nullptr exception later on todo handle it there and then remove this hack here
+            }
+            if (foundOp1 ^ foundOp2) {  // if only one edge found but not the other (XOR: ^)
+                //assert(false);
+                //System.err.println("Node with label: " + nodelabel + " and did we find: op1? " + foundOp1 + " | op2? " + foundOp2);
+                // todo define own exception class (~converter error)
+                throw new RuntimeException("Converter problem: found only 1 out of 2 preposition edges. Ill-formed graph.");
+            }
+
             // (1) create Argument object
             // - Argument can either be Index, ProperName, the, ...( LambdaVar)
             // - todo where to get String for argument from? Lemma? Full Nodelabel?
@@ -452,6 +525,8 @@ public class LogicalFormConverter {
                 arg = new Argument(nodeName2Index.get(nodename));
             }
             arguments.put(nodename, arg);
+
+            if (foundOp1 && foundOp2) {continue;} // we don't want to add a unary predicate for preposition reification nodes
 
             // (2) find nodes for which unary predicate should be added.
             // Nodes must have 0 outgoing edges ('nmod'=preposition edges don't count) and shouldn't be proper names
@@ -492,7 +567,10 @@ public class LogicalFormConverter {
             String label = edge.getLabel();  // agent, nmod.in ,
 
             // (0) exclude special iota edges: they are just to signal that their target node is part of the iota prefix
+            //     special treatment is also needed for edges introduced by preposition reification
             if (label.equals(IOTA_EDGE_LABEL)) { continue; }
+            if (label.equals(NMOD_EDGE_1_LABEL) || label.equals(NMOD_EDGE_2_LABEL)) { continue; } // todo check for DO_PREP_REIFICATION or not necessary?
+
             // (1) add lemma of the source node to the predicate name ('re-lexicalize')
             String lemma = nodeName2Lemma.get(source.getName());
             assert(lemma != null);  // todo what if no lemma? rather do exception here?
@@ -503,6 +581,26 @@ public class LogicalFormConverter {
             Argument one = arguments.get(source.getName());  // todo assert that one is an Index? (except lambda)
             Argument two = arguments.get(target.getName());  // todo assert can be index, name (except lambda)
             // (3) build term and add it to the conjunction
+            Term term = new Term(pred, new ArrayList<>(Arrays.asList(one, two)));
+            conjuncts.add(term);
+        }
+
+        // Preposition reification need special treatment to construct term
+        assert(prepositionNodes.size() == prepNouns.size());
+        for (int i = 0; i < prepositionNodes.size(); ++i) {
+            GraphNode prepositionNode = prepositionNodes.get(i);
+            Pair<GraphNode, GraphNode> nounNodes = prepNouns.get(i);
+            GraphNode noun1Node = prepNouns.get(i).getLeft();
+            GraphNode noun2Node = prepNouns.get(i).getRight();
+
+            // (1) Predicate name
+            String fulllabel = noun1Node.getLabel()+".nmod."+prepositionNode.getLabel(); // assumes label of prep node is just lexical
+            List<String> pred = Arrays.asList(fulllabel.split("\\."));  // split at literal ., not regex .
+            // (2) Arguments (both assumed to be indices)
+            Argument one = arguments.get(noun1Node.getName());
+            Argument two = arguments.get(noun2Node.getName());
+            assert(one.isIndex() && two.isIndex()); // todo turn this into if-statement with exception (input validation?)
+            // (3) construct term and add it to the list of conjuncts
             Term term = new Term(pred, new ArrayList<>(Arrays.asList(one, two)));
             conjuncts.add(term);
         }
