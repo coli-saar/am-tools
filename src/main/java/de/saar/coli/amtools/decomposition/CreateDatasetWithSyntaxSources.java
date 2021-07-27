@@ -100,7 +100,7 @@ public class CreateDatasetWithSyntaxSources {
                 graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils, false);  // TODO make consistent with SourceAutomataCLI
             }
             graphCorpus.add(graph);
-            decompositionPackageList.add(new SDPDecompositionPackage(sdpGraph, blobUtils, false));
+            decompositionPackageList.add(new SDPDecompositionPackage(inst, blobUtils, false));
             sourceAssignerList.add(new SyntaxSourceAssigner(syntaxEdgeScoresIterator.next()));
         }
 

@@ -2,6 +2,7 @@ package de.saar.coli.amtools.decomposition;
 
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
+import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
@@ -19,12 +20,12 @@ public class SDPDecompositionPackage extends DecompositionPackage {
 
 
     private final AMRBlobUtils blobUtils;
-    private final Graph sdpGraph;
+    private final MRInstance mrInstance;
     private final boolean noNamedEntityTags;
 
-    public SDPDecompositionPackage(Graph sdpGraph, AMRBlobUtils blobUtils, boolean noNamedEntityTags) {
+    public SDPDecompositionPackage(MRInstance instance, AMRBlobUtils blobUtils, boolean noNamedEntityTags) {
         this.blobUtils = blobUtils;
-        this.sdpGraph = sdpGraph;
+        this.mrInstance = instance;
         this.noNamedEntityTags = noNamedEntityTags;
     }
 
@@ -33,31 +34,27 @@ public class SDPDecompositionPackage extends DecompositionPackage {
         AmConllSentence sent = new AmConllSentence();
 
         //add all words from the SDP graph, treating all as ignored for now
-        for (Node word : sdpGraph.getNodes()) {
-            if (word.id >= 1) {
-                AmConllEntry amConllEntry = new AmConllEntry(word.id, word.form);
-                amConllEntry.setAligned(true);
-                amConllEntry.setHead(0);
-                amConllEntry.setLemma(word.lemma);
-                amConllEntry.setPos(word.pos);
-                amConllEntry.setEdgeLabel(AmConllEntry.IGNORE);
-                sent.add(amConllEntry);
+        List<String> words = mrInstance.getSentence();
+        List<String> lemmas = mrInstance.getLemmas();
+        List<String> posTags = mrInstance.getPosTags();
+        for (int i = 0; i<words.size(); i++) {
+            // this also adds the artificial root, which is already contained in words
+            AmConllEntry amConllEntry = new AmConllEntry(i+1, words.get(i));
+            amConllEntry.setAligned(true);
+            amConllEntry.setHead(0);
+            amConllEntry.setLemma(lemmas.get(i));
+            amConllEntry.setPos(posTags.get(i));
+            amConllEntry.setEdgeLabel(AmConllEntry.IGNORE);
+            if (words.get(i).equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
+                amConllEntry.setEdgeLabel(AmConllEntry.ROOT_SYM);
+                amConllEntry.setLexLabel(AmConllEntry.LEMMA_PLACEHOLDER);
             }
+            sent.add(amConllEntry);
         }
-        // add artificial root
-        AmConllEntry artRoot = new AmConllEntry(sdpGraph.getNNodes(), SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        artRoot.setEdgeLabel(AmConllEntry.ROOT_SYM);
-        artRoot.setHead(0);
-        artRoot.setAligned(true);
-        artRoot.setLemma(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        artRoot.setPos(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        artRoot.setLexLabel(AmConllEntry.LEMMA_PLACEHOLDER);
-        sent.add(artRoot);
 
         //add NE tags
         if (!this.noNamedEntityTags) {
-            List<String> forms = sdpGraph.getNodes().subList(1, sdpGraph.getNNodes()).stream().map(word -> word.form).collect(Collectors.toList());
-            Sentence stanfAn = new Sentence(forms);
+            Sentence stanfAn = new Sentence(words);
             List<String> neTags = new ArrayList<>(stanfAn.nerTags());
             neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
             sent.addNEs(neTags);
@@ -76,7 +73,7 @@ public class SDPDecompositionPackage extends DecompositionPackage {
         String rootNodeName = graphFragment.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
         int id;
         if (rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
-            id = sdpGraph.getNNodes();// the artificial root position is the last in the sentence, which is original size + 1
+            id = mrInstance.getSentence().size();// since the sentence contains the artificial root in its last position
         } else {
             id = Integer.parseInt(rootNodeName.substring(2));// maps i_x to x
         }

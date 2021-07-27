@@ -304,7 +304,7 @@ public class SourceAutomataCLISDP {
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils, noNE);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, blobUtils, noNE);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 

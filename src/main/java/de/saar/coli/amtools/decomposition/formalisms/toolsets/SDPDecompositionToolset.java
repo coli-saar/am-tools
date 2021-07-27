@@ -14,9 +14,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An abstract GraphbankDecompositionToolset baseclass for
+ * An abstract GraphbankDecompositionToolset baseclass for the SDP corpora. Handles reading the corpus
  */
 public abstract class SDPDecompositionToolset extends GraphbankDecompositionToolset {
+
+    /**
+     * @param useStanfordTagger If useStanfordTagger is true, the decomposition packages will fill the empty NE/lemma/POS slots of
+     *                          the amconll file with the Stanford NLP solution. Else, the slots remain empty.
+     */
+    public SDPDecompositionToolset(Boolean useStanfordTagger) {
+        super(useStanfordTagger);
+    }
 
     @Override
     public List<MRInstance> readCorpus(String filePath) throws IOException {
@@ -31,11 +39,8 @@ public abstract class SDPDecompositionToolset extends GraphbankDecompositionTool
 
     @Override
     public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
-        return null;//new SDPDecompositionPackage();
+        return new SDPDecompositionPackage(instance, getEdgeHeuristics(), !useStanfordTagger);
     }
 
-    @Override
-    public AMRBlobUtils getEdgeHeuristics() {
-        return null;
-    }
+
 }

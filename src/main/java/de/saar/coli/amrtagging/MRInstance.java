@@ -47,6 +47,30 @@ public class MRInstance {
         this.graph = sg;
     }
 
+    public List<String> getLemmas() {
+        return lemmas;
+    }
+
+    public List<String> getPosTags() {
+        return posTags;
+    }
+
+    public List<String> getNeTags() {
+        return neTags;
+    }
+
+    public void setLemmas(List<String> lemmas) {
+        this.lemmas = lemmas;
+    }
+
+    public void setPosTags(List<String> posTags) {
+        this.posTags = posTags;
+    }
+
+    public void setNeTags(List<String> neTags) {
+        this.neTags = neTags;
+    }
+
     /**
      * @return the alignments
      */

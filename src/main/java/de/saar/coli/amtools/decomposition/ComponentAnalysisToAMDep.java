@@ -63,7 +63,7 @@ public class ComponentAnalysisToAMDep {
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils, true);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, blobUtils, true);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
