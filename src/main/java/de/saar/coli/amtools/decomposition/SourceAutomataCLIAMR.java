@@ -36,7 +36,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class SourceAutomataCLIAMR {
 
@@ -155,8 +154,8 @@ public class SourceAutomataCLIAMR {
 
         if (cli.algorithm.equals("automata")) {
 
-            SourceAutomataCLI.createAutomataZip(originalDecompositionAutomata, decompositionPackages, supertagDictionary, "train", cli.outPath);
-            SourceAutomataCLI.createAutomataZip(originalDecompositionAutomataDev, decompositionPackagesDev, supertagDictionary, "dev", cli.outPath);
+            SourceAutomataCLISDP.createAutomataZip(originalDecompositionAutomata, decompositionPackages, supertagDictionary, "train", cli.outPath);
+            SourceAutomataCLISDP.createAutomataZip(originalDecompositionAutomataDev, decompositionPackagesDev, supertagDictionary, "dev", cli.outPath);
 
         } else {
 

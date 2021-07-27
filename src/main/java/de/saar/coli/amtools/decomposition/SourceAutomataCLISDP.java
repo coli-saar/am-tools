@@ -32,15 +32,16 @@ import de.up.ling.tree.Tree;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
-import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-public class SourceAutomataCLI {
+import java.io.*;
+import java.nio.file.Paths;
+import java.util.*;
+
+public class SourceAutomataCLISDP {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.sdp file)")//, required = true)
     private String trainingCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\smallDev.sdp";
@@ -52,7 +53,7 @@ public class SourceAutomataCLI {
     private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\small\\";
 
 
-    @Parameter(names = {"--decompositionTool", "-dt"}, description = "Classname ")//, required = true)
+    @Parameter(names = {"--corpusType", "-ct"}, description = "values can be DM, PAS or PSD, default is DM")//, required = true)
     private String corpusType = "DM";
 
     @Parameter(names = {"--useLegacyPSDpreprocessing"}, description = "if this flag is set, uses legacy PSD preprocessing (same as in 2019 paper); otherwise uses new, broader preprocessing")
@@ -84,7 +85,7 @@ public class SourceAutomataCLI {
 
         // read command line arguments
         // cli stands for CommandLineInterface
-        SourceAutomataCLI cli = new SourceAutomataCLI();
+        SourceAutomataCLISDP cli = new SourceAutomataCLISDP();
         JCommander commander = new JCommander(cli);
         try {
             commander.parse(args);
@@ -99,9 +100,6 @@ public class SourceAutomataCLI {
             return;
         }
 
-//        Class<?> clazz = Class.forName(className);
-//        Constructor<?> ctor = clazz.getConstructor(String.class);
-//        Object object = ctor.newInstance(new Object[] { ctorArgument });
 
 
 
@@ -356,7 +354,7 @@ public class SourceAutomataCLI {
                             System.err.println(resultGraph.toIsiAmrStringWithSources());
                             fails++;
                         }
-                    } catch (Exception ex) {
+                    } catch (java.lang.Exception ex) {
                         System.err.println(index);
 //                        System.err.println(graph.toIsiAmrStringWithSources());
 //                        System.err.println(result);
@@ -365,7 +363,7 @@ public class SourceAutomataCLI {
                     }
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
-                } catch (Exception ex) {
+                } catch (java.lang.Exception ex) {
                     System.err.println(index);
 //                    System.err.println(graph.toIsiAmrStringWithSources());
                     ex.printStackTrace();

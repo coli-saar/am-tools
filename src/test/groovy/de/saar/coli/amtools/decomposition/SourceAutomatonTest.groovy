@@ -3,18 +3,13 @@ package de.saar.coli.amtools.decomposition
 import de.saar.basic.Pair
 import de.up.ling.irtg.automata.TreeAutomaton
 import de.up.ling.irtg.codec.BinaryIrtgInputCodec
-import de.up.ling.tree.Tree
 import de.up.ling.tree.TreeParser
 import de.up.ling.irtg.automata.Rule
 
-import java.nio.charset.Charset
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-import java.util.zip.ZipInputStream
 
-import static org.junit.Assert.*
 import org.junit.*
-import static de.up.ling.irtg.util.TestingTools.*;
 
 class SourceAutomatonTest {
 
@@ -23,7 +18,7 @@ class SourceAutomatonTest {
     @Test
     public void testDMDecomposition() {
         String[] args = "-t examples/decomposition_input/mini.dm.sdp -d examples/decomposition_input/mini.dm.sdp -o examples/decomposition_input/dm_out/ -ct DM -s 2 -a automata --noNE".split(" ");
-        SourceAutomataCLI.main(args);
+        SourceAutomataCLISDP.main(args);
         String zipPath = "examples/decomposition_input/dm_out/train.zip"
         String acceptedTree = "APP_S1('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())',APP_S0(APP_S1('(i_4<root> / --LEX--  :ARG1 (i_3<S1>)  :ARG2 (i_6<S0>))--TYPE--(S0(S1()))',MOD_S1(MOD_S1('(i_3<root> / --LEX--)--TYPE--()','(i_1<root> / --LEX--  :BV (i_3<S1>))--TYPE--(S1())'),'(i_2<root> / --LEX--  :ARG1 (i_3<S1>))--TYPE--(S1())')),'(i_2<root> / --LEX--  :ARG1 (i_3<S1>))--TYPE--(S1())'))"
 //        printZipFileParts(zipPath)
@@ -37,7 +32,7 @@ class SourceAutomatonTest {
     @Test
     public void testPASDecomposition() {
         String[] args = "-t examples/decomposition_input/mini.pas.sdp -d examples/decomposition_input/mini.pas.sdp -o examples/decomposition_input/pas_out/ -ct PAS -s 2 -a automata --noNE".split(" ");
-        SourceAutomataCLI.main(args);
+        SourceAutomataCLISDP.main(args);
         String zipPath = "examples/decomposition_input/pas_out/train.zip"
 //        printZipFileParts(zipPath)
         String acceptedTree = "APP_S1('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())',APP_S0(APP_S1('(i_4<root> / --LEX--  :verb_ARG1 (i_3<S1>)  :verb_ARG2 (i_6<S0>))--TYPE--(S0(S1()))',MOD_S0(MOD_S0('(i_3<root> / --LEX--)--TYPE--()','(i_2<root> / --LEX--  :adj_ARG1 (i_3<S0>))--TYPE--(S0())'),'(i_1<root> / --LEX--  :det_ARG1 (i_3<S0>))--TYPE--(S0())')),'(i_6<root> / --LEX--  :verb_ARG1 (i_3<S1>))--TYPE--(S1())'))"
@@ -51,7 +46,7 @@ class SourceAutomatonTest {
     @Test
     public void testPSDDecomposition() {
         String[] args = "-t examples/decomposition_input/mini.psd.sdp -d examples/decomposition_input/mini.psd.sdp -o examples/decomposition_input/psd_out/ -ct PSD -s 2 -a automata --noNE --useLegacyPSDpreprocessing".split(" ");
-        SourceAutomataCLI.main(args);
+        SourceAutomataCLISDP.main(args);
         String zipPath = "examples/decomposition_input/psd_out/train.zip"
 //        printZipFileParts(zipPath)
         String acceptedTree = "APP_S0('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S0>))--TYPE--(S0())',APP_S0(APP_S1('(i_4<root> / --LEX--  :ACT-arg (i_3<S0>)  :PAT-arg (i_6<S1>))--TYPE--(S1(S0()))','(i_6<root> / --LEX--  :ACT-arg (i_3<S0>))--TYPE--(S0())'),MOD_S1('(i_3<root> / --LEX--)--TYPE--()','(i_2<root> / --LEX--  :RSTR-of (i_3<S1>))--TYPE--(S1())')))"

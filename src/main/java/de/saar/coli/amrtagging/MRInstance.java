@@ -17,6 +17,9 @@ import java.util.Map;
 public class MRInstance {
     
     private List<String> sentence;
+    private List<String> lemmas;
+    private List<String> posTags;
+    private List<String> neTags;
     private SGraph graph;
     private List<Alignment> alignments;
     
