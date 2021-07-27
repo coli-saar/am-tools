@@ -423,6 +423,11 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     }
 
 
+    /**
+     * Just for testing/debugging things
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         String corpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.sdp";
         String corpusOutPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\dev.amconll";
@@ -460,7 +465,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils, true);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 

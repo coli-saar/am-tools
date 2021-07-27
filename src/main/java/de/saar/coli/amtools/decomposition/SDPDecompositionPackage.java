@@ -4,7 +4,6 @@ import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -21,10 +20,12 @@ public class SDPDecompositionPackage extends DecompositionPackage {
 
     private final AMRBlobUtils blobUtils;
     private final Graph sdpGraph;
+    private final boolean noNamedEntityTags;
 
-    public SDPDecompositionPackage(Graph sdpGraph, AMRBlobUtils blobUtils) {
+    public SDPDecompositionPackage(Graph sdpGraph, AMRBlobUtils blobUtils, boolean noNamedEntityTags) {
         this.blobUtils = blobUtils;
         this.sdpGraph = sdpGraph;
+        this.noNamedEntityTags = noNamedEntityTags;
     }
 
     @Override
@@ -54,11 +55,13 @@ public class SDPDecompositionPackage extends DecompositionPackage {
         sent.add(artRoot);
 
         //add NE tags
-        List<String> forms = sdpGraph.getNodes().subList(1, sdpGraph.getNNodes()).stream().map(word -> word.form).collect(Collectors.toList());
-        Sentence stanfAn = new Sentence(forms);
-        List<String> neTags = new ArrayList<>(stanfAn.nerTags());
-        neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
-        sent.addNEs(neTags);
+        if (!this.noNamedEntityTags) {
+            List<String> forms = sdpGraph.getNodes().subList(1, sdpGraph.getNNodes()).stream().map(word -> word.form).collect(Collectors.toList());
+            Sentence stanfAn = new Sentence(forms);
+            List<String> neTags = new ArrayList<>(stanfAn.nerTags());
+            neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
+            sent.addNEs(neTags);
+        }
 
         return sent;
     }

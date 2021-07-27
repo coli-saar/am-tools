@@ -36,6 +36,11 @@ public class ComponentAnalysisToAMDep {
         this.graph = graph;
     }
 
+    /**
+     * Just for testing/debugging things
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
                 //"C://Users/Jonas/Documents/Work/data/sdp/2015/dm/train.sdp";
@@ -58,7 +63,7 @@ public class ComponentAnalysisToAMDep {
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils, true);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 

@@ -40,12 +40,13 @@ public class CountSupertags {
         // Change this as needed
         // input will be pathPrefix + corporaFolder + corpus.amconll  (e.g. ... /training/AMR4.amconll)
         // output will be pathPrefix + /analysis/ + corporaFolder + corpus + /supertags/ (e.g. ... /analysis/training/AMR4/supertags/)
-        String corpus = args[2];  // AMR
-        String corporaFolder = args[1];  //EM
-        String pathPrefix = args[0];  //"/home/mego/Documents/amconll_files/";
+        String corpus = "COGS_amconll_list_train_epoch75"; //args[2];  // AMR
+        String corporaFolder = ""; //args[1];  //EM
+        String pathPrefix = "temp/"; //args[0];  //"/home/mego/Documents/amconll_files/";
 
         String heading = "Supertags sorted by graph constant in " + corporaFolder + "/" + corpus;
         String outpath = pathPrefix + "analysis/" + corporaFolder  + "/" + corpus + "/supertags/";
+
 
         // read in the file and make it into a list of type AmConllSentence
         String amconllFilePath = pathPrefix + corporaFolder  + "/" + corpus + ".amconll";
