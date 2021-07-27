@@ -7,11 +7,13 @@ package de.saar.coli.amrtagging;
 
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 
+import java.io.Serializable;
+
 /**
  *
  * @author koller
  */
-public class AnnotatedSupertag {
+public class AnnotatedSupertag implements Serializable {
     
     public final String graph;
     public final String type;
@@ -30,5 +32,9 @@ public class AnnotatedSupertag {
     public String graphAndTypeString() {
         return graph+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+type;
     }
-    
+
+    @Override
+    public String toString() {
+        return String.format("%s\t%s\t%g", graph, type, probability);
+    }
 }

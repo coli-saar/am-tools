@@ -185,19 +185,20 @@ public class CreateCorpus {
                 ex.printStackTrace();
                 problems++;
                 if (cli.debug){
-                        for (Alignment al : inst.getAlignments()){
-                            System.err.println(inst.getSentence().get(al.span.start));
-                            try {
-                                System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
-                            } catch (IllegalArgumentException ex2){
-                                System.err.println("[]"); //print empty list
-                            } catch (Exception e){
-                                System.err.println(e.getMessage());
-                            }
-                            
+                    System.err.println("Alignments (word and constant(s)):");
+                    for (Alignment al : inst.getAlignments()){
+                        System.err.println(inst.getSentence().get(al.span.start));
+                        try {
+                            System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
+                        } catch (IllegalArgumentException ex2){
+                            System.err.println("[]"); //print empty list
+                        } catch (Exception e){
+                            System.err.println(e.getMessage());
                         }
-                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
-                        System.err.println("=====end not decomposable=====");
+
+                    }
+                    System.err.println("Visualization with GraphViz:");
+                    System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
                 }
                 
                 if (ex.getMessage() != null && ex.getMessage().contains("More than one node with edges from outside")){
@@ -232,6 +233,7 @@ public class CreateCorpus {
                 } else {
                     //System.err.println(EDSUtils.simpleAlignViz(inst));
                 }
+                System.err.println("=====end not decomposable=====");
                 
             }
         }

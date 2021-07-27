@@ -146,15 +146,19 @@ public class CreateCorpus {
                     problems ++;
                     System.err.println("not decomposable " + inst.getSentence());
                     if (cli.debug){
+                        System.err.println("Alignments (word and constant(s)):");
                         for (Alignment al : inst.getAlignments()){
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
+                        System.err.println("Visualization with GraphViz:");
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
                     }
                     if (problems > 1){ //ignore the first problems
                         //SGraphDrawer.draw(inst.getGraph(), "");
                         //break;
                     }
+                    System.err.println("=====end not decomposable=====");
                 }
             } catch (Exception ex){
                 System.err.println("Ignoring an exception:");

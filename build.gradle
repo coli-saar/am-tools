@@ -7,7 +7,12 @@ plugins {
     id "com.peterabeles.gversion" version "1.5.0" //can retrieve git version from within code
 }
 
-mainClassName = 'de.saar.coli.irtg.experimental.astar.Astar'
+compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+}
+
+mainClassName = 'de.saar.coli.amtools.astar.Astar'
 
 //to make sure we always use UTF-8 (see https://gist.github.com/rponte/d660919434d094bbd35a1aabf7ef1bf0), otherwise I got errors on Windows -- JG
 compileJava.options.encoding = "UTF-8"
@@ -23,6 +28,7 @@ shadowJar {
 }
 
 repositories {
+    //mavenLocal()
     mavenCentral()
     maven { url 'http://akci.coli.uni-saarland.de/artifactory/external' }
     maven { url 'https://jitpack.io' }
@@ -72,7 +78,7 @@ dependencies {
     implementation 'edu.illinois.cs.cogcomp:illinois-ner:4.0.13'
     
     implementation 'com.owlike:genson:1.5'
-    
+    implementation group: 'com.opencsv', name: 'opencsv', version: '5.1'
     implementation 'de.ruedigermoeller:fst:2.56' // faster serialization
 }
 

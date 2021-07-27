@@ -97,3 +97,12 @@ examples/decomposition_input/pas_out/dev.zip
 examples/decomposition_input/pas_out/train.zip
 examples/decomposition_input/psd_out/dev.zip
 examples/decomposition_input/psd_out/train.zip
+content.tex
+test.sdp
+train_pas_small.amconll
+train_small.amconll
+examples/output/train.zip
+examples/output/dev.zip
+examples/namesDatesNumbers_AlsFixed.corpus
+examples/english.conll.4class.distsim.crf.ser.gz
+examples/english-bidirectional-distsim.tagger

@@ -246,10 +246,12 @@ public class CreateCorpus {
                     System.err.println(inst.getGraph());
                     System.err.println("not decomposable " + inst.getSentence());
                     if (cli.debug){
+                        System.err.println("Alignments (word and constant(s)):");
                         for (Alignment al : inst.getAlignments()){
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
+                        System.err.println("Visualization with GraphViz:");
                         System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
                     }
                     System.err.println("=====end not decomposable=====");
