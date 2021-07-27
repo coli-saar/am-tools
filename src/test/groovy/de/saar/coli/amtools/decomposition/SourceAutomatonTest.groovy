@@ -26,12 +26,55 @@ class SourceAutomatonTest {
         SourceAutomataCLI.main(args);
         String zipPath = "examples/decomposition_input/dm_out/train.zip"
         String acceptedTree = "APP_S1('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())',APP_S0(APP_S1('(i_4<root> / --LEX--  :ARG1 (i_3<S1>)  :ARG2 (i_6<S0>))--TYPE--(S0(S1()))',MOD_S1(MOD_S1('(i_3<root> / --LEX--)--TYPE--()','(i_1<root> / --LEX--  :BV (i_3<S1>))--TYPE--(S1())'),'(i_2<root> / --LEX--  :ARG1 (i_3<S1>))--TYPE--(S1())')),'(i_2<root> / --LEX--  :ARG1 (i_3<S1>))--TYPE--(S1())'))"
-        printZipFileParts(zipPath)
+//        printZipFileParts(zipPath)
         checkZipFile(zipPath, "1\tThe\t_\tThe\tDT\t_\t_\t_\t_\t3\tIGNORE\ttrue",
             23, acceptedTree, "[[](0), {Si4=>S1}]", "(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())",
                 new Pair(7,"(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())"),
                 "[[0](1), {Si3=>S1,Si6=>S0}]", "APP_S1", new String[]{"[[0](0), {Si3=>S1,Si6=>S0}]", "[[0, 0](2), {}]"},
                 new Pair(new Pair(4,3), "APP_S1"))
+    }
+
+    @Test
+    public void testPASDecomposition() {
+        String[] args = "-t examples/decomposition_input/mini.pas.sdp -d examples/decomposition_input/mini.pas.sdp -o examples/decomposition_input/pas_out/ -ct PAS -s 2 -a automata --noNE".split(" ");
+        SourceAutomataCLI.main(args);
+        String zipPath = "examples/decomposition_input/pas_out/train.zip"
+//        printZipFileParts(zipPath)
+        String acceptedTree = "APP_S1('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())',APP_S0(APP_S1('(i_4<root> / --LEX--  :verb_ARG1 (i_3<S1>)  :verb_ARG2 (i_6<S0>))--TYPE--(S0(S1()))',MOD_S0(MOD_S0('(i_3<root> / --LEX--)--TYPE--()','(i_2<root> / --LEX--  :adj_ARG1 (i_3<S0>))--TYPE--(S0())'),'(i_1<root> / --LEX--  :det_ARG1 (i_3<S0>))--TYPE--(S0())')),'(i_6<root> / --LEX--  :verb_ARG1 (i_3<S1>))--TYPE--(S1())'))"
+        checkZipFile(zipPath, "1\tThe\t_\tThe\tDT\t_\t_\t_\t_\t3\tIGNORE\ttrue",
+                23, acceptedTree, "[[0](0), {Si3=>S1,Si6=>S0}]", "(i_4<root> / --LEX--  :verb_ARG1 (i_3<S1>)  :verb_ARG2 (i_6<S0>))--TYPE--(S0(S1()))",
+                new Pair(4,"(i_4<root> / --LEX--  :verb_ARG1 (i_3<S1>)  :verb_ARG2 (i_6<S0>))--TYPE--(S0(S1()))"),
+                "[[0, 0](2), {}]", "MOD_S0", new String[]{"[[0, 0](1), {}]", "[[0, 0, 1](0), {Si3=>S0}]"},
+                new Pair(new Pair(3,1), "MOD_S0"))
+    }
+
+    @Test
+    public void testPSDDecomposition() {
+        String[] args = "-t examples/decomposition_input/mini.psd.sdp -d examples/decomposition_input/mini.psd.sdp -o examples/decomposition_input/psd_out/ -ct PSD -s 2 -a automata --noNE --useLegacyPSDpreprocessing".split(" ");
+        SourceAutomataCLI.main(args);
+        String zipPath = "examples/decomposition_input/psd_out/train.zip"
+//        printZipFileParts(zipPath)
+        String acceptedTree = "APP_S0('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S0>))--TYPE--(S0())',APP_S0(APP_S1('(i_4<root> / --LEX--  :ACT-arg (i_3<S0>)  :PAT-arg (i_6<S1>))--TYPE--(S1(S0()))','(i_6<root> / --LEX--  :ACT-arg (i_3<S0>))--TYPE--(S0())'),MOD_S1('(i_3<root> / --LEX--)--TYPE--()','(i_2<root> / --LEX--  :RSTR-of (i_3<S1>))--TYPE--(S1())')))"
+        checkZipFile(zipPath, "1\tThe\t_\tThe\tDT\t_\t_\t_\t_\t0\tIGNORE\ttrue",
+                19, acceptedTree, "[[0](0), {Si3=>S1,Si6=>S0}]", "(i_4<root> / --LEX--  :ACT-arg (i_3<S1>)  :PAT-arg (i_6<S0>))--TYPE--(S0(S1()))",
+                new Pair(4,"(i_4<root> / --LEX--  :ACT-arg (i_3<S1>)  :PAT-arg (i_6<S0>))--TYPE--(S0(S1()))"),
+                "[[0](2), {Si3=>S1,Si6=>S0}]", "APP_S1", new String[]{"[[0](1), {Si3=>S1,Si6=>S0}]", "[[0, 1](1), {}]"},
+                new Pair(new Pair(4,3), "APP_S1"))
+    }
+
+
+    @Test
+    public void testAMRDecomposition() {
+        String[] args = "-t examples/decomposition_input/mini_amr.corpus -d examples/decomposition_input/mini_amr.corpus -o examples/decomposition_input/amr_out/ -s 2 -a automata".split(" ");
+        SourceAutomataCLIAMR.main(args);
+        String zipPath = "examples/decomposition_input/amr_out/train.zip"
+//        printZipFileParts(zipPath)
+        String acceptedTree = "APP_S0(APP_S1('(y<root> / --LEX--  :ARG0 (d<S1>)  :ARG1 (f<S0>))--TYPE--(S0(S1()))',MOD_S0('(d<root> / --LEX--)--TYPE--()','(l<root> / --LEX--  :mod-of (d<S0>))--TYPE--(S0())')),'(f<root> / --LEX--  :ARG0 (d<S1>))--TYPE--(S1())')"
+        checkZipFile(zipPath, "#flavor:2",
+                13, acceptedTree, "[[](0), {Sd=>S1,Sf=>S0}]", "(y<root> / --LEX--  :ARG0 (d<S1>)  :ARG1 (f<S0>))--TYPE--(S0(S1()))",
+                new Pair(4,"(y<root> / --LEX--  :ARG0 (d<S1>)  :ARG1 (f<S0>))--TYPE--(S0(S1()))"),
+                "[[0](1), {}]", "MOD_S1", new String[]{"[[0](0), {}]", "[[0, 0](0), {Sd=>S1}]"},
+                new Pair(new Pair(3,2), "MOD_S1"))
     }
 
     private void checkZipFile(String path, String firstCorpusLine, int nrRules, String acceptedTree,

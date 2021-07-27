@@ -50,11 +50,11 @@ public class SourceAutomataCLIAMR {
     private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\small\\";
 
 
-    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz", required = true)
-    private String stanfordNerFilename;
+    @Parameter(names = {"--stanford-ner-model"}, description = "Filename of Stanford NER model english.conll.4class.distsim.crf.ser.gz. If not given, no NE tags are added.")
+    private String stanfordNerFilename = null;
 
-    @Parameter(names = {"--stanford-pos-model"}, description = "Path to the stanford POS tagger model file english-bidirectional-distsim.tagger", required = true)
-    private String stanfordPosFilename;
+    @Parameter(names = {"--stanford-pos-model"}, description = "Path to the stanford POS tagger model file english-bidirectional-distsim.tagger. If not given, no POS tags are added.")
+    private String stanfordPosFilename = null;
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
     private int nrSources = 4;
@@ -96,7 +96,6 @@ public class SourceAutomataCLIAMR {
         }
 
 
-        NamedEntityRecognizer neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), true);
 
 
         AMRBlobUtils blobUtils = new AMRBlobUtils();
@@ -118,8 +117,17 @@ public class SourceAutomataCLIAMR {
 
         Corpus corpusTrain = Corpus.readCorpusWithStrictFormatting(new FileReader(cli.trainingCorpusPath), loaderIRTG);
 
-        PreprocessedData preprocessedDataTrain = new StanfordPreprocessedData(cli.stanfordPosFilename);
-        ((StanfordPreprocessedData) preprocessedDataTrain).readTokenizedFromCorpus(corpusTrain);
+
+        NamedEntityRecognizer neRecognizer = null;
+        if (cli.stanfordNerFilename != null) {
+            neRecognizer = new StanfordNamedEntityRecognizer(new File(cli.stanfordNerFilename), true);
+        }
+
+        PreprocessedData preprocessedDataTrain = null;
+        if (cli.stanfordPosFilename != null) {
+            preprocessedDataTrain = new StanfordPreprocessedData(cli.stanfordPosFilename);
+            ((StanfordPreprocessedData) preprocessedDataTrain).readTokenizedFromCorpus(corpusTrain);
+        }
 
         List<TreeAutomaton<?>> concreteDecompositionAutomata = new ArrayList<>();
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();

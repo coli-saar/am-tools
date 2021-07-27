@@ -36,11 +36,19 @@ public class AMRDecompositionPackage extends DecompositionPackage {
     private final List<Alignment> alignments;
     private final List<String> posTags;
     private final List<String> literals;
-    private final PreprocessedData preprocessedData;
     private final NamedEntityRecognizer neRecognizer;
     private final String id;
     private final boolean useLexLabelReplacement;
 
+
+    /**
+     *
+     * @param instance
+     * @param blobUtils
+     * @param preprocessedData if null, no POS tags will be added
+     * @param neRecognizer if null, no NE tags will be added
+     * @param useLexLabelReplacement
+     */
     public AMRDecompositionPackage(Instance instance, AMRBlobUtils blobUtils, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
                                    boolean useLexLabelReplacement) {
         // TODO use "_" instead of "NULL" if no lex label
@@ -75,7 +83,7 @@ public class AMRDecompositionPackage extends DecompositionPackage {
             alignments.add(al); // add to alignments
         }
 
-        List<TaggedWord> origPosTags = preprocessedData.getPosTags(id);
+        List<TaggedWord> origPosTags = (preprocessedData != null) ? preprocessedData.getPosTags(id) : null;
 
         posTags = new ArrayList<>();
         literals = new ArrayList<>();
@@ -87,10 +95,13 @@ public class AMRDecompositionPackage extends DecompositionPackage {
                 origWords.add(origSent.get(l));
             }
             literals.add(origWords.stream().collect(Collectors.joining(LITERAL_JOINER)));
-            posTags.add(origPosTags.get(span.start).tag());
+            if (origPosTags != null) {
+                posTags.add(origPosTags.get(span.start).tag());
+            } else {
+                posTags.add(AmConllEntry.DEFAULT_NULL);
+            }
         }
 
-        this.preprocessedData = preprocessedData;
         this.neRecognizer = neRecognizer;
         this.useLexLabelReplacement = useLexLabelReplacement;
     }
@@ -115,7 +126,7 @@ public class AMRDecompositionPackage extends DecompositionPackage {
             AmConllEntry e = new AmConllEntry(positionInSentence + 1, wordForm);
             e.setLexLabel("NULL"); // just a baseline initialization; content labels come below
             amSent.add(e);
-            ners.add("O");
+            ners.add("O");  // initialize as no NE
 
             String[] splits = literals.get(positionInSentence).split(LITERAL_JOINER);
 
@@ -146,14 +157,18 @@ public class AMRDecompositionPackage extends DecompositionPackage {
 
         Sentence stanfSent = new Sentence(expandedWords);
         lemmas = stanfSent.lemmas();
-        try {
-            nerTags = neRecognizer.tag(Util.makeCoreLabelsForTokens(expandedWords));
-        } catch (PreprocessingException e) {
-            throw new RuntimeException(e); // don't expect this to happen really, and don't see the need to bother with error handling. If it happens, this will do -- JG
+        if (neRecognizer != null) {
+            try {
+                nerTags = neRecognizer.tag(Util.makeCoreLabelsForTokens(expandedWords));
+            } catch (PreprocessingException e) {
+                throw new RuntimeException(e); // don't expect this to happen really, and don't see the need to bother with error handling. If it happens, this will do -- JG
+            }
         }
 
         for (int j = 0; j < lemmas.size(); j++) {
-            ners.set(origPositions.get(j), nerTags.get(j).ner());
+            if (nerTags != null) {
+                ners.set(origPositions.get(j), nerTags.get(j).ner());
+            }
             ourLemmas.set(origPositions.get(j), lemmas.get(j));
         }
 

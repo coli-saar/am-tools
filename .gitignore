@@ -91,3 +91,9 @@ examples/train_pas_small.amconll
 examples/train_small.amconll
 examples/decomposition_input/dm_out/dev.zip
 examples/decomposition_input/dm_out/train.zip
+examples/decomposition_input/amr_out/dev.zip
+examples/decomposition_input/amr_out/train.zip
+examples/decomposition_input/pas_out/dev.zip
+examples/decomposition_input/pas_out/train.zip
+examples/decomposition_input/psd_out/dev.zip
+examples/decomposition_input/psd_out/train.zip

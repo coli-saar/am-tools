@@ -1,0 +1,18 @@
+///###IRTG unannotated corpus file, v1.0
+///###
+///###  sorted
+///### with added alignments for unaligned stuff
+///###
+///###interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+///###interpretation spanmap: de.up.ling.irtg.algebra.StringAlgebra
+///###interpretation repgraph: de.up.ling.irtg.algebra.graph.GraphAlgebra
+///###interpretation repstring: de.up.ling.irtg.algebra.StringAlgebra
+///###interpretation repalignment: de.up.ling.irtg.algebra.StringAlgebra
+///###interpretation id: de.up.ling.irtg.algebra.StringAlgebra
+
+The little dragon yearns to fly
+0-1 1-2 2-3 3-4 4-5 5-6
+(y<root> / yearn-01 :ARG0 (d / dragon :mod (l / little)) :ARG1 (f / fly-01 :ARG0 d))
+The little dragon yearns to fly
+y!||3-4||1.0 d!||2-3||1.0 f!||5-6||1.0 l!||1-2||1.0
+1
