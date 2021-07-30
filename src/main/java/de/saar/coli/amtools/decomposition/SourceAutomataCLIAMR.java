@@ -320,7 +320,7 @@ public class SourceAutomataCLIAMR {
 
                 try {
 
-                    AMRDecompositionPackage decompositionPackage = new AMRDecompositionPackage(corpusInstance, blobUtils, preprocessedData, neRecognizer, useLexLabelReplacement);
+                    AMRDecompositionPackageLegacy decompositionPackage = new AMRDecompositionPackageLegacy(corpusInstance, blobUtils, preprocessedData, neRecognizer, useLexLabelReplacement);
 
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);

@@ -60,8 +60,8 @@ class SourceAutomatonTest {
 
     @Test
     public void testAMRDecomposition() {
-        String[] args = "-t examples/decomposition_input/mini_amr.corpus -d examples/decomposition_input/mini_amr.corpus -o examples/decomposition_input/amr_out/ -s 2 -a automata".split(" ");
-        SourceAutomataCLIAMR.main(args);
+        String[] args = "-t examples/decomposition_input/mini_amr.corpus -d examples/decomposition_input/mini_amr.corpus -o examples/decomposition_input/amr_out/ -dt AMRDecompositionToolset -s 2 -a automata --noStanfordNLP".split(" ");
+        SourceAutomataCLI.main(args);
         String zipPath = "examples/decomposition_input/amr_out/train.zip"
 //        printZipFileParts(zipPath)
         String acceptedTree = "APP_S0(APP_S1('(y<root> / --LEX--  :ARG0 (d<S1>)  :ARG1 (f<S0>))--TYPE--(S0(S1()))',MOD_S0('(d<root> / --LEX--)--TYPE--()','(l<root> / --LEX--  :mod-of (d<S0>))--TYPE--(S0())')),'(f<root> / --LEX--  :ARG0 (d<S1>))--TYPE--(S1())')"
