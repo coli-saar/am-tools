@@ -17,13 +17,18 @@ import java.util.Map;
 public class MRInstance {
     
     private List<String> sentence;
+    private List<String> lemmas;
+    private List<String> posTags;
+    private List<String> neTags;
     private SGraph graph;
     private List<Alignment> alignments;
+    private final Map<String, Object> extras;
     
     public MRInstance(List<String> sentence, SGraph sg, List<Alignment> alignments){
         this.sentence = sentence;
         this.graph = sg;
         this.alignments = alignments;
+        extras = new HashMap<>();
     }
 
     /**
@@ -42,6 +47,38 @@ public class MRInstance {
     
     public void setGraph(SGraph sg){
         this.graph = sg;
+    }
+
+    public List<String> getLemmas() {
+        return lemmas;
+    }
+
+    public List<String> getPosTags() {
+        return posTags;
+    }
+
+    public List<String> getNeTags() {
+        return neTags;
+    }
+
+    public void setLemmas(List<String> lemmas) {
+        this.lemmas = lemmas;
+    }
+
+    public void setPosTags(List<String> posTags) {
+        this.posTags = posTags;
+    }
+
+    public void setNeTags(List<String> neTags) {
+        this.neTags = neTags;
+    }
+
+    public void setExtra(String key, Object value) {
+        this.extras.put(key, value);
+    }
+
+    public Object getExtra(String key) {
+        return this.extras.get(key);
     }
 
     /**

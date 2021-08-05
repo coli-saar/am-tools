@@ -63,14 +63,16 @@ public class SplitCoref {
      * @throws InterruptedException 
      */
     public static void main(String[] args) throws ParserException, ParseException, FileNotFoundException, IOException, CorpusReadingException, InterruptedException {
-        
+
 //        String rawGraph = "(a / and :op1 (b / believe-01 :ARG0 (p2 / person :ARG0-of (h2 / have-org-role-91 :ARG1 (c2 / company :wiki - :name (n / name :op1 \"IM\") :mod (c3 / country :wiki \"United_States\" :name (n2 / name :op1 \"United\" :op2 \"States\"))) :ARG2 (c7 / CEO))) :ARG1 (c8 / capable-01 :ARG1 (p / person :ARG1-of (e / employ-01 :ARG0 c2) :mod (e2 / each)) :ARG2 (i / innovate-01 :ARG0 p))) :op2 (f / formulate-01 :ARG0 (c / ceo) :ARG1 (c4 / countermeasure :mod (s / strategy) :purpose (i2 / innovate-01 :prep-in (i3 / industry)))) :time (a3 / after :op1 (i4 / invent-01 :ARG0 (c5 / company :ARG0-of (c6 / compete-02 :ARG1 c2)) :ARG1 (m / machine :ARG0-of (w / wash-01) :ARG1-of (l / load-01 :mod (f2 / front))))))";
 //        String ourGraph = "(a <root> / and :op1 (b / believe-01 :ARG0 (p2 / person :ARG0-of (h2 / have-org-role-91 :ARG1 (c2 / company :wiki - :name (n / name :op1 \"IM\") :mod (c3 / country :wiki \"United_States\" :name (n2 / name :op1 \"United\" :op2 \"States\"))) :ARG2 (c7 / CEO))) :ARG1 (c8 / capable-01 :ARG1 (p / person :ARG1-of (e / employ-01 :ARG0 c2) :mod (e2 / each)) :ARG2 (i / innovate-01 :ARG0 p))) :op2 (f / formulate-01 :ARG0 (c / ceo) :ARG1 (c4 / countermeasure :mod (s / strategy) :purpose (i2 / innovate-01 :prep-in (i3 / industry)))) :time (a3 / after :op1 (i4 / invent-01 :ARG0 (c5 / company :ARG0-of (c6 / compete-02 :ARG1 c2)) :ARG1 (m / machine :ARG0-of (w / wash-01) :ARG1-of (l / load-01 :mod (f2 / front))))))";
-//        SGraph graph = new IsiAmrInputCodec().read(ourGraph);
-//        split(rawGraph, graph);
-//        System.err.println(graph.toIsiAmrStringWithSources());
-        
-        splitCoref(args[0], args[1], args[2], Integer.valueOf(args[3]), Integer.valueOf(args[4]));
+        String rawGraph = "(l / look-01 :ARG0 (p / person :ARG0-of (c / capture-01 :ARG1 (h2 / he))) :ARG1 h2)";
+        String ourGraph = "(l <root> / look-01 :ARG0 (p / person :ARG0-of (c / capture-01 :ARG1 (h2 / he))) :ARG1 h2)";
+        SGraph graph = new IsiAmrInputCodec().read(ourGraph);
+        split(rawGraph, graph, new MutableInteger(0));
+        System.err.println(graph.toIsiAmrStringWithSources());
+
+//        splitCoref(args[0], args[1], args[2], Integer.valueOf(args[3]), Integer.valueOf(args[4]));
 
     }
     

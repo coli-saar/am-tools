@@ -95,8 +95,8 @@ public class CheckPreprocessing {
                 rawGraph.addNode(n.form, n.lemma, n.pos, false, false, "_");
             }
             try {
-                SGraph modified = ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)blobUtils);
-                SGraph restored = ConjHandler.restoreConj(modified, (PSDBlobUtils)blobUtils);
+                SGraph modified = ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)blobUtils, false);
+                SGraph restored = ConjHandler.restoreConj(modified, (PSDBlobUtils)blobUtils, false);
                 SGraph copyOfRestored = new SGraph();
                 for (GraphNode n :restored.getGraph().vertexSet()){
                     if (!n.getLabel().equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)){

@@ -62,7 +62,7 @@ public class PSD extends SDPs {
             als.add(al);
         }
         
-        sg = ConjHandler.handleConj(sg, new PSDBlobUtils());
+        sg = ConjHandler.handleConj(sg, new PSDBlobUtils(), true);
         
         return new MRInstance(sentence.words(),sg, als);
     }
@@ -78,7 +78,7 @@ public class PSD extends SDPs {
          try {
             AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
             SGraph evaluatedGraph = amdep.evaluate(true);
-            evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils());
+            evaluatedGraph = ConjHandler.restoreConj(evaluatedGraph, new PSDBlobUtils(), true);
             MRPGraph output = sGraphToMRP(evaluatedGraph, s);
             output.setFramework("psd");
             return output;

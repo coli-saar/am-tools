@@ -17,9 +17,13 @@ import java.util.Map;
 public class SupertagEntropy {
 
     public static void main(String[] args) throws IOException, ParseException {
+
         Map<String, String> corpusName2path = new HashMap<>();
-        corpusName2path.put("original heuristics", "../../data/sdp/uniformify2020/original_decompositions/dm/train/train.amconll");
-        corpusName2path.put("syntax based source names", "../../experimentData/unsupervised2020/03-17/DM/train/train.amconll");
+        System.out.println("\n");
+        System.out.println(args[1]);
+        corpusName2path.put("neural", args[0] + "/train-final/" + args[1] + ".amconll");
+        corpusName2path.put("EM",  args[0] + "/EM/" + args[1] + ".amconll");
+
 
         for (Map.Entry<String, String> entry : corpusName2path.entrySet()) {
             List<AmConllSentence> corpus = AmConllSentence.read(new FileReader(entry.getValue()));

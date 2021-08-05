@@ -9,12 +9,7 @@ import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
-import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
-import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
-import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.toolsets.GraphbankDecompositionToolset;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.AMDependencyTree;
@@ -30,16 +25,16 @@ import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.irtg.util.ProgressListener;
 import de.up.ling.tree.Tree;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
-import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
-
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class SourceAutomataCLI {
 
@@ -53,8 +48,13 @@ public class SourceAutomataCLI {
     private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\small\\";
 
 
-    @Parameter(names = {"--corpusType", "-ct"}, description = "values can be DM, PAS or PSD, default is DM")//, required = true)
-    private String corpusType = "DM";
+    @Parameter(names = {"--decompositionToolset", "-dt"}, description = "Classname for the GraphbankcDecompositionToolset to be used." +
+            "If the classpath is in de.saar.coli.amtools.decomposition.formalisms.toolsets, that prefix can be omitted.")//, required = true)
+    private String decompositionToolset = "DMDecompositionToolset";
+
+
+    @Parameter(names = {"--noStanfordNLP"}, description = "skips computation of named entity tags if this flag is set; this can save a lot of time. Simply fills in blanks for the NE everywhere.")
+    private boolean noStanfordNLP =false;
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
     private int nrSources = 2;
@@ -72,7 +72,7 @@ public class SourceAutomataCLI {
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
-    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ParserException, ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
 
         // read command line arguments
         // cli stands for CommandLineInterface
@@ -91,37 +91,48 @@ public class SourceAutomataCLI {
             return;
         }
 
-
-
-
-        AMRBlobUtils blobUtils;
-        switch (cli.corpusType) {
-            case "DM": blobUtils = new DMBlobUtils(); break;
-            case "PAS": blobUtils = new PASBlobUtils(); break;
-            case "PSD": blobUtils = new PSDBlobUtils(); break;
-            default: throw new IllegalArgumentException("Illegal corpus type '"+cli.corpusType+"'. Legal are 'DM', 'PAS' and 'PSD'.");
+        Class<?> clazz;
+        try {
+            clazz = Class.forName(cli.decompositionToolset);
+        } catch (ClassNotFoundException ex) {
+            try {
+                clazz = Class.forName("de.saar.coli.amtools.decomposition.formalisms.toolsets." + cli.decompositionToolset);
+            } catch (ClassNotFoundException ex2) {
+                throw new RuntimeException("Neither class "+cli.decompositionToolset+
+                        " nor de.saar.coli.amtools.decomposition.formalisms.toolsets." + cli.decompositionToolset+" could be found! Aborting.");
+            }
         }
+        Constructor<?> ctor = clazz.getConstructor(Boolean.class);
+        GraphbankDecompositionToolset decompositionToolset = (GraphbankDecompositionToolset)ctor.newInstance(new Object[] { !cli.noStanfordNLP});
+
+
+
         SupertagDictionary supertagDictionary = new SupertagDictionary();//future: load from file for dev set (better: get dev scores from training EM)
 
         //get automata for training set
-        GraphReader2015 gr = new GraphReader2015(cli.trainingCorpusPath);
+        System.err.println("Creating automata for training set");
+        List<MRInstance> corpusTrain = decompositionToolset.readCorpus(cli.trainingCorpusPath);
+        decompositionToolset.applyPreprocessing(corpusTrain);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomata = new ArrayList<>();
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
-        cli.processCorpus(gr, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
+        processCorpus(corpusTrain, decompositionToolset, cli.nrSources, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
 
 
         //get automata for dev set
-        GraphReader2015 grDev = new GraphReader2015(cli.devCorpusPath);
+        System.err.println("Creating automata for dev set");
+        List<MRInstance> corpusDev = decompositionToolset.readCorpus(cli.trainingCorpusPath);
+        decompositionToolset.applyPreprocessing(corpusDev);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomataDev = new ArrayList<>();
         List<SourceAssignmentAutomaton> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
-        cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
+        processCorpus(corpusDev, decompositionToolset, cli.nrSources, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
 
+        Files.createDirectories(Paths.get(cli.outPath));
 
         if (cli.algorithm.equals("automata")) {
 
@@ -268,9 +279,9 @@ public class SourceAutomataCLI {
         }
     }
 
-    private void processCorpus(GraphReader2015 gr, AMRBlobUtils blobUtils,
+    private static void processCorpus(List<MRInstance> corpus, GraphbankDecompositionToolset decompositionToolset, int nrSources,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
-                                List<DecompositionPackage> decompositionPackages) throws IOException {
+                                List<DecompositionPackage> decompositionPackages) {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
         Counter<Integer> bucketCounter = new Counter<>();
@@ -279,28 +290,23 @@ public class SourceAutomataCLI {
         int fails = 0;
         int nondecomposeable = 0;
         Graph sdpGraph;
-        while ((sdpGraph = gr.readGraph()) != null) {
+        for (MRInstance inst : corpus) {
             if (index % 500 == 0) {
-                System.err.println(index);
+                System.err.println("Processing instance " + index);
                 bucketCounter.printAllSorted();
             }
             if (true) { //index == 1268
-                MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
                 SGraph graph = inst.getGraph();
-                if (corpusType.equals("PSD")) {
-                    graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils);
-                }
-
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils);
+                    DecompositionPackage decompositionPackage = decompositionToolset.makeDecompositionPackage(inst);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
-                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionToolset.getEdgeHeuristics());
 
-                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
+                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
 
                     try {
@@ -344,7 +350,7 @@ public class SourceAutomataCLI {
                             System.err.println(resultGraph.toIsiAmrStringWithSources());
                             fails++;
                         }
-                    } catch (java.lang.Exception ex) {
+                    } catch (Exception ex) {
                         System.err.println(index);
 //                        System.err.println(graph.toIsiAmrStringWithSources());
 //                        System.err.println(result);
@@ -353,7 +359,7 @@ public class SourceAutomataCLI {
                     }
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
-                } catch (java.lang.Exception ex) {
+                } catch (Exception ex) {
                     System.err.println(index);
 //                    System.err.println(graph.toIsiAmrStringWithSources());
                     ex.printStackTrace();
@@ -368,7 +374,7 @@ public class SourceAutomataCLI {
     }
 
 
-    private static void createAutomataZip(List<SourceAssignmentAutomaton> originalDecompositionAutomata,
+    static void createAutomataZip(List<SourceAssignmentAutomaton> originalDecompositionAutomata,
                                    List<DecompositionPackage> decompositionPackages,
                                    SupertagDictionary supertagDictionary, String zipFileName, String outPath) throws IOException {
         //create zip file

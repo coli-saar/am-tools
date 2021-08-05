@@ -51,7 +51,10 @@ public class CreateCorpus {
     
     @Parameter(names = {"--vocab", "-v"}, description = "vocab file containing supertags (e.g. points to training vocab when doing dev/test files)")
     private String vocab = null;
-    
+
+    @Parameter(names = {"--legacyACL19"}, description = "Uses legacy version of debugging, compatible with our ACL 2019 paper")
+    private boolean legacyACL19=false;
+
     @Parameter(names = {"--debug"}, description = "Enables debug mode, i.e. ")
     private boolean debug=false;
     
@@ -144,7 +147,7 @@ public class CreateCorpus {
                 //System.out.println(inst.getGraph());
 //                System.err.println(inst.getSentence());
 //                System.err.println(inst.getGraph());
-                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils), inst.getAlignments());
+                MRInstance modified = new MRInstance(inst.getSentence(), ConjHandler.handleConj(inst.getGraph(), blobUtils, cli.legacyACL19), inst.getAlignments());
 //                System.err.println(modified.getSentence());
 //                System.err.println(modified.getGraph());
                 ConcreteAlignmentSignatureBuilder sigBuilder =
@@ -180,7 +183,7 @@ public class CreateCorpus {
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getDelexSupertag() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
                     //amdep.getTree().map(ent -> ent.getForm() + " " + ent.getType().toString() +" "+ent.getEdgeLabel()).draw();
 
-                    SGraph alignedGraph = ConjHandler.restoreConj(amdep.evaluate(true), (PSDBlobUtils)sigBuilder.getBlobUtils());
+                    SGraph alignedGraph = ConjHandler.restoreConj(amdep.evaluate(true), (PSDBlobUtils)sigBuilder.getBlobUtils(), cli.legacyACL19);
                     Graph emptyCopy = new Graph(sdpGraph.id);
                     sdpGraph.getNodes().forEach(node -> emptyCopy.addNode(node.form, node.lemma, node.pos, false,false, ""));
 
@@ -214,15 +217,19 @@ public class CreateCorpus {
 //                    System.err.println(inst.getGraph());
                     SGraphDrawer.draw(getReadableGraph(modified), "failed: "+inst.getSentence().stream().collect(Collectors.joining(" ")));
                     if (cli.debug){
+                        System.err.println("Alignments (word and constant(s)):");
                         for (Alignment al : inst.getAlignments()){
                             System.err.println(inst.getSentence().get(al.span.start));
                             System.err.println(sigBuilder.getConstantsForAlignment(al, inst.getGraph(), false));
                         }
+                        System.err.println("Visualization with GraphViz:");
+                        System.err.println(GraphvizUtils.simpleAlignViz(inst, true));
                     }
                     if (problems > 1){ //ignore the first problems
                         //SGraphDrawer.draw(inst.getGraph(), "");
                         //break;
                     }
+                    System.err.println("=====end not decomposable=====");
                 }
             } catch (Exception ex){
                 System.err.println("Ignoring an exception:");

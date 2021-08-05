@@ -102,7 +102,7 @@ public class AmConllWithSourcesCreator {
 
                     ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionPackage.getBlobUtils());
 
-                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
+                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
                     // if multiple nodes in the graph belong to the same word
                     result = condenseNodesWithSameAlignment(result, decompositionPackage);

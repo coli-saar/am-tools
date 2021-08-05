@@ -5,16 +5,19 @@
  */
 package de.saar.coli.amrtagging;
 
+import de.saar.coli.amtools.astar.Or;
+import de.saar.coli.amtools.astar.SupertagWithType;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.Type;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -372,9 +375,16 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
                 Charset.forName("UTF-8").newDecoder()
         ));
     }
-    
-    
-    public void setDependenciesFromAmTerm(Tree<String> amTerm, List<Integer> leafOrderToStringOrder, Function<String,Type> supertagToType) {
+
+    /**
+     * Converts the given AM term into an AM-CoNLL dependency tree. The AM term is a tree with two types
+     * of node labels. Leaves are labeled with supertags ({@link SupertagWithType}); all other nodes are
+     * labeled with strings representing operations of the AM algebra (e.g. "APP_o").
+     *
+     * @param amTerm
+     * @param leafOrderToStringOrder
+     */
+    public void setDependenciesFromAmTerm(Tree<Or<String, SupertagWithType>> amTerm, List<Integer> leafOrderToStringOrder) {
         MutableInteger nextLeafPosition = new MutableInteger(0);
         
         // all tokens that are not mentioned in the term will be ignored
@@ -386,22 +396,25 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
         }
         
         // perform left-to-right DFS over term and assign incoming edges
-        int rootPos = amTerm.dfs((Tree<String> node, List<Integer> childrenValues) -> {
+        int rootPos = amTerm.dfs((Tree<Or<String,SupertagWithType>> node, List<Integer> childrenValues) -> {
             if( childrenValues.isEmpty() ) {
                 // leaf
                 int leafPosition = nextLeafPosition.incValue();
                 int stringPosition = leafOrderToStringOrder.get(leafPosition);
                 
                 AmConllEntry entry = this.get(stringPosition);
-                entry.setDelexSupertag(node.getLabel());
-                entry.setType(supertagToType.apply(node.getLabel()));
+                assert ! node.getLabel().isLeft();
+                SupertagWithType stt = node.getLabel().getRightValue();
+                entry.setDelexSupertag(stt.getGraph().toIsiAmrStringWithSources());
+                entry.setType(stt.getType());
                 
                 return stringPosition;
             } else {
                 assert childrenValues.size() == 2;
                 int headStringPosition = childrenValues.get(0);
                 int secondaryStringPosition = childrenValues.get(1);
-                String edgeLabel = node.getLabel();
+                assert node.getLabel().isLeft();
+                String edgeLabel = node.getLabel().getLeftValue();
                 AmConllEntry childEntry = this.get(secondaryStringPosition);
                 
                 childEntry.setEdgeLabel(edgeLabel);

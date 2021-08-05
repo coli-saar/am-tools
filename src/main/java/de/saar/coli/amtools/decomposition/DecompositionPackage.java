@@ -5,6 +5,9 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * Contains information on how to decompose a specific SGraph, and how to create an AmConllSentence for it.
  * @author Jonas Groschwitz
@@ -45,6 +48,14 @@ public abstract class DecompositionPackage {
     public String getTempSourceForNodeName(String nodeName)  {
         return "S"+nodeName.replaceAll("_", "");
     }
+
+    /**
+     * If there are multinode constants in the decomposition, this returns a set S such that for each multinode constant
+     * C, S contains the set of all node names in C. The default implementation assumes that there are no multinode constants
+     * and returns the empty set.
+     * @return
+     */
+    public Set<Set<String>> getMultinodeConstantNodeNames() {return Collections.emptySet(); }
 
     /**
      * Returns an AMRBlobUtils (don't be fooled by the name, that's the parent class that other classes like DMBlobUtils overwrite)

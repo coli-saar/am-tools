@@ -36,6 +36,11 @@ public class ComponentAnalysisToAMDep {
         this.graph = graph;
     }
 
+    /**
+     * Just for testing/debugging things
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
                 //"C://Users/Jonas/Documents/Work/data/sdp/2015/dm/train.sdp";
@@ -51,21 +56,20 @@ public class ComponentAnalysisToAMDep {
             if (index % 100 == 0) {
                 System.err.println(index);
             }
-            if (index == 23523) { //index == 1268
-                System.err.println(index);
+            if (true) { //index == 1268 //index == 23523
                 MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
                 SGraph graph = inst.getGraph();
 
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(sdpGraph, blobUtils);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, blobUtils, true);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
                     ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
 
-                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton, graph);
+                    AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
                     try {
                         SGraph resultGraph = result.evaluate().left;
@@ -102,7 +106,7 @@ public class ComponentAnalysisToAMDep {
         System.err.println("Non-decomposeable: "+nondecomposeable);
     }
 
-    public AMDependencyTree componentAnalysis2AMDep(ComponentAutomaton componentAutomaton, SGraph graph) throws IllegalArgumentException {
+    public AMDependencyTree componentAnalysis2AMDep(ComponentAutomaton componentAutomaton) throws IllegalArgumentException {
         ConcreteTreeAutomaton<Pair<ConnectedComponent, DAGComponent>> auto = componentAutomaton.asConcreteTreeAutomatonTopDown();
         Tree<Rule> ruleTree;
         try {

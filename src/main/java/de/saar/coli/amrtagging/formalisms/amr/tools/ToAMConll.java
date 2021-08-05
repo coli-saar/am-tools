@@ -49,6 +49,9 @@ public class ToAMConll {
     @Parameter(names = {"--uiuc-ner-tagset"}, description = "Tagset to use for UIUC NER tagger; options: NER_CONLL (default), NER_ONTONOTES")
     private String uiucNerTagset = NER_CONLL;
 
+    @Parameter(names = {"--no-lexlabel-replacement"}, description = "with this flag, original lexical labels are used instead of $LEMMA$ and the like. Use this flag to get training data compatible with a neural copy function (rather than copying in pre/post)")
+    private boolean noLexlabelReplacement = false;
+
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
@@ -223,6 +226,11 @@ public class ToAMConll {
             o.addLemmas(ourLemmas);
             if (!cli.ner_disabled) {
                 o.addNEs(ners);
+            }
+            if (cli.noLexlabelReplacement) {
+                for (int positionInSentence = 0; positionInSentence<o.size(); positionInSentence++) {
+                    o.get(positionInSentence).setLexLabelWithoutReplacing(labels.get(i).get(positionInSentence));
+                }
             }
 
             //now we add the edges

@@ -170,7 +170,8 @@ public class Relabel {
     private final int nnThreshold;
     private final int lookupThreshold;
 
-    private boolean usePropSuffix;
+    private final boolean usePropSuffix;
+    private final boolean addSenseToNNLabel;
     private final String propSuffix = "-prop";
 
     /**
@@ -186,6 +187,26 @@ public class Relabel {
      * @throws InterruptedException
      */
     public Relabel(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold, int lookupThreshold, boolean usePropSuffix)
+            throws IOException, MalformedURLException, InterruptedException {
+        this(wordnetPath, conceptnetPath, mapsPath, nnThreshold, lookupThreshold, usePropSuffix, false);
+    }
+
+    /**
+     *
+     * @param wordnetPath path to wordnet
+     * @param conceptnetPath path to concept net
+     * @param mapsPath path to lookup folder
+     * @param nnThreshold threshold when to trust NN
+     * @param lookupThreshold
+     * @param usePropSuffix whether or not to introduce -prop suffices into relabeled data
+     * @param addSenseToNNLabel if true, adds a -01 suffix to all lexlabel predictions by the neural network
+     *                          that have no sense suffix but belong to a node with outgoing ARGx edges.
+     * @throws IOException
+     * @throws MalformedURLException
+     * @throws InterruptedException
+     */
+    public Relabel(String wordnetPath, String conceptnetPath, String mapsPath, int nnThreshold, int lookupThreshold,
+                   boolean usePropSuffix, boolean addSenseToNNLabel)
             throws IOException, MalformedURLException, InterruptedException {
 
         if (conceptnetPath == null) {
@@ -204,6 +225,7 @@ public class Relabel {
         this.nnThreshold = nnThreshold;
         this.lookupThreshold = lookupThreshold;
         this.usePropSuffix = usePropSuffix;
+        this.addSenseToNNLabel = addSenseToNNLabel;
     }
 
     public void fixGraph(SGraph graph, List<String> sent, List<String> lit, List<String> nnLabels) {
@@ -226,6 +248,13 @@ public class Relabel {
     private void fixLabel(String word, String lit, String nextWord,
             String nnLabel, SGraph graph, GraphNode lexNode) {
 
+        boolean hasArgs = false;
+        for (GraphEdge edge : graph.getGraph().outgoingEdgesOf(lexNode)) {
+            if (edge.getLabel().startsWith("ARG")) {
+                hasArgs = true;
+                break;
+            }
+        }
         if (word.equals(RareWordsAnnotator.NAME_TOKEN.toLowerCase())) {
 
             allNameCount++;
@@ -356,17 +385,16 @@ public class Relabel {
             int count = word2count.getInt(word);
 
             if (count >= nnThreshold) {
-                lexNode.setLabel(nnLabel);
+                if (this.addSenseToNNLabel && hasArgs && !nnLabel.matches(".+-[0-9][0-9]")) {
+                    // then we are supposed to add the default sense where it is missing. Missing means that
+                    // there is an outgoing ARGx edge, and the label does not have a sense attached yet (checked with regex)
+                    lexNode.setLabel(nnLabel+"-01");// add default -01 sense
+                } else {
+                    lexNode.setLabel(nnLabel);
+                }
             } else if (count > lookupThreshold && word2label.containsKey(word)) {
                 lexNode.setLabel(word2label.get(word));
             } else {
-                boolean hasArgs = false;
-                for (GraphEdge edge : graph.getGraph().outgoingEdgesOf(lexNode)) {
-                    if (edge.getLabel().startsWith("ARG")) {
-                        hasArgs = true;
-                        break;
-                    }
-                }
 
                 if (hasArgs) {
                     String verbStem = wordnet.findVerbStem(word);

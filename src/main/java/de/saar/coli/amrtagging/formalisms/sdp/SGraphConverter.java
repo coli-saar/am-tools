@@ -62,12 +62,18 @@ public class SGraphConverter {
         
         SGraph sg =  new SGraph();
         ArrayList<String> words = new ArrayList<>();
+        ArrayList<String> lemmas = new ArrayList<>();
+        ArrayList<String> posTags = new ArrayList<>();
         for (Node word : jg.vertexSet()){
             if (word.id > 0){
                 words.add(word.id-1,word.form);
+                lemmas.add(word.id-1, word.lemma);
+                posTags.add(word.id-1, word.pos);
             }
             
         }
+
+
         ArrayList<Alignment> alignments = new ArrayList<>();
         
         sg.addNode(ARTIFICAL_ROOT_LABEL, ARTIFICAL_ROOT_LABEL);
@@ -116,8 +122,13 @@ public class SGraphConverter {
             sg.addEdge(sg.getNode(PREFIX+String.valueOf(e.source)), sg.getNode(PREFIX+String.valueOf(e.target)), e.label);
         }
         words.add(ARTIFICAL_ROOT_LABEL);
+        lemmas.add(ARTIFICAL_ROOT_LABEL);
+        posTags.add(ARTIFICAL_ROOT_LABEL);
         alignments.add(new Alignment(ARTIFICAL_ROOT_LABEL, words.size()-1));
-        return new MRInstance(words,sg,alignments);
+        MRInstance ret = new MRInstance(words,sg,alignments);
+        ret.setLemmas(lemmas);
+        ret.setPosTags(posTags);
+        return ret;
     }
     
     /**
