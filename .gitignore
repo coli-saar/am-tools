@@ -80,3 +80,5 @@ examples/debugging_example_simplified.sdp
 examples/raised_spine_cycles_removed.amconll
 examples/raised_spine_cycles_removed_supertagDictionary.txt
 temp
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/runConfigurations.xml
