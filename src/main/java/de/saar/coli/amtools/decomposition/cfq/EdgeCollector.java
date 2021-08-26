@@ -1,10 +1,10 @@
-package de.saar.coli.amtools.cfq;
+package de.saar.coli.amtools.decomposition.cfq;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import de.saar.basic.Pair;
 
-public class EdgeCollector {
+class EdgeCollector {
     private ListMultimap<String, Pair<String,String>> edges;
     private String firstEntity = null;
 

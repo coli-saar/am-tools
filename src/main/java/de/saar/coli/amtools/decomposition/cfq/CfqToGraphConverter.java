@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.cfq;
+package de.saar.coli.amtools.decomposition.cfq;
 
 import de.saar.coli.amrtagging.GraphvizUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
@@ -102,7 +102,15 @@ public class CfqToGraphConverter {
                 ec.foreachEdge((source, label, target) -> {
                     GraphNode src = graph.addNode(source, null);
                     GraphNode tgt = graph.addNode(target, null);
-                    graph.addEdge(src, tgt, label);
+
+                    if( label.startsWith("SELECT")) {
+                        graph.addEdge(src, tgt, label);
+                    } else {
+                        GraphNode n = graph.addAnonymousNode(label);
+                        n.setLabel(label);
+                        graph.addEdge(n, src, "ARG0");
+                        graph.addEdge(n, tgt, "ARG1");
+                    }
                 });
 
                 graph.addSource("root", "root");
@@ -152,9 +160,15 @@ public class CfqToGraphConverter {
             w.write("digraph G {\n");
 
             for (GraphNode node : graph.getGraph().vertexSet()) {
-                String label;
                 String name = stripPrefix(node.getName());
-                label = "\"" + name + "\"";
+                String label = node.getLabel();
+
+                if( label == null ) {
+                    label = name;
+                }
+
+                label = "\"" + label + "\"";
+
                 w.write("  \"" + name + "\" [label=" + label + "];\n");
             }
 
