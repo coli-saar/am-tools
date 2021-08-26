@@ -79,6 +79,9 @@ dependencies {
     implementation 'com.owlike:genson:1.5'
     
     implementation 'de.ruedigermoeller:fst:2.56' // faster serialization
+
+    // Sparql parser for CFQ
+    implementation 'org.apache.jena:jena-arq:4.1.0'
 }
 
 //for debugging, works e.g. in NetBeans. You can change the main class and the arguments here --JG
