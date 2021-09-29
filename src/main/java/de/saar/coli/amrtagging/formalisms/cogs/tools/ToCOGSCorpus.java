@@ -14,6 +14,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.math.NumberUtils.min;
 
@@ -22,21 +23,29 @@ import static org.apache.commons.lang3.math.NumberUtils.min;
  * Converts an AM Dependency corpus (amconll) into COGS format (.tsv) (tokens, logical form, generalization type)
  *
  * Also reports exact match accuracy and average token-level edit distance if gold corpus is given.
+ * You can get a lot more detailed evaluation output (logical form mismatches, exact match per generalization type) if
+ * you provide add the verbosity option
  * @author pia (weissenh)
  */
 public class ToCOGSCorpus {
     @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus with decoded AM dependency trees")//, required = true)
-    private String corpusPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/toy/train.amconll";
+    private String corpusPath = "/home/wurzel/HiwiAK/cogs2021/toy_model_run/prediction_output_astar/COGS_pred.amconll";
 
     @Parameter(names = {"--outFile", "-o"}, description = "Path for output tsv file")//, required = true)
-    private String outPath = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/graphparsing/predictions.tsv";
+    private String outPath = "/home/wurzel/HiwiAK/cogs2021/toy_model_run/prediction_output_fixedt/predictions.tsv";
 
     @Parameter(names={"--gold","-g"}, description = "Path to gold corpus. Make sure it contains exactly the same instances, in the same order.")//, required=true)
     private String goldCorpus = null; // "/PATH/TO/TSVFILE.tsv";
-    // private String goldCorpus = "/home/wurzel/Dokumente/Masterstudium/WS2021/MasterSeminar/cogs/COGS/datasmall/train20.tsv";
+    //private String goldCorpus = "/home/wurzel/HiwiAK/cogs2021/small/gen100.tsv";
 
     @Parameter(names = {"--verbose"}, description = "if this flag is set, prints more information (to the error stream")
     private boolean verbose=false;
+
+    @Parameter(names = {"--excludePrimitives"}, description = "(deprecated): if set, strips primitives from training data (3rd col == 'primitive')")
+    private boolean excludePrimitives=false;
+    // Deprecated: was necessary for pre-experiments. Note that this flag will only strip 1-word samples (3rd column is
+    // 'primitive' then), but does NOT strip anything from the gen.tsv file (all full sentences, 3rd column can be
+    // 'prim_to_*', but not 'primitive').
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -59,8 +68,7 @@ public class ToCOGSCorpus {
             return;
         }
 
-        boolean excludePrimitives = true;  // todo make this a command line flag!!!!
-        System.out.println("Excluding primitives? " + excludePrimitives);
+        System.out.println("Excluding primitives? " + cli.excludePrimitives);
         System.out.println("Input file: " + cli.corpusPath);
 
         List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
@@ -90,8 +98,10 @@ public class ToCOGSCorpus {
         Map<String, Float> type2exactmsum = new HashMap<>();  // active_to_passive  -> 3.0 (summation of exact matches)
         Counter<String> type2count = new Counter<>(); // active_to_passive -> 12 (seen 12 samples)
         Counter<String> illformedErrorsPerGenTypeCntr = new Counter<>();
-        Counter<String> recursionDepths2count = new Counter<>();  // recursion depth evaluation
-        Counter<String> recursionDepths2success = new Counter<>();
+        Counter<Integer> ppRecursionDepths2count = new Counter<>();  // recursion depth evaluation
+        Counter<Integer> cpRecursionDepths2count = new Counter<>();
+        Counter<Integer> ppRecursionDepths2success = new Counter<>();
+        Counter<Integer> cpRecursionDepths2success = new Counter<>();
 
         for (AmConllSentence amsent : sents) {
             totalSentencesSeen += 1;
@@ -148,7 +158,7 @@ public class ToCOGSCorpus {
                 // read = true;
                 RawCOGSReader.CogsSample sample = goldReader.getNextSample();
                 genType = sample.generalizationType;
-                if (excludePrimitives && genType.equals("primitive")) {
+                if (cli.excludePrimitives && genType.equals("primitive")) {
                     if (!goldReader.hasNext()) {
                         throw new RuntimeException("No more samples in gold reader (but still amconll sentences left!)");
                     }
@@ -201,11 +211,14 @@ public class ToCOGSCorpus {
                 }
                 if (cli.verbose && genType.endsWith("recursion")) { // cp/pp recursion: depth
                     int depth = cli.getRecursionDepth(genType, sample.src_tokens);
-//                    String key = genType+depth;
-                    String key = depth <= 5 ? genType+depth : genType+">5";
-//                    String key = depth <= 5 ? genType+"<=5" : genType+">5";
-                    recursionDepths2count.add(key);
-                    if (exactMatch) { recursionDepths2success.add(key); }
+                    if (genType.startsWith("cp_recursion")) {
+                        cpRecursionDepths2count.add(depth);
+                        if (exactMatch) cpRecursionDepths2success.add(depth);
+                    }
+                    if (genType.startsWith("pp_recursion")) {
+                        ppRecursionDepths2count.add(depth);
+                        if (exactMatch) ppRecursionDepths2success.add(depth);
+                    }
                 }
             }
 
@@ -254,7 +267,7 @@ public class ToCOGSCorpus {
                 }
 
                 System.out.println("Per generalization type scores:");
-                System.out.println("\t#samples\tgenType\texact match\tavg. edit distance\tavg. edit distance error cases only");
+                System.out.println("\t#samples\t#exactMatches\tgenType\texact match\tavg. edit distance\tavg. edit distance error cases only");
                 // preparation: get all seen types in the right order
                 ArrayList<String> genTypesSorted = cli.getGenTypesSorted();
                 Set<String> seenTypes = type2count.getAllSeen();
@@ -276,7 +289,7 @@ public class ToCOGSCorpus {
                     Float exactmAvg = exactMatchCount / count;
                     Float editdAvg = type2editdsum.get(type) / count;
                     Float editdAvgErrorOnly = exactMatchCount == count ? 0.0F : type2editdsum.get(type) / (count-exactMatchCount);
-                    System.out.println("\t"+count
+                    System.out.println("\t"+count + "\t" + exactMatchCount
                             +"\t"+ type
                             +"\t"+ String.format(java.util.Locale.US,"%.2f", exactmAvg)
                             +"\t"+ String.format(java.util.Locale.US,"%.2f", editdAvg)
@@ -285,16 +298,22 @@ public class ToCOGSCorpus {
                 }
 
                 // Recursion depths:
-                System.out.println("Recursion depths:\nKey\tcount\tsuccesses\tsuccess rate");
-                for (String key: recursionDepths2count.getAllSeen()) {
-                    int count = recursionDepths2count.get(key);
-                    int successes = recursionDepths2success.get(key);
-                    assert(count > 0);
-                    float success_rate = successes / (float) count;
-                    System.out.println("\t"+key
-                            +"\t"+count+"\t"
-                            +successes+"\t"
-                            +String.format(java.util.Locale.US,"%.2f", success_rate));
+                System.out.println("Recursion depths:\n" +
+                        "Depth\tCP (count,successes,success rate)\tPP (count,successes,success rate) ");
+                Set<Integer> depths = new HashSet<>(cpRecursionDepths2count.getAllSeen());
+                depths.addAll(ppRecursionDepths2count.getAllSeen());
+                List<Integer> depthsSorted = depths.stream().sorted().collect(Collectors.toList());
+                for (Integer depth: depthsSorted) {
+                    int cp_count = cpRecursionDepths2count.get(depth);
+                    int pp_count = ppRecursionDepths2count.get(depth);
+                    int cp_successes = cpRecursionDepths2success.get(depth);
+                    int pp_successes = ppRecursionDepths2success.get(depth);
+                    float cp_success_rate = cp_count > 0 ? cp_successes / (float) cp_count : 0.0f;
+                    float pp_success_rate = pp_count > 0 ? pp_successes / (float) pp_count : 0.0f;
+                    System.out.println("\t"+depth+
+                            "\t"+cp_count+"\t"+cp_successes+"\t"+String.format(java.util.Locale.US,"%.3f", cp_success_rate)+
+                            "\t"+pp_count+"\t"+pp_successes+"\t"+String.format(java.util.Locale.US,"%.3f", pp_success_rate)
+                    );
                 }
             } // if verbose
         }
