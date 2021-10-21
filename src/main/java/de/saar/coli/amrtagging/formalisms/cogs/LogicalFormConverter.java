@@ -29,10 +29,13 @@ import java.util.*;
  * - prepositions: the <i>nmod.preposition</i> edge belongs to the noun of the PP (not the modified noun!)<br>
  * - primitives: treated as graphs with potentially open sources...<br>
  * NEW: option <code>DO_PREP_REIFICATION</code> to reify nmod.prep edges to nodes!!!
+ * TODO: replace ugly DIY parsing with antlr parsing or so
  * TODO: missing implementation:
  * - Alignment: is is 0-indexed or 1-indexed? currently assumes 0-indexed. Check what Alignment wants and maybe change..
  * - refactoring (is there duplicate code or very similar code that could be a method on its own?)
  * - what is a node name (not label) for proper names? need to recover in postprocessing something?
+ * - node name x_Liam: maybe change to position of this word? although the node name doesn't matter it can be confusing
+ *   to see it later on in a reused supertag completely unlreated to the proper name
  * - conversion of graph back to lambda logical form (due to need to pick the correct lambda var...)
  * TODO: Problems
  * - alignments for determiners and proper names rely on heuristics and hope (see to-do-notes below)
@@ -106,11 +109,15 @@ public class LogicalFormConverter {
         assert(lemma != null);  // should have seen at least one term
         lexicalNode.setLabel(lemma);
         // ** Alignments
-        //  We align all nodes (the 'lemma' node and even the unlabeled nodes with just sources) to the token.
-        //  There is only one word in the input, so at position 0. // todo what if we only align the lexical node of a primtive?
-        for (String nodename: graph.getAllNodeNames()) {
-            alignments.add(new Alignment(nodename, 0));
-        }
+//        //  We align all nodes (the 'lemma' node and even the unlabeled nodes with just sources) to the token.
+//        for (String nodename: graph.getAllNodeNames()) {
+//            alignments.add(new Alignment(nodename, 0));
+//        }
+        // We align only the lex/root node, other nodes are left unaligned. Watch out for alignment problems in case
+        // other functions rely on all nodes to be aligned.
+        //  There is only one word in the input, so at position 0.
+        alignments.add(new Alignment(lexnodename, 0));
+
         return new MRInstance(sentenceTokens, graph, alignments);
     }
 
@@ -599,7 +606,9 @@ public class LogicalFormConverter {
             // (2) Arguments (both assumed to be indices)
             Argument one = arguments.get(noun1Node.getName());
             Argument two = arguments.get(noun2Node.getName());
-            assert(one.isIndex() && two.isIndex()); // todo turn this into if-statement with exception (input validation?)
+            if (!(one.isIndex() && two.isIndex())) {
+                throw new IllegalArgumentException("Converter problem: preposition needs to connect two indices. Did you enter a proper noun maybe? Ill-formed graph.");
+            }
             // (3) construct term and add it to the list of conjuncts
             Term term = new Term(pred, new ArrayList<>(Arrays.asList(one, two)));
             conjuncts.add(term);

@@ -70,6 +70,9 @@ public class SourceAutomataCLICOGS {
     @Parameter(names = {"--reifyprep", "-r"}, description = "if set, prepositions are reified (node instead of edge) (default: false)")
     private boolean reifyPrepositions=false;  // todo is this working
 
+    @Parameter(names = {"--useLexLabelReplacement"}, description = "If true lex label can be $FORM$ indicating copying of word form as lex label")
+    private boolean useLexLabelReplacement=false;
+
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
@@ -99,6 +102,7 @@ public class SourceAutomataCLICOGS {
         if (cli.reifyPrepositions) {
             LogicalFormConverter.DO_PREP_REIFICATION = true;
         }
+        System.out.println("Use lex label replacement? " + cli.useLexLabelReplacement);
 
         AMRBlobUtils blobUtils = new COGSBlobUtils();
 
@@ -111,7 +115,7 @@ public class SourceAutomataCLICOGS {
         List<TreeAutomaton<?>> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
-        cli.processCorpus(trainCorpus, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages);
+        cli.processCorpus(trainCorpus, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages, cli.useLexLabelReplacement);
 
         //get automata for dev set
         List<MRInstance> devCorpus = getSamplesFromFile(cli.devCorpusPath, cli.noPrimitives);
@@ -120,7 +124,7 @@ public class SourceAutomataCLICOGS {
         List<TreeAutomaton<?>> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
-        cli.processCorpus(devCorpus, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev);
+        cli.processCorpus(devCorpus, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev, cli.useLexLabelReplacement);
 
         Files.createDirectories(Paths.get(cli.outPath));
 
@@ -196,7 +200,7 @@ public class SourceAutomataCLICOGS {
                 mr.checkEverythingAligned();
 //                samples.add(mr);
             } catch (MRInstance.UnalignedNode unalignedNode) {
-                System.err.println("Alignment problem detected for following logical form: " + sample.getLogicalFormAsString());
+                System.err.println("Alignment problem detected for following logical form (if it is a primitive it is unproblematic): " + sample.getLogicalFormAsString());
                 // System.err.println("Unaligned for LF type: " + lf.getFormulaType());
                 if (lf.getFormulaType() != COGSLogicalForm.AllowedFormulaTypes.LAMBDA) {
                     unalignedNode.printStackTrace();
@@ -216,7 +220,7 @@ public class SourceAutomataCLICOGS {
     // mostly copied from AMR version (SourceAutomataCLIAMR) and SDP one (SourceAutomataCLI)
     private void processCorpus(List<MRInstance> corpus, AMRBlobUtils blobUtils,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<TreeAutomaton<?>> originalDecompositionAutomata,
-                               List<DecompositionPackage> decompositionPackages) {
+                               List<DecompositionPackage> decompositionPackages, boolean useLexLabelReplacement) {
 
         int[] buckets = new int[]{0, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000, 100000, 300000, 1000000};
         Counter<Integer> bucketCounter = new Counter<>();  // count automata sizes
@@ -277,7 +281,7 @@ public class SourceAutomataCLICOGS {
                 originalDecompositionAutomata.add(primitiveAutomaton);
                 //TODO why can't we use the normal COGSDecompositionPackage?
 //                DecompositionPackage decompositionPackage = new COGSDecompositionPackage(inst, blobUtils);
-                DecompositionPackage decompositionPackage = new COGSPrimitiveDecompositionPackage(inst, blobUtils);
+                DecompositionPackage decompositionPackage = new COGSPrimitiveDecompositionPackage(inst, blobUtils, useLexLabelReplacement);
                 decompositionPackages.add(decompositionPackage);
                 //TODO do we also want to print stats success counter, automata sizes and so on?
             } // is primitive
@@ -285,7 +289,7 @@ public class SourceAutomataCLICOGS {
                 //this next section is only for non-primitives
                 SGraph graph = inst.getGraph();
                 try {
-                    DecompositionPackage decompositionPackage = new COGSDecompositionPackage(inst, blobUtils);
+                    DecompositionPackage decompositionPackage = new COGSDecompositionPackage(inst, blobUtils, useLexLabelReplacement);
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
                     ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);

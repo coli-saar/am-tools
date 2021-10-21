@@ -23,6 +23,10 @@ import java.util.ArrayList;
  * we will use the COGS decomposition package this time (it wasn't used for SDP for historic reasons maybe?).</br>
  *
  * Output is needed as system_input in the validation_evaluator of the task model in the am-parser.
+ * It is further used for test evaluation and during prediction.
+ *
+ * I know that it is a bit counterintuitive that we have to perform the whole decomposition but in the end the
+ * output file contains only tokens (but nothing from the meaning representation).
  *
  * @author pia (weissenh)
  * */
@@ -32,10 +36,13 @@ public class PrepareDevData {
 //    private String corpusPath = "/home/wurzel/HiwiAK/cogs2021/COGS/data/dev.tsv";
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files")//, required = true)
-    private String outPath = "/home/wurzel/HiwiAK/cogs2021/amconll/";
+    private String outPath = "/home/wurzel/HiwiAK/cogs2021/prepreification/training_input/";
 
     @Parameter(names={"--prefix","-p"}, description = "Prefix for output file names (e.g. train --> train.amconll)")//, required=true)
     private String prefix = "dp_dev"; // "test_like";
+
+//    @Parameter(names = {"--reifyprep", "-r"}, description = "if set, prepositions are reified (node instead of edge) (default: false)")
+//    private boolean reifyPrepositions=false;  // not necessary here, shouldn't make any difference for the output
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
@@ -63,6 +70,11 @@ public class PrepareDevData {
         System.out.println("Output path: " + cli.outPath);
         System.out.println("Prefix/filename of output file: " + cli.prefix);
 
+//        System.out.println("Reify prepositions? " + cli.reifyPrepositions);
+//        if (cli.reifyPrepositions) { // this shouldn't make any difference
+//            LogicalFormConverter.DO_PREP_REIFICATION = true;
+//        }
+
         RawCOGSReader reader = new RawCOGSReader(cli.corpusPath);
         MRInstance mrInstance;
         COGSLogicalForm lf;
@@ -75,7 +87,8 @@ public class PrepareDevData {
             // convert logical form to a mrInstance (involves parsing the logical form and to graph conversion)
             // todo I should check whether the logical form could be built
             lf = new COGSLogicalForm(sample.tgt_tokens);
-            // todo what happens if the conversion to grpah fails? do I need try/catch statements here?
+            // todo what happens if the conversion to graph fails? do I need try/catch statements here?
+            // input is expected to be gold data, so an exception here would imply a hidden error in our conversion procedure
             mrInstance = LogicalFormConverter.toSGraph(lf, sample.src_tokens);
 
             // use the decomposition package o get a base amconll sentence
@@ -84,7 +97,7 @@ public class PrepareDevData {
             // makeBaseAmconllSentence wouldn't use graph and alignment (so far true, but doesn't have to stay like this?)
             // todo do I need to care about primitives (in general and decomposition of them in particular?)
             // dev doesn't contain primitives, test probably also not.
-            COGSDecompositionPackage decompositionPackage = new COGSDecompositionPackage(mrInstance, blobUtils);
+            COGSDecompositionPackage decompositionPackage = new COGSDecompositionPackage(mrInstance, blobUtils, true);
             AmConllSentence currentSent = decompositionPackage.makeBaseAmConllSentence();
 
             // removing lex labels: todo should I remove lex labels?
