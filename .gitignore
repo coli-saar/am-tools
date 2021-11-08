@@ -108,3 +108,4 @@ examples/output/dev.zip
 examples/namesDatesNumbers_AlsFixed.corpus
 examples/english.conll.4class.distsim.crf.ser.gz
 examples/english-bidirectional-distsim.tagger
+examples/output/toyGraphbank.txt
