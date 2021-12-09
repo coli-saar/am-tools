@@ -25,6 +25,11 @@ NP -> simpleNP(DET, N) [1.0]
 [string] *(?1,?2)
 [graph] ?2
 
+// -- adjectives -- 
+N -> adj(A, N) [3.0]
+[string] *(?1,?2)
+[graph] MOD_m(?2,?1)
+
 // -- VP -- 
 VP_past -> justVerbPast(V_intr_past) [1.0]
 [string] ?1
@@ -100,6 +105,24 @@ V_trans_past -> hate [1.0]
 V_trans_past -> help [1.0]
 [string] helped
 [graph] '(u<root> / help :agent (v<s>) :patient (w<o>))--TYPE--(s,o)'
+
+
+// ------------------------------- adjectives ----------------------------
+A -> big [1.0]
+[string] big
+[graph] '(u<root> / big :mod-of (v<m>))--TYPE--(m)'
+
+A -> green [1.0]
+[string] green
+[graph] '(u<root> / green :mod-of (v<m>))--TYPE--(m)'
+
+A -> funny [1.0]
+[string] funny
+[graph] '(u<root> / funny :mod-of (v<m>))--TYPE--(m)'
+
+A -> precious [1.0]
+[string] precious
+[graph] '(u<root> / precious :mod-of (v<m>))--TYPE--(m)'
 
 // ------------------------------- coordinators ----------------------------
 
