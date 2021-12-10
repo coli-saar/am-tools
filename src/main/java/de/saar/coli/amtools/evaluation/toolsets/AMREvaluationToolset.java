@@ -5,9 +5,11 @@ import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
 import de.saar.coli.amrtagging.formalisms.amr.tools.Relabel;
+import de.saar.coli.amrtagging.formalisms.amr.tools.datascript.JamrDataFromAltoCorpus;
 import de.saar.coli.amtools.evaluation.EvaluationToolset;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.*;
+import org.apache.tools.ant.types.Commandline;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,18 +29,19 @@ public class AMREvaluationToolset extends EvaluationToolset {
     @Parameter(names = {"--keep-aligned"}, description = "keep index of token position in node label")
     private boolean keepAligned = false;
 
-    @Parameter(names = {"--add-sense-to-nn-label"}, description = "if true, adds a -01 suffix to all lexlabel predictions by the neural network\n" +
-            "     *                          that have no sense suffix but belong to a node with outgoing ARGx edges")
+    @Parameter(names = {"--add-sense-to-nn-label"}, description = "if true, adds a -01 suffix to all lexlabel predictions " +
+            "by the neural network that have no sense suffix but belong to a node with outgoing ARGx edges")
     private boolean addSenseToNNLabel = false;
 
     @Parameter(names = {"--th"}, description = "Threshold for relabeler. Default: 10")
     private int threshold = 10;
 
-    @Parameter(names = {"--wn"}, description = "Path to WordNet")
-    private String wordnet = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/metadata/wordnet/3.0/dict/";
+    @Parameter(names = {"--wn"}, description = "Path to WordNet", required = true)
+    private String wordnet = null;
 
-    @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.")//, required = true)
-    private String lookup = "/home/matthias/Schreibtisch/Hiwi/am-parser/external_eval_tools/2019rerun/lookupdata17/";
+    @Parameter(names = {"--lookup"}, description = "Lookup path. Path to where the files nameLookup.txt, " +
+            "nameTypeLookup.txt, wikiLookup.txt, words2labelsLookup.txt are.", required = true)
+    private String lookup = null;
 
 
     private final Relabel relabeler;
@@ -47,17 +50,29 @@ public class AMREvaluationToolset extends EvaluationToolset {
         JCommander commander = new JCommander(this);
         commander.setProgramName("constraint_extractor");
 
-        relabeler = new Relabel(wordnet, null, lookup, threshold, 0,false, addSenseToNNLabel);
+        System.out.println("Creating AMREvaluationToolset with the following parameters:");
+        System.out.println(extra);
+
+
 
         try {
-            commander.parse(extra.split(" "));
+            commander.parse(Commandline.translateCommandline(extra));
         } catch (com.beust.jcommander.ParameterException ex) {
             System.err.println("An error occured when reading the parameters for AMREvaluationToolset, presumably passed with the '--extra' option: " + ex.toString());
             System.err.println("This constructor received these parameters: "+extra);
             System.err.println("\n Available options: ");
             commander.usage();
-            return;
+            throw new RuntimeException("Invalid arguments to constructor of AMREvaluationToolset");
         }
+
+//        System.err.println("wordnet");
+//        System.err.println(wordnet);
+//        System.err.println("lookup");
+//        System.err.println(lookup);
+//        System.err.println("threshold");
+//        System.err.println(threshold);
+
+        relabeler = new Relabel(wordnet, null, lookup, threshold, 0,false, addSenseToNNLabel);
 
     }
 
