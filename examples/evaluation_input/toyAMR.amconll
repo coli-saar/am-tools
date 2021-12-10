@@ -1,0 +1,13 @@
+#flavor:2
+#git:c81775f675a03c133f357debb4ef9dc1a72308a9
+#framework:amr
+#id:1
+#predicted_weight:0.520384688905022
+#total_inside_weight:0.5203855147424754
+1	The	_	_	_	_	_	_	_	0	IGNORE	True
+2	little	_	_	_	_	(l<root> / --LEX--  :mod-of (d<S1>))	$FORM$	(S1())	3	MOD_S1	True
+3	dragon	_	_	_	_	(d<root> / --LEX--)	$FORM$	()	4	APP_S0	True
+4	yearns	_	_	_	_	(y<root> / --LEX--  :ARG0 (d<S0>)  :ARG1 (f<S1>))	yearn-01	(S1(S0()))	0	ROOT	True
+5	to	_	_	_	_	_	_	_	0	IGNORE	True
+6	fly	_	_	_	_	(f<root> / --LEX--  :ARG0 (d<S0>))	$FORM$-01	(S0())	4	APP_S1	True
+
