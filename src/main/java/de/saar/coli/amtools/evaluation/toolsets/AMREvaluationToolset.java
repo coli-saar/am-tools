@@ -110,7 +110,7 @@ public class AMREvaluationToolset extends EvaluationToolset {
      * @return
      */
     @Override
-    public MRInstance applyPostprocessing(MRInstance mrInstance,AmConllSentence origAMConllSentence) {
+    public void applyPostprocessing(MRInstance mrInstance,AmConllSentence origAMConllSentence) {
         // relabel graph
         SGraph evaluatedGraph = mrInstance.getGraph();
         try {
@@ -171,7 +171,6 @@ public class AMREvaluationToolset extends EvaluationToolset {
             evaluatedGraph = PropertyDetection.fixProperties(evaluatedGraph);
 
             mrInstance.setGraph(evaluatedGraph);
-            return mrInstance;
         } catch (Exception ex) {
             System.err.println("In line " + origAMConllSentence.getLineNr());
             System.err.println("Ignoring exception:");
@@ -184,7 +183,6 @@ public class AMREvaluationToolset extends EvaluationToolset {
                 System.err.println("This error should really really never happen...");  // famous last words -- JG
                 e.printStackTrace();
             }
-            return mrInstance;
         }
 
     }

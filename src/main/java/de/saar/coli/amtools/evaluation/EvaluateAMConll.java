@@ -147,7 +147,8 @@ public class EvaluateAMConll {
             mrInst.setLemmas(s.lemmas());
             mrInst.setNeTags(s.getFields(AmConllEntry::getNe));
 
-            mrInst = evaluationToolset.applyPostprocessing(mrInst, s);
+            // apply postprocessing (changes mrInst in place)
+            evaluationToolset.applyPostprocessing(mrInst, s);
 
             outputCorpus.add(mrInst);
         }

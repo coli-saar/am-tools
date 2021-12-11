@@ -18,7 +18,9 @@ class EvaluateAMConllTest {
 
         BufferedReader br = new BufferedReader(new FileReader("examples/output/parserOut.txt"))
         SGraph result = new GraphAlgebra().parseString(br.readLine())
-        SGraph gold = new GraphAlgebra().parseString("(u_3 / \"LEX@3\"  :ARG0 (u_1 / \"LEX@2\"  :mod (u_4 / \"LEX@1\")  :ARG0-of (u_2 / \"LEX@5\"  :ARG1-of u_3)))")
+        SGraph gold = new GraphAlgebra().parseString("(u_3 / yearn-01  :ARG0 (u_1 / dragon  :mod (u_4 / little)  :ARG0-of (u_2 / fly-01  :ARG1-of u_3)))")
+
+        print(result.toIsiAmrString())
 
         assert gold.equals(result)
 
