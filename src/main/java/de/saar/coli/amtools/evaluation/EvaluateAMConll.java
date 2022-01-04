@@ -41,9 +41,14 @@ public class EvaluateAMConll {
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files", required = true)
     private String outPath = null;
 
+    @Parameter(names = {"--gold", "-g"}, description = "Path to gold corpus. Usually expected to contain the same instances in the same order as " +
+            "the --corpus file (unless the evaluation toolset says otherwise). Giving the gold corpus here is optional, and only works if the evaluation" +
+            "toolset has the compareToGold function implemented. Alternatively, use an external evaluation tool after this program has run (such as" +
+            "the Smatch script for AMR graphs).")
+    private String goldCorpus = null;
+
     @Parameter(names = {"--evaluationToolset", "-ts"}, description = "Classname of the EvaluationToolset class to be used. Default applies no postprocessing and writes the files in ISI AMR format")
     private String evaluationToolset = "de.saar.coli.amtools.evaluation.EvaluationToolset";
-
 
     @Parameter(names = {"--extras", "-e"}, description = "Additional parameters to the constructor of the Evaluation toolset, as a single string. Optional.")
     private String toolsetExtras = null;
@@ -129,18 +134,6 @@ public class EvaluateAMConll {
             evaluatedGraph = evaluatedGraph.withFreshNodenames();
             alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
 
-            //rename nodes names from 1@@m@@--LEX-- to LEX@0
-            List<String> labels = s.lemmas();
-            for (String n : evaluatedGraph.getAllNodeNames()) {
-                if (evaluatedGraph.getNode(n).getLabel().contains("LEX")) {
-                    Pair<Integer, Pair<String, String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
-                    labels.set(info.left - 1, s.get(info.left - 1).getReLexLabel());
-                    evaluatedGraph.getNode(n).setLabel(Relabel.LEXMARKER + (info.left - 1));
-                } else {
-                    Pair<Integer, Pair<String, String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
-                    evaluatedGraph.getNode(n).setLabel(info.right.right);
-                }
-            }
 
             MRInstance mrInst = new MRInstance(s.words(), evaluatedGraph, alignments);
             mrInst.setPosTags(s.getFields(AmConllEntry::getPos));
@@ -154,6 +147,10 @@ public class EvaluateAMConll {
         }
 
         evaluationToolset.writeCorpus(cli.outPath, outputCorpus);
+
+        if (cli.goldCorpus != null) {
+            evaluationToolset.compareToGold(outputCorpus, cli.goldCorpus);
+        }
 
     }
 

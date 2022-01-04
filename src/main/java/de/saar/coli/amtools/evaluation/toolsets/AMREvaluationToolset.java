@@ -2,6 +2,7 @@ package de.saar.coli.amtools.evaluation.toolsets;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
 import de.saar.coli.amrtagging.formalisms.amr.tools.Relabel;
@@ -111,8 +112,25 @@ public class AMREvaluationToolset extends EvaluationToolset {
      */
     @Override
     public void applyPostprocessing(MRInstance mrInstance,AmConllSentence origAMConllSentence) {
+
+
         // relabel graph
         SGraph evaluatedGraph = mrInstance.getGraph();
+
+        // Rename nodes names from 1@@m@@--LEX-- to LEX@0
+        // This is for compatibility with the older Relabel class
+        List<String> labels = origAMConllSentence.lemmas();
+        for (String n : evaluatedGraph.getAllNodeNames()) {
+            if (evaluatedGraph.getNode(n).getLabel().contains("LEX")) {
+                Pair<Integer, Pair<String, String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
+                labels.set(info.left - 1, origAMConllSentence.get(info.left - 1).getReLexLabel());
+                evaluatedGraph.getNode(n).setLabel(Relabel.LEXMARKER + (info.left - 1));
+            } else {
+                Pair<Integer, Pair<String, String>> info = AlignedAMDependencyTree.decodeNode(evaluatedGraph.getNode(n));
+                evaluatedGraph.getNode(n).setLabel(info.right.right);
+            }
+        }
+
         try {
             relabeler.fixGraph(evaluatedGraph, origAMConllSentence.getFields((AmConllEntry entry) ->
             {

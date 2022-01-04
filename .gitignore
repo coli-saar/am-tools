@@ -113,3 +113,5 @@ examples/output/test.dot
 examples/output/test.pdf
 examples/output/toyGraphbankOwnFormat.txt
 examples/output/parserOut.txt
+examples/output/parserOut.sdp
+examples/output/toyDM.sdp
