@@ -48,22 +48,41 @@ public class EvaluateAMConll {
     private String goldCorpus = null;
 
     @Parameter(names = {"--evaluationToolset", "-ts"}, description = "Classname of the EvaluationToolset class to be used. Default applies no postprocessing and writes the files in ISI AMR format")
-    private String evaluationToolset = "de.saar.coli.amtools.evaluation.EvaluationToolset";
+    private String evaluationToolsetName = "de.saar.coli.amtools.evaluation.EvaluationToolset";
 
-    @Parameter(names = {"--extras", "-e"}, description = "Additional parameters to the constructor of the Evaluation toolset, as a single string. Optional.")
+    @Parameter(names = {"--extras", "-e"}, description = "Additional parameters to the constructor of the Evaluation toolset, as a single string. Optional." +
+            " Note that using this parameter causes a different constructor of the evaluation toolset to be called.")
     private String toolsetExtras = null;
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
-
-
+    private boolean continueBeyondArgumentReading;
 
 
 
     public static void main(String[] args) throws IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, InterruptedException {
-        EvaluateAMConll cli = new EvaluateAMConll();
-        JCommander commander = new JCommander(cli);
+        EvaluateAMConll amConllEvaluator = new EvaluateAMConll();
+
+        amConllEvaluator.readCommandLineArguments(args);
+        if (!amConllEvaluator.continueBeyondArgumentReading) {
+            return;
+        }
+
+        List<AmConllSentence> inputAMConllSentences = amConllEvaluator.readAMConllFile();
+
+        EvaluationToolset evaluationToolset = amConllEvaluator.setupEvaluationToolset();
+
+        List<MRInstance> outputCorpus = amConllEvaluator.evaluteAMCorpus(inputAMConllSentences, evaluationToolset);
+
+        amConllEvaluator.writeOutputCorpus(evaluationToolset, outputCorpus);
+
+        amConllEvaluator.compareToGoldIfRequired(evaluationToolset, outputCorpus);
+    }
+
+
+    private void readCommandLineArguments(String[] args) {
+        JCommander commander = new JCommander(this);
         commander.setProgramName("constraint_extractor");
 
         try {
@@ -72,87 +91,110 @@ public class EvaluateAMConll {
             System.err.println("An error occured: " + ex.toString());
             System.err.println("\n Available options: ");
             commander.usage();
-            return;
+            continueBeyondArgumentReading = false;
         }
 
-        if (cli.help) {
+        if (help) {
             commander.usage();
-            return;
+            continueBeyondArgumentReading = false;
         }
 
+        continueBeyondArgumentReading = true;
+    }
 
 
+    private List<AmConllSentence> readAMConllFile() throws IOException, ParseException {
+        return AmConllSentence.readFromFile(corpusPath);
+    }
 
+    private EvaluationToolset setupEvaluationToolset() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        Class<?> clazz = getEvaluationToolsetClass();
+        return createEvaluationToolsetObject(clazz);
+    }
 
-        List<AmConllSentence> sents = AmConllSentence.readFromFile(cli.corpusPath);
-
-
+    private Class<?> getEvaluationToolsetClass() {
         Class<?> clazz;
         try {
-            clazz = Class.forName(cli.evaluationToolset);
+            clazz = Class.forName(evaluationToolsetName);
         } catch (ClassNotFoundException ex) {
             try {
-                clazz = Class.forName("de.saar.coli.amtools.evaluation.toolsets." + cli.evaluationToolset);
+                clazz = Class.forName("de.saar.coli.amtools.evaluation.toolsets." + evaluationToolsetName);
             } catch (ClassNotFoundException ex2) {
-                throw new RuntimeException("Neither class "+cli.evaluationToolset+
-                        " nor de.saar.coli.amtools.decomposition.formalisms.toolsets." + cli.evaluationToolset+" could be found! Aborting.");
+                throw new RuntimeException("Neither class "+evaluationToolsetName+
+                        " nor de.saar.coli.amtools.decomposition.formalisms.toolsets." + evaluationToolsetName+" could be found! Aborting.");
             }
         }
+        return clazz;
+    }
 
-        // creating the toolset. Calling a different parameter depending on whether the --extra option was used.
-        EvaluationToolset evaluationToolset;
-        if (cli.toolsetExtras != null) {
+    private EvaluationToolset createEvaluationToolsetObject(Class<?> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        // Calling a different constructor depending on whether the --extra option was used.
+        if (toolsetExtras != null) {
             Constructor<?> ctor = clazz.getConstructor(String.class);
-            evaluationToolset = (EvaluationToolset)ctor.newInstance(new Object[] { cli.toolsetExtras});
+            return (EvaluationToolset)ctor.newInstance(new Object[] { toolsetExtras});
         } else {
             Constructor<?> ctor = clazz.getConstructor();
-            evaluationToolset = (EvaluationToolset)ctor.newInstance(new Object[] {});
+            return (EvaluationToolset)ctor.newInstance(new Object[] {});
         }
+    }
 
 
+    private static List<MRInstance> evaluteAMCorpus(List<AmConllSentence> inputAMConllSentences, EvaluationToolset evaluationToolset) throws ParseException, ParserException, AlignedAMDependencyTree.ConllParserException {
         List<MRInstance> outputCorpus = new ArrayList<>();
 
-        for (AmConllSentence s : sents) {
+        for (AmConllSentence inputSentence : inputAMConllSentences) {
+            ensureCompatibilityWithOldPipeline(inputSentence); //TODO is this the right place for this? Or is it AMR specific?
 
-            //TODO is this the right place for this? Or is it AMR specific?
-            //fix the REPL problem:
-            //the NN was trained with data where REPL was used for some nouns because the lexical label was lower-cased
-            //we don't want $REPL$ in our output, so let's replace predictions that contain REPL but where there is no replacement field
-            //with the word form.
+            SGraph evaluatedGraph = evaluateToAlignedGraph(inputSentence);
+            List<Alignment> alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
+            MRInstance mrInst = encodeAsMRInstance(inputSentence, evaluatedGraph, alignments);
 
-            for (AmConllEntry e : s) {
-                if (e.getLexLabel().contains(AmConllEntry.REPL_PLACEHOLDER) && e.getReplacement().equals(AmConllEntry.DEFAULT_NULL)) {
-                    e.setLexLabel(e.getReLexLabel().replace(AmConllEntry.REPL_PLACEHOLDER, AmConllEntry.FORM_PLACEHOLDER));
-                }
-            }
-
-            AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
-            SGraph evaluatedGraph = amdep.evaluateWithoutRelex(true);
-
-            List<Alignment> alignments = null;
-
-            evaluatedGraph = evaluatedGraph.withFreshNodenames();
-            alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
-
-
-            MRInstance mrInst = new MRInstance(s.words(), evaluatedGraph, alignments);
-            mrInst.setPosTags(s.getFields(AmConllEntry::getPos));
-            mrInst.setLemmas(s.lemmas());
-            mrInst.setNeTags(s.getFields(AmConllEntry::getNe));
-
-            // apply postprocessing (changes mrInst in place)
-            evaluationToolset.applyPostprocessing(mrInst, s);
+            evaluationToolset.applyPostprocessing(mrInst, inputSentence);
 
             outputCorpus.add(mrInst);
         }
 
-        evaluationToolset.writeCorpus(cli.outPath, outputCorpus);
-
-        if (cli.goldCorpus != null) {
-            evaluationToolset.compareToGold(outputCorpus, cli.goldCorpus);
-        }
-
+        return outputCorpus;
     }
+
+    private static SGraph evaluateToAlignedGraph(AmConllSentence s) throws ParseException, ParserException, AlignedAMDependencyTree.ConllParserException {
+        AlignedAMDependencyTree amdep = AlignedAMDependencyTree.fromSentence(s);
+        SGraph evaluatedGraph = amdep.evaluateWithoutRelex(true);
+        evaluatedGraph = evaluatedGraph.withFreshNodenames();
+        return evaluatedGraph;
+    }
+
+    private static MRInstance encodeAsMRInstance(AmConllSentence s, SGraph graph, List<Alignment> alignments) {
+        MRInstance mrInst = new MRInstance(s.words(), graph, alignments);
+        mrInst.setPosTags(s.getFields(AmConllEntry::getPos));
+        mrInst.setLemmas(s.lemmas());
+        mrInst.setNeTags(s.getFields(AmConllEntry::getNe));
+        return mrInst;
+    }
+
+    private static void ensureCompatibilityWithOldPipeline(AmConllSentence s) {
+        //fix the REPL problem:
+        //the NN was trained with data where REPL was used for some nouns because the lexical label was lower-cased
+        //we don't want $REPL$ in our output, so let's replace predictions that contain REPL but where there is no replacement field
+        //with the word form.
+        for (AmConllEntry e : s) {
+            if (e.getLexLabel().contains(AmConllEntry.REPL_PLACEHOLDER) && e.getReplacement().equals(AmConllEntry.DEFAULT_NULL)) {
+                e.setLexLabel(e.getReLexLabel().replace(AmConllEntry.REPL_PLACEHOLDER, AmConllEntry.FORM_PLACEHOLDER));
+            }
+        }
+    }
+
+    private void writeOutputCorpus(EvaluationToolset evaluationToolset, List<MRInstance> outputCorpus) throws IOException, InterruptedException {
+        evaluationToolset.writeCorpus(outPath, outputCorpus);
+    }
+
+    private void compareToGoldIfRequired(EvaluationToolset evaluationToolset, List<MRInstance> outputCorpus) throws IOException {
+        if (goldCorpus != null) {
+            evaluationToolset.compareToGold(outputCorpus, goldCorpus);
+        }
+    }
+
+
 
 
 
