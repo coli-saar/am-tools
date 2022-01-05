@@ -25,9 +25,8 @@ import org.jetbrains.annotations.NotNull;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
-import java.io.FileReader;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
 public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAutomaton.State> {
 
@@ -49,90 +48,200 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
     }
 
-
-    public static SourceAssignmentAutomaton makeAutomatonFromConstants(AMDependencyTree dep, Collection<String> constants,
-                                                                       DecompositionPackage decompositionPackage)
-            throws ParserException {
-        ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
-        Signature signature = new Signature();
-        for (String c : constants) {
-            signature.addSymbol(c, 0);
-            Pair<SGraph, Type> graph = alg.parseString(c);
-            for (String source : graph.right.getAllSources()) {
-                signature.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION+source, 2);
-                signature.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION+source, 2);
-            }
-        }
-        //TODO implement rest
-
-        return new SourceAssignmentAutomaton(signature, null, null, null);
-    }
+//    I never finished implementing this function, but it was a neat idea -- JG
+//    public static SourceAssignmentAutomaton makeAutomatonFromConstants(AMDependencyTree dep, Collection<String> constants,
+//                                                                       DecompositionPackage decompositionPackage)
+//            throws ParserException {
+//        ApplyModifyGraphAlgebra alg = new ApplyModifyGraphAlgebra();
+//        Signature signature = new Signature();
+//        for (String c : constants) {
+//            signature.addSymbol(c, 0);
+//            Pair<SGraph, Type> graph = alg.parseString(c);
+//            for (String source : graph.right.getAllSources()) {
+//                signature.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION+source, 2);
+//                signature.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION+source, 2);
+//            }
+//        }
+//        //TODO implement rest
+//
+//        return new SourceAssignmentAutomaton(signature, null, null, null);
+//    }
 
     /**
-     * assumes that all constants in the dependency tree are different from each other.
-     * @param dep
-     * @param nrSources
+     * This function creates a SourceAssignmentAutomaton based on an AMDependencyTree dep that uses constants with
+     * placeholder source names. This function assumes that all constants in the dependency tree are different from each other.
+     * The source assignment automaton is exhaustive in the sense that it will use all possible combinations of source names
+     * (from a fixed-size set of generalizable source names) in the constants.
+     *
+     * @param dep The dependency tree with placeholder source names that the resulting automaton will be based on.
+     * @param nrSources total number of generalizable source names that the resulting automaton will use
      * @param decompositionPackage
      * @return
      */
     public static SourceAssignmentAutomaton makeAutomatonWithAllSourceCombinations(AMDependencyTree dep, int nrSources,
                                                                                    DecompositionPackage decompositionPackage) {
-        Map<IntList, AMDependencyTree> position2dep = new HashMap<>();
-        Map<IntList, List<String>> position2operations = new HashMap<>();
-        sortRecursive(dep, position2dep, position2operations, new IntArrayList(), decompositionPackage);
 
+
+        Signature signature = createSignatureWithBinaryOperationsForAllSources(nrSources);
+
+        RuleBuilderWithAllSourceCombinations ruleBuilder = new RuleBuilderWithAllSourceCombinations(signature, nrSources, decompositionPackage);
+
+        ruleBuilder.establishArbitraryOrderForDependencyTree(dep);
+
+        return ruleBuilder.makeAutomaton();
+
+    }
+
+    @NotNull
+    private static Signature createSignatureWithBinaryOperationsForAllSources(int nrSources) {
         Signature signature = new Signature();
         for (int i = 0; i<nrSources; i++) {
             signature.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION+makeSource(i), 2);
             signature.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION+makeSource(i), 2);
         }
-        Map<String, SourceAssignmentAutomaton.State> constant2state = new HashMap<>();
-        Map<String, Integer> constant2wordID = new HashMap<>();
+        return signature;
+    }
 
-        for (Map.Entry<IntList, AMDependencyTree> entry : position2dep.entrySet()) {
-            Pair<SGraph, Type> graph = entry.getValue().getHeadGraph();
-            Set<String> allSources = graph.right.getAllSources();
-            List<Map<String, String>> allAssignments = getAllMaps(allSources, nrSources);
-            for (Map<String, String> sourceAssignment : allAssignments) {
-                Type newType = Type.EMPTY_TYPE;
-                for (String oldSource : allSources) {
-                    // could also just add everything in keySet of sourceAssignment
-                    newType = newType.addSource(sourceAssignment.get(oldSource));
-                }
-                for (String oldSource : allSources) {
-                    for (String requestSource : graph.right.getRequest(oldSource).getAllSources()) {
-                        String edgeLabel = graph.right.getRenameTarget(oldSource, requestSource);
-                        // this is not quite right, but should work with the input we're getting right now
-                        newType = newType.setDependency(sourceAssignment.get(oldSource),
-                                sourceAssignment.get(requestSource), sourceAssignment.get(edgeLabel));
-                    }
-                }
-                SGraph newSGraph = graph.left;
-                for (String source : graph.left.getAllSources()) {
-                    if (!source.equals(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME)) {
-                        newSGraph = newSGraph.renameSource(source, sourceAssignment.get(source));
-                    }
-                }
-                Pair<SGraph, Type> constant = new Pair<>(newSGraph, newType);
-                String label = constant.left.toIsiAmrStringWithSources() + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
-                signature.addSymbol(label, 0);
-                State state = new State(entry.getKey(), 0, sourceAssignment);
-                if (constant2state.containsKey(label)) {
-                    throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
-                }
-                constant2state.put(label, state);
-                if (constant2wordID.containsKey(label)) {
-                    throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
-                }
-                constant2wordID.put(label, decompositionPackage.getSentencePositionForGraphFragment(constant.left));
+    private static class RuleBuilderWithAllSourceCombinations {
+        private final Map<IntList, AMDependencyTree> treeAddress2dominatedDependencyTree = new HashMap<>();
+        private final Map<IntList, List<String>> treeAddress2allPossibleOperations = new HashMap<>();
+        private final Signature signature;
+        private final int nrSources;
+        private final DecompositionPackage decompositionPackage;
 
+        private RuleBuilderWithAllSourceCombinations(Signature signature, int nrSources, DecompositionPackage decompositionPackage) {
+            this.signature = signature;
+            this.nrSources = nrSources;
+            this.decompositionPackage = decompositionPackage;
+        }
+
+        private void establishArbitraryOrderForDependencyTree(AMDependencyTree dep) {
+            establishArbitraryOrderForDependencyTreeRecursive(dep, new IntArrayList());
+        }
+
+        private void establishArbitraryOrderForDependencyTreeRecursive(AMDependencyTree depToSort, IntList address) {
+            treeAddress2dominatedDependencyTree.put(address, depToSort);
+            List<String> operationsHere = new ArrayList<>();
+            treeAddress2allPossibleOperations.put(address, operationsHere);
+            List<Pair<String, AMDependencyTree>> childrenList = new ArrayList<>(depToSort.getOperationsAndChildren());
+            childrenList.sort(new Comparator<Pair<String, AMDependencyTree>>() {
+                @Override
+                public int compare(Pair<String, AMDependencyTree> o1, Pair<String, AMDependencyTree> o2) {
+                    //TODO a clever order could allow for forgetting source assignments early, to make the automaton smaller; for now we use a random order
+                    return 0;
+                }
+            });
+            int index = 0;
+            for (Pair<String, AMDependencyTree> opAndChild : childrenList) {
+                operationsHere.add(opAndChild.left);
+                IntList childPosition = new IntArrayList(address);
+                childPosition.add(index);
+                establishArbitraryOrderForDependencyTreeRecursive(opAndChild.right, childPosition);
+                index++;
             }
         }
-        return new SourceAssignmentAutomaton(signature, constant2wordID, constant2state, position2operations);
+
+        private SourceAssignmentAutomaton makeAutomaton() {
+
+            Map<String, SourceAssignmentAutomaton.State> constant2state = new HashMap<>();
+            Map<String, Integer> constant2wordID = new HashMap<>();
+
+            forEachAddressAndLocalDependencyTree(addressWithDependencyTree -> {
+                recordRuleInformationAtAddress(addressWithDependencyTree, constant2state, constant2wordID);
+            });
+
+            return new SourceAssignmentAutomaton(signature, constant2wordID, constant2state, treeAddress2allPossibleOperations);
+        }
+
+
+        private void recordRuleInformationAtAddress(Map.Entry<IntList, AMDependencyTree> addressWithDependencyTree,
+                                                    Map<String, SourceAssignmentAutomaton.State> constant2state,
+                                                    Map<String, Integer> constant2wordID) {
+            Pair<SGraph, Type> constantAtDependencyNode = addressWithDependencyTree.getValue().getHeadGraph();
+            Set<String> placeholderSourcesAtConstant = constantAtDependencyNode.right.getAllSources();
+            List<Map<String, String>> allPossibleSourceAssignments = getAllSourceAssignmentMaps(placeholderSourcesAtConstant, nrSources);
+            for (Map<String, String> sourceAssignment : allPossibleSourceAssignments) {
+                createAndRegisterConstantFromSourceAssignment(addressWithDependencyTree.getKey(), constant2state, constant2wordID,
+                        constantAtDependencyNode, placeholderSourcesAtConstant, sourceAssignment);
+            }
+        }
+
+        private void createAndRegisterConstantFromSourceAssignment(IntList address, Map<String, State> constant2state, Map<String, Integer> constant2wordID,
+                                                                   Pair<SGraph, Type> constantAtDependencyNode, Set<String> placeholderSourcesAtConstant,
+                                                                   Map<String, String> sourceAssignment) {
+            Pair<SGraph, Type> constant = createConstantWithGeneralizableSourceNames(constantAtDependencyNode, placeholderSourcesAtConstant, sourceAssignment);
+            String constantInStringForm = constant.left.toIsiAmrStringWithSources() + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
+            registerConstantAndSourceAssignment(address, constant2state, constant2wordID, sourceAssignment, constant, constantInStringForm);
+        }
+
+        private void registerConstantAndSourceAssignment(IntList address, Map<String, State> constant2state, Map<String, Integer> constant2wordID, Map<String, String> sourceAssignment, Pair<SGraph, Type> constant, String constantInStringForm) {
+            signature.addSymbol(constantInStringForm, 0);
+            checkForDuplicateConstants(constant2state, constant2wordID, constantInStringForm);
+            constant2state.put(constantInStringForm, createConstantState(address, sourceAssignment));
+            constant2wordID.put(constantInStringForm, decompositionPackage.getSentencePositionForGraphFragment(constant.left));
+        }
+
+        private State createConstantState(IntList address, Map<String, String> sourceAssignment) {
+            return new State(address, 0, sourceAssignment);
+        }
+
+        @NotNull
+        private Pair<SGraph, Type> createConstantWithGeneralizableSourceNames(Pair<SGraph, Type> constantAtDependencyNode, Set<String> placeholderSourcesAtConstant, Map<String, String> sourceAssignment) {
+            Type newType = Type.EMPTY_TYPE;
+            newType = addGeneralizableSourceNamesToType(placeholderSourcesAtConstant, sourceAssignment, newType);
+            newType = addRequestsToType(constantAtDependencyNode, placeholderSourcesAtConstant, sourceAssignment, newType);
+            SGraph newSGraph = generateSGraphWithNewSources(constantAtDependencyNode, sourceAssignment);
+            return new Pair<>(newSGraph, newType);
+        }
+
+        private void checkForDuplicateConstants(Map<String, State> constant2state, Map<String, Integer> constant2wordID, String label) {
+            if (constant2state.containsKey(label)) {
+                throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
+            }
+            if (constant2wordID.containsKey(label)) {
+                throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
+            }
+        }
+
+        private SGraph generateSGraphWithNewSources(Pair<SGraph, Type> constantAtDependencyNode, Map<String, String> sourceAssignment) {
+            SGraph newSGraph = constantAtDependencyNode.left;
+            for (String source : constantAtDependencyNode.left.getAllSources()) {
+                if (!source.equals(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME)) {
+                    newSGraph = newSGraph.renameSource(source, sourceAssignment.get(source));
+                }
+            }
+            return newSGraph;
+        }
+
+        private Type addRequestsToType(Pair<SGraph, Type> constantAtDependencyNode, Set<String> placeholderSourcesAtConstant, Map<String, String> sourceAssignment, Type newType) {
+            for (String oldSource : placeholderSourcesAtConstant) {
+                for (String requestSource : constantAtDependencyNode.right.getRequest(oldSource).getAllSources()) {
+                    String edgeLabel = constantAtDependencyNode.right.getRenameTarget(oldSource, requestSource);
+                    // this is not quite right, but should work with the input we're getting right now
+                    newType = newType.setDependency(sourceAssignment.get(oldSource),
+                            sourceAssignment.get(requestSource), sourceAssignment.get(edgeLabel));
+                }
+            }
+            return newType;
+        }
+
+        private Type addGeneralizableSourceNamesToType(Set<String> placeholderSourcesAtConstant, Map<String, String> sourceAssignment, Type newType) {
+            for (String oldSource : placeholderSourcesAtConstant) {
+                // could also just add everything in keySet of sourceAssignment
+                newType = newType.addSource(sourceAssignment.get(oldSource));
+            }
+            return newType;
+        }
+
+        private void forEachAddressAndLocalDependencyTree(Consumer<Map.Entry<IntList, AMDependencyTree>> functionToApply) {
+            for (Map.Entry<IntList, AMDependencyTree> addressWithDependencyTree : treeAddress2dominatedDependencyTree.entrySet()) {
+                functionToApply.accept(addressWithDependencyTree);
+            }
+        }
     }
 
 
-    private static List<Map<String, String>> getAllMaps(Set<String> inputSources, int nrSources) {
+    private static List<Map<String, String>> getAllSourceAssignmentMaps(Set<String> inputSources, int nrSources) {
         if (inputSources.size() > nrSources) {
             return Collections.emptyList();
         }
@@ -159,63 +268,102 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return "S"+i;
     }
 
-    private static void sortRecursive(AMDependencyTree depToSort, Map<IntList, AMDependencyTree> position2dep,
-                                      Map<IntList, List<String>> position2operations, IntList position, DecompositionPackage decompositionPackage) {
-        position2dep.put(position, depToSort);
-        List<String> operationsHere = new ArrayList<>();
-        position2operations.put(position, operationsHere);
-        List<Pair<String, AMDependencyTree>> childrenList = new ArrayList<>(depToSort.getOperationsAndChildren());
-        childrenList.sort(new Comparator<Pair<String, AMDependencyTree>>() {
-            @Override
-            public int compare(Pair<String, AMDependencyTree> o1, Pair<String, AMDependencyTree> o2) {
-                return 0;//TODO implement; for now random order
-            }
-        });
-        int index = 0;
-        for (Pair<String, AMDependencyTree> opAndChild : childrenList) {
-            operationsHere.add(opAndChild.left);
-            IntList childPosition = new IntArrayList(position);
-            childPosition.add(index);
-            sortRecursive(opAndChild.right, position2dep, position2operations, childPosition, decompositionPackage);
-            index++;
-        }
-    }
+
 
     @Override
     public Iterable<Rule> getRulesBottomUp(int labelId, int[] childStates) {
         if (childStates.length == 2) {
-            State head = getStateForId(childStates[0]);
-            State argument = getStateForId(childStates[1]);
-            // check that label matches operation in dep tree
-            String depOperation = position2operations.get(head.position).get(head.childrenProcessed);
-            String mappedDepSource;
-            if (depOperation.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
-                mappedDepSource = head.sourceAssignments.get(depOperation.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
-            } else {
-                mappedDepSource = argument.sourceAssignments.get(depOperation.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
-            }
-            String mappedDepOperation = depOperation.substring(0, ApplyModifyGraphAlgebra.OP_APPLICATION.length())+mappedDepSource;
-            if (signature.resolveSymbolId(labelId).equals(mappedDepOperation) && argumentMatches(head, argument)) {
-                State result = head.increment();
-                if (result.position.isEmpty() && result.childrenProcessed == headChildCount) {
-                    addFinalState(addState(result));
-                }
-                return Collections.singleton(createRule(addState(head.increment()), labelId, childStates, 1.0));
-            } else {
-                return Collections.emptyList();
-            }
+            return makeBinaryRules(labelId, childStates);
         } else if (childStates.length == 0) {
-
-            State state = constant2state.get(signature.resolveSymbolId(labelId));
-            if (state.position.isEmpty() && state.childrenProcessed == headChildCount) {
-                addFinalState(addState(state));
-            }
-            return Collections.singleton(createRule(addState(state), labelId, childStates, 1.0));
+            return makeConstantRules(labelId, childStates);
         } else {
             throw new IllegalArgumentException();
         }
     }
 
+    @NotNull
+    private Iterable<Rule> makeBinaryRules(int labelId, int[] childStates) {
+        State head = getStateForId(childStates[0]);
+        State dependant = getStateForId(childStates[1]);
+
+        if (isBinaryRuleAllowed(head, dependant, labelId)) {
+            return makeBinaryRuleSingleton(labelId, childStates, head);
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+
+    private boolean isBinaryRuleAllowed(State head, State dependant, int labelId) {
+        String theOnlyAllowedLabelAccordingToDependencyTreeAndStates = getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(head, dependant);
+        boolean labelIdMatchesReconstructedLabel = signature.resolveSymbolId(labelId).equals(theOnlyAllowedLabelAccordingToDependencyTreeAndStates);
+        return labelIdMatchesReconstructedLabel && argumentMatches(head, dependant);
+    }
+
+
+    @NotNull
+    private Iterable<Rule> makeBinaryRuleSingleton(int labelId, int[] childStates, State head) {
+        State resultState = head.increment();
+        if (satisfiesPropertiesOfFinalState(resultState)) {
+            addFinalState(addState(resultState));
+        }
+        return Collections.singleton(createRule(addState(resultState), labelId, childStates, 1.0));
+    }
+
+
+    @NotNull
+    private String getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(State head, State dependant) {
+        String operationWithPlaceholderSourceName = position2operations.get(head.position).get(head.childrenProcessed);
+        String mappedDepSource;
+        if (operationWithPlaceholderSourceName.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
+            mappedDepSource = head.sourceAssignments.get(operationWithPlaceholderSourceName.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
+        } else {
+            mappedDepSource = dependant.sourceAssignments.get(operationWithPlaceholderSourceName.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
+        }
+        return operationWithPlaceholderSourceName.substring(0, ApplyModifyGraphAlgebra.OP_APPLICATION.length())+mappedDepSource;
+    }
+
+    private boolean argumentMatches(State head, State dependant) {
+        // we check all conditions one after the other here to get both readability and runtime effectiveness
+        if (dependant.childrenProcessed != position2operations.get(dependant.position).size()) {
+            // dependant must have all children processed
+            return false;
+        }
+        if (dependant.position.size() != head.position.size() +1) {
+            // dependant must be one level below head
+            return false;
+        }
+        if (!dependant.position.subList(0, head.position.size()).equals(head.position)) {
+            // the dependant must actually be a dependant of the head (head address must be prefix of dependant address)
+            return false;
+        }
+        for (String source : Sets.intersect(head.sourceAssignments.keySet(), dependant.sourceAssignments.keySet())) {
+            // source mappings must match where they overlap
+            if (!head.sourceAssignments.get(source).equals(dependant.sourceAssignments.get(source))) {
+                return false;
+            }
+        }
+        if (dependant.position.getInt(dependant.position.size()-1) != head.childrenProcessed) {
+            // the dependant's position (with respect to the order of the dependants of the head) must be the next for head to process
+            return false;
+        }
+        return true;
+    }
+
+
+    @NotNull
+    private Iterable<Rule> makeConstantRules(int labelId, int[] childStates) {
+        State resultState = constant2state.get(signature.resolveSymbolId(labelId));
+        if (satisfiesPropertiesOfFinalState(resultState)) {
+            addFinalState(addState(resultState));
+        }
+        return Collections.singleton(createRule(addState(resultState), labelId, childStates, 1.0));
+    }
+
+
+    private boolean satisfiesPropertiesOfFinalState(State state) {
+        return state.position.isEmpty() && state.childrenProcessed == headChildCount;
+    }
 
 
     @Override
@@ -223,7 +371,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         if (signature.getArity(labelID) == 2) {
             return new BinarySiblingFinder();
         } else {
-            return super.newSiblingFinder(labelID);
+            return super.newSiblingFinder(labelID); // this is a dummy, we only need sibling finders for binary rules
         }
     }
 
@@ -345,31 +493,6 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return false;
     }
 
-    private boolean argumentMatches(State head, State argument) {
-        if (argument.childrenProcessed != position2operations.get(argument.position).size()) {
-            // argument must have all children processed
-            return false;
-        }
-        if (argument.position.size() != head.position.size() +1) {
-            // argument must be one level below head
-            return false;
-        }
-        if (!argument.position.subList(0, head.position.size()).equals(head.position)) {
-            // argument must be exactly below head
-            return false;
-        }
-        for (String source : Sets.intersect(head.sourceAssignments.keySet(), argument.sourceAssignments.keySet())) {
-            // source mappings must match
-            if (!head.sourceAssignments.get(source).equals(argument.sourceAssignments.get(source))) {
-                return false;
-            }
-        }
-        if (argument.position.getInt(argument.position.size()-1) != head.childrenProcessed) {
-            // argument position must be the next for head to process
-            return false;
-        }
-        return true;
-    }
 
     public static class State {
 
@@ -613,31 +736,68 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
 
     public AmConllSentence tree2amConll(Tree<String> tree, DecompositionPackage decompositionPackage, SupertagDictionary supertagDictionary) throws ParserException {
-        AmConllSentence sentenceToAddTo = decompositionPackage.makeBaseAmConllSentence();
-        addTreeToAmConllAndReturnHeadIndex(tree, decompositionPackage, sentenceToAddTo, supertagDictionary);
-        return sentenceToAddTo;
+        AmConllSentence returnValue = decompositionPackage.makeBaseAmConllSentence();
+        addTreeToAmConll(tree, decompositionPackage, returnValue, supertagDictionary);
+        return returnValue;
     }
 
-    private int addTreeToAmConllAndReturnHeadIndex(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
-                                                          AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
-        List<Tree<String>> children = treeToAdd.getChildren();
-        String label = treeToAdd.getLabel();
-        if (children.size() == 2) {
-            int headID = addTreeToAmConllAndReturnHeadIndex(children.get(0), decompositionPackage, sentenceToAddTo, supertagDictionary);
-            int childID = addTreeToAmConllAndReturnHeadIndex(children.get(1), decompositionPackage, sentenceToAddTo, supertagDictionary);
-            AmConllEntry childEntry = sentenceToAddTo.get(childID-1);//careful, this get function is 0-based
-            childEntry.setHead(headID);
-            childEntry.setEdgeLabel(label);
-            return headID;
-        } else if (children.size() == 0) {
-            Pair<SGraph, Type> asGraph = new ApplyModifyGraphAlgebra().parseString(label);
-            int wordID = constant2wordID.get(treeToAdd.getLabel());
-            AmConllWithSourcesCreator.setSupertag(asGraph.left, asGraph.right, decompositionPackage, wordID,
-                    sentenceToAddTo, supertagDictionary);
-            return wordID;
-        } else {
-            throw new IllegalArgumentException();
+
+        private void addTreeToAmConll(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
+                                      AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
+            // this is really just a wrapper to get a simpler function name and return value
+            addTreeToAmConllAndReturnHeadIndexRecursive(treeToAdd, decompositionPackage, sentenceToAddTo, supertagDictionary);
         }
-    }
+
+        private int addTreeToAmConllAndReturnHeadIndexRecursive(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
+                                                                AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
+            List<Tree<String>> childrenAtTreeRoot = treeToAdd.getChildren();
+            String labelAtTreeRoot = treeToAdd.getLabel();
+            boolean weAreAtBinaryBranch = childrenAtTreeRoot.size() == 2;
+            boolean weAreAtLeaf = childrenAtTreeRoot.size() == 0;
+            if (weAreAtBinaryBranch) {
+                return processBinaryBranchRecursivelyAndReturnHeadIndex(decompositionPackage, sentenceToAddTo, supertagDictionary, childrenAtTreeRoot, labelAtTreeRoot);
+            } else if (weAreAtLeaf) {
+                return processLeafAndReturnHeadIndex(decompositionPackage, sentenceToAddTo, supertagDictionary, labelAtTreeRoot);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        private int processBinaryBranchRecursivelyAndReturnHeadIndex(DecompositionPackage decompositionPackage,
+                                                                     AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary,
+                                                                     List<Tree<String>> children, String label) throws ParserException {
+            // the head is always left in a binary branch of an AM tree
+            Tree<String> headTreeBranch = children.get(0);
+            Tree<String> dependantTreeBranch = children.get(1);
+            int headID = addTreeToAmConllAndReturnHeadIndexRecursive(headTreeBranch, decompositionPackage, sentenceToAddTo, supertagDictionary);
+            int dependantID = addTreeToAmConllAndReturnHeadIndexRecursive(dependantTreeBranch, decompositionPackage, sentenceToAddTo, supertagDictionary);
+
+            // a binary branch in the tree that we are adding corresponds to an edge in the AM dependency tree
+            addEdgeInformationToSentence(sentenceToAddTo, label, headID, dependantID);
+            return headID;
+        }
+
+        private void addEdgeInformationToSentence(AmConllSentence sentenceToAddTo, String label, int headID, int dependantID) {
+            AmConllEntry dependantAmConllEntry = sentenceToAddTo.get(dependantID-1);//careful, this get function is 0-based
+            dependantAmConllEntry.setHead(headID);
+            dependantAmConllEntry.setEdgeLabel(label);
+        }
+
+
+        private int processLeafAndReturnHeadIndex(DecompositionPackage decompositionPackage, AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary, String label) throws ParserException {
+            // get the position in the sentence that is aligned to the constant at this leaf
+            int wordID = constant2wordID.get(label);
+
+            // a leaf in the tree that we are adding corresponds to a supertag / constant in the AM dependency tree
+            addSupertagInformationToSentence(decompositionPackage, sentenceToAddTo, supertagDictionary, label, wordID);
+            return wordID;
+        }
+
+        private void addSupertagInformationToSentence(DecompositionPackage decompositionPackage, AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary, String label, int wordID) throws ParserException {
+            Pair<SGraph, Type> asGraphSupertag = new ApplyModifyGraphAlgebra().parseString(label);
+            AmConllWithSourcesCreator.setSupertag(asGraphSupertag.left, asGraphSupertag.right, decompositionPackage, wordID,
+                    sentenceToAddTo, supertagDictionary);
+        }
+
 
 }
