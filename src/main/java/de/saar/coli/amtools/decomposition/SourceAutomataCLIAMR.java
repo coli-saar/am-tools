@@ -13,6 +13,14 @@ import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognize
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordPreprocessedData;
+import de.saar.coli.amtools.decomposition.analysis.SupertagEntropy;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAnalysisToAMDep;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAutomaton;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.DAGComponent;
+import de.saar.coli.amtools.decomposition.automata.source_assignment.SAAState;
+import de.saar.coli.amtools.decomposition.automata.source_assignment.SourceAssignmentAutomaton;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.AMRDecompositionPackageLegacy;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
@@ -37,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+@Deprecated
 public class SourceAutomataCLIAMR {
 
     @Parameter(names = {"--trainingCorpus", "-t"}, description = "Path to the input training corpus (*.sdp file)")//, required = true)
@@ -354,14 +363,14 @@ public class SourceAutomataCLIAMR {
                     if (graph.equals(resultGraph)) {
                         SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
                                 .makeAutomatonWithAllSourceCombinations(result, nrSources, decompositionPackage);
-                        ConcreteTreeAutomaton<SourceAssignmentAutomaton.State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
+                        ConcreteTreeAutomaton<SAAState> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
                         //System.out.println(result);
 //                        System.out.println(concreteTreeAutomaton);
 //                            System.out.println(concreteTreeAutomaton.viterbi());
                         if (concreteTreeAutomaton.viterbi() != null) {
                             outcomeCounter.add("success");
-                            concreteTreeAutomaton = (ConcreteTreeAutomaton<SourceAssignmentAutomaton.State>)concreteTreeAutomaton.reduceTopDown();
+                            concreteTreeAutomaton = (ConcreteTreeAutomaton<SAAState>)concreteTreeAutomaton.reduceTopDown();
                             concreteDecompositionAutomata.add(concreteTreeAutomaton);
                             decompositionPackages.add(decompositionPackage);
                             originalDecompositionAutomata.add(auto);

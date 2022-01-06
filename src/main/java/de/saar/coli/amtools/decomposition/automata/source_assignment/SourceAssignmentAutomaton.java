@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.automata.source_assignment;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -6,6 +6,13 @@ import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
+import de.saar.coli.amtools.decomposition.deterministic_sources.AmConllWithSourcesCreator;
+import de.saar.coli.amtools.decomposition.analysis.SupertagEntropy;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAnalysisToAMDep;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAutomaton;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.DAGComponent;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.SDPDecompositionPackage;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.AMDependencyTree;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
@@ -26,19 +33,18 @@ import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
 import java.util.*;
-import java.util.function.Consumer;
 
-public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAutomaton.State> {
+public class SourceAssignmentAutomaton extends TreeAutomaton<SAAState> {
 
     private final Map<String, Integer> constant2wordID;
-    private final Map<IntList, List<String>> position2operations;
-    private final Map<String, SourceAssignmentAutomaton.State> constant2state;
+    final Map<IntList, List<String>> position2operations;
+    private final Map<String, SAAState> constant2state;
 
     private final int headChildCount;
 
-    private SourceAssignmentAutomaton(Signature signature,
+    SourceAssignmentAutomaton(Signature signature,
                                       Map<String, Integer> constant2wordID,
-                                      Map<String, SourceAssignmentAutomaton.State> constant2state,
+                                      Map<String, SAAState> constant2state,
                                       Map<IntList, List<String>> position2operations) {
         super(signature);
         this.constant2wordID = constant2wordID;
@@ -84,9 +90,10 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
         Signature signature = createSignatureWithBinaryOperationsForAllSources(nrSources);
 
-        RuleBuilderWithAllSourceCombinations ruleBuilder = new RuleBuilderWithAllSourceCombinations(signature, nrSources, decompositionPackage);
+        OrderOnAMDependencyTree orderOnAMDependencyTree = OrderOnAMDependencyTree.createArbitraryOrder(dep);
 
-        ruleBuilder.establishArbitraryOrderForDependencyTree(dep);
+        RuleBuilderWithAllSourceCombinations ruleBuilder = new RuleBuilderWithAllSourceCombinations(signature, nrSources,
+                decompositionPackage, orderOnAMDependencyTree);
 
         return ruleBuilder.makeAutomaton();
 
@@ -102,169 +109,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return signature;
     }
 
-    private static class RuleBuilderWithAllSourceCombinations {
-        private final Map<IntList, AMDependencyTree> treeAddress2dominatedDependencyTree = new HashMap<>();
-        private final Map<IntList, List<String>> treeAddress2allPossibleOperations = new HashMap<>();
-        private final Signature signature;
-        private final int nrSources;
-        private final DecompositionPackage decompositionPackage;
-
-        private RuleBuilderWithAllSourceCombinations(Signature signature, int nrSources, DecompositionPackage decompositionPackage) {
-            this.signature = signature;
-            this.nrSources = nrSources;
-            this.decompositionPackage = decompositionPackage;
-        }
-
-        private void establishArbitraryOrderForDependencyTree(AMDependencyTree dep) {
-            establishArbitraryOrderForDependencyTreeRecursive(dep, new IntArrayList());
-        }
-
-        private void establishArbitraryOrderForDependencyTreeRecursive(AMDependencyTree depToSort, IntList address) {
-            treeAddress2dominatedDependencyTree.put(address, depToSort);
-            List<String> operationsHere = new ArrayList<>();
-            treeAddress2allPossibleOperations.put(address, operationsHere);
-            List<Pair<String, AMDependencyTree>> childrenList = new ArrayList<>(depToSort.getOperationsAndChildren());
-            childrenList.sort(new Comparator<Pair<String, AMDependencyTree>>() {
-                @Override
-                public int compare(Pair<String, AMDependencyTree> o1, Pair<String, AMDependencyTree> o2) {
-                    //TODO a clever order could allow for forgetting source assignments early, to make the automaton smaller; for now we use a random order
-                    return 0;
-                }
-            });
-            int index = 0;
-            for (Pair<String, AMDependencyTree> opAndChild : childrenList) {
-                operationsHere.add(opAndChild.left);
-                IntList childPosition = new IntArrayList(address);
-                childPosition.add(index);
-                establishArbitraryOrderForDependencyTreeRecursive(opAndChild.right, childPosition);
-                index++;
-            }
-        }
-
-        private SourceAssignmentAutomaton makeAutomaton() {
-
-            Map<String, SourceAssignmentAutomaton.State> constant2state = new HashMap<>();
-            Map<String, Integer> constant2wordID = new HashMap<>();
-
-            forEachAddressAndLocalDependencyTree(addressWithDependencyTree -> {
-                recordRuleInformationAtAddress(addressWithDependencyTree, constant2state, constant2wordID);
-            });
-
-            return new SourceAssignmentAutomaton(signature, constant2wordID, constant2state, treeAddress2allPossibleOperations);
-        }
-
-
-        private void recordRuleInformationAtAddress(Map.Entry<IntList, AMDependencyTree> addressWithDependencyTree,
-                                                    Map<String, SourceAssignmentAutomaton.State> constant2state,
-                                                    Map<String, Integer> constant2wordID) {
-            Pair<SGraph, Type> constantAtDependencyNode = addressWithDependencyTree.getValue().getHeadGraph();
-            Set<String> placeholderSourcesAtConstant = constantAtDependencyNode.right.getAllSources();
-            List<Map<String, String>> allPossibleSourceAssignments = getAllSourceAssignmentMaps(placeholderSourcesAtConstant, nrSources);
-            for (Map<String, String> sourceAssignment : allPossibleSourceAssignments) {
-                createAndRegisterConstantFromSourceAssignment(addressWithDependencyTree.getKey(), constant2state, constant2wordID,
-                        constantAtDependencyNode, placeholderSourcesAtConstant, sourceAssignment);
-            }
-        }
-
-        private void createAndRegisterConstantFromSourceAssignment(IntList address, Map<String, State> constant2state, Map<String, Integer> constant2wordID,
-                                                                   Pair<SGraph, Type> constantAtDependencyNode, Set<String> placeholderSourcesAtConstant,
-                                                                   Map<String, String> sourceAssignment) {
-            Pair<SGraph, Type> constant = createConstantWithGeneralizableSourceNames(constantAtDependencyNode, placeholderSourcesAtConstant, sourceAssignment);
-            String constantInStringForm = constant.left.toIsiAmrStringWithSources() + ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP + constant.right.toString();
-            registerConstantAndSourceAssignment(address, constant2state, constant2wordID, sourceAssignment, constant, constantInStringForm);
-        }
-
-        private void registerConstantAndSourceAssignment(IntList address, Map<String, State> constant2state, Map<String, Integer> constant2wordID, Map<String, String> sourceAssignment, Pair<SGraph, Type> constant, String constantInStringForm) {
-            signature.addSymbol(constantInStringForm, 0);
-            checkForDuplicateConstants(constant2state, constant2wordID, constantInStringForm);
-            constant2state.put(constantInStringForm, createConstantState(address, sourceAssignment));
-            constant2wordID.put(constantInStringForm, decompositionPackage.getSentencePositionForGraphFragment(constant.left));
-        }
-
-        private State createConstantState(IntList address, Map<String, String> sourceAssignment) {
-            return new State(address, 0, sourceAssignment);
-        }
-
-        @NotNull
-        private Pair<SGraph, Type> createConstantWithGeneralizableSourceNames(Pair<SGraph, Type> constantAtDependencyNode, Set<String> placeholderSourcesAtConstant, Map<String, String> sourceAssignment) {
-            Type newType = Type.EMPTY_TYPE;
-            newType = addGeneralizableSourceNamesToType(placeholderSourcesAtConstant, sourceAssignment, newType);
-            newType = addRequestsToType(constantAtDependencyNode, placeholderSourcesAtConstant, sourceAssignment, newType);
-            SGraph newSGraph = generateSGraphWithNewSources(constantAtDependencyNode, sourceAssignment);
-            return new Pair<>(newSGraph, newType);
-        }
-
-        private void checkForDuplicateConstants(Map<String, State> constant2state, Map<String, Integer> constant2wordID, String label) {
-            if (constant2state.containsKey(label)) {
-                throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
-            }
-            if (constant2wordID.containsKey(label)) {
-                throw new IllegalArgumentException("constant label in SourceAssignmentAutomaton occurred twice, aborting!");
-            }
-        }
-
-        private SGraph generateSGraphWithNewSources(Pair<SGraph, Type> constantAtDependencyNode, Map<String, String> sourceAssignment) {
-            SGraph newSGraph = constantAtDependencyNode.left;
-            for (String source : constantAtDependencyNode.left.getAllSources()) {
-                if (!source.equals(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME)) {
-                    newSGraph = newSGraph.renameSource(source, sourceAssignment.get(source));
-                }
-            }
-            return newSGraph;
-        }
-
-        private Type addRequestsToType(Pair<SGraph, Type> constantAtDependencyNode, Set<String> placeholderSourcesAtConstant, Map<String, String> sourceAssignment, Type newType) {
-            for (String oldSource : placeholderSourcesAtConstant) {
-                for (String requestSource : constantAtDependencyNode.right.getRequest(oldSource).getAllSources()) {
-                    String edgeLabel = constantAtDependencyNode.right.getRenameTarget(oldSource, requestSource);
-                    // this is not quite right, but should work with the input we're getting right now
-                    newType = newType.setDependency(sourceAssignment.get(oldSource),
-                            sourceAssignment.get(requestSource), sourceAssignment.get(edgeLabel));
-                }
-            }
-            return newType;
-        }
-
-        private Type addGeneralizableSourceNamesToType(Set<String> placeholderSourcesAtConstant, Map<String, String> sourceAssignment, Type newType) {
-            for (String oldSource : placeholderSourcesAtConstant) {
-                // could also just add everything in keySet of sourceAssignment
-                newType = newType.addSource(sourceAssignment.get(oldSource));
-            }
-            return newType;
-        }
-
-        private void forEachAddressAndLocalDependencyTree(Consumer<Map.Entry<IntList, AMDependencyTree>> functionToApply) {
-            for (Map.Entry<IntList, AMDependencyTree> addressWithDependencyTree : treeAddress2dominatedDependencyTree.entrySet()) {
-                functionToApply.accept(addressWithDependencyTree);
-            }
-        }
-    }
-
-
-    private static List<Map<String, String>> getAllSourceAssignmentMaps(Set<String> inputSources, int nrSources) {
-        if (inputSources.size() > nrSources) {
-            return Collections.emptyList();
-        }
-        List<Map<String, String>> changingList = new ArrayList<>();
-        changingList.add(new HashMap<>());
-        for (String inputSource : inputSources) {
-            List<Map<String, String>> replacingList = new ArrayList<>();
-            for (Map<String, String> oldMap : changingList) {
-                for (int i = 0; i<nrSources; i++) {
-                    String si = makeSource(i);
-                    if (!oldMap.values().contains(si)) {
-                        Map<String, String> newMap = new HashMap<>(oldMap);
-                        newMap.put(inputSource, si);
-                        replacingList.add(newMap);
-                    }
-                }
-            }
-            changingList = replacingList;
-        }
-        return changingList;
-    }
-
-    private static String makeSource(int i) {
+    public static String makeSource(int i) {
         return "S"+i;
     }
 
@@ -283,8 +128,8 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
     @NotNull
     private Iterable<Rule> makeBinaryRules(int labelId, int[] childStates) {
-        State head = getStateForId(childStates[0]);
-        State dependant = getStateForId(childStates[1]);
+        SAAState head = getStateForId(childStates[0]);
+        SAAState dependant = getStateForId(childStates[1]);
 
         if (isBinaryRuleAllowed(head, dependant, labelId)) {
             return makeBinaryRuleSingleton(labelId, childStates, head);
@@ -294,7 +139,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     }
 
 
-    private boolean isBinaryRuleAllowed(State head, State dependant, int labelId) {
+    private boolean isBinaryRuleAllowed(SAAState head, SAAState dependant, int labelId) {
         String theOnlyAllowedLabelAccordingToDependencyTreeAndStates = getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(head, dependant);
         boolean labelIdMatchesReconstructedLabel = signature.resolveSymbolId(labelId).equals(theOnlyAllowedLabelAccordingToDependencyTreeAndStates);
         return labelIdMatchesReconstructedLabel && argumentMatches(head, dependant);
@@ -302,8 +147,8 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
 
     @NotNull
-    private Iterable<Rule> makeBinaryRuleSingleton(int labelId, int[] childStates, State head) {
-        State resultState = head.increment();
+    private Iterable<Rule> makeBinaryRuleSingleton(int labelId, int[] childStates, SAAState head) {
+        SAAState resultState = head.increment();
         if (satisfiesPropertiesOfFinalState(resultState)) {
             addFinalState(addState(resultState));
         }
@@ -312,7 +157,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
 
     @NotNull
-    private String getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(State head, State dependant) {
+    private String getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(SAAState head, SAAState dependant) {
         String operationWithPlaceholderSourceName = position2operations.get(head.position).get(head.childrenProcessed);
         String mappedDepSource;
         if (operationWithPlaceholderSourceName.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
@@ -323,7 +168,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
         return operationWithPlaceholderSourceName.substring(0, ApplyModifyGraphAlgebra.OP_APPLICATION.length())+mappedDepSource;
     }
 
-    private boolean argumentMatches(State head, State dependant) {
+    private boolean argumentMatches(SAAState head, SAAState dependant) {
         // we check all conditions one after the other here to get both readability and runtime effectiveness
         if (dependant.childrenProcessed != position2operations.get(dependant.position).size()) {
             // dependant must have all children processed
@@ -353,7 +198,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
 
     @NotNull
     private Iterable<Rule> makeConstantRules(int labelId, int[] childStates) {
-        State resultState = constant2state.get(signature.resolveSymbolId(labelId));
+        SAAState resultState = constant2state.get(signature.resolveSymbolId(labelId));
         if (satisfiesPropertiesOfFinalState(resultState)) {
             addFinalState(addState(resultState));
         }
@@ -361,7 +206,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     }
 
 
-    private boolean satisfiesPropertiesOfFinalState(State state) {
+    private boolean satisfiesPropertiesOfFinalState(SAAState state) {
         return state.position.isEmpty() && state.childrenProcessed == headChildCount;
     }
 
@@ -369,117 +214,9 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     @Override
     public SiblingFinder newSiblingFinder(int labelID) {
         if (signature.getArity(labelID) == 2) {
-            return new BinarySiblingFinder();
+            return new SAABinarySiblingFinder(this);
         } else {
             return super.newSiblingFinder(labelID); // this is a dummy, we only need sibling finders for binary rules
-        }
-    }
-
-    private class BinarySiblingFinder extends SiblingFinder {
-
-        private final Map<Pair<IntList, Integer>, Set<State>> headMap;
-        private final Map<IntList, Set<State>> argumentMap;
-
-        /**
-         * Creates a new sibling finder for an operation with given arity.
-         *
-         */
-        public BinarySiblingFinder() {
-            super(2);
-            headMap = new HashMap<>();
-            argumentMap = new HashMap<>();
-        }
-
-
-        @Override
-        public Iterable<int[]> getPartners(int stateID, int pos) {
-            if (pos == 0) {
-                // we have a head
-                State head = getStateForId(stateID);
-                List<String> operationList = position2operations.get(head.position);
-                if (operationList.size() > head.childrenProcessed) {
-                    // only return something if the head matches the operation
-                    IntList argumentPosition = new IntArrayList(head.position);
-                    argumentPosition.add(head.childrenProcessed);
-                    return new Iterable<int[]>() {
-                        @NotNull
-                        @Override
-                        public Iterator<int[]> iterator() {
-
-                            Iterator<State> args = argumentMap.getOrDefault(argumentPosition, Collections.EMPTY_SET).iterator();
-
-                            return new Iterator<int[]>() {
-                                @Override
-                                public boolean hasNext() {
-                                    return args.hasNext();
-                                }
-
-                                @Override
-                                public int[] next() {
-                                    return new int[]{stateID, getIdForState(args.next())};
-                                }
-                            };
-                        }
-                    };
-
-                } else {
-                    return Collections.emptyList();
-                }
-            } else if (pos == 1) {
-                State argument = getStateForId(stateID);
-                int posSize = argument.position.size();
-                if (posSize > 0 && argument.childrenProcessed == position2operations.get(argument.position).size()) {
-
-                    IntList headPosition = argument.position.subList(0, argument.position.size()-1);
-                    int argPos = argument.position.getInt(argument.position.size()-1);
-                    return new Iterable<int[]>() {
-                        @NotNull
-                        @Override
-                        public Iterator<int[]> iterator() {
-
-                            Iterator<State> args = headMap.getOrDefault(new Pair<>(headPosition, argPos), Collections.EMPTY_SET).iterator();
-
-                            return new Iterator<int[]>() {
-                                @Override
-                                public boolean hasNext() {
-                                    return args.hasNext();
-                                }
-
-                                @Override
-                                public int[] next() {
-                                    return new int[]{getIdForState(args.next()), stateID};
-                                }
-                            };
-                        }
-                    };
-                } else {
-                    return Collections.emptyList();
-                }
-            } else {
-                return Collections.emptyList();
-            }
-        }
-
-        @Override
-        protected void performAddState(int stateID, int pos) {
-            if (pos == 0) {
-                // we have a head
-                State head = getStateForId(stateID);
-                List<String> operationList = position2operations.get(head.position);
-                if (operationList.size() > head.childrenProcessed) {
-                    Pair<IntList, Integer> key = new Pair<>(head.position, head.childrenProcessed);
-                    Set<State> stateSet = headMap.computeIfAbsent(key, k -> new HashSet<>());
-                    stateSet.add(head);
-                }
-            } else if (pos == 1) {
-                State argument = getStateForId(stateID);
-                int posSize = argument.position.size();
-                if (posSize > 0 && argument.childrenProcessed == position2operations.get(argument.position).size()) {
-                    
-                    Set<State> stateSet = argumentMap.computeIfAbsent(argument.position, k -> new HashSet<>());
-                    stateSet.add(argument);
-                }
-            }
         }
     }
 
@@ -491,58 +228,6 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
     @Override
     public boolean isBottomUpDeterministic() {
         return false;
-    }
-
-
-    public static class State {
-
-        private final IntList position;
-        private final int childrenProcessed;
-        private final Map<String, String> sourceAssignments;
-
-        public State(IntList position, int childrenProcessed, Map<String, String> sourceAssignments) {
-            this.position = position;
-            this.childrenProcessed = childrenProcessed;
-            this.sourceAssignments = sourceAssignments;
-        }
-
-
-        public State increment() {
-            //TODO change source assignments to remove the unnecessary ones, once a proper children order is implemented.
-            return new State(position, childrenProcessed+1, sourceAssignments);
-        }
-
-        @Override
-        /**
-         * This is designed to for each State create a unique string (and always the same string for equal states).
-         */
-        public String toString() {
-            List<String> sourceAssignmentKeysSorted = new ArrayList<>(sourceAssignments.keySet());
-            sourceAssignmentKeysSorted.sort(Comparator.naturalOrder());
-            StringJoiner stringJoiner = new StringJoiner(",");
-            for (String key : sourceAssignmentKeysSorted) {
-                stringJoiner.add(key+"=>"+sourceAssignments.get(key));
-            }
-            return "["+position.toString() +
-                    "(" + childrenProcessed + ")" +
-                    ", {" + stringJoiner.toString()
-                    +"}]";
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            State state = (State) o;
-            return childrenProcessed == state.childrenProcessed &&
-                    Objects.equals(position, state.position) &&
-                    Objects.equals(sourceAssignments, state.sourceAssignments);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(position, childrenProcessed, sourceAssignments);
-        }
     }
 
 
@@ -606,14 +291,14 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SourceAssignmentAut
                         if (graph.equals(resultGraph)) {
                             SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
                                     .makeAutomatonWithAllSourceCombinations(result, nrSources, decompositionPackage);
-                            ConcreteTreeAutomaton<State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
+                            ConcreteTreeAutomaton<SAAState> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
                             //System.out.println(result);
 //                            System.out.println(concreteTreeAutomaton);
 //                            System.out.println(concreteTreeAutomaton.viterbi());
                             if (concreteTreeAutomaton.viterbi() != null) {
                                 successCounter.add("success");
-                                concreteTreeAutomaton = (ConcreteTreeAutomaton<State>)concreteTreeAutomaton.reduceTopDown();
+                                concreteTreeAutomaton = (ConcreteTreeAutomaton<SAAState>)concreteTreeAutomaton.reduceTopDown();
                                 concreteDecompositionAutomata.add(concreteTreeAutomaton);
                                 decompositionPackages.add(decompositionPackage);
                                 originalDecompositionAutomata.add(auto);

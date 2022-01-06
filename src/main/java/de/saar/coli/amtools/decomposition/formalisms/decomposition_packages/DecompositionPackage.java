@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;

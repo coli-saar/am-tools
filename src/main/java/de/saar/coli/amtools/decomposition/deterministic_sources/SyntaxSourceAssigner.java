@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.deterministic_sources;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Util;

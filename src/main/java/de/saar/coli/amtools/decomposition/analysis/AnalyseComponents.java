@@ -3,21 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.analysis;
 
 import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAutomaton;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.DAGComponent;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.util.Counter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 

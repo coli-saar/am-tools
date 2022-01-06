@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.deterministic_sources;
 
 public interface SourceAssigner {
 

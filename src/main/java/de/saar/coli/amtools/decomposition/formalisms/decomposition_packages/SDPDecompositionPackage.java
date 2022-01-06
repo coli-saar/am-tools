@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
@@ -9,12 +9,9 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.simple.Sentence;
-import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
-import se.liu.ida.nlp.sdp.toolkit.graph.Node;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SDPDecompositionPackage extends DecompositionPackage {
 

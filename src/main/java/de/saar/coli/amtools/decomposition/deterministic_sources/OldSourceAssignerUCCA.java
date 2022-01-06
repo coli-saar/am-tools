@@ -1,28 +1,23 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.deterministic_sources;
 
-import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.MRInstance;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.SGraph;
-import de.up.ling.irtg.codec.SgraphAmrOutputCodec;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import se.liu.ida.nlp.sdp.toolkit.graph.Edge;
-import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class OldSourceAssigner implements SourceAssigner{
+public class OldSourceAssignerUCCA implements SourceAssigner{
     public MRInstance inst;
     private final Map<IntSet, String> bestLabels;
     public static final String[] orderedLexicalEdgeLabels = new String[]{"L", "P", "S", "N", "C", "A", "G", "R", "T", "D","U", "F", "H"};
 
 
-    public OldSourceAssigner(List<GraphEdge> edges, MRInstance instance) {
+    public OldSourceAssignerUCCA(List<GraphEdge> edges, MRInstance instance) {
         inst = instance;
         bestLabels = new HashMap<>();
         for (GraphEdge e:edges) {

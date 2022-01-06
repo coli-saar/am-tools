@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.deterministic_sources;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.*;
@@ -6,6 +6,8 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.UCCADecompositionPackage;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
@@ -283,7 +285,7 @@ public class CreateDatasetWithoutSyntaxSources {
             blobUtils = new UCCABlobUtils();
             decompositionPackageList.add(new UCCADecompositionPackage(UCCADecompositionPackageBundle, blobUtils));
             List<GraphEdge> renamedEdges = new ArrayList<GraphEdge>(renamedSGraph.getGraph().edgeSet());
-            sourceAssignerList.add(new OldSourceAssigner(renamedEdges, renamedInst));
+            sourceAssignerList.add(new OldSourceAssignerUCCA(renamedEdges, renamedInst));
 
 
             // case distinction: if a supertag dictionary path is given, use it and call dev version (since for creating the dev set, we use the training set supertag path)
