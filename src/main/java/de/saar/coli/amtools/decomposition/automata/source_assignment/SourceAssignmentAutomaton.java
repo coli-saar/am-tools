@@ -126,89 +126,89 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SAAState> {
         }
     }
 
-    @NotNull
-    private Iterable<Rule> makeBinaryRules(int labelId, int[] childStates) {
-        SAAState head = getStateForId(childStates[0]);
-        SAAState dependant = getStateForId(childStates[1]);
+        @NotNull
+        private Iterable<Rule> makeBinaryRules(int labelId, int[] childStates) {
+            SAAState head = getStateForId(childStates[0]);
+            SAAState dependant = getStateForId(childStates[1]);
 
-        if (isBinaryRuleAllowed(head, dependant, labelId)) {
-            return makeBinaryRuleSingleton(labelId, childStates, head);
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
-
-    private boolean isBinaryRuleAllowed(SAAState head, SAAState dependant, int labelId) {
-        String theOnlyAllowedLabelAccordingToDependencyTreeAndStates = getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(head, dependant);
-        boolean labelIdMatchesReconstructedLabel = signature.resolveSymbolId(labelId).equals(theOnlyAllowedLabelAccordingToDependencyTreeAndStates);
-        return labelIdMatchesReconstructedLabel && argumentMatches(head, dependant);
-    }
-
-
-    @NotNull
-    private Iterable<Rule> makeBinaryRuleSingleton(int labelId, int[] childStates, SAAState head) {
-        SAAState resultState = head.increment();
-        if (satisfiesPropertiesOfFinalState(resultState)) {
-            addFinalState(addState(resultState));
-        }
-        return Collections.singleton(createRule(addState(resultState), labelId, childStates, 1.0));
-    }
-
-
-    @NotNull
-    private String getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(SAAState head, SAAState dependant) {
-        String operationWithPlaceholderSourceName = position2operations.get(head.position).get(head.childrenProcessed);
-        String mappedDepSource;
-        if (operationWithPlaceholderSourceName.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
-            mappedDepSource = head.sourceAssignments.get(operationWithPlaceholderSourceName.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
-        } else {
-            mappedDepSource = dependant.sourceAssignments.get(operationWithPlaceholderSourceName.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
-        }
-        return operationWithPlaceholderSourceName.substring(0, ApplyModifyGraphAlgebra.OP_APPLICATION.length())+mappedDepSource;
-    }
-
-    private boolean argumentMatches(SAAState head, SAAState dependant) {
-        // we check all conditions one after the other here to get both readability and runtime effectiveness
-        if (dependant.childrenProcessed != position2operations.get(dependant.position).size()) {
-            // dependant must have all children processed
-            return false;
-        }
-        if (dependant.position.size() != head.position.size() +1) {
-            // dependant must be one level below head
-            return false;
-        }
-        if (!dependant.position.subList(0, head.position.size()).equals(head.position)) {
-            // the dependant must actually be a dependant of the head (head address must be prefix of dependant address)
-            return false;
-        }
-        for (String source : Sets.intersect(head.sourceAssignments.keySet(), dependant.sourceAssignments.keySet())) {
-            // source mappings must match where they overlap
-            if (!head.sourceAssignments.get(source).equals(dependant.sourceAssignments.get(source))) {
-                return false;
+            if (isBinaryRuleAllowed(head, dependant, labelId)) {
+                return makeBinaryRuleSingleton(labelId, childStates, head);
+            } else {
+                return Collections.emptyList();
             }
         }
-        if (dependant.position.getInt(dependant.position.size()-1) != head.childrenProcessed) {
-            // the dependant's position (with respect to the order of the dependants of the head) must be the next for head to process
-            return false;
+
+
+        private boolean isBinaryRuleAllowed(SAAState head, SAAState dependant, int labelId) {
+            String theOnlyAllowedLabelAccordingToDependencyTreeAndStates = getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(head, dependant);
+            boolean labelIdMatchesReconstructedLabel = signature.resolveSymbolId(labelId).equals(theOnlyAllowedLabelAccordingToDependencyTreeAndStates);
+            return labelIdMatchesReconstructedLabel && argumentMatches(head, dependant);
         }
-        return true;
-    }
 
 
-    @NotNull
-    private Iterable<Rule> makeConstantRules(int labelId, int[] childStates) {
-        SAAState resultState = constant2state.get(signature.resolveSymbolId(labelId));
-        if (satisfiesPropertiesOfFinalState(resultState)) {
-            addFinalState(addState(resultState));
+        @NotNull
+        private Iterable<Rule> makeBinaryRuleSingleton(int labelId, int[] childStates, SAAState head) {
+            SAAState resultState = head.increment();
+            if (satisfiesPropertiesOfFinalState(resultState)) {
+                addFinalState(addState(resultState));
+            }
+            return Collections.singleton(createRule(addState(resultState), labelId, childStates, 1.0));
         }
-        return Collections.singleton(createRule(addState(resultState), labelId, childStates, 1.0));
-    }
 
 
-    private boolean satisfiesPropertiesOfFinalState(SAAState state) {
-        return state.position.isEmpty() && state.childrenProcessed == headChildCount;
-    }
+        @NotNull
+        private String getOperationWithGeneralizableSourceNameFromDependencyTreeAndStates(SAAState head, SAAState dependant) {
+            String operationWithPlaceholderSourceName = position2operations.get(head.position).get(head.childrenProcessed);
+            String mappedDepSource;
+            if (operationWithPlaceholderSourceName.startsWith(ApplyModifyGraphAlgebra.OP_APPLICATION)) {
+                mappedDepSource = head.sourceAssignments.get(operationWithPlaceholderSourceName.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
+            } else {
+                mappedDepSource = dependant.sourceAssignments.get(operationWithPlaceholderSourceName.substring(ApplyModifyGraphAlgebra.OP_APPLICATION.length()));
+            }
+            return operationWithPlaceholderSourceName.substring(0, ApplyModifyGraphAlgebra.OP_APPLICATION.length())+mappedDepSource;
+        }
+
+        private boolean argumentMatches(SAAState head, SAAState dependant) {
+            // we check all conditions one after the other here to get both readability and runtime effectiveness
+            if (dependant.childrenProcessed != position2operations.get(dependant.position).size()) {
+                // dependant must have all children processed
+                return false;
+            }
+            if (dependant.position.size() != head.position.size() +1) {
+                // dependant must be one level below head
+                return false;
+            }
+            if (!dependant.position.subList(0, head.position.size()).equals(head.position)) {
+                // the dependant must actually be a dependant of the head (head address must be prefix of dependant address)
+                return false;
+            }
+            for (String source : Sets.intersect(head.sourceAssignments.keySet(), dependant.sourceAssignments.keySet())) {
+                // source mappings must match where they overlap
+                if (!head.sourceAssignments.get(source).equals(dependant.sourceAssignments.get(source))) {
+                    return false;
+                }
+            }
+            if (dependant.position.getInt(dependant.position.size()-1) != head.childrenProcessed) {
+                // the dependant's position (with respect to the order of the dependants of the head) must be the next for head to process
+                return false;
+            }
+            return true;
+        }
+
+
+        @NotNull
+        private Iterable<Rule> makeConstantRules(int labelId, int[] childStates) {
+            SAAState resultState = constant2state.get(signature.resolveSymbolId(labelId));
+            if (satisfiesPropertiesOfFinalState(resultState)) {
+                addFinalState(addState(resultState));
+            }
+            return Collections.singleton(createRule(addState(resultState), labelId, childStates, 1.0));
+        }
+
+
+        private boolean satisfiesPropertiesOfFinalState(SAAState state) {
+            return state.position.isEmpty() && state.childrenProcessed == headChildCount;
+        }
 
 
     @Override
@@ -229,6 +229,75 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SAAState> {
     public boolean isBottomUpDeterministic() {
         return false;
     }
+
+
+
+
+    public AmConllSentence tree2amConll(Tree<String> tree, DecompositionPackage decompositionPackage, SupertagDictionary supertagDictionary) throws ParserException {
+        AmConllSentence returnValue = decompositionPackage.makeBaseAmConllSentence();
+        addTreeToAmConll(tree, decompositionPackage, returnValue, supertagDictionary);
+        return returnValue;
+    }
+
+
+        private void addTreeToAmConll(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
+                                      AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
+            // this is really just a wrapper to get a simpler function name and return value
+            addTreeToAmConllAndReturnHeadIndexRecursive(treeToAdd, decompositionPackage, sentenceToAddTo, supertagDictionary);
+        }
+
+        private int addTreeToAmConllAndReturnHeadIndexRecursive(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
+                                                                AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
+            List<Tree<String>> childrenAtTreeRoot = treeToAdd.getChildren();
+            String labelAtTreeRoot = treeToAdd.getLabel();
+            boolean weAreAtBinaryBranch = childrenAtTreeRoot.size() == 2;
+            boolean weAreAtLeaf = childrenAtTreeRoot.size() == 0;
+            if (weAreAtBinaryBranch) {
+                return processBinaryBranchRecursivelyAndReturnHeadIndex(decompositionPackage, sentenceToAddTo, supertagDictionary, childrenAtTreeRoot, labelAtTreeRoot);
+            } else if (weAreAtLeaf) {
+                return processLeafAndReturnHeadIndex(decompositionPackage, sentenceToAddTo, supertagDictionary, labelAtTreeRoot);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        private int processBinaryBranchRecursivelyAndReturnHeadIndex(DecompositionPackage decompositionPackage,
+                                                                     AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary,
+                                                                     List<Tree<String>> children, String label) throws ParserException {
+            // the head is always left in a binary branch of an AM tree
+            Tree<String> headTreeBranch = children.get(0);
+            Tree<String> dependantTreeBranch = children.get(1);
+            int headID = addTreeToAmConllAndReturnHeadIndexRecursive(headTreeBranch, decompositionPackage, sentenceToAddTo, supertagDictionary);
+            int dependantID = addTreeToAmConllAndReturnHeadIndexRecursive(dependantTreeBranch, decompositionPackage, sentenceToAddTo, supertagDictionary);
+
+            // a binary branch in the tree that we are adding corresponds to an edge in the AM dependency tree
+            addEdgeInformationToSentence(sentenceToAddTo, label, headID, dependantID);
+            return headID;
+        }
+
+        private void addEdgeInformationToSentence(AmConllSentence sentenceToAddTo, String label, int headID, int dependantID) {
+            AmConllEntry dependantAmConllEntry = sentenceToAddTo.get(dependantID-1);//careful, this get function is 0-based
+            dependantAmConllEntry.setHead(headID);
+            dependantAmConllEntry.setEdgeLabel(label);
+        }
+
+
+        private int processLeafAndReturnHeadIndex(DecompositionPackage decompositionPackage, AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary, String label) throws ParserException {
+            // get the position in the sentence that is aligned to the constant at this leaf
+            int wordID = constant2wordID.get(label);
+
+            // a leaf in the tree that we are adding corresponds to a supertag / constant in the AM dependency tree
+            addSupertagInformationToSentence(decompositionPackage, sentenceToAddTo, supertagDictionary, label, wordID);
+            return wordID;
+        }
+
+        private void addSupertagInformationToSentence(DecompositionPackage decompositionPackage, AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary, String label, int wordID) throws ParserException {
+            Pair<SGraph, Type> asGraphSupertag = new ApplyModifyGraphAlgebra().parseString(label);
+            AmConllWithSourcesCreator.setSupertag(asGraphSupertag.left, asGraphSupertag.right, decompositionPackage, wordID,
+                    sentenceToAddTo, supertagDictionary);
+        }
+
+
 
 
     /**
@@ -418,71 +487,6 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SAAState> {
 
         System.out.println("Entropy in amconll file: " + SupertagEntropy.computeSupertagEntropy(outputCorpus));
     }
-
-
-    public AmConllSentence tree2amConll(Tree<String> tree, DecompositionPackage decompositionPackage, SupertagDictionary supertagDictionary) throws ParserException {
-        AmConllSentence returnValue = decompositionPackage.makeBaseAmConllSentence();
-        addTreeToAmConll(tree, decompositionPackage, returnValue, supertagDictionary);
-        return returnValue;
-    }
-
-
-        private void addTreeToAmConll(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
-                                      AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
-            // this is really just a wrapper to get a simpler function name and return value
-            addTreeToAmConllAndReturnHeadIndexRecursive(treeToAdd, decompositionPackage, sentenceToAddTo, supertagDictionary);
-        }
-
-        private int addTreeToAmConllAndReturnHeadIndexRecursive(Tree<String> treeToAdd, DecompositionPackage decompositionPackage,
-                                                                AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary) throws ParserException {
-            List<Tree<String>> childrenAtTreeRoot = treeToAdd.getChildren();
-            String labelAtTreeRoot = treeToAdd.getLabel();
-            boolean weAreAtBinaryBranch = childrenAtTreeRoot.size() == 2;
-            boolean weAreAtLeaf = childrenAtTreeRoot.size() == 0;
-            if (weAreAtBinaryBranch) {
-                return processBinaryBranchRecursivelyAndReturnHeadIndex(decompositionPackage, sentenceToAddTo, supertagDictionary, childrenAtTreeRoot, labelAtTreeRoot);
-            } else if (weAreAtLeaf) {
-                return processLeafAndReturnHeadIndex(decompositionPackage, sentenceToAddTo, supertagDictionary, labelAtTreeRoot);
-            } else {
-                throw new IllegalArgumentException();
-            }
-        }
-
-        private int processBinaryBranchRecursivelyAndReturnHeadIndex(DecompositionPackage decompositionPackage,
-                                                                     AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary,
-                                                                     List<Tree<String>> children, String label) throws ParserException {
-            // the head is always left in a binary branch of an AM tree
-            Tree<String> headTreeBranch = children.get(0);
-            Tree<String> dependantTreeBranch = children.get(1);
-            int headID = addTreeToAmConllAndReturnHeadIndexRecursive(headTreeBranch, decompositionPackage, sentenceToAddTo, supertagDictionary);
-            int dependantID = addTreeToAmConllAndReturnHeadIndexRecursive(dependantTreeBranch, decompositionPackage, sentenceToAddTo, supertagDictionary);
-
-            // a binary branch in the tree that we are adding corresponds to an edge in the AM dependency tree
-            addEdgeInformationToSentence(sentenceToAddTo, label, headID, dependantID);
-            return headID;
-        }
-
-        private void addEdgeInformationToSentence(AmConllSentence sentenceToAddTo, String label, int headID, int dependantID) {
-            AmConllEntry dependantAmConllEntry = sentenceToAddTo.get(dependantID-1);//careful, this get function is 0-based
-            dependantAmConllEntry.setHead(headID);
-            dependantAmConllEntry.setEdgeLabel(label);
-        }
-
-
-        private int processLeafAndReturnHeadIndex(DecompositionPackage decompositionPackage, AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary, String label) throws ParserException {
-            // get the position in the sentence that is aligned to the constant at this leaf
-            int wordID = constant2wordID.get(label);
-
-            // a leaf in the tree that we are adding corresponds to a supertag / constant in the AM dependency tree
-            addSupertagInformationToSentence(decompositionPackage, sentenceToAddTo, supertagDictionary, label, wordID);
-            return wordID;
-        }
-
-        private void addSupertagInformationToSentence(DecompositionPackage decompositionPackage, AmConllSentence sentenceToAddTo, SupertagDictionary supertagDictionary, String label, int wordID) throws ParserException {
-            Pair<SGraph, Type> asGraphSupertag = new ApplyModifyGraphAlgebra().parseString(label);
-            AmConllWithSourcesCreator.setSupertag(asGraphSupertag.left, asGraphSupertag.right, decompositionPackage, wordID,
-                    sentenceToAddTo, supertagDictionary);
-        }
 
 
 }
