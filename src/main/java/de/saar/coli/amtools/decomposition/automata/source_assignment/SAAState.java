@@ -17,7 +17,7 @@ public class SAAState {
     }
 
 
-    public SAAState increment() {
+    public SAAState incrementNumberOfChildrenProcessed() {
         //TODO can reduce automata size here by changing source assignments to remove the unnecessary ones, once a proper children order is implemented.
         return new SAAState(position, childrenProcessed+1, sourceAssignments);
     }

@@ -148,7 +148,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SAAState> {
 
         @NotNull
         private Iterable<Rule> makeBinaryRuleSingleton(int labelId, int[] childStates, SAAState head) {
-            SAAState resultState = head.increment();
+            SAAState resultState = head.incrementNumberOfChildrenProcessed();
             if (satisfiesPropertiesOfFinalState(resultState)) {
                 addFinalState(addState(resultState));
             }
