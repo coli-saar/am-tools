@@ -1,9 +1,11 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.automata.component_analysis;
 
 import com.google.common.collect.Multiset;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.SDPDecompositionPackage;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.algebra.graph.GraphNode;

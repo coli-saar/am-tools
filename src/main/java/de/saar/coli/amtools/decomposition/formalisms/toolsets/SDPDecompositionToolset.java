@@ -1,14 +1,12 @@
 package de.saar.coli.amtools.decomposition.formalisms.toolsets;
 
 import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amtools.decomposition.DecompositionPackage;
-import de.saar.coli.amtools.decomposition.SDPDecompositionPackage;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.SDPDecompositionPackage;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,0 +1,15 @@
+#batch_size:1
+#normalized_nn_time:0.013640642166137695
+#normalized_prepare_ftd_time:0.0007686614990234375
+#host:DESKTOP-CIPKGM0
+#parser:ftd
+#parsing_time:0.001954793930053711
+#k-supertags:4
+1	The	_	The	DT	_	(i_1<root> / --LEX--  :BV (i_3<S0>))	$LEMMA$	(S0())	3	MOD_S0	True
+2	little	_	little	JJ	_	(i_2<root> / --LEX--  :ARG1 (i_3<S0>))	$LEMMA$	(S0())	3	MOD_S0	True
+3	dragon	_	dragon	NN	_	(i_3<root> / --LEX--)	$LEMMA$	()	4	APP_S1	True
+4	yearns	_	yearn	V	_	(i_4<root> / --LEX--  :ARG1 (i_3<S1>)  :ARG2 (i_6<S0>))	$LEMMA$	(S0(S1()))	7	APP_S1	True
+5	to	_	to	TO	_	_	$LEMMA$	_	0	IGNORE	True
+6	fly	_	fly	V	_	(i_2<root> / --LEX--  :ARG1 (i_3<S1>))	$LEMMA$	(S1())	4	APP_S0	True
+7	ART-ROOT	_	ART-ROOT	ART-ROOT	_	(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))	$LEMMA$	(S1())	0	ROOT	True
+

@@ -1,10 +1,14 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.deterministic_sources;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAnalysisToAMDep;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAutomaton;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.DAGComponent;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.AMDependencyTree;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;

@@ -72,6 +72,7 @@ dependencies {
     implementation 'com.beust:jcommander:1.69'
     implementation 'net.sf.jgrapht:jgrapht:0.8.3'
     implementation 'edu.mit:jwi:2.2.3'
+    implementation 'org.apache.ant:ant:1.10.12'
     
     // Illinois NER https://cogcomp.org/page/software_view/NETagger
     implementation 'edu.illinois.cs.cogcomp:illinois-tokenizer:4.0.13'

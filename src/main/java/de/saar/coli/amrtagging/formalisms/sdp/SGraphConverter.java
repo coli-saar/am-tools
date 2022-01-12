@@ -138,6 +138,7 @@ public class SGraphConverter {
      * @return 
      */
     public static Graph toSDPGraph(SGraph sg, Graph sentence){
+        System.err.println(sg.toIsiAmrStringWithSources());
        Graph output = new Graph(sentence.id);
        
        // find artificial root:
@@ -196,6 +197,87 @@ public class SGraphConverter {
         }
         return output;
         
+    }
+
+    /**
+     * Converts an MRInstance into an SDPGraph. This function expects the MRInstance to include alignments, and the
+     * graph included in the MRInstance to be "relabeled", i.e. to have the actual, final node labels rather than references
+     * to word positions / lexical node markers.
+     * The Graph sentence provides the words and maybe additional info like POS tags.
+     * @param mrInstance
+     * @param sentence
+     * @return
+     */
+    public static Graph toSDPGraph(MRInstance mrInstance, Graph sentence){
+        System.out.println(mrInstance.getAlignments());
+        System.out.println(mrInstance.getSentence());
+        System.out.println(mrInstance.getGraph().toIsiAmrStringWithSources());
+        System.out.println(sentence.getNodes());
+        System.out.println(sentence.getNNodes());
+
+        Graph output = new Graph(sentence.id);
+
+        // find artificial root:
+        GraphNode artRoot = null;
+        for (Alignment al : mrInstance.getAlignments()){
+            if (al.span.start == sentence.getNNodes()-1) { // need the -1 to account for 0 based vs 1 based
+                artRoot = mrInstance.getGraph().getNode(al.nodes.iterator().next());// we know that all alignments have exactly one node in SDP graphs
+                break;
+            }
+        }
+        //GraphNode artRoot = sg.getNode(ARTIFICAL_ROOT_LABEL);
+        ArrayList<GraphNode> realRoots = new ArrayList<>();
+        HashSet<GraphNode> predicates = new HashSet<>();
+        for (GraphEdge edg : mrInstance.getGraph().getGraph().edgeSet()){ //find real roots and predicates
+            if (edg.getSource().equals(artRoot)){
+                realRoots.add(edg.getTarget());
+            } else {
+                predicates.add(edg.getSource()); //predicates are things with outgoing edges
+            }
+        }
+
+        // create maps from sentence positions to graph nodes and vice versa
+        HashMap<Integer,GraphNode> int2node = new HashMap<>();
+        HashMap<GraphNode, Integer> node2int = new HashMap<>();
+        for (Alignment al : mrInstance.getAlignments()) {
+            // sanity check
+            if (al.nodes.size() != 1 || al.span.end != al.span.start + 1) {
+                throw new IllegalArgumentException("Alignments in SDP graphs must be one node, one word");
+            }
+
+            // now actually filling the int2node map
+            if (! al.nodes.iterator().next().equals(artRoot.getName())){
+                int sentencePos = al.span.start + 1; // to account for 0-based vs 1-based
+                GraphNode node = mrInstance.getGraph().getNode(al.nodes.iterator().next());
+                int2node.put(sentencePos, node);
+                node2int.put(node, sentencePos);
+            }
+
+        }
+        for (Node currentNode: sentence.getNodes()){ //add all nodes
+            if (int2node.containsKey(currentNode.id)){
+                GraphNode correspondingGraphNode = int2node.get(currentNode.id);
+                String[] wordPlusSense = correspondingGraphNode.getLabel().split(SENSE_SEP); // here we use the assumption that we have the proper
+                //isTop is theoretically independent of being a predicate but the vast majority of top nodes is are also predicate nodes.
+                boolean isTop = realRoots.contains(correspondingGraphNode) && (realRoots.size() == 1 || predicates.contains(correspondingGraphNode));
+                if (wordPlusSense.length == 2) {
+                    output.addNode(currentNode.form, currentNode.lemma, currentNode.pos, isTop, predicates.contains(correspondingGraphNode), wordPlusSense[1]);
+                } else {
+                    output.addNode(currentNode.form, currentNode.lemma, currentNode.pos, isTop, predicates.contains(correspondingGraphNode), correspondingGraphNode.getLabel());
+                }
+
+            } else {
+                output.addNode(currentNode.form, currentNode.lemma, currentNode.pos, false, false, "_"); //???
+            }
+        }
+
+        for (GraphEdge edg : mrInstance.getGraph().getGraph().edgeSet()){ //add all edges
+            if (! edg.getSource().equals(artRoot) && ! edg.getTarget().equals(artRoot)){
+                output.addEdge(node2int.get(edg.getSource()), node2int.get(edg.getTarget()), edg.getLabel());
+            }
+        }
+        return output;
+
     }
     
     private static boolean NodelabelOk(String label){

@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 
 import edu.stanford.nlp.ling.CoreLabel;
 
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class SizeFixer {
+public class SizeFixerUCCA {
 
     private  List<String> refinedPos = new ArrayList<>();
     private List<String> refinedLemmas = new ArrayList<>();
@@ -22,7 +22,7 @@ public class SizeFixer {
 
 
 
-    public SizeFixer(List<String> mappedPosTags, List<CoreLabel> tokens, List<String> mappedLemmas, List<String> sentWords) {
+    public SizeFixerUCCA(List<String> mappedPosTags, List<CoreLabel> tokens, List<String> mappedLemmas, List<String> sentWords) {
 
         //this.mappedPosTags = mappedPosTags;
         //this.mappedLemmas = mappedLemmas;

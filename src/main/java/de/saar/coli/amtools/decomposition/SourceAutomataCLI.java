@@ -9,6 +9,13 @@ import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
+import de.saar.coli.amtools.decomposition.analysis.SupertagEntropy;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAnalysisToAMDep;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.ComponentAutomaton;
+import de.saar.coli.amtools.decomposition.automata.component_analysis.DAGComponent;
+import de.saar.coli.amtools.decomposition.automata.source_assignment.SAAState;
+import de.saar.coli.amtools.decomposition.automata.source_assignment.SourceAssignmentAutomaton;
+import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
 import de.saar.coli.amtools.decomposition.formalisms.toolsets.GraphbankDecompositionToolset;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
@@ -318,14 +325,14 @@ public class SourceAutomataCLI {
                         if (graph.equals(resultGraph)) {
                             SourceAssignmentAutomaton auto = SourceAssignmentAutomaton
                                     .makeAutomatonWithAllSourceCombinations(result, nrSources, decompositionPackage);
-                            ConcreteTreeAutomaton<SourceAssignmentAutomaton.State> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
+                            ConcreteTreeAutomaton<SAAState> concreteTreeAutomaton = auto.asConcreteTreeAutomatonBottomUp();
 //                            System.out.println(auto.signature);
                             //System.out.println(result);
 //                            System.out.println(concreteTreeAutomaton);
 //                            System.out.println(concreteTreeAutomaton.viterbi());
                             if (concreteTreeAutomaton.viterbi() != null) {
                                 successCounter.add("success");
-                                concreteTreeAutomaton = (ConcreteTreeAutomaton<SourceAssignmentAutomaton.State>)concreteTreeAutomaton.reduceTopDown();
+                                concreteTreeAutomaton = (ConcreteTreeAutomaton<SAAState>)concreteTreeAutomaton.reduceTopDown();
                                 concreteDecompositionAutomata.add(concreteTreeAutomaton);
                                 decompositionPackages.add(decompositionPackage);
                                 originalDecompositionAutomata.add(auto);
@@ -401,7 +408,7 @@ public class SourceAutomataCLI {
             DecompositionPackage decompositionPackage = decompositionPackages.get(i);
             AmConllSentence amConllSentence = baseAmConllSentences.get(i);
 
-            Map<SourceAssignmentAutomaton.State, Integer> stateToWordPosition = new HashMap<>();
+            Map<SAAState, Integer> stateToWordPosition = new HashMap<>();
 
             ConcreteTreeAutomaton<String> fakeIRTGAutomaton = new ConcreteTreeAutomaton<>();
             Map<Rule, Pair<Integer, String>> rule2supertag = new HashMap<>();
@@ -416,7 +423,7 @@ public class SourceAutomataCLI {
                         String oldRuleLabel = rule.getLabel(decomp);
                         Pair<SGraph, ApplyModifyGraphAlgebra.Type> constant = alg.parseString(oldRuleLabel);
                         int wordPosition = decompositionPackage.getSentencePositionForGraphFragment(constant.left);
-                        SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
+                        SAAState parent = decomp.getStateForId(rule.getParent());
                         // obtain delexicalized graph fragment
                         GraphNode lexicalNode = decompositionPackage.getLexNodeFromGraphFragment(constant.left);
                         constant.left.addNode(lexicalNode.getName(), AmConllEntry.LEX_MARKER);
@@ -439,9 +446,9 @@ public class SourceAutomataCLI {
                     // state.toString() -> i_j_oldRuleLabel(state0.toString(), state1.toString())
                     // where below state = parent, state0 = child0, state1 = child1
                     // and i = child0 wordPosition, j = child1 wordPosition
-                    SourceAssignmentAutomaton.State parent = decomp.getStateForId(rule.getParent());
-                    SourceAssignmentAutomaton.State child0 = decomp.getStateForId(rule.getChildren()[0]);
-                    SourceAssignmentAutomaton.State child1 = decomp.getStateForId(rule.getChildren()[1]);
+                    SAAState parent = decomp.getStateForId(rule.getParent());
+                    SAAState child0 = decomp.getStateForId(rule.getChildren()[0]);
+                    SAAState child1 = decomp.getStateForId(rule.getChildren()[1]);
                     int wordPosition0 = stateToWordPosition.get(child0);
                     int wordPosition1 = stateToWordPosition.get(child1);
                     int parentWordPosition = wordPosition0; // in AM operations, the left child is the head, and this rule reflects that.

@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 
 import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
@@ -71,7 +71,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
 
 
 
-        SizeFixer sizeFixer = new SizeFixer(mappedPosTags, tokens, mappedLemmas, sent.words());
+        SizeFixerUCCA sizeFixer = new SizeFixerUCCA(mappedPosTags, tokens, mappedLemmas, sent.words());
         Sentence stanfAn = new Sentence(inst.getSentence());
         List<String> neTags = new ArrayList<>(stanfAn.nerTags());
 

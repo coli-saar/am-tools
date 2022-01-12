@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package de.saar.coli.amtools.decomposition;
+package de.saar.coli.amtools.decomposition.automata.component_analysis;
 
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
