@@ -130,7 +130,7 @@ public class SourceAutomataCLI {
 
         //get automata for dev set
         System.err.println("Creating automata for dev set");
-        List<MRInstance> corpusDev = decompositionToolset.readCorpus(cli.trainingCorpusPath);
+        List<MRInstance> corpusDev = decompositionToolset.readCorpus(cli.devCorpusPath);
         decompositionToolset.applyPreprocessing(corpusDev);
 
         List<TreeAutomaton<?>> concreteDecompositionAutomataDev = new ArrayList<>();
