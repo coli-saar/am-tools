@@ -13,6 +13,9 @@ import se.liu.ida.nlp.sdp.toolkit.tools.Scorer;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Words for DM and PAS (PSD needs postprocessing)
+ */
 public class SDPEvaluationToolset extends EvaluationToolset {
 
     @Override

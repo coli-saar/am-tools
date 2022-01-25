@@ -31,11 +31,11 @@ public class AMRDecompositionToolset extends GraphbankDecompositionToolset {
     private final AMRBlobUtils blobUtils = new AMRBlobUtils();
 
     /**
-     * @param useStanfordTagger If useStanfordTagger is true, the decomposition packages will fill the empty NE/lemma/POS slots of
-     *                          the amconll file with the Stanford NLP solution. Else, the slots remain empty.
+     * @param fasterModeForTesting If fasterModeForTesting is true, the decomposition packages will not fill the empty NE/lemma/POS slots of
+     *      *                             the amconll file with the Stanford NLP solution.
      */
-    public AMRDecompositionToolset(Boolean useStanfordTagger) {
-        super(useStanfordTagger);
+    public AMRDecompositionToolset(Boolean fasterModeForTesting) {
+        super(fasterModeForTesting);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class AMRDecompositionToolset extends GraphbankDecompositionToolset {
 
     @Override
     public AMRBlobUtils getEdgeHeuristics() {
-        return new AMRBlobUtils();
+        return blobUtils;
     }
 
 

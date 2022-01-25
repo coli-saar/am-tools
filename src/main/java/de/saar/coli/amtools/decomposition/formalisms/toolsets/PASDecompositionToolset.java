@@ -9,11 +9,11 @@ public class PASDecompositionToolset extends SDPDecompositionToolset {
     AMRBlobUtils blobUtils = new PASBlobUtils();
 
     /**
-     * @param useStanfordTagger If useStanfordTagger is true, the decomposition packages will fill the empty NE/lemma/POS slots of
-     *                          the amconll file with the Stanford NLP solution. Else, the slots remain empty.
+     * @param fasterModeForTesting If fasterModeForTesting is true, the decomposition packages will not fill the empty NE/lemma/POS slots of
+     *                              the amconll file with the Stanford NLP solution.
      */
-    public PASDecompositionToolset(Boolean useStanfordTagger) {
-        super(useStanfordTagger);
+    public PASDecompositionToolset(Boolean fasterModeForTesting) {
+        super(fasterModeForTesting);
     }
 
 

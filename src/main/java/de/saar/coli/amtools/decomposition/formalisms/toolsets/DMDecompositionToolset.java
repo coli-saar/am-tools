@@ -8,11 +8,11 @@ public class DMDecompositionToolset extends SDPDecompositionToolset {
     AMRBlobUtils blobUtils = new DMBlobUtils();
 
     /**
-     * @param useStanfordTagger If useStanfordTagger is true, the decomposition packages will fill the empty NE/lemma/POS slots of
-     *                          the amconll file with the Stanford NLP solution. Else, the slots remain empty.
+     * @param fasterModeForTesting If fasterModeForTesting is true, the decomposition packages will not fill the empty NE/lemma/POS slots of
+     *                             the amconll file with the Stanford NLP solution.
      */
-    public DMDecompositionToolset(Boolean useStanfordTagger) {
-        super(useStanfordTagger);
+    public DMDecompositionToolset(Boolean fasterModeForTesting) {
+        super(fasterModeForTesting);
     }
 
 
