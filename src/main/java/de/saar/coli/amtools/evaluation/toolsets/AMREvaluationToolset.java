@@ -6,8 +6,6 @@ import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
 import de.saar.coli.amrtagging.formalisms.amr.tools.Relabel;
-import de.saar.coli.amrtagging.formalisms.amr.tools.datascript.JamrDataFromAltoCorpus;
-import de.saar.coli.amtools.evaluation.EvaluationToolset;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.*;
 import org.apache.tools.ant.types.Commandline;

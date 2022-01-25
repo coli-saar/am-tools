@@ -1,4 +1,4 @@
-package de.saar.coli.amtools.evaluation;
+package de.saar.coli.amtools.evaluation.toolsets;
 
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
@@ -67,7 +67,7 @@ public class EvaluationToolset {
 
     public void compareToGold(List<MRInstance> predictedInstances, String goldFilePath) throws IOException {
         throw new UnsupportedOperationException("This EvaluationToolset class cannot compare predicted graphs to gold graphs. " +
-                "Do not use it with the --gold option ");
+                "Do not use it with the --gold option in de.saar.coli.amtools.evaluation.EvaluateAMConll");
     }
 
 

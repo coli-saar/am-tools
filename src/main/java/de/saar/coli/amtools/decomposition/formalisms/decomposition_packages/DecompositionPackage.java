@@ -7,8 +7,6 @@ import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.simple.Sentence;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,15 +44,15 @@ public class DecompositionPackage {
         if (!fasterModeForTesting) {
             addPosNeLemmaTagsUsingStanfordNLP(amSent);
         }
-        registerReplacementLabels(amSent);
+
+        // It actually matters that this comes after setting the lemmata: it not only sets the lexical labels
+        // but also registers label replacements (see AmConllEntry#setLexLabel), for which the lemma information
+        // is relevant.
         setLexicalLabels(amSent);
 
         return amSent;
     }
 
-    protected void registerReplacementLabels(AmConllSentence amSent) {
-        amSent.addReplacementTokens(mrInstance.getSentence(),false);
-    }
 
     protected void setLexicalLabels(AmConllSentence amSent) {
         for (Alignment al : mrInstance.getAlignments()) {

@@ -106,6 +106,12 @@ public class AMRDecompositionPackage extends DecompositionPackage {
         amSent.addNEs(ourNeTags);
     }
 
+
+    // TODO this may only be here for legacy reasons -- maybe remove? --JG
+    private void registerReplacementLabels(AmConllSentence amSent) {
+        amSent.addReplacementTokens(mrInstance.getSentence(),false);
+    }
+
     private void registerOriginalPositionAndExpandedWords(List<Integer> origPositions, List<String> expandedWords, int positionInSentence) {
         String[] splits = literals.get(positionInSentence).split(LITERAL_JOINER);
 

@@ -1,12 +1,8 @@
 package de.saar.coli.amtools.evaluation.toolsets;
 
-import de.saar.coli.amrtagging.AlignedAMDependencyTree;
-import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
-import de.saar.coli.amtools.evaluation.EvaluationToolset;
-import de.up.ling.irtg.algebra.graph.SGraph;
 import me.tongfei.progressbar.ProgressBar;
 import se.liu.ida.nlp.sdp.toolkit.graph.Graph;
 import se.liu.ida.nlp.sdp.toolkit.io.Constants;

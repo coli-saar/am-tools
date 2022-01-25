@@ -2,29 +2,18 @@ package de.saar.coli.amtools.evaluation;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
-import de.saar.coli.amrtagging.formalisms.amr.PropertyDetection;
 
 
-import de.saar.coli.amrtagging.formalisms.amr.tools.Relabel;
-import de.saar.coli.amtools.decomposition.formalisms.toolsets.GraphbankDecompositionToolset;
+import de.saar.coli.amtools.evaluation.toolsets.EvaluationToolset;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.BlobUtils;
-import de.up.ling.irtg.algebra.graph.GraphEdge;
-import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.util.*;
-
-import java.util.stream.Collectors;
 
 
 /**
@@ -48,7 +37,7 @@ public class EvaluateAMConll {
     private String goldCorpus = null;
 
     @Parameter(names = {"--evaluationToolset", "-ts"}, description = "Classname of the EvaluationToolset class to be used. Default applies no postprocessing and writes the files in ISI AMR format")
-    private String evaluationToolsetName = "de.saar.coli.amtools.evaluation.EvaluationToolset";
+    private String evaluationToolsetName = "de.saar.coli.amtools.evaluation.toolsets.EvaluationToolset";
 
     @Parameter(names = {"--extras", "-e"}, description = "Additional parameters to the constructor of the Evaluation toolset, as a single string. Optional." +
             " Note that using this parameter causes a different constructor of the evaluation toolset to be called.")
