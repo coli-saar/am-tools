@@ -24,7 +24,6 @@ import static de.saar.coli.amrtagging.formalisms.amr.tools.DependencyExtractorCL
 public class AMRDecompositionPackageLegacy extends DecompositionPackage {
 
 
-    private final AMRBlobUtils blobUtils;
     private final SGraph graph;
     private final List<String> sent;
     private final List<String> origSent;
@@ -48,7 +47,7 @@ public class AMRDecompositionPackageLegacy extends DecompositionPackage {
     public AMRDecompositionPackageLegacy(Instance instance, AMRBlobUtils blobUtils, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
                                          boolean useLexLabelReplacement) {
         // TODO use "_" instead of "NULL" if no lex label
-        this.blobUtils = blobUtils;
+        super(null, blobUtils, false);
         graph = (SGraph)instance.getInputObjects().get("repgraph");
         sent = (List)instance.getInputObjects().get("repstring");
         origSent = (List)instance.getInputObjects().get("string");
@@ -169,7 +168,7 @@ public class AMRDecompositionPackageLegacy extends DecompositionPackage {
         }
 
 
-        amSent.addReplacement(sent,false);
+        amSent.addReplacementTokens(sent,false);
         amSent.addPos(posTags);
         amSent.addLemmas(ourLemmas);
         amSent.addNEs(ners);

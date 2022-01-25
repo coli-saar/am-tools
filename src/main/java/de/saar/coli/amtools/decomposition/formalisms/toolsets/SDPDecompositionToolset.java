@@ -37,7 +37,7 @@ public abstract class SDPDecompositionToolset extends GraphbankDecompositionTool
 
     @Override
     public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
-        return new SDPDecompositionPackage(instance, getEdgeHeuristics(), !useStanfordTagger);
+        return new SDPDecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
     }
 
 

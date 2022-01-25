@@ -9,15 +9,16 @@ import java.util.List;
 
 public abstract class GraphbankDecompositionToolset {
 
-    protected final boolean useStanfordTagger;
+    protected final boolean fasterModeForTesting;
 
     /**
      *
-     * @param useStanfordTagger If useStanfordTagger is true, the decomposition packages will fill the empty NE/lemma/POS slots of
-     * the amconll file with the Stanford NLP solution. Else, the slots remain empty.
+     * @param fasterModeForTesting If fasterModeForTesting is true, then slow preprocessing measures should be skipped.
+     *                             In the default implementation, this skips getting POS, lemma and named entity tags via the
+     *                             stanford tagger (implementations of this class may change the exact details).
      */
-    public GraphbankDecompositionToolset(Boolean useStanfordTagger) {
-        this.useStanfordTagger = false;
+    public GraphbankDecompositionToolset(Boolean fasterModeForTesting) {
+        this.fasterModeForTesting = fasterModeForTesting;
     }
 
     public abstract List<MRInstance> readCorpus(String filePath) throws IOException;

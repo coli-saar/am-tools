@@ -60,8 +60,8 @@ public class SourceAutomataCLI {
     private String decompositionToolset = "DMDecompositionToolset";
 
 
-    @Parameter(names = {"--noStanfordNLP"}, description = "skips computation of named entity tags if this flag is set; this can save a lot of time. Simply fills in blanks for the NE everywhere.")
-    private boolean noStanfordNLP =false;
+    @Parameter(names = {"--fasterModeForTesting"}, description = "skips computation of e.g. named entity tags if this flag is set; this can save a lot of time.")
+    private boolean fasterModeForTesting =false;
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
     private int nrSources = 2;
@@ -110,7 +110,7 @@ public class SourceAutomataCLI {
             }
         }
         Constructor<?> ctor = clazz.getConstructor(Boolean.class);
-        GraphbankDecompositionToolset decompositionToolset = (GraphbankDecompositionToolset)ctor.newInstance(new Object[] { !cli.noStanfordNLP});
+        GraphbankDecompositionToolset decompositionToolset = (GraphbankDecompositionToolset)ctor.newInstance(new Object[] { cli.fasterModeForTesting});
 
 
 
@@ -395,7 +395,7 @@ public class SourceAutomataCLI {
         zipFile.closeEntry();
 
         //create base amconll file
-        List<AmConllSentence> baseAmConllSentences = decompositionPackages.parallelStream().map(dp -> dp.makeBaseAmConllSentence()).collect(Collectors.toList());
+        List<AmConllSentence> baseAmConllSentences = decompositionPackages.parallelStream().map(DecompositionPackage::makeBaseAmConllSentence).collect(Collectors.toList());
 
 
 

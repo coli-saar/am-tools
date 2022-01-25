@@ -15,9 +15,6 @@ import de.up.ling.tree.Tree;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -183,8 +180,8 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
         }
     }
 
-    public void addReplacement(List<String> replacements) {
-        addReplacement(replacements, true);
+    public void addReplacementTokens(List<String> replacements) {
+        addReplacementTokens(replacements, true);
     }
     
     /**
@@ -192,7 +189,7 @@ public class AmConllSentence extends ArrayList<AmConllEntry> {
      * @param replacements
      * @param caseSensitive whether or not tokens count as equal if they're equal up to case
      */
-    public void addReplacement(List<String> replacements, boolean caseSensitive){
+    public void addReplacementTokens(List<String> replacements, boolean caseSensitive){
         if (replacements.size() != this.size()) {
             throw new IllegalArgumentException("Size of replacement list must be equal to sentence length");
         }

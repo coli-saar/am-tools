@@ -9,6 +9,7 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import edu.stanford.nlp.simple.Sentence;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +17,9 @@ import java.util.List;
 public class SDPDecompositionPackage extends DecompositionPackage {
 
 
-    private final AMRBlobUtils blobUtils;
-    private final MRInstance mrInstance;
-    private final boolean noNamedEntityTags;
 
-    public SDPDecompositionPackage(MRInstance instance, AMRBlobUtils blobUtils, boolean noNamedEntityTags) {
-        this.blobUtils = blobUtils;
-        this.mrInstance = instance;
-        this.noNamedEntityTags = noNamedEntityTags;
+    public SDPDecompositionPackage(MRInstance mrInstance, AMRBlobUtils blobUtils, boolean fasterModeForTesting) {
+        super(mrInstance, blobUtils, fasterModeForTesting);
     }
 
     @Override
@@ -49,32 +45,22 @@ public class SDPDecompositionPackage extends DecompositionPackage {
             sent.add(amConllEntry);
         }
 
+
         //add NE tags
-        if (!this.noNamedEntityTags) {
-            Sentence stanfAn = new Sentence(words);
-            List<String> neTags = new ArrayList<>(stanfAn.nerTags());
-            neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
+        if (!this.fasterModeForTesting) {
+            List<String> neTags = makeStanfordNETags(words);
             sent.addNEs(neTags);
         }
 
         return sent;
     }
 
-    @Override
-    public GraphNode getLexNodeFromGraphFragment(SGraph graphFragment) {
-        return graphFragment.getNode(graphFragment.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME));
-    }
-
-    @Override
-    public int getSentencePositionForGraphFragment(SGraph graphFragment) {
-        String rootNodeName = graphFragment.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
-        int id;
-        if (rootNodeName.equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
-            id = mrInstance.getSentence().size();// since the sentence contains the artificial root in its last position
-        } else {
-            id = Integer.parseInt(rootNodeName.substring(2));// maps i_x to x
-        }
-        return id;
+    @NotNull
+    private List<String> makeStanfordNETags(List<String> words) {
+        Sentence stanfAn = new Sentence(words.subList(0, words.size()-1));
+        List<String> neTags = new ArrayList<>(stanfAn.nerTags());
+        neTags.add(SGraphConverter.ARTIFICAL_ROOT_LABEL);
+        return neTags;
     }
 
 

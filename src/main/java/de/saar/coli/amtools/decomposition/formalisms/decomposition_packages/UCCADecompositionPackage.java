@@ -15,23 +15,15 @@ public class UCCADecompositionPackage extends DecompositionPackage {
 
     public static final String[] orderedLexicalEdgeLabels = new String[]{"L", "P", "S", "N", "C", "A", "G", "R", "T", "D","U", "F", "H"};
 
-    //private final static UCCABlobUtils blobUtils = new UCCABlobUtils();
-    //private final AMRBlobUtils blobUtils;
-
-
     private final SGraph sgraph;
-    private final MRInstance inst;
     private final List<CoreLabel> tokens;
     private final List<String> mappedPosTags;
     private final List<String> mappedLemmas;
-    private final AMRBlobUtils blobUtils;
 
 
     public UCCADecompositionPackage(Object[] UCCADecompositionPackageBundle, AMRBlobUtils blobUtils) {
-
-        this.blobUtils = blobUtils;
+        super((MRInstance) UCCADecompositionPackageBundle[1], blobUtils, false);
         this.sgraph = (SGraph) UCCADecompositionPackageBundle[0];
-        this.inst = (MRInstance) UCCADecompositionPackageBundle[1];
         this.tokens = (List<CoreLabel>) UCCADecompositionPackageBundle[2];
         this.mappedPosTags = (List<String>) UCCADecompositionPackageBundle[3];
         this.mappedLemmas = (List<String>) UCCADecompositionPackageBundle[4];
@@ -44,7 +36,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
     @Override
     public AmConllSentence makeBaseAmConllSentence() {
         AmConllSentence sent = new AmConllSentence();
-        List<Alignment> alignments = inst.getAlignments();
+        List<Alignment> alignments = mrInstance.getAlignments();
         ArrayList<Integer> lexNodes = new ArrayList<>();
 
         for (Alignment al:alignments){
@@ -72,7 +64,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
 
 
         SizeFixerUCCA sizeFixer = new SizeFixerUCCA(mappedPosTags, tokens, mappedLemmas, sent.words());
-        Sentence stanfAn = new Sentence(inst.getSentence());
+        Sentence stanfAn = new Sentence(mrInstance.getSentence());
         List<String> neTags = new ArrayList<>(stanfAn.nerTags());
 
         List<List<String>> adjustedLemmasPosNe= sizeFixer.adjust(mappedPosTags, mappedLemmas, neTags);

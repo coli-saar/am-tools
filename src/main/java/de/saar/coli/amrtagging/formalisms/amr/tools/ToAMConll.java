@@ -221,7 +221,7 @@ public class ToAMConll {
             }
 
 
-            o.addReplacement(sentences.get(i),false);
+            o.addReplacementTokens(sentences.get(i),false);
             o.addPos(posTags.get(i));
             o.addLemmas(ourLemmas);
             if (!cli.ner_disabled) {

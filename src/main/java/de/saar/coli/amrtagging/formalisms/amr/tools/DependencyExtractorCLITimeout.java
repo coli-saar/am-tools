@@ -222,7 +222,7 @@ public class DependencyExtractorCLITimeout {
                      cs.addPos(posTags);
                      cs.addLemmas(lemmas);
                      cs.addNEs(nerTags);
-                     cs.addReplacement(this.repl);
+                     cs.addReplacementTokens(this.repl);
                      return cs;
                 }
                 } catch (Exception ex) {
