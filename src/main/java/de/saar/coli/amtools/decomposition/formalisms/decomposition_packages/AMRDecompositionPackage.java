@@ -2,6 +2,7 @@ package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 
 import de.saar.coli.amrtagging.*;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -25,11 +26,11 @@ public class AMRDecompositionPackage extends DecompositionPackage {
     /**
      *
      * @param mrInstance
-     * @param blobUtils
+     * @param edgeAttachmentHeuristic
      * @param fasterModeForTesting
      */
-    public AMRDecompositionPackage(MRInstance mrInstance, AMRBlobUtils blobUtils, boolean fasterModeForTesting) {
-        super(mrInstance, blobUtils, fasterModeForTesting);
+    public AMRDecompositionPackage(MRInstance mrInstance, EdgeAttachmentHeuristic edgeAttachmentHeuristic, boolean fasterModeForTesting) {
+        super(mrInstance, edgeAttachmentHeuristic, fasterModeForTesting);
 
         this.framework = "amr";
 
@@ -170,8 +171,8 @@ public class AMRDecompositionPackage extends DecompositionPackage {
 
 
     @Override
-    public AMRBlobUtils getBlobUtils() {
-        return blobUtils;
+    public EdgeAttachmentHeuristic getEdgeAttachmentHeuristic() {
+        return edgeAttachmentHeuristic;
     }
 
 }

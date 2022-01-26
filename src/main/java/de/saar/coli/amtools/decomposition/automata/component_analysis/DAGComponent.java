@@ -6,7 +6,8 @@
 package de.saar.coli.amtools.decomposition.automata.component_analysis;
 
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -34,10 +35,10 @@ public class DAGComponent {
     public static class CyclicGraphException extends java.lang.RuntimeException {}
     public static class NoEdgeToRequiredModifieeException extends java.lang.RuntimeException {}
     
-    public DAGComponent(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils) throws CyclicGraphException {
+    public DAGComponent(SGraph graph, GraphNode dagRoot, EdgeAttachmentHeuristic edgeAttachmentHeuristic) throws CyclicGraphException {
         
         this.graph = graph;
-        this.root = new DAGNode(graph, dagRoot, blobUtils);
+        this.root = new DAGNode(graph, dagRoot, edgeAttachmentHeuristic);
         
         allNodes = new HashSet<>();
         graphNode2DAGNode = new HashMap<>();
@@ -51,17 +52,17 @@ public class DAGComponent {
         }
     }
     
-    public static DAGComponent createWithoutForbiddenNodes(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils,
+    public static DAGComponent createWithoutForbiddenNodes(SGraph graph, GraphNode dagRoot, EdgeAttachmentHeuristic edgeAttachmentHeuristic,
                                                            Iterable<GraphNode> forbidden) throws CyclicGraphException {
         SGraph graphCopy = graph.merge(new SGraph());//TODO HACKY! should give SGraph a proper clone method (use copyInto)
         for (GraphNode node : forbidden){
             graphCopy.removeNode(node.getName());
         }
-        return new DAGComponent(graphCopy, dagRoot, blobUtils);
+        return new DAGComponent(graphCopy, dagRoot, edgeAttachmentHeuristic);
     }
 
 
-    public static DAGComponent createFromSubset(SGraph graph, GraphNode dagRoot, AMRBlobUtils blobUtils,
+    public static DAGComponent createFromSubset(SGraph graph, GraphNode dagRoot, EdgeAttachmentHeuristic edgeAttachmentHeuristic,
                                                 Collection<GraphNode> subset) throws CyclicGraphException {
         SGraph newGraph = new SGraph();
         for (GraphNode node : subset) {
@@ -72,7 +73,7 @@ public class DAGComponent {
                 newGraph.addEdge(newGraph.getNode(edge.getSource().getName()), newGraph.getNode(edge.getTarget().getName()), edge.getLabel());
             }
         }
-        return new DAGComponent(newGraph, dagRoot, blobUtils);
+        return new DAGComponent(newGraph, dagRoot, edgeAttachmentHeuristic);
     }
 
 

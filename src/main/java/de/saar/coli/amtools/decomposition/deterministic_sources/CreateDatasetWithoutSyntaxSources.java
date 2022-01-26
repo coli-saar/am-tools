@@ -2,7 +2,7 @@ package de.saar.coli.amtools.decomposition.deterministic_sources;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.*;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.*;
 import de.saar.coli.amrtagging.formalisms.ucca.UCCABlobUtils;
 import de.saar.coli.amrtagging.mrp.ucca.UCCA;
@@ -281,9 +281,9 @@ public class CreateDatasetWithoutSyntaxSources {
             UCCADecompositionPackageBundle[3] = posTags;
             UCCADecompositionPackageBundle[4] = mappedLemmas;
 
-            AMRBlobUtils blobUtils;
-            blobUtils = new UCCABlobUtils();
-            decompositionPackageList.add(new UCCADecompositionPackage(UCCADecompositionPackageBundle, blobUtils));
+            EdgeAttachmentHeuristic edgeAttachmentHeuristic;
+            edgeAttachmentHeuristic = new UCCABlobUtils();
+            decompositionPackageList.add(new UCCADecompositionPackage(UCCADecompositionPackageBundle, edgeAttachmentHeuristic));
             List<GraphEdge> renamedEdges = new ArrayList<GraphEdge>(renamedSGraph.getGraph().edgeSet());
             sourceAssignerList.add(new OldSourceAssignerUCCA(renamedEdges, renamedInst));
 

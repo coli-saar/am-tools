@@ -1,7 +1,8 @@
 package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 
 import de.saar.coli.amrtagging.*;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -16,14 +17,14 @@ import java.util.stream.Collectors;
  */
 public class DecompositionPackage {
 
-    protected final AMRBlobUtils blobUtils;
+    protected final EdgeAttachmentHeuristic edgeAttachmentHeuristic;
     protected final boolean fasterModeForTesting;
     protected final MRInstance mrInstance;
     protected String framework = "unknown";
 
-    public DecompositionPackage(MRInstance mrInstance, AMRBlobUtils blobUtils, boolean fasterModeForTesting) {
+    public DecompositionPackage(MRInstance mrInstance, EdgeAttachmentHeuristic edgeAttachmentHeuristic, boolean fasterModeForTesting) {
         this.mrInstance = mrInstance;
-        this.blobUtils = blobUtils;
+        this.edgeAttachmentHeuristic = edgeAttachmentHeuristic;
         this.fasterModeForTesting = fasterModeForTesting;
     }
 
@@ -162,12 +163,12 @@ public class DecompositionPackage {
     }
 
     /**
-     * Returns an AMRBlobUtils (don't be fooled by the name, that's the parent class that other classes like DMBlobUtils overwrite)
+     * Returns an EdgeAttachmentHeuristic (don't be fooled by the name, that's the parent class that other classes like DMBlobUtils overwrite)
      * for the given graph. Can probably simply return the blob utils for the respective formalism.
      * @return
      */
-    public AMRBlobUtils getBlobUtils() {
-        return blobUtils;
+    public EdgeAttachmentHeuristic getEdgeAttachmentHeuristic() {
+        return edgeAttachmentHeuristic;
     }
 
 }

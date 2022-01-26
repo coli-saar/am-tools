@@ -4,7 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.*;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
@@ -81,11 +81,11 @@ public class CreateDatasetWithSyntaxSources {
             }
         };
 
-        AMRBlobUtils blobUtils;
+        EdgeAttachmentHeuristic edgeAttachmentHeuristic;
         switch (cli.corpusType) {
-            case "DM": blobUtils = new DMBlobUtils(); break;
-            case "PAS": blobUtils = new PASBlobUtils(); break;
-            case "PSD": blobUtils = new PSDBlobUtils(); break;
+            case "DM": edgeAttachmentHeuristic = new DMBlobUtils(); break;
+            case "PAS": edgeAttachmentHeuristic = new PASBlobUtils(); break;
+            case "PSD": edgeAttachmentHeuristic = new PSDBlobUtils(); break;
             default: throw new IllegalArgumentException("Illegal corpus type '"+cli.corpusType+"'. Legal are 'DM', 'PAS' and 'PSD'.");
         }
 
@@ -99,10 +99,10 @@ public class CreateDatasetWithSyntaxSources {
             MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
             SGraph graph = inst.getGraph();
             if (cli.corpusType.equals("PSD")) {
-                graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils, false);  // TODO make consistent with SourceAutomataCLI
+                graph = ConjHandler.handleConj(graph, (PSDBlobUtils)edgeAttachmentHeuristic, false);  // TODO make consistent with SourceAutomataCLI
             }
             graphCorpus.add(graph);
-            decompositionPackageList.add(new SDPDecompositionPackage(inst, blobUtils, false));
+            decompositionPackageList.add(new SDPDecompositionPackage(inst, edgeAttachmentHeuristic, false));
             sourceAssignerList.add(new SyntaxSourceAssigner(syntaxEdgeScoresIterator.next()));
         }
 

@@ -9,7 +9,7 @@ import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.SupertagDictionary;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.saar.coli.amrtagging.formalisms.sdp.pas.PASBlobUtils;
@@ -112,11 +112,11 @@ public class SourceAutomataCLISDP {
 
 
 
-        AMRBlobUtils blobUtils;
+        EdgeAttachmentHeuristic edgeAttachmentHeuristic;
         switch (cli.corpusType) {
-            case "DM": blobUtils = new DMBlobUtils(); break;
-            case "PAS": blobUtils = new PASBlobUtils(); break;
-            case "PSD": blobUtils = new PSDBlobUtils(); break;
+            case "DM": edgeAttachmentHeuristic = new DMBlobUtils(); break;
+            case "PAS": edgeAttachmentHeuristic = new PASBlobUtils(); break;
+            case "PSD": edgeAttachmentHeuristic = new PSDBlobUtils(); break;
             default: throw new IllegalArgumentException("Illegal corpus type '"+cli.corpusType+"'. Legal are 'DM', 'PAS' and 'PSD'.");
         }
         SupertagDictionary supertagDictionary = new SupertagDictionary();//future: load from file for dev set (better: get dev scores from training EM)
@@ -128,7 +128,7 @@ public class SourceAutomataCLISDP {
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
-        cli.processCorpus(gr, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages, cli.legacyPSD, cli.noPSDPreprocessing, cli.noNE);
+        cli.processCorpus(gr, edgeAttachmentHeuristic, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages, cli.legacyPSD, cli.noPSDPreprocessing, cli.noNE);
 
 
         //get automata for dev set
@@ -138,7 +138,7 @@ public class SourceAutomataCLISDP {
         List<SourceAssignmentAutomaton> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
-        cli.processCorpus(grDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev, cli.legacyPSD, cli.noPSDPreprocessing, cli.noNE);
+        cli.processCorpus(grDev, edgeAttachmentHeuristic, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev, cli.legacyPSD, cli.noPSDPreprocessing, cli.noNE);
 
         Files.createDirectories(Paths.get(cli.outPath));
 
@@ -287,7 +287,7 @@ public class SourceAutomataCLISDP {
         }
     }
 
-    private void processCorpus(GraphReader2015 gr, AMRBlobUtils blobUtils,
+    private void processCorpus(GraphReader2015 gr, EdgeAttachmentHeuristic edgeAttachmentHeuristic,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
                                 List<DecompositionPackage> decompositionPackages, boolean legacyPSD, boolean noPSDPreprocessing, boolean noNE) throws IOException {
 
@@ -307,17 +307,17 @@ public class SourceAutomataCLISDP {
                 MRInstance inst = SGraphConverter.toSGraph(sdpGraph);
                 SGraph graph = inst.getGraph();
                 if (corpusType.equals("PSD") && !noPSDPreprocessing) {
-                    graph = ConjHandler.handleConj(graph, (PSDBlobUtils)blobUtils, legacyPSD);
+                    graph = ConjHandler.handleConj(graph, (PSDBlobUtils)edgeAttachmentHeuristic, legacyPSD);
                 }
 
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, blobUtils, noNE);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, edgeAttachmentHeuristic, noNE);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
-                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, edgeAttachmentHeuristic);
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 

@@ -12,6 +12,7 @@ import static de.saar.coli.amrtagging.formalisms.AMSignatureBuilder.OBJ;
 import static de.saar.coli.amrtagging.formalisms.AMSignatureBuilder.POSS;
 import static de.saar.coli.amrtagging.formalisms.AMSignatureBuilder.SUBJ;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -37,7 +38,7 @@ import org.jgrapht.DirectedGraph;
  *
  * @author Jonas
  */
-public class AMRBlobUtils {
+public class AMRBlobUtils extends EdgeAttachmentHeuristic {
 
     
     //---------------------   handwritten heuristics   --------------------------

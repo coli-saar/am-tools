@@ -6,7 +6,8 @@
 package de.saar.coli.amtools.decomposition.automata.component_analysis;
 
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -26,19 +27,19 @@ public class DAGNode {
     
     
     private final SGraph graph;
-    private final AMRBlobUtils blobUtils;
+    private final EdgeAttachmentHeuristic edgeAttachmentHeuristic;
     private final GraphNode node;
     
-    public DAGNode(SGraph graph, GraphNode node, AMRBlobUtils blobUtils) {
+    public DAGNode(SGraph graph, GraphNode node, EdgeAttachmentHeuristic edgeAttachmentHeuristic) {
         this.graph = graph;
-        this.blobUtils = blobUtils;
+        this.edgeAttachmentHeuristic = edgeAttachmentHeuristic;
         this.node = node;
     }
     
     public Set<DAGNode> getChildren() {
         Set<DAGNode> ret = new HashSet<>();
-        for (GraphEdge e : blobUtils.getBlobEdges(graph, node)) {
-            ret.add(new DAGNode(graph, GeneralBlobUtils.otherNode(node, e), blobUtils));
+        for (GraphEdge e : edgeAttachmentHeuristic.getBlobEdges(graph, node)) {
+            ret.add(new DAGNode(graph, GeneralBlobUtils.otherNode(node, e), edgeAttachmentHeuristic));
         }
         return ret;
     } 

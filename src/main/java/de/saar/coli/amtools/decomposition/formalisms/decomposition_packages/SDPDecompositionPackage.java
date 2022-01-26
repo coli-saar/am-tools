@@ -3,7 +3,7 @@ package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -18,8 +18,8 @@ public class SDPDecompositionPackage extends DecompositionPackage {
 
 
 
-    public SDPDecompositionPackage(MRInstance mrInstance, AMRBlobUtils blobUtils, boolean fasterModeForTesting) {
-        super(mrInstance, blobUtils, fasterModeForTesting);
+    public SDPDecompositionPackage(MRInstance mrInstance, EdgeAttachmentHeuristic edgeAttachmentHeuristic, boolean fasterModeForTesting) {
+        super(mrInstance, edgeAttachmentHeuristic, fasterModeForTesting);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class SDPDecompositionPackage extends DecompositionPackage {
 
 
     @Override
-    public AMRBlobUtils getBlobUtils() {
-        return blobUtils;
+    public EdgeAttachmentHeuristic getEdgeAttachmentHeuristic() {
+        return edgeAttachmentHeuristic;
     }
 }

@@ -1,7 +1,7 @@
 package de.saar.coli.amtools.decomposition.formalisms.toolsets;
 
 import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.ConjHandler;
 import de.saar.coli.amrtagging.formalisms.sdp.psd.PSDBlobUtils;
 
@@ -9,7 +9,7 @@ import java.util.List;
 
 public class PSDDecompositionToolset extends SDPDecompositionToolset {
 
-    AMRBlobUtils blobUtils = new PSDBlobUtils();
+    EdgeAttachmentHeuristic edgeAttachmentHeuristic = new PSDBlobUtils();
 
     /**
      * @param fasterModeForTesting If fasterModeForTesting is true, the decomposition packages will not fill the empty NE/lemma/POS slots of
@@ -27,7 +27,7 @@ public class PSDDecompositionToolset extends SDPDecompositionToolset {
     }
 
     @Override
-    public AMRBlobUtils getEdgeHeuristics() {
-        return blobUtils;
+    public EdgeAttachmentHeuristic getEdgeHeuristics() {
+        return edgeAttachmentHeuristic;
     }
 }

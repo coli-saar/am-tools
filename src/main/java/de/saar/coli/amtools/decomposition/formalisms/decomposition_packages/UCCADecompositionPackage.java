@@ -1,7 +1,7 @@
 package de.saar.coli.amtools.decomposition.formalisms.decomposition_packages;
 
 import de.saar.coli.amrtagging.*;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
@@ -21,8 +21,8 @@ public class UCCADecompositionPackage extends DecompositionPackage {
     private final List<String> mappedLemmas;
 
 
-    public UCCADecompositionPackage(Object[] UCCADecompositionPackageBundle, AMRBlobUtils blobUtils) {
-        super((MRInstance) UCCADecompositionPackageBundle[1], blobUtils, false);
+    public UCCADecompositionPackage(Object[] UCCADecompositionPackageBundle, EdgeAttachmentHeuristic edgeAttachmentHeuristic) {
+        super((MRInstance) UCCADecompositionPackageBundle[1], edgeAttachmentHeuristic, false);
         this.sgraph = (SGraph) UCCADecompositionPackageBundle[0];
         this.tokens = (List<CoreLabel>) UCCADecompositionPackageBundle[2];
         this.mappedPosTags = (List<String>) UCCADecompositionPackageBundle[3];
@@ -139,7 +139,7 @@ public class UCCADecompositionPackage extends DecompositionPackage {
 
 
     @Override
-    public AMRBlobUtils getBlobUtils() {
-        return blobUtils;
+    public EdgeAttachmentHeuristic getEdgeAttachmentHeuristic() {
+        return edgeAttachmentHeuristic;
     }
 }

@@ -9,6 +9,7 @@ import de.saar.coli.amrtagging.AmConllEntry;
 import de.saar.coli.amrtagging.AmConllSentence;
 import de.saar.coli.amrtagging.SupertagDictionary;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.StanfordNamedEntityRecognizer;
@@ -106,7 +107,7 @@ public class SourceAutomataCLIAMR {
 
 
 
-        AMRBlobUtils blobUtils = new AMRBlobUtils();
+        EdgeAttachmentHeuristic edgeAttachmentHeuristic = new AMRBlobUtils();
         SupertagDictionary supertagDictionary = new SupertagDictionary();//future: load from file for dev set (better: get dev scores from training EM)
 
         // load data
@@ -141,7 +142,7 @@ public class SourceAutomataCLIAMR {
         List<SourceAssignmentAutomaton> originalDecompositionAutomata = new ArrayList<>();
         List<DecompositionPackage> decompositionPackages = new ArrayList<>();
 
-        cli.processCorpus(corpusTrain, blobUtils, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages,
+        cli.processCorpus(corpusTrain, edgeAttachmentHeuristic, concreteDecompositionAutomata, originalDecompositionAutomata, decompositionPackages,
                 preprocessedDataTrain, neRecognizer, cli.useLexLabelReplacement);
 
 
@@ -156,7 +157,7 @@ public class SourceAutomataCLIAMR {
         List<SourceAssignmentAutomaton> originalDecompositionAutomataDev = new ArrayList<>();
         List<DecompositionPackage> decompositionPackagesDev = new ArrayList<>();
 
-        cli.processCorpus(corpusDev, blobUtils, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev,
+        cli.processCorpus(corpusDev, edgeAttachmentHeuristic, concreteDecompositionAutomataDev, originalDecompositionAutomataDev, decompositionPackagesDev,
                 preprocessedDataDev, neRecognizer, cli.useLexLabelReplacement);
 
         Files.createDirectories(Paths.get(cli.outPath));
@@ -308,7 +309,7 @@ public class SourceAutomataCLIAMR {
         }
     }
 
-    private void processCorpus(Corpus corpus, AMRBlobUtils blobUtils,
+    private void processCorpus(Corpus corpus, EdgeAttachmentHeuristic edgeAttachmentHeuristic,
                                List<TreeAutomaton<?>> concreteDecompositionAutomata, List<SourceAssignmentAutomaton> originalDecompositionAutomata,
                                List<DecompositionPackage> decompositionPackages, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
                                boolean useLexLabelReplacement) throws IOException {
@@ -329,12 +330,12 @@ public class SourceAutomataCLIAMR {
 
                 try {
 
-                    AMRDecompositionPackageLegacy decompositionPackage = new AMRDecompositionPackageLegacy(corpusInstance, blobUtils, preprocessedData, neRecognizer, useLexLabelReplacement);
+                    AMRDecompositionPackageLegacy decompositionPackage = new AMRDecompositionPackageLegacy(corpusInstance, edgeAttachmentHeuristic, preprocessedData, neRecognizer, useLexLabelReplacement);
 
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
-                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, edgeAttachmentHeuristic);
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 

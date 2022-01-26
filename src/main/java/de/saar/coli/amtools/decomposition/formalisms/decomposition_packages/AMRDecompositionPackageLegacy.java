@@ -5,6 +5,7 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.NamedEntityRecognizer;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessedData;
 import de.saar.coli.amrtagging.formalisms.amr.tools.preproc.PreprocessingException;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -39,15 +40,15 @@ public class AMRDecompositionPackageLegacy extends DecompositionPackage {
     /**
      *
      * @param instance
-     * @param blobUtils
+     * @param edgeAttachmentHeuristic
      * @param preprocessedData if null, no POS tags will be added
      * @param neRecognizer if null, no NE tags will be added
      * @param useLexLabelReplacement
      */
-    public AMRDecompositionPackageLegacy(Instance instance, AMRBlobUtils blobUtils, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
+    public AMRDecompositionPackageLegacy(Instance instance, EdgeAttachmentHeuristic edgeAttachmentHeuristic, PreprocessedData preprocessedData, NamedEntityRecognizer neRecognizer,
                                          boolean useLexLabelReplacement) {
         // TODO use "_" instead of "NULL" if no lex label
-        super(null, blobUtils, false);
+        super(null, edgeAttachmentHeuristic, false);
         graph = (SGraph)instance.getInputObjects().get("repgraph");
         sent = (List)instance.getInputObjects().get("repstring");
         origSent = (List)instance.getInputObjects().get("string");
@@ -218,8 +219,8 @@ public class AMRDecompositionPackageLegacy extends DecompositionPackage {
 
 
     @Override
-    public AMRBlobUtils getBlobUtils() {
-        return blobUtils;
+    public EdgeAttachmentHeuristic getEdgeAttachmentHeuristic() {
+        return edgeAttachmentHeuristic;
     }
 
 

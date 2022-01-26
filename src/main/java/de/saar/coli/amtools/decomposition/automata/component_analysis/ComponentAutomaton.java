@@ -7,7 +7,7 @@ package de.saar.coli.amtools.decomposition.automata.component_analysis;
 
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amrtagging.formalisms.sdp.SGraphConverter;
 import de.saar.coli.amrtagging.formalisms.sdp.dm.DMBlobUtils;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
@@ -41,12 +41,12 @@ import se.liu.ida.nlp.sdp.toolkit.io.GraphReader2015;
 public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, DAGComponent>> {
 
     private final SGraph graph;
-    private final AMRBlobUtils blobUtils;
+    private final EdgeAttachmentHeuristic edgeAttachmentHeuristic;
     
-    public ComponentAutomaton(SGraph graph, AMRBlobUtils blobUtils) {
+    public ComponentAutomaton(SGraph graph, EdgeAttachmentHeuristic edgeAttachmentHeuristic) {
         super(new Signature());
         this.graph = graph;
-        this.blobUtils = blobUtils;
+        this.edgeAttachmentHeuristic = edgeAttachmentHeuristic;
         
         // add one final state: All nodes are in the ConnectedComponent, and the "parent" DAGComponent is null.
         addFinalState(addState(new Pair(new ConnectedComponent(graph.getGraph().vertexSet()), null)));
@@ -88,7 +88,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             
             //compute main DAG component
             GraphNode root = this.graph.getNode(this.graph.getNodeForSource("root"));
-            DAGComponent mainDAG = new DAGComponent(graph, root, blobUtils);
+            DAGComponent mainDAG = new DAGComponent(graph, root, edgeAttachmentHeuristic);
 
             // get remaining connected components
             Collection<ConnectedComponent> connComps = ConnectedComponent.getAllConnectedComponents(graph, mainDAG.getAllAsGraphNodes());
@@ -117,7 +117,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             List<Rule> ret = new ArrayList<>();
             for (GraphNode root : possibleRoots) {
 
-                DAGComponent newDAG = DAGComponent.createFromSubset(graph, root, blobUtils, connComp.getAllNodes());
+                DAGComponent newDAG = DAGComponent.createFromSubset(graph, root, edgeAttachmentHeuristic, connComp.getAllNodes());
                 // the following may be possible to do more efficiently via some sort of automaton-wide dynamic programming
                 Set<GraphNode> removedNodes = new HashSet<>();
                 removedNodes.addAll(graph.getGraph().vertexSet());
@@ -197,7 +197,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
     public static void main(String[] args) throws IOException {
         
         String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
-        AMRBlobUtils blobUtils = new DMBlobUtils();
+        EdgeAttachmentHeuristic edgeAttachmentHeuristic = new DMBlobUtils();
         
         GraphReader2015 gr = new GraphReader2015(corpusPath);
         Graph sdpGraph;
@@ -210,7 +210,7 @@ public class ComponentAutomaton extends TreeAutomaton<Pair<ConnectedComponent, D
             
             SGraph graph = inst.getGraph();
             
-            ConcreteTreeAutomaton auto = new ComponentAutomaton(graph, blobUtils).asConcreteTreeAutomatonTopDown();
+            ConcreteTreeAutomaton auto = new ComponentAutomaton(graph, edgeAttachmentHeuristic).asConcreteTreeAutomatonTopDown();
             
             System.err.println(Math.log(auto.countTrees())/Math.log(2));
             

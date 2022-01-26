@@ -3,6 +3,7 @@ package de.saar.coli.amtools.decomposition.formalisms.toolsets;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.AMRDecompositionPackage;
 import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
 import de.up.ling.irtg.Interpretation;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class AMRDecompositionToolset extends GraphbankDecompositionToolset {
 
-    private final AMRBlobUtils blobUtils = new AMRBlobUtils();
+    private final EdgeAttachmentHeuristic edgeAttachmentHeuristic = new AMRBlobUtils();
 
     /**
      * @param fasterModeForTesting If fasterModeForTesting is true, the decomposition packages will not fill the empty NE/lemma/POS slots of
@@ -87,8 +88,8 @@ public class AMRDecompositionToolset extends GraphbankDecompositionToolset {
     }
 
     @Override
-    public AMRBlobUtils getEdgeHeuristics() {
-        return blobUtils;
+    public EdgeAttachmentHeuristic getEdgeHeuristics() {
+        return edgeAttachmentHeuristic;
     }
 
 

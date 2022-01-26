@@ -315,7 +315,7 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SAAState> {
         Counter<Integer> bucketCounter = new Counter<>();
         Counter<String> successCounter = new Counter<>();
 
-        DMBlobUtils blobUtils = new DMBlobUtils();
+        DMBlobUtils edgeAttachmentHeuristic = new DMBlobUtils();
         GraphReader2015 gr = new GraphReader2015(corpusPath);
 
 
@@ -342,11 +342,11 @@ public class SourceAssignmentAutomaton extends TreeAutomaton<SAAState> {
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, blobUtils, true);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, edgeAttachmentHeuristic, true);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
-                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, edgeAttachmentHeuristic);
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 

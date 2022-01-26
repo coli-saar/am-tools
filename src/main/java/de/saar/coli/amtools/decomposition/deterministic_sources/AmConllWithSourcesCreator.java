@@ -99,7 +99,7 @@ public class AmConllWithSourcesCreator {
                 try {
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
-                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionPackage.getBlobUtils());
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionPackage.getEdgeAttachmentHeuristic());
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 

@@ -1,7 +1,7 @@
 package de.saar.coli.amtools.decomposition.formalisms.toolsets;
 
 import de.saar.coli.amrtagging.MRInstance;
-import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.saar.coli.amtools.decomposition.formalisms.EdgeAttachmentHeuristic;
 import de.saar.coli.amtools.decomposition.formalisms.decomposition_packages.DecompositionPackage;
 
 import java.io.IOException;
@@ -36,7 +36,7 @@ public abstract class GraphbankDecompositionToolset {
         return new DecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
     }
 
-    public abstract AMRBlobUtils getEdgeHeuristics();// maybe default implementation?
+    public abstract EdgeAttachmentHeuristic getEdgeHeuristics();// maybe default implementation?
 
 
 }

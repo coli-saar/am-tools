@@ -46,7 +46,7 @@ public class ComponentAnalysisToAMDep {
     public static void main(String[] args) throws Exception {
         String corpusPath = "/Users/jonas/Documents/data/corpora/semDep/sdp2014_2015/data/2015/en.dm.sdp";
                 //"C://Users/Jonas/Documents/Work/data/sdp/2015/dm/train.sdp";
-        DMBlobUtils blobUtils = new DMBlobUtils();
+        DMBlobUtils edgeAttachmentHeuristic = new DMBlobUtils();
         GraphReader2015 gr = new GraphReader2015(corpusPath);
 
         Graph sdpGraph;
@@ -65,11 +65,11 @@ public class ComponentAnalysisToAMDep {
 
                 try {
 
-                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, blobUtils, true);
+                    DecompositionPackage decompositionPackage = new SDPDecompositionPackage(inst, edgeAttachmentHeuristic, true);
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
-                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, blobUtils);
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, edgeAttachmentHeuristic);
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 
@@ -136,7 +136,7 @@ public class ComponentAnalysisToAMDep {
                 //add all nodes that are direct targets of edges coming from those nodes (we need to percolate them up later, so put them in the DAG now)
                 Set<GraphNode> boundaryNodes = new HashSet<>();
                 for (GraphEdge e : graph.getGraph().edgeSet()) {
-                    if (decompositionPackage.getBlobUtils().isOutbound(e)) {
+                    if (decompositionPackage.getEdgeAttachmentHeuristic().isOutbound(e)) {
                         if (allowedNodes.contains(e.getSource())) {
                             boundaryNodes.add(e.getTarget());
                         }
@@ -147,8 +147,8 @@ public class ComponentAnalysisToAMDep {
                     }
                 }
                 boundaryNodes.removeAll(allowedNodes);
-                DAGComponent coreDAGComponent = DAGComponent.createFromSubset(graph, graphNode, decompositionPackage.getBlobUtils(), allowedNodes);
-                DAGComponent dagComponentWithBoundary = DAGComponent.createFromSubset(graph, graphNode, decompositionPackage.getBlobUtils(), Sets.union(allowedNodes, boundaryNodes));
+                DAGComponent coreDAGComponent = DAGComponent.createFromSubset(graph, graphNode, decompositionPackage.getEdgeAttachmentHeuristic(), allowedNodes);
+                DAGComponent dagComponentWithBoundary = DAGComponent.createFromSubset(graph, graphNode, decompositionPackage.getEdgeAttachmentHeuristic(), Sets.union(allowedNodes, boundaryNodes));
 //                System.err.println(nodeName);
 //                System.err.println(dagComponent);
 
@@ -255,7 +255,7 @@ public class ComponentAnalysisToAMDep {
         StringJoiner typeBuilder = new StringJoiner(", ", "(", ")");
         ret.addNode(node.getName(), node.getLabel());
         ret.addSource("root", node.getName());
-        for (GraphEdge edge : decompositionPackage.getBlobUtils().getBlobEdges(graph, node)) {
+        for (GraphEdge edge : decompositionPackage.getEdgeAttachmentHeuristic().getBlobEdges(graph, node)) {
             GraphNode other = GeneralBlobUtils.otherNode(node, edge);
             ret.addNode(other.getName(), null);
             ret.addEdge(ret.getNode(edge.getSource().getName()), ret.getNode(edge.getTarget().getName()),edge.getLabel());
