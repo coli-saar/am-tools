@@ -115,3 +115,5 @@ examples/output/toyGraphbankOwnFormat.txt
 examples/output/parserOut.txt
 examples/output/parserOut.sdp
 examples/output/toyDM.sdp
+examples/decomposition_input/amr_multinode_out/dev.zip
+examples/decomposition_input/amr_multinode_out/train.zip

@@ -174,9 +174,4 @@ public class AMRDecompositionPackage extends DecompositionPackage {
         return blobUtils;
     }
 
-
-    @Override
-    public Set<Set<String>> getMultinodeConstantNodeNames() {
-        return mrInstance.getAlignments().stream().map(al -> al.nodes).filter(set -> set.size()>1).collect(Collectors.toSet());
-    }
 }

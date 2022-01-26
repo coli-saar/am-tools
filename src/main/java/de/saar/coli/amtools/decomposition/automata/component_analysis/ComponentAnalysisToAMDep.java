@@ -259,8 +259,8 @@ public class ComponentAnalysisToAMDep {
             GraphNode other = GeneralBlobUtils.otherNode(node, edge);
             ret.addNode(other.getName(), null);
             ret.addEdge(ret.getNode(edge.getSource().getName()), ret.getNode(edge.getTarget().getName()),edge.getLabel());
-            String sourceName = decompositionPackage.getTempSourceForNodeName(other.getName());
-            ret.addSource(sourceName, other.getName());//use node name as source name at this stage
+            String sourceName = decompositionPackage.getTempSourceForNodeName(other.getName());//use (more or less) node name as source name at this stage
+            ret.addSource(sourceName, other.getName());
             typeBuilder.add(sourceName);
         }
         return ret.toIsiAmrStringWithSources()+ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP+typeBuilder.toString();

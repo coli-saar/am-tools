@@ -36,7 +36,7 @@ public class EvaluateAMConll {
             "the Smatch script for AMR graphs).")
     private String goldCorpus = null;
 
-    @Parameter(names = {"--evaluationToolset", "-ts"}, description = "Classname of the EvaluationToolset class to be used. Default applies no postprocessing and writes the files in ISI AMR format")
+    @Parameter(names = {"--evaluationToolset", "-et"}, description = "Classname of the EvaluationToolset class to be used. Default applies no postprocessing and writes the files in ISI AMR format")
     private String evaluationToolsetName = "de.saar.coli.amtools.evaluation.toolsets.EvaluationToolset";
 
     @Parameter(names = {"--extras", "-e"}, description = "Additional parameters to the constructor of the Evaluation toolset, as a single string. Optional." +

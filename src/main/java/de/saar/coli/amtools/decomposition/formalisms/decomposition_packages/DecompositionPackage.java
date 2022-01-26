@@ -83,6 +83,7 @@ public class DecompositionPackage {
         String wordForm = mrInstance.getSentence().get(positionInSentence);
         // IDs in AmConllEntry are 1-based, so we add a '+ 1' here
         AmConllEntry e = new AmConllEntry(positionInSentence + 1, wordForm);
+        e.setAligned(true); // this just means that the whole sentence is aligned. I.e. that the node (or lack of node) in this entry actually corresponds to the word position
         return e;
     }
 

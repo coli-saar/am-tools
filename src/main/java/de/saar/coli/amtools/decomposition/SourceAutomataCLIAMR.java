@@ -431,6 +431,8 @@ public class SourceAutomataCLIAMR {
     private static AMDependencyTree contractMultinodeConstant(AMDependencyTree amDep, Set<String> nodesInConstant, DecompositionPackage decompositionPackage,
                                                               Counter<String> outcomeCounter) {
 
+        System.err.println("contracting "+nodesInConstant);
+
         if (amDep == null) {
             return null; // we handle that elsewhere
         }

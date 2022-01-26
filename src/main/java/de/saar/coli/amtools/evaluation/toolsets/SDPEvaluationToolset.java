@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Words for DM and PAS (PSD needs postprocessing)
+ * Works for DM and PAS (PSD needs postprocessing)
  */
 public class SDPEvaluationToolset extends EvaluationToolset {
 

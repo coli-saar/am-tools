@@ -32,7 +32,9 @@ public abstract class GraphbankDecompositionToolset {
 
     }
 
-    public abstract DecompositionPackage makeDecompositionPackage(MRInstance instance); // maybe default implementation?
+    public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
+        return new DecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
+    }
 
     public abstract AMRBlobUtils getEdgeHeuristics();// maybe default implementation?
 
