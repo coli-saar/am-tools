@@ -81,6 +81,15 @@ public class MRInstance {
         return this.extras.get(key);
     }
 
+    public void setId(String id) {
+        setExtra("id", id);
+    }
+
+    public String getId() {
+        return (String)getExtra("id");
+    }
+
+
     /**
      * @return the alignments
      */

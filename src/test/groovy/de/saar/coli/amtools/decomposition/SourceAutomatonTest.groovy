@@ -20,9 +20,10 @@ class SourceAutomatonTest {
         String[] args = "-t examples/decomposition_input/mini.dm.sdp -d examples/decomposition_input/mini.dm.sdp -o examples/decomposition_input/dm_out/ -dt DMDecompositionToolset -s 2 -a automata --fasterModeForTesting".split(" ")
         SourceAutomataCLI.main(args)
         String zipPath = "examples/decomposition_input/dm_out/train.zip"
+        printZipFileParts(zipPath)
         String acceptedTree = "APP_S1('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())',APP_S0(APP_S1('(i_4<root> / --LEX--  :ARG1 (i_3<S1>)  :ARG2 (i_6<S0>))--TYPE--(S0(S1()))',MOD_S1(MOD_S1('(i_3<root> / --LEX--)--TYPE--()','(i_1<root> / --LEX--  :BV (i_3<S1>))--TYPE--(S1())'),'(i_2<root> / --LEX--  :ARG1 (i_3<S1>))--TYPE--(S1())')),'(i_2<root> / --LEX--  :ARG1 (i_3<S1>))--TYPE--(S1())'))"
-        String fourthCorpusLine = "4\tyearns\t_\tyearn\tV\t_\t_\t_\t_\t7\tIGNORE\ttrue"
-        checkZipFile(zipPath, fourthCorpusLine,
+        String seventhCorpusLine = "4\tyearns\t_\tyearn\tV\t_\t_\t_\t_\t7\tIGNORE\ttrue"
+        checkZipFile(zipPath, seventhCorpusLine,
             23, acceptedTree, "[[](0), {Si4=>S1}]", "(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())",
                 new Pair(7,"(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())"),
                 "[[0](1), {Si3=>S1,Si6=>S0}]", "APP_S1", new String[]{"[[0](0), {Si3=>S1,Si6=>S0}]", "[[0, 0](2), {}]"},
@@ -34,9 +35,10 @@ class SourceAutomatonTest {
         String[] args = "-t examples/decomposition_input/mini.pas.sdp -d examples/decomposition_input/mini.pas.sdp -o examples/decomposition_input/pas_out/ -dt PASDecompositionToolset -s 2 -a automata --fasterModeForTesting".split(" ")
         SourceAutomataCLI.main(args)
         String zipPath = "examples/decomposition_input/pas_out/train.zip"
+        printZipFileParts(zipPath)
         String acceptedTree = "APP_S1('(ART-ROOT<root> / --LEX--  :art-snt1 (i_4<S1>))--TYPE--(S1())',APP_S0(APP_S1('(i_4<root> / --LEX--  :verb_ARG1 (i_3<S1>)  :verb_ARG2 (i_6<S0>))--TYPE--(S0(S1()))',MOD_S0(MOD_S0('(i_3<root> / --LEX--)--TYPE--()','(i_2<root> / --LEX--  :adj_ARG1 (i_3<S0>))--TYPE--(S0())'),'(i_1<root> / --LEX--  :det_ARG1 (i_3<S0>))--TYPE--(S0())')),'(i_6<root> / --LEX--  :verb_ARG1 (i_3<S1>))--TYPE--(S1())'))"
-        String fourthCorpusLine = "4\tyearns\t_\tyearn\tV\t_\t_\t_\t_\t7\tIGNORE\ttrue"
-        checkZipFile(zipPath, fourthCorpusLine,
+        String seventhCorpusLine = "4\tyearns\t_\tyearn\tV\t_\t_\t_\t_\t7\tIGNORE\ttrue"
+        checkZipFile(zipPath, seventhCorpusLine,
                 23, acceptedTree, "[[0](0), {Si3=>S1,Si6=>S0}]", "(i_4<root> / --LEX--  :verb_ARG1 (i_3<S1>)  :verb_ARG2 (i_6<S0>))--TYPE--(S0(S1()))",
                 new Pair(4,"(i_4<root> / --LEX--  :verb_ARG1 (i_3<S1>)  :verb_ARG2 (i_6<S0>))--TYPE--(S0(S1()))"),
                 "[[0, 0](2), {}]", "MOD_S0", new String[]{"[[0, 0](1), {}]", "[[0, 0, 1](0), {Si3=>S0}]"},
@@ -48,9 +50,10 @@ class SourceAutomatonTest {
         String[] args = "-t examples/decomposition_input/mini.psd.sdp -d examples/decomposition_input/mini.psd.sdp -o examples/decomposition_input/psd_out/ -dt PSDDecompositionToolsetLegacyACL19 -s 2 -a automata --fasterModeForTesting".split(" ")
         SourceAutomataCLI.main(args)
         String zipPath = "examples/decomposition_input/psd_out/train.zip"
+        printZipFileParts(zipPath)
         String acceptedTree = "APP_S1('(ART-ROOT<root> / --LEX--  :art-snt1 (i_7<S1>))--TYPE--(S1())',APP_S1('(i_7<root> / --LEX--  :ACT-arg (i_4<S1>))--TYPE--(S1())',APP_S1(APP_S0('(i_4<root> / --LEX--  :CONJ.member (i_3<S0>)  :CONJ.member (i_6<S1>))--TYPE--(S0(), S1())','(i_3<root> / --LEX--)--TYPE--()'),MOD_S0('(i_3<root> / --LEX--)--TYPE--()','(i_2<root> / --LEX--  :RSTR-of (i_3<S0>))--TYPE--(S0())'))))"
-        String fourthCorpusLine = "4\tand\t_\tand\tCC\t_\t_\t_\t_\t7\tIGNORE\ttrue"
-        checkZipFile(zipPath, fourthCorpusLine,
+        String seventhCorpusLine = "4\tand\t_\tand\tCC\t_\t_\t_\t_\t7\tIGNORE\ttrue"
+        checkZipFile(zipPath, seventhCorpusLine,
                 24, acceptedTree, "[[0, 0](0), {Si3=>S1,Si6=>S0}]", "(i_4<root> / --LEX--  :CONJ.member (i_3<S0>)  :CONJ.member (i_6<S1>))--TYPE--(S0(), S1())",
                 new Pair(4,"(i_4<root> / --LEX--  :CONJ.member (i_3<S0>)  :CONJ.member (i_6<S1>))--TYPE--(S0(), S1())"),
                 "[[0](1), {Si4=>S0}]", "APP_S0", new String[]{"[[0](0), {Si4=>S0}]", "[[0, 0](2), {Si3=>S0,Si6=>S1}]"},
@@ -63,9 +66,10 @@ class SourceAutomatonTest {
         String[] args = "-t examples/decomposition_input/mini_amr.corpus -d examples/decomposition_input/mini_amr.corpus -o examples/decomposition_input/amr_out/ -dt AMRDecompositionToolset -s 2 -a automata --fasterModeForTesting".split(" ")
         SourceAutomataCLI.main(args)
         String zipPath = "examples/decomposition_input/amr_out/train.zip"
+        printZipFileParts(zipPath)
         String acceptedTree = "APP_S0(APP_S1('(y<root> / --LEX--  :ARG0 (d<S1>)  :ARG1 (f<S0>))--TYPE--(S0(S1()))',MOD_S0('(d<root> / --LEX--)--TYPE--()','(l<root> / --LEX--  :mod-of (d<S0>))--TYPE--(S0())')),'(f<root> / --LEX--  :ARG0 (d<S1>))--TYPE--(S1())')"
-        String fourthCorpusLine = "1\tThe\t_\t_\t_\t_\t_\t_\t_\t0\t_\ttrue"
-        checkZipFile(zipPath, fourthCorpusLine,
+        String seventhCorpusLine = "4\tyearns\t_\t_\t_\t_\t_\tyearn-01\t_\t0\t_\ttrue"
+        checkZipFile(zipPath, seventhCorpusLine,
                 13, acceptedTree, "[[](0), {Sd=>S1,Sf=>S0}]", "(y<root> / --LEX--  :ARG0 (d<S1>)  :ARG1 (f<S0>))--TYPE--(S0(S1()))",
                 new Pair(4,"(y<root> / --LEX--  :ARG0 (d<S1>)  :ARG1 (f<S0>))--TYPE--(S0(S1()))"),
                 "[[0](1), {}]", "MOD_S1", new String[]{"[[0](0), {}]", "[[0, 0](0), {Sd=>S1}]"},
@@ -77,9 +81,10 @@ class SourceAutomatonTest {
         String[] args = "-t examples/decomposition_input/amr_multinode.corpus -d examples/decomposition_input/amr_multinode.corpus -o examples/decomposition_input/amr_multinode_out/ -dt AMRDecompositionToolset -s 2 -a automata --fasterModeForTesting".split(" ")
         SourceAutomataCLI.main(args)
         String zipPath = "examples/decomposition_input/amr_multinode_out/train.zip"
+        printZipFileParts(zipPath)
         String acceptedTree = "APP_S0('(s<root> / --LEX--  :ARG0 (p<S0>))--TYPE--(S0())','(p<root> / person  :ARG0-of (b / --LEX--))--TYPE--()')"
-        String fourthCorpusLine = "1\tThe\t_\t_\t_\t_\t_\t_\t_\t0\t_\ttrue"
-        checkZipFile(zipPath, fourthCorpusLine,
+        String seventhCorpusLine = "" // empty check here but that's ok, we check that aspect in the other AMR test
+        checkZipFile(zipPath, seventhCorpusLine,
                 5, acceptedTree, "[[](0), {Sp=>S0}]",
                 "(s<root> / --LEX--  :ARG0 (p<S0>))--TYPE--(S0())",
                 new Pair(3,"(s<root> / --LEX--  :ARG0 (p<S0>))--TYPE--(S0())"),
@@ -88,7 +93,7 @@ class SourceAutomatonTest {
                 new Pair(new Pair(3,2), "APP_S0"))
     }
 
-    private void checkZipFile(String path, String fourthCorpusLine, int nrRules, String acceptedTree,
+    private void checkZipFile(String path, String seventhCorpusLine, int nrRules, String acceptedTree,
                               String supertagRuleParent, String supertagRuleLabel, Pair<Integer, String> supertagResult,
                               String edgeRuleParent, String edgeRuleLabel, String[] edgeRuleChildren, Pair<Pair<Integer, Integer>, String> edgeResult) {
         ZipFile zipFile = new ZipFile(path)
@@ -117,10 +122,10 @@ class SourceAutomatonTest {
                 case "corpus.amconll":
                     BufferedReader reader = new BufferedReader(new InputStreamReader(stream))
                     String line = null
-                    for (int i =0; i<4; i++) {
+                    for (int i =0; i<7; i++) {
                         line = reader.readLine()
                     }
-                    assert line == fourthCorpusLine
+                    assert line == seventhCorpusLine
                     break
 
                 case "0.supertagmap":
@@ -174,10 +179,10 @@ class SourceAutomatonTest {
                 case "corpus.amconll":
                     BufferedReader reader = new BufferedReader(new InputStreamReader(stream))
                     String line = null
-                    for (int i =0; i<4; i++) {
+                    for (int i =0; i<7; i++) {
                         line = reader.readLine()
                     }
-                    println("Fifth corpus line:")
+                    println("Seventh corpus line:")
                     println(line)
                     break
 

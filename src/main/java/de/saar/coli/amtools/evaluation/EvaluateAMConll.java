@@ -13,6 +13,9 @@ import de.up.ling.tree.ParseException;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -60,7 +63,7 @@ public class EvaluateAMConll {
 
         List<AmConllSentence> inputAMConllSentences = amConllEvaluator.readAMConllFile();
 
-        EvaluationToolset evaluationToolset = amConllEvaluator.setupEvaluationToolset();
+        EvaluationToolset evaluationToolset = amConllEvaluator.loadEvaluationToolset();
 
         List<MRInstance> outputCorpus = amConllEvaluator.evaluteAMCorpus(inputAMConllSentences, evaluationToolset);
 
@@ -96,7 +99,7 @@ public class EvaluateAMConll {
         return AmConllSentence.readFromFile(corpusPath);
     }
 
-    private EvaluationToolset setupEvaluationToolset() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    private EvaluationToolset loadEvaluationToolset() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         Class<?> clazz = getEvaluationToolsetClass();
         return createEvaluationToolsetObject(clazz);
     }
@@ -174,6 +177,7 @@ public class EvaluateAMConll {
     }
 
     private void writeOutputCorpus(EvaluationToolset evaluationToolset, List<MRInstance> outputCorpus) throws IOException, InterruptedException {
+        Files.createDirectories(Paths.get(outPath));
         evaluationToolset.writeCorpus(outPath, outputCorpus);
     }
 

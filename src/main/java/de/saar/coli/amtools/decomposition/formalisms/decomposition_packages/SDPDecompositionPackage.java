@@ -24,7 +24,7 @@ public class SDPDecompositionPackage extends DecompositionPackage {
 
     @Override
     public AmConllSentence makeBaseAmConllSentence() {
-        AmConllSentence sent = new AmConllSentence();
+        AmConllSentence sent = makeAmConllSentenceWithGeneralInformation();
 
         //add all words from the SDP graph, treating all as ignored for now
         List<String> words = mrInstance.getSentence();

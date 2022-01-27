@@ -13,7 +13,7 @@ public class PASDecompositionToolset extends SDPDecompositionToolset {
      *                              the amconll file with the Stanford NLP solution.
      */
     public PASDecompositionToolset(Boolean fasterModeForTesting) {
-        super(fasterModeForTesting);
+        super(fasterModeForTesting, "pas");
     }
 
 

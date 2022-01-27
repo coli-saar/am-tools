@@ -20,6 +20,11 @@ public class DecompositionPackage {
     protected final EdgeAttachmentHeuristic edgeAttachmentHeuristic;
     protected final boolean fasterModeForTesting;
     protected final MRInstance mrInstance;
+
+    public void setFramework(String framework) {
+        this.framework = framework;
+    }
+
     protected String framework = "unknown";
 
     public DecompositionPackage(MRInstance mrInstance, EdgeAttachmentHeuristic edgeAttachmentHeuristic, boolean fasterModeForTesting) {
@@ -92,7 +97,7 @@ public class DecompositionPackage {
     protected AmConllSentence makeAmConllSentenceWithGeneralInformation() {
         AmConllSentence amSent = new AmConllSentence();
         amSent.setAttr("git", AMToolsVersion.GIT_SHA);
-        amSent.setId((String)mrInstance.getExtra("id"));
+        amSent.setId(mrInstance.getId());
         amSent.setAttr("framework", framework);
         return amSent;
     }

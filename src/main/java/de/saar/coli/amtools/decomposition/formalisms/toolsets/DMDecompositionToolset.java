@@ -12,7 +12,7 @@ public class DMDecompositionToolset extends SDPDecompositionToolset {
      *                             the amconll file with the Stanford NLP solution.
      */
     public DMDecompositionToolset(Boolean fasterModeForTesting) {
-        super(fasterModeForTesting);
+        super(fasterModeForTesting, "dm");
     }
 
 

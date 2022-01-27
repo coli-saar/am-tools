@@ -16,12 +16,15 @@ import java.util.List;
  */
 public abstract class SDPDecompositionToolset extends GraphbankDecompositionToolset {
 
+    private final String framework;
+
     /**
      * @param fasterModeForTesting If fasterModeForTesting is true, the decomposition packages will not fill the empty NE/lemma/POS slots of
      *                          the amconll file with the Stanford NLP solution.
      */
-    public SDPDecompositionToolset(Boolean fasterModeForTesting) {
+    public SDPDecompositionToolset(Boolean fasterModeForTesting, String framework) {
         super(fasterModeForTesting);
+        this.framework = framework;
     }
 
     @Override
@@ -30,14 +33,18 @@ public abstract class SDPDecompositionToolset extends GraphbankDecompositionTool
         List<MRInstance> ret = new ArrayList<>();
         Graph sdpGraph = null;
         while ((sdpGraph = gr.readGraph()) != null) {
-            ret.add(SGraphConverter.toSGraph(sdpGraph));
+            MRInstance mrInstance = SGraphConverter.toSGraph(sdpGraph);
+            mrInstance.setExtra("id", sdpGraph.id);
+            ret.add(mrInstance);
         }
         return ret;
     }
 
     @Override
     public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
-        return new SDPDecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
+        SDPDecompositionPackage ret = new SDPDecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
+        ret.setFramework(framework);
+        return ret;
     }
 
 

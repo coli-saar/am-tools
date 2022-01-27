@@ -209,11 +209,6 @@ public class SGraphConverter {
      * @return
      */
     public static Graph toSDPGraph(MRInstance mrInstance, Graph sentence){
-        System.out.println(mrInstance.getAlignments());
-        System.out.println(mrInstance.getSentence());
-        System.out.println(mrInstance.getGraph().toIsiAmrStringWithSources());
-        System.out.println(sentence.getNodes());
-        System.out.println(sentence.getNNodes());
 
         Graph output = new Graph(sentence.id);
 

@@ -16,7 +16,7 @@ public class PSDDecompositionToolset extends SDPDecompositionToolset {
      *                         the amconll file with the Stanford NLP solution.
      **/
     public PSDDecompositionToolset(Boolean fasterModeForTesting) {
-        super(fasterModeForTesting);
+        super(fasterModeForTesting, "psd");
     }
 
     @Override
