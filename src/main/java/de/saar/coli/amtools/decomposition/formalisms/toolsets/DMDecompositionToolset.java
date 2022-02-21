@@ -17,7 +17,7 @@ public class DMDecompositionToolset extends SDPDecompositionToolset {
 
 
     @Override
-    public EdgeAttachmentHeuristic getEdgeHeuristics() {
+    public EdgeAttachmentHeuristic getEdgeHeuristic() {
         return edgeAttachmentHeuristic;
     }
 }

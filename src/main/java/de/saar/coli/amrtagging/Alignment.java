@@ -72,12 +72,22 @@ public class Alignment {
     public Alignment(Set<String> nodes, Span span) {
         this(nodes, span, Collections.EMPTY_SET, 0);
     }
-    
+
+    /**
+     * Creates an alignment between nodes and span, marking the given node as lexical.
+     * @param nodes all the nodes that should be part of the alignment
+     * @param index the index (0-based) of the word that should be part of the alignment
+     * @param lexicalNode The node name of the lexical node. Must be contained in nodes
+     */
+    public Alignment(Set<String> nodes, int index, String lexicalNode) {
+        this(nodes, new Span(index, index+1), Collections.singleton(lexicalNode), 0);
+    }
+
     /**
      * Creates an alignment between the one node nn and the span [index,index+1];
      * also marks nn as lexical.
-     * @param nn
-     * @param index 
+     * @param nn the node name of the single node that should be part of the alignment. Will be marked as lexical
+     * @param index the index (0-based) of the word that should be part of the alignment
      */
     public Alignment(String nn, int index) {
         this(Collections.singleton(nn), new Span(index, index+1), Collections.singleton(nn), 0);

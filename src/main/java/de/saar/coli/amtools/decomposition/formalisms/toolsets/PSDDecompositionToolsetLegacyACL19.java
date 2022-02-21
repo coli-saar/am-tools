@@ -20,7 +20,7 @@ public class PSDDecompositionToolsetLegacyACL19 extends PSDDecompositionToolset 
     @Override
     public void applyPreprocessing(List<MRInstance> corpus) {
         for (MRInstance inst : corpus) {
-            inst.setGraph(ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)getEdgeHeuristics(), true));
+            inst.setGraph(ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils) getEdgeHeuristic(), true));
         }
     }
 

@@ -311,7 +311,7 @@ public class SourceAutomataCLI {
 
                     ComponentAnalysisToAMDep converter = new ComponentAnalysisToAMDep(graph, decompositionPackage);
 
-                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionToolset.getEdgeHeuristics());
+                    ComponentAutomaton componentAutomaton = new ComponentAutomaton(graph, decompositionToolset.getEdgeHeuristic());
 
                     AMDependencyTree result = converter.componentAnalysis2AMDep(componentAutomaton);
 

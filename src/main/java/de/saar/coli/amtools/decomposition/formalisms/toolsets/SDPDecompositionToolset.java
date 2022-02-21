@@ -42,7 +42,7 @@ public abstract class SDPDecompositionToolset extends GraphbankDecompositionTool
 
     @Override
     public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
-        SDPDecompositionPackage ret = new SDPDecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
+        SDPDecompositionPackage ret = new SDPDecompositionPackage(instance, getEdgeHeuristic(), fasterModeForTesting);
         ret.setFramework(framework);
         return ret;
     }
