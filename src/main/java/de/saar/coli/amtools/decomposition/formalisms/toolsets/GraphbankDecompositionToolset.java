@@ -33,10 +33,10 @@ public abstract class GraphbankDecompositionToolset {
     }
 
     public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
-        return new DecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
+        return new DecompositionPackage(instance, getEdgeHeuristic(), fasterModeForTesting);
     }
 
-    public abstract EdgeAttachmentHeuristic getEdgeHeuristics();// maybe default implementation?
+    public abstract EdgeAttachmentHeuristic getEdgeHeuristic();// maybe default implementation?
 
 
 }

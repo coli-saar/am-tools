@@ -84,11 +84,11 @@ public class AMRDecompositionToolset extends GraphbankDecompositionToolset {
 
     @Override
     public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
-        return new AMRDecompositionPackage(instance, getEdgeHeuristics(), fasterModeForTesting);
+        return new AMRDecompositionPackage(instance, getEdgeHeuristic(), fasterModeForTesting);
     }
 
     @Override
-    public EdgeAttachmentHeuristic getEdgeHeuristics() {
+    public EdgeAttachmentHeuristic getEdgeHeuristic() {
         return edgeAttachmentHeuristic;
     }
 

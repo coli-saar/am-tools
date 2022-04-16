@@ -18,7 +18,7 @@ public class PASDecompositionToolset extends SDPDecompositionToolset {
 
 
     @Override
-    public EdgeAttachmentHeuristic getEdgeHeuristics() {
+    public EdgeAttachmentHeuristic getEdgeHeuristic() {
         return edgeAttachmentHeuristic;
     }
 }

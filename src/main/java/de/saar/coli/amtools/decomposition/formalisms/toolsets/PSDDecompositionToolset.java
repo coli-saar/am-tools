@@ -22,12 +22,12 @@ public class PSDDecompositionToolset extends SDPDecompositionToolset {
     @Override
     public void applyPreprocessing(List<MRInstance> corpus) {
         for (MRInstance inst : corpus) {
-            inst.setGraph(ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils)getEdgeHeuristics(), false));
+            inst.setGraph(ConjHandler.handleConj(inst.getGraph(), (PSDBlobUtils) getEdgeHeuristic(), false));
         }
     }
 
     @Override
-    public EdgeAttachmentHeuristic getEdgeHeuristics() {
+    public EdgeAttachmentHeuristic getEdgeHeuristic() {
         return edgeAttachmentHeuristic;
     }
 }
