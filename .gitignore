@@ -117,3 +117,5 @@ examples/output/parserOut.sdp
 examples/output/toyDM.sdp
 examples/decomposition_input/amr_multinode_out/dev.zip
 examples/decomposition_input/amr_multinode_out/train.zip
+examples/output/0.dot
+examples/output/0.pdf
