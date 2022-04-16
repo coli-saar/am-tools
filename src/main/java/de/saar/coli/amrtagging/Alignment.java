@@ -24,7 +24,7 @@ public class Alignment {
     public final Set<String> nodes;
     public Span span;
     public final Set<String> lexNodes;
-    public final int color;
+    public int color;
     private double weight;
 
     public double getWeight() {

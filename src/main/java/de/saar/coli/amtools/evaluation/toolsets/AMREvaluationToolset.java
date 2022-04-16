@@ -49,8 +49,8 @@ public class AMREvaluationToolset extends EvaluationToolset {
         JCommander commander = new JCommander(this);
         commander.setProgramName("constraint_extractor");
 
-        System.out.println("Creating AMREvaluationToolset with the following parameters:");
-        System.out.println(extra);
+//        System.out.println("Creating AMREvaluationToolset with the following parameters:");
+//        System.out.println(extra);
 
 
 
@@ -115,7 +115,7 @@ public class AMREvaluationToolset extends EvaluationToolset {
         // relabel graph
         SGraph evaluatedGraph = mrInstance.getGraph();
 
-        // Rename nodes names from 1@@m@@--LEX-- to LEX@0
+        // Change nodes labels from 1@@m@@--LEX-- to LEX@0
         // This is for compatibility with the older Relabel class
         List<String> labels = origAMConllSentence.lemmas();
         for (String n : evaluatedGraph.getAllNodeNames()) {
@@ -187,6 +187,8 @@ public class AMREvaluationToolset extends EvaluationToolset {
             evaluatedGraph = PropertyDetection.fixProperties(evaluatedGraph);
 
             mrInstance.setGraph(evaluatedGraph);
+
+            fixPropertyAlignments(mrInstance);
         } catch (Exception ex) {
             System.err.println("In line " + origAMConllSentence.getLineNr());
             System.err.println("Ignoring exception:");
@@ -202,4 +204,28 @@ public class AMREvaluationToolset extends EvaluationToolset {
         }
 
     }
+
+    /**
+     * fixing the properties in the graph changes some node names by adding a "_" in front. This breaks the
+     * alignments in MRInstance. Here we fix that.
+     * @param mrInstance
+     */
+    private void fixPropertyAlignments(MRInstance mrInstance) {
+        for (GraphNode node : mrInstance.getGraph().getGraph().vertexSet()) {
+            if (node.getName().startsWith("_")) {
+                String oldNodeName = node.getName().substring(1); // without the "_"
+                for (Alignment al : mrInstance.getAlignments()) {
+                    if (al.nodes.contains(oldNodeName)) {
+                        al.nodes.remove(oldNodeName);
+                        al.nodes.add(node.getName());
+                    }
+                    if (al.lexNodes.contains(oldNodeName)) {
+                        al.lexNodes.remove(oldNodeName);
+                        al.lexNodes.add(node.getName());
+                    }
+                }
+            }
+        }
+    }
+
 }

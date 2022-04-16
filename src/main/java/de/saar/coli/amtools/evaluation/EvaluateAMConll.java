@@ -8,13 +8,13 @@ import de.saar.coli.amrtagging.*;
 import de.saar.coli.amtools.evaluation.toolsets.EvaluationToolset;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.codec.IsiAmrInputCodec;
 import de.up.ling.tree.ParseException;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -31,7 +31,7 @@ public class EvaluateAMConll {
     private String corpusPath = null;
 
     @Parameter(names = {"--outPath", "-o"}, description = "Path for output files", required = true)
-    private String outPath = null;
+    public String outPath = null;
 
     @Parameter(names = {"--gold", "-g"}, description = "Path to gold corpus. Usually expected to contain the same instances in the same order as " +
             "the --corpus file (unless the evaluation toolset says otherwise). Giving the gold corpus here is optional, and only works if the evaluation" +
@@ -49,7 +49,7 @@ public class EvaluateAMConll {
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
-    private boolean continueBeyondArgumentReading;
+    public boolean continueBeyondCommandLineArgumentReading;
 
 
 
@@ -57,7 +57,7 @@ public class EvaluateAMConll {
         EvaluateAMConll amConllEvaluator = new EvaluateAMConll();
 
         amConllEvaluator.readCommandLineArguments(args);
-        if (!amConllEvaluator.continueBeyondArgumentReading) {
+        if (!amConllEvaluator.continueBeyondCommandLineArgumentReading) {
             return;
         }
 
@@ -73,7 +73,7 @@ public class EvaluateAMConll {
     }
 
 
-    private void readCommandLineArguments(String[] args) {
+    public void readCommandLineArguments(String[] args) {
         JCommander commander = new JCommander(this);
         commander.setProgramName("constraint_extractor");
 
@@ -83,23 +83,23 @@ public class EvaluateAMConll {
             System.err.println("An error occured: " + ex.toString());
             System.err.println("\n Available options: ");
             commander.usage();
-            continueBeyondArgumentReading = false;
+            continueBeyondCommandLineArgumentReading = false;
         }
 
         if (help) {
             commander.usage();
-            continueBeyondArgumentReading = false;
+            continueBeyondCommandLineArgumentReading = false;
         }
 
-        continueBeyondArgumentReading = true;
+        continueBeyondCommandLineArgumentReading = true;
     }
 
 
-    private List<AmConllSentence> readAMConllFile() throws IOException, ParseException {
+    public List<AmConllSentence> readAMConllFile() throws IOException, ParseException {
         return AmConllSentence.readFromFile(corpusPath);
     }
 
-    private EvaluationToolset loadEvaluationToolset() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public EvaluationToolset loadEvaluationToolset() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         Class<?> clazz = getEvaluationToolsetClass();
         return createEvaluationToolsetObject(clazz);
     }
@@ -131,17 +131,28 @@ public class EvaluateAMConll {
     }
 
 
-    private static List<MRInstance> evaluteAMCorpus(List<AmConllSentence> inputAMConllSentences, EvaluationToolset evaluationToolset) throws ParseException, ParserException, AlignedAMDependencyTree.ConllParserException {
+    public static List<MRInstance> evaluteAMCorpus(List<AmConllSentence> inputAMConllSentences, EvaluationToolset evaluationToolset) throws ParseException, ParserException, AlignedAMDependencyTree.ConllParserException {
         List<MRInstance> outputCorpus = new ArrayList<>();
 
         for (AmConllSentence inputSentence : inputAMConllSentences) {
             ensureCompatibilityWithOldPipeline(inputSentence); //TODO is this the right place for this? Or is it AMR specific?
 
-            SGraph evaluatedGraph = evaluateToAlignedGraph(inputSentence);
-            List<Alignment> alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
-            MRInstance mrInst = encodeAsMRInstance(inputSentence, evaluatedGraph, alignments);
+            MRInstance mrInst;
+            try {
+                SGraph evaluatedGraph = evaluateToAlignedGraph(inputSentence);
+                List<Alignment> alignments = AlignedAMDependencyTree.extractAlignments(evaluatedGraph);
+                mrInst = encodeAsMRInstance(inputSentence, evaluatedGraph, alignments);
 
-            evaluationToolset.applyPostprocessing(mrInst, inputSentence);
+                evaluationToolset.applyPostprocessing(mrInst, inputSentence);
+            } catch (java.lang.Exception ex) {
+                System.err.println("Skipping the following exception for the following AMConllSentence during evaluation," +
+                        " using Dummy graph as result instead");
+                System.err.println(inputSentence);
+                ex.printStackTrace();
+                SGraph dummyGraph = new IsiAmrInputCodec().read("(r<root> / dummygraph)");
+                Alignment dummyAlignment = new Alignment("r", 0);
+                mrInst = encodeAsMRInstance(inputSentence, dummyGraph, Collections.singletonList(dummyAlignment));
+            }
 
             outputCorpus.add(mrInst);
         }
