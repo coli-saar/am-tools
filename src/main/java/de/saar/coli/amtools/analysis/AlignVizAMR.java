@@ -39,8 +39,9 @@ public class AlignVizAMR {
     @Parameter(names = {"--corpus", "-c"}, description = "Path to corpus", required=true)
     private String corpusPath;
 
-    @Parameter(names = {"--alignments", "-a"}, description = "Path to alignment file", required = true)
-    private String alignmentPath;
+    // is optional; if not given, assumes alignments are given in corpus file as [alignment] entry
+    @Parameter(names = {"--alignments", "-a"}, description = "Path to alignment file")
+    private String alignmentPath = null;
 
     @Parameter(names = {"--outdir", "-o"}, description = "Output folder", required=true)
     private String outDir;
@@ -57,6 +58,9 @@ public class AlignVizAMR {
 
     @Parameter(names = {"--lexBold", "-l"}, description = "Prints nodes marked with a '!' bold.")
     private boolean lexBold = false;
+
+    @Parameter(names = {"--writeAsPNG", "-png"}, description = "Writes output in png format rather than pdf.")
+    private boolean writeAsPNG = false;
 
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
@@ -172,9 +176,15 @@ public class AlignVizAMR {
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("graph", new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        if (viz.alignmentPath == null) {
+            loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        }
         Corpus corpus = Corpus.readCorpus(new FileReader(viz.corpusPath), loaderIRTG);
 
-        BufferedReader alBR = new BufferedReader(new FileReader(viz.alignmentPath));
+        BufferedReader alBR = null;
+        if (viz.alignmentPath != null) {
+            alBR = new BufferedReader(new FileReader(viz.alignmentPath));
+        }
 
         String outpath = viz.outDir;
         if (!outpath.endsWith("/")) {
@@ -196,10 +206,15 @@ public class AlignVizAMR {
         int i = 0;
         for (Instance inst : corpus) {
             //stop loop if we ran out of alignments in the file, or if the max is reached
-            if (!alBR.ready() || (viz.max>=0 && i>=viz.max)) {
+            if ((alBR != null && !alBR.ready()) || (viz.max>=0 && i>=viz.max)) {
                 break;
             }
-            String alLine = alBR.readLine();//do this before any skips, to keep the reader up to date
+            String alLine;
+            if (alBR == null) {
+                alLine = String.join(" ", (List)inst.getInputObjects().get("alignment"));
+            } else {
+                alLine = alBR.readLine();//do this before any skips, to keep the reader up to date
+            }
             //if we specified a set of indices and i is not in it, skip it.
             if (set != null && !set.contains(i)) {
                 i++;
@@ -216,13 +231,15 @@ public class AlignVizAMR {
             Set<Alignment> allAlignments = new HashSet();
             readAlignments(graph, alLine, allAlignments);
 
-            visualize(viz.verbose, viz.lexBold, outpath, i, graph, sentence, allAlignments);
+            visualize(viz.verbose, viz.lexBold, outpath, i, graph, sentence, allAlignments, viz.writeAsPNG);
             i++;
         }
 
     }
 
-    public static void visualize(boolean verbose, boolean lexBold, String outpath, int i, SGraph graph, List<String> sentence, Collection<Alignment> allAlignments) throws IOException, InterruptedException {
+    public static void visualize(boolean verbose, boolean lexBold, String outpath, int i, SGraph graph,
+                                 List<String> sentence, Collection<Alignment> allAlignments, boolean writeAsPNG)
+            throws IOException, InterruptedException {
 
         AMRBlobUtils amrBlobUtils = new AMRBlobUtils();
 
@@ -319,8 +336,13 @@ public class AlignVizAMR {
         w.write("}");
         w.close();
 
-        Process p = Runtime.getRuntime().exec("dot -Tpdf -o"+ outpath + i +".pdf "+ outpath + i +".dot");
-        p.waitFor();
+        if (writeAsPNG) {
+            Process p = Runtime.getRuntime().exec("dot -Tpng -o"+ outpath + i +".png "+ outpath + i +".dot");
+            p.waitFor();
+        } else {
+            Process p = Runtime.getRuntime().exec("dot -Tpdf -o" + outpath + i + ".pdf " + outpath + i + ".dot");
+            p.waitFor();
+        }
     }
 
 

@@ -35,7 +35,7 @@ public class VisualizeFromAmconll {
         for (MRInstance mrInstance : outputCorpus) {
             giveAlignmentsColors(mrInstance.getAlignments());
             AlignVizAMR.visualize(false, true, amConllEvaluator.outPath, i, mrInstance.getGraph(),
-                    mrInstance.getSentence(), mrInstance.getAlignments());
+                    mrInstance.getSentence(), mrInstance.getAlignments(), false);
             i++;
         }
 
