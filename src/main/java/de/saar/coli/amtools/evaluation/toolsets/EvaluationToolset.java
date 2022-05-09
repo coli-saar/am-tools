@@ -58,7 +58,7 @@ public class EvaluationToolset {
             String[] nodeLabelTriple = node.getLabel().split(ALIGNED_SGRAPH_SEP); // this is [sentence position, node name, node label]
             if (nodeLabelTriple[2].contains(AmConllEntry.LEX_MARKER)) {
                 int i = Integer.parseInt(nodeLabelTriple[0]);// is 1-based
-                node.setLabel(origAMConllSentence.get(i-1).getReLexLabel()); // then we relabel the node with the lexical lable for that position
+                node.setLabel(origAMConllSentence.get(i-1).getReLexLabel()); // then we relabel the node with the lexical label for that position
             } else {
                 node.setLabel(nodeLabelTriple[2]); // then we have a secondary node that already has its label
             }

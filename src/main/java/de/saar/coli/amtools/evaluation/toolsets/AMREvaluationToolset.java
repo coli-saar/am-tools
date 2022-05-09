@@ -210,7 +210,7 @@ public class AMREvaluationToolset extends EvaluationToolset {
      * alignments in MRInstance. Here we fix that.
      * @param mrInstance
      */
-    private void fixPropertyAlignments(MRInstance mrInstance) {
+    public static void fixPropertyAlignments(MRInstance mrInstance) {
         for (GraphNode node : mrInstance.getGraph().getGraph().vertexSet()) {
             if (node.getName().startsWith("_")) {
                 String oldNodeName = node.getName().substring(1); // without the "_"

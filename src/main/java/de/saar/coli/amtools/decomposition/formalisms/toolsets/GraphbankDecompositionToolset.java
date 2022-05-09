@@ -32,11 +32,33 @@ public abstract class GraphbankDecompositionToolset {
 
     }
 
+    /**
+     * Applies preprocessing, like applyPreprocessing(List<MRInstance> corpus), but if readCorpusOnlyInput leaves
+     * alignments and graphs as null, then this function should be able to deal with it. The default implementation
+     * simply calls applyPreprocessing(List<MRInstance> corpus), since the default readCorpusOnlyInput also reads
+     * the graphs and alignments.
+     * @param corpus
+     */
+    public void applyPreprocessingOnlyInput(List<MRInstance> corpus) {
+        applyPreprocessing(corpus);
+    }
+
     public DecompositionPackage makeDecompositionPackage(MRInstance instance) {
         return new DecompositionPackage(instance, getEdgeHeuristic(), fasterModeForTesting);
     }
 
     public abstract EdgeAttachmentHeuristic getEdgeHeuristic();// maybe default implementation?
 
+    /**
+     * Reads a corpus but is only required to store the sentences, not the alignments and graphs. I.e. in all
+     * MRInstance objects, the alignment and graph fields may be (but don't have to be) null. The default implementation
+     * simply calls readCorpus(String filePath).
+     * @param filePath
+     * @return
+     * @throws IOException
+     */
+    public List<MRInstance> readCorpusOnlyInput(String filePath) throws IOException {
+        return readCorpus(filePath);
+    }
 
 }

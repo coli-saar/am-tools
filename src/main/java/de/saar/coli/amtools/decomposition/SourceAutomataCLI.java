@@ -55,7 +55,7 @@ public class SourceAutomataCLI {
     private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\small\\";
 
 
-    @Parameter(names = {"--decompositionToolset", "-dt"}, description = "Classname for the GraphbankcDecompositionToolset to be used." +
+    @Parameter(names = {"--decompositionToolset", "-dt"}, description = "Classname for the GraphbankDecompositionToolset to be used." +
             "If the classpath is in de.saar.coli.amtools.decomposition.formalisms.toolsets, that prefix can be omitted.")//, required = true)
     private String decompositionToolset = "DMDecompositionToolset";
 
