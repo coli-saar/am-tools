@@ -31,11 +31,13 @@ public class VisualizeFromAmconll {
 
         List<MRInstance> outputCorpus = amConllEvaluator.evaluteAMCorpus(inputAMConllSentences, evaluationToolset);
 
+        AlignVizAMR viz = new AlignVizAMR(true, false, false);
+
         int i = 0;
         for (MRInstance mrInstance : outputCorpus) {
             giveAlignmentsColors(mrInstance.getAlignments());
-            AlignVizAMR.visualize(false, true, amConllEvaluator.outPath, i, mrInstance.getGraph(),
-                    mrInstance.getSentence(), mrInstance.getAlignments(), false);
+            viz.visualize(amConllEvaluator.outPath, i, mrInstance.getGraph(),
+                    mrInstance.getSentence(), mrInstance.getAlignments());
             i++;
         }
 

@@ -1,6 +1,7 @@
 package de.saar.coli.amtools.analysis;
 
 
+import de.saar.basic.Agenda;
 import de.saar.coli.amrtagging.Alignment;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -8,10 +9,7 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphEdge;
-import de.up.ling.irtg.algebra.graph.GraphNode;
-import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.*;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.corpus.Corpus;
 import de.up.ling.irtg.corpus.CorpusReadingException;
@@ -61,6 +59,16 @@ public class AlignVizAMR {
 
     @Parameter(names = {"--writeAsPNG", "-png"}, description = "Writes output in png format rather than pdf.")
     private boolean writeAsPNG = false;
+
+    @Parameter(names = {"--highlight-multinode", "-h1"}, description = "Writes output in png format rather than pdf.")
+    private boolean highlightMultinode = false;
+
+    @Parameter(names = {"--highlight-multitoken", "-h2"}, description = "Writes output in png format rather than pdf.")
+    private boolean highlightMultitoken = false;
+
+    @Parameter(names = {"--highlight-disconnected", "-h3"}, description = "Writes output in png format rather than pdf.")
+    private boolean highlightDisconnected = false;
+
 
     @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
@@ -145,6 +153,7 @@ public class AlignVizAMR {
 
     private final static String GREY = "lightgrey";//should never be used
     private final static String BLACK = "black";
+    private final static String LIGHT_RED = "0.00 0.20 0.86";
 
     /**
      * @param args the command line arguments
@@ -231,15 +240,24 @@ public class AlignVizAMR {
             Set<Alignment> allAlignments = new HashSet();
             readAlignments(graph, alLine, allAlignments);
 
-            visualize(viz.verbose, viz.lexBold, outpath, i, graph, sentence, allAlignments, viz.writeAsPNG);
+            viz.visualize(outpath, i, graph, sentence, allAlignments);
             i++;
         }
 
     }
 
-    public static void visualize(boolean verbose, boolean lexBold, String outpath, int i, SGraph graph,
-                                 List<String> sentence, Collection<Alignment> allAlignments, boolean writeAsPNG)
-            throws IOException, InterruptedException {
+    private AlignVizAMR() {
+
+    }
+
+    public AlignVizAMR(boolean lexBold, boolean writeAsPNG, boolean verbose) {
+        this.lexBold = lexBold;
+        this.writeAsPNG = writeAsPNG;
+        this.verbose = verbose;
+    }
+
+    public void visualize(String outpath, int i, SGraph graph, List<String> sentence, Collection<Alignment> allAlignments)
+                                  throws IOException, InterruptedException {
 
         AMRBlobUtils amrBlobUtils = new AMRBlobUtils();
 
@@ -264,13 +282,21 @@ public class AlignVizAMR {
         //amr nodes
         for (GraphNode node : graph.getGraph().vertexSet()) {
             Set<Alignment> alsHere = node2align.get(node.getName());
-            Boolean doLex = false;
+            boolean doLex = false;
+            boolean multinode = false;
+            boolean disconnected = false;
             for (Alignment al : alsHere) {
                 if (al.lexNodes.contains(node.getName())) {
                     if (doLex) {
                         System.err.println("Node "+node.getName()+" has multiple lexical alignments in graph "+ i +". Using last one found in set iterator.");
                     }
                     doLex = true;
+                }
+                if (al.nodes.size() > 1) {
+                    multinode = true;
+                }
+                if (isSubraphDisconnected(graph, al)) {
+                    disconnected = true;
                 }
             }
             String label = verbose ? node.getName()+" / "+ node.getLabel() : node.getLabel();
@@ -286,6 +312,12 @@ public class AlignVizAMR {
             } else {
                 String col = makeColorList(alsHere, false);
                 w.write(", style=\"bold\", color=\""+col+"\"");
+            }
+            if (disconnected && highlightDisconnected) {
+                w.write(", style=\"filled\", fillcolor=\""+LIGHT_RED+"\"");
+            } else if (highlightMultinode && multinode) {
+                String colorLight = makeColorList(alsHere, true);
+                w.write(", style=\"filled\", fillcolor=\""+colorLight+"\"");
             }
             w.write("];\n");
         }
@@ -308,7 +340,20 @@ public class AlignVizAMR {
         for (String word : sentence) {
             String wordLabel = verbose ? (j-1)+"_"+word : word;
             wordLabel = escapeBadCharacters(wordLabel);
-            w.write("    "+WORD_NODE_PREFIX+j+" [label=\""+wordLabel+"\", penwidth=0];\n");
+            w.write("    "+WORD_NODE_PREFIX+j+" [label=\""+wordLabel+"\", penwidth=0");
+            boolean isMultitoken = false;
+            if (highlightMultitoken) {
+                for (Alignment al : allAlignments) {
+                    if (al.span.start < j && al.span.end >= j && al.span.end - al.span.start > 1) {
+                        isMultitoken = true;
+                        break;
+                    }
+                }
+                if (isMultitoken) {
+                    w.write(", style=\"filled\", fillcolor=\"" + GREY + "\"");
+                }
+            }
+            w.write("];\n");
             j++;
         }
         for (j=1; j< sentence.size(); j++) {
@@ -365,6 +410,30 @@ public class AlignVizAMR {
         }
         return ret.toString();
     }
+
+    private static boolean isSubraphDisconnected(SGraph graph, Alignment al) {
+        if (al.nodes.isEmpty()) {
+            return false;
+        }
+        String startingNode = al.nodes.iterator().next();
+        Agenda<String> agenda = new Agenda<>();
+        agenda.add(startingNode);
+        Set<String> seen = new HashSet<>();
+        seen.add(startingNode);
+        while (!agenda.isEmpty()) {
+            String nn = agenda.poll();
+            GraphNode node = graph.getNode(nn);
+            for (GraphEdge e : graph.getGraph().edgesOf(node)) {
+                GraphNode other = BlobUtils.otherNode(node, e);
+                if (al.nodes.contains(other.getName()) && !seen.contains(other.getName())) {
+                    agenda.add(other.getName());
+                    seen.add(other.getName());
+                }
+            }
+        }
+        return !seen.equals(al.nodes);
+    }
+
 
     /**
      * Writes all alignments of the alLine string in the node2align map, such that

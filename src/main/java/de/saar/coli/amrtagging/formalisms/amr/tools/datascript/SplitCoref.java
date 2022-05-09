@@ -201,7 +201,7 @@ public class SplitCoref {
      * @param orig
      * @throws ParseException 
      */
-    private static void split(String graphString, SGraph orig,
+    static void split(String graphString, SGraph orig,
             MutableInteger totalReentrantEdges) throws ParseException {
         
         Tree<String> nodeTree = Amr2Tree.amr2NodeTree(graphString);
@@ -273,6 +273,11 @@ public class SplitCoref {
 //                    if (e == null) {
 //                        System.err.println("cand: "+cand);
 //                    }
+                }
+                if (e == null) {
+                    System.err.println("candidates: "+cand);
+                    System.err.println(orig.toIsiAmrStringWithSources());
+                    System.err.println(orig);
                 }
                 //TODO if there are multiple edges between those nodes, e may be the wrong edge.
                 toRemove.add(e);
