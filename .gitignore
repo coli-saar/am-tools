@@ -119,3 +119,6 @@ examples/decomposition_input/amr_multinode_out/dev.zip
 examples/decomposition_input/amr_multinode_out/train.zip
 examples/output/0.dot
 examples/output/0.pdf
+lib/sdp.jar
+examples/decomposition_input/amr_out/dev.amconll
+examples/decomposition_input/dm_out/dev.amconll
