@@ -41,6 +41,24 @@ public class DecompositionPackage {
      * @return
      */
     public AmConllSentence makeBaseAmConllSentence() {
+        AmConllSentence amSent = makeStringOnlyAmConllSentence();
+
+        // It actually matters that this comes after setting the lemmata: it not only sets the lexical labels
+        // but also registers label replacements (see AmConllEntry#setLexLabel), for which the lemma information
+        // is relevant.
+        setLexicalLabels(amSent);
+
+        return amSent;
+    }
+
+    /**
+     * Creates a base AM Conll sentence, using only string information. This function must be safe to use
+     * if the graph and alignments are null. This is used as a step in the default implementation of
+     * makeBaseAmConllSentence, but more importantly is meant to be used when generating input for the
+     * evaluation step.
+     * @return
+     */
+    public AmConllSentence makeStringOnlyAmConllSentence() {
         AmConllSentence amSent = makeAmConllSentenceWithGeneralInformation();
 
         for (int positionInSentence = 0; positionInSentence < mrInstance.getSentence().size(); positionInSentence++) {
@@ -50,11 +68,6 @@ public class DecompositionPackage {
         if (!fasterModeForTesting) {
             addPosNeLemmaTagsUsingStanfordNLP(amSent);
         }
-
-        // It actually matters that this comes after setting the lemmata: it not only sets the lexical labels
-        // but also registers label replacements (see AmConllEntry#setLexLabel), for which the lemma information
-        // is relevant.
-        setLexicalLabels(amSent);
 
         return amSent;
     }

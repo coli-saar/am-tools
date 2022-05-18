@@ -52,6 +52,17 @@ public class AMRDecompositionPackage extends DecompositionPackage {
     @Override
     public AmConllSentence makeBaseAmConllSentence() {
 
+        AmConllSentence amSent = makeStringOnlyAmConllSentence();
+
+        registerReplacementLabels(amSent);
+
+        setLexicalLabels(amSent);
+
+        return amSent;
+    }
+
+    @Override
+    public AmConllSentence makeStringOnlyAmConllSentence() {
         // code copied and adapted from de.saar.coli.amrtagging.formalisms.amr.toolsToAMConll
 
         AmConllSentence amSent = makeAmConllSentenceWithGeneralInformation();
@@ -77,13 +88,8 @@ public class AMRDecompositionPackage extends DecompositionPackage {
             addPosNeLemmaTagsUsingStanfordNLP(amSent, origPositions, expandedWords);
         }
 
-        registerReplacementLabels(amSent);
-
-        setLexicalLabels(amSent);
-
         return amSent;
     }
-
 
     private void addPosNeLemmaTagsUsingStanfordNLP(AmConllSentence amSent, List<Integer> origPositions, List<String> expandedWords) {
         Sentence stanfSent = new Sentence(expandedWords);

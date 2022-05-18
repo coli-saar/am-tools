@@ -67,6 +67,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         corpus = Corpus.readCorpus(new FileReader(corpusPath), loaderIRTG);
+        System.out.println("Read " + corpus.getNumberOfInstances() + " aligned sentence-graph pairs.");
         turnGraphStringsIntoRootedGraphs();
     }
 
@@ -80,17 +81,22 @@ public class MakeAMConllFromLeamrAltoCorpus {
     }
 
     private void removeNondecomposableEdges() throws ParseException {
+        MutableInteger totalReentrantEdges = new MutableInteger(0);
         MutableInteger totalRemovedEdges = new MutableInteger(0);
         for (Instance inst : corpus) {
-            removeNondecomposableEdgesFromInstance(inst, totalRemovedEdges);
+            removeNondecomposableEdgesFromInstance(inst, totalReentrantEdges, totalRemovedEdges);
         }
-        System.out.println("Removed " + totalRemovedEdges.getValue() + " edges");
+        System.out.println("Removed " + totalRemovedEdges + " edges out of " + totalReentrantEdges
+                + " total reentrant edges.");
     }
 
-    private void removeNondecomposableEdgesFromInstance(Instance inst, MutableInteger totalRemovedEdges) throws ParseException {
+    private void removeNondecomposableEdgesFromInstance(Instance inst, MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges) throws ParseException {
         SGraph graph = (SGraph) inst.getInputObjects().get("actual_graph");
         String graphString = ((List<String>)inst.getInputObjects().get("graph")).stream().collect(Collectors.joining(" "));
-        SplitCoref.split(graphString, graph, totalRemovedEdges);
+        int edges_before = graph.getGraph().edgeSet().size();
+        SplitCoref.split(graphString, graph, totalReentrantEdges);
+        int edges_after = graph.getGraph().edgeSet().size();
+        totalRemovedEdges.setValue(totalRemovedEdges.getValue() + edges_before - edges_after);
     }
 
     private void computeAMTrees() {
@@ -140,6 +146,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
 
     private void writeAMConll() throws IOException {
         FileWriter writer = new FileWriter(outputPath);
+        System.out.println("Writing a total of " +amConllSentences.size() + " AM trees to " + outputPath);
         AmConllSentence.write(writer, amConllSentences);
         writer.close();
     }

@@ -165,6 +165,9 @@ public class SplitCoref {
                 try {
                     newGraph.toIsiAmrStringWithSources();
                 } catch (java.lang.Exception ex) {
+                    System.err.println("Exception in instance "+i);
+                    System.err.println("Could not linearize new graph to string");
+                    ex.printStackTrace();
                     newGraph = graph;//if we can't write the new graph (why though??), then we just use the old graph.
                 }
                 inst.getInputObjects().put("graph", newGraph);

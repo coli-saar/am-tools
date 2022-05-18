@@ -58,7 +58,7 @@ public class CreateEvaluationInput {
     private String decompositionToolset;
 
 
-    @Parameter(names = {"--fasterModeForTesting"}, description = "skips computation of e.g. named entity tags if this flag is set; this can save a lot of time.")
+    @Parameter(names = {"--fasterModeForTesting", "-f"}, description = "skips computation of e.g. named entity tags if this flag is set; this can save a lot of time.")
     private boolean fasterModeForTesting =false;
 
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
@@ -102,7 +102,7 @@ public class CreateEvaluationInput {
     private static List<AmConllSentence> createBaseAmConllSentences(GraphbankDecompositionToolset decompositionToolset, List<MRInstance> corpus) {
         List<AmConllSentence> outputCorpus = new ArrayList<>();
         for (MRInstance instance : corpus) {
-            AmConllSentence sent= decompositionToolset.makeDecompositionPackage(instance).makeBaseAmConllSentence();
+            AmConllSentence sent= decompositionToolset.makeDecompositionPackage(instance).makeStringOnlyAmConllSentence();
             outputCorpus.add(sent);
         }
         return outputCorpus;

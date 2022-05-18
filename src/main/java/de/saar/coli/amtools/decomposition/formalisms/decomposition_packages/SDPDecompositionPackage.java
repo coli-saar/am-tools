@@ -24,6 +24,15 @@ public class SDPDecompositionPackage extends DecompositionPackage {
 
     @Override
     public AmConllSentence makeBaseAmConllSentence() {
+        return makeAmConllSentence(true);
+    }
+
+    @Override
+    public AmConllSentence makeStringOnlyAmConllSentence() {
+        return makeAmConllSentence(false);
+    }
+
+    private AmConllSentence makeAmConllSentence(boolean withGraphInformation) {
         AmConllSentence sent = makeAmConllSentenceWithGeneralInformation();
 
         //add all words from the SDP graph, treating all as ignored for now
@@ -37,10 +46,12 @@ public class SDPDecompositionPackage extends DecompositionPackage {
             amConllEntry.setHead(0);
             amConllEntry.setLemma(lemmas.get(i));
             amConllEntry.setPos(posTags.get(i));
-            amConllEntry.setEdgeLabel(AmConllEntry.IGNORE);
-            if (words.get(i).equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
-                amConllEntry.setEdgeLabel(AmConllEntry.ROOT_SYM);
-                amConllEntry.setLexLabel(AmConllEntry.LEMMA_PLACEHOLDER);
+            if (withGraphInformation) {
+                amConllEntry.setEdgeLabel(AmConllEntry.IGNORE);
+                if (words.get(i).equals(SGraphConverter.ARTIFICAL_ROOT_LABEL)) {
+                    amConllEntry.setEdgeLabel(AmConllEntry.ROOT_SYM);
+                    amConllEntry.setLexLabel(AmConllEntry.LEMMA_PLACEHOLDER);
+                }
             }
             sent.add(amConllEntry);
         }

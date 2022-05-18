@@ -51,7 +51,7 @@ public class SourceAutomataCLI {
     @Parameter(names = {"--devCorpus", "-d"}, description = "Path to the input dev corpus (*.sdp file)")//, required = true)
     private String devCorpusPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\minimalDev.sdp";
 
-    @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where amconll and supertag dictionary files are created")//, required = true)
+    @Parameter(names = {"--outPath", "-o"}, description = "Path to output folder where zip files (or in legacy versions amconll and supertag dictionary files) are created")//, required = true)
     private String outPath = "C:\\Users\\Jonas\\Documents\\Work\\experimentData\\unsupervised2020\\dm\\small\\";
 
 
@@ -60,7 +60,7 @@ public class SourceAutomataCLI {
     private String decompositionToolset = "DMDecompositionToolset";
 
 
-    @Parameter(names = {"--fasterModeForTesting"}, description = "skips computation of e.g. named entity tags if this flag is set; this can save a lot of time.")
+    @Parameter(names = {"--fasterModeForTesting", "-f"}, description = "skips computation of e.g. named entity tags if this flag is set; this can save a lot of time.")
     private boolean fasterModeForTesting =false;
 
     @Parameter(names = {"--nrSources", "-s"}, description = "how many sources to use")//, required = true)
