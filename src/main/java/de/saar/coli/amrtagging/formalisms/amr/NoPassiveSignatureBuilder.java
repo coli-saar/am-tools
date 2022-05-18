@@ -35,8 +35,9 @@ public class NoPassiveSignatureBuilder extends AMRSignatureBuilder {
         lexiconSourceRemappingsOne= Collections.EMPTY_LIST;
         return super.getSourceAssignments(blobEdges, graph);
     }
-    
-    private Collection<Map<GraphNode, String>> getBlobTargets(SGraph graph, GraphNode node) {
+
+    @Override
+    protected Collection<Map<GraphNode, String>> getBlobTargets(SGraph graph, GraphNode node) {
         Collection<Map<GraphNode, String>> ret = new HashSet<>();
         for (Map<GraphEdge, String> map : getSourceAssignments(blobUtils.getBlobEdges(graph, node), graph)) {
             Map<GraphNode, String> retHere = new HashMap<>();

@@ -214,52 +214,26 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      */
     @Override
     public Set<String> getConstantsForAlignment(Alignment al, SGraph graph, boolean addCoref) throws IllegalArgumentException, ParseException {
-        Set<GraphNode> outNodes = new HashSet<>();//should contain the one node that has edges leaving this constant.
-        Set<GraphNode> inNodes = new HashSet<>();//should contain the one node that becomes the root of the constant.
-        for (String nn : al.nodes) {
-            GraphNode node = graph.getNode(nn);
-            for (GraphEdge e : graph.getGraph().edgesOf(node)) {
-                if (!al.nodes.contains(e.getSource().getName()) || !al.nodes.contains(e.getTarget().getName())) {
-                    if (blobUtils.isBlobEdge(node, e)) {
-                        outNodes.add(node);
-                    } else {
-                        inNodes.add(node);
-                    }
-                }
-            }
-        }
-        if (inNodes.size() > 1) {
+
+        InAndOutNodes inAndOutNodes = new InAndOutNodes(graph, al, blobUtils);
+
+        if (inAndOutNodes.inNodes.size() > 1) {
             throw new IllegalArgumentException("Cannot create a constant for this alignment ("+al.toString()+"): More than one node with edges from outside.");
         }
         //TODO: outNodes could have arbitrary size, but the code is not yet compatible with that.
-        if (outNodes.size() > 1) {
+        if (inAndOutNodes.outNodes.size() > 1) {
             throw new IllegalArgumentException("Cannot create a constant for this alignment ("+al.toString()+"): More than one node with edges to outside.");
         }
-        
-        //TODO: the global root check should be done in the first pass of adding nodes to inNodes. Otherwise conflicts won't get detected.
-        if (inNodes.isEmpty()) {
-            String globalRootNN = graph.getNodeForSource("root");
-            if (globalRootNN != null && al.nodes.contains(globalRootNN)) {
-                inNodes.add(graph.getNode(globalRootNN));
-            } else {
-                //take arbitrary node
-                //but prefer the lexical node - ml
-                if (!al.lexNodes.isEmpty()){ 
-                    inNodes.add(graph.getNode(al.lexNodes.iterator().next()));
-                } else {
-                    inNodes.add(graph.getNode(al.nodes.iterator().next()));
-                }
-                
-            }
-        }        
-        GraphNode root = inNodes.iterator().next();
+
+        // we know now that there is only one inNode
+        GraphNode root = inAndOutNodes.inNodes.iterator().next();
         
         //if there is no node with blob edge pointing out of alignment node cluster, we are done. Otherwise continue, focussing on that one node.
-        if (outNodes.isEmpty()) {
+        if (inAndOutNodes.outNodes.isEmpty()) {
             SGraph constGraph = makeConstGraph(al.nodes, graph, root);
             return Collections.singleton(linearizeToAMConstant(constGraph, ApplyModifyGraphAlgebra.Type.EMPTY_TYPE.toString()));
         }
-        GraphNode outNode = outNodes.iterator().next();//at this point, there is exactly one. This is the one node in the alignment with blob edges that leave the alignment. For their endpoints, we need to find sources.
+        GraphNode outNode = inAndOutNodes.outNodes.iterator().next();//at this point, there is exactly one. This is the one node in the alignment with blob edges that leave the alignment. For their endpoints, we need to find sources.
         Set<String> ret = new HashSet<>();
         
         Collection<GraphEdge> blobEdges = blobUtils.getBlobEdges(graph, outNode);
@@ -294,7 +268,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param maxCoref 
      */
-    private void addConstantsForCoordNode(SGraph graph, GraphNode node, Collection<GraphEdge> blobEdges, int maxCoref, Set<String> ret) {
+    protected void addConstantsForCoordNode(SGraph graph, GraphNode node, Collection<GraphEdge> blobEdges, int maxCoref, Set<String> ret) {
         Set<Integer> corefIDs = new HashSet<>();
         for (int i = 0; i<maxCoref; i++) {
             corefIDs.add(i);
@@ -314,7 +288,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param addCoref 
      */
-    private void addConstantsForCoordNode(SGraph graph, GraphNode node, Alignment al, GraphNode root, Collection<GraphEdge> blobEdges, boolean addCoref, Set<String> ret) {
+    protected void addConstantsForCoordNode(SGraph graph, GraphNode node, Alignment al, GraphNode root, Collection<GraphEdge> blobEdges, boolean addCoref, Set<String> ret) {
         Set<Integer> corefIDs = new HashSet<>();
         if (addCoref) {
             corefIDs.add(al.span.start);
@@ -331,7 +305,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param corefIDs the ID's allowed for coref sources (use empty set do disallow coreference via indices, as e.g. in the ACL2018 paper)
      */
-    private void addConstantsForCoordNode(SGraph graph, GraphNode node, Set<String> allNodes, GraphNode root, Collection<GraphEdge> blobEdges, Set<Integer> corefIDs, Set<String> ret) {
+    protected void addConstantsForCoordNode(SGraph graph, GraphNode node, Set<String> allNodes, GraphNode root, Collection<GraphEdge> blobEdges, Set<Integer> corefIDs, Set<String> ret) {
         for (Map<GraphNode, String> conjTargets : getConjunctionTargets(graph, node)) {
             //conjTargets are the nested targets, e.g. the node w in (node :op1 (v1 :ARG1 w) :op2 (v2 :ARG1 w))
             //now iterate over all subsets of the nested targets (i.e. conjTargetsSubset is a subset of conjTargets). The idea is that maybe only some of the reentrancies are due to coordination, others might be due to coref
@@ -450,7 +424,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param maxCoref 
      */
-    private void addConstantsForRaisingNode(SGraph graph, GraphNode node, Collection<GraphEdge> blobEdges, int maxCoref, Set<String> ret) {
+    protected void addConstantsForRaisingNode(SGraph graph, GraphNode node, Collection<GraphEdge> blobEdges, int maxCoref, Set<String> ret) {
         Set<Integer> corefIDs = new HashSet<>();
         for (int i = 0; i<maxCoref; i++) {
             corefIDs.add(i);
@@ -470,7 +444,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param addCoref 
      */
-    private void addConstantsForRaisingNode(SGraph graph, GraphNode node, Alignment al, GraphNode root, Collection<GraphEdge> blobEdges, boolean addCoref, Set<String> ret) {
+    protected void addConstantsForRaisingNode(SGraph graph, GraphNode node, Alignment al, GraphNode root, Collection<GraphEdge> blobEdges, boolean addCoref, Set<String> ret) {
         Set<Integer> corefIDs = new HashSet<>();
         if (addCoref) {
             corefIDs.add(al.span.start);
@@ -487,7 +461,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param corefIDs 
      */
-    private void addConstantsForRaisingNode(SGraph graph, GraphNode node, Set<String> allNodes, GraphNode root, Collection<GraphEdge> blobEdges, Set<Integer> corefIDs, Set<String> ret) {
+    protected void addConstantsForRaisingNode(SGraph graph, GraphNode node, Set<String> allNodes, GraphNode root, Collection<GraphEdge> blobEdges, Set<Integer> corefIDs, Set<String> ret) {
         for (Map<GraphNode, String> blobTargets : getBlobTargets(graph, node)) {
             SGraph constGraph = makeConstGraph(allNodes, graph, root);
             Set<String> typeStrings = new HashSet<>();
@@ -562,7 +536,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param maxCoref 
      */
-    private void addConstantsForNormalNode(SGraph graph, GraphNode node, Collection<GraphEdge> blobEdges, int maxCoref, Set<String> ret) {
+    protected void addConstantsForNormalNode(SGraph graph, GraphNode node, Collection<GraphEdge> blobEdges, int maxCoref, Set<String> ret) {
         Set<Integer> corefIDs = new HashSet<>();
         for (int i = 0; i<maxCoref; i++) {
             corefIDs.add(i);
@@ -582,7 +556,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param addCoref 
      */
-    private void addConstantsForNormalNode(SGraph graph, GraphNode node, Alignment al, GraphNode root, Collection<GraphEdge> blobEdges, boolean addCoref, Set<String> ret) {
+    protected void addConstantsForNormalNode(SGraph graph, GraphNode node, Alignment al, GraphNode root, Collection<GraphEdge> blobEdges, boolean addCoref, Set<String> ret) {
         Set<Integer> corefIDs = new HashSet<>();
         if (addCoref) {
             corefIDs.add(al.span.start);
@@ -599,7 +573,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param blobEdges
      * @param corefIDs 
      */
-    private void addConstantsForNormalNode(SGraph graph, GraphNode node, Set<String> allNodes, GraphNode root, Collection<GraphEdge> blobEdges, Set<Integer> corefIDs, Set<String> ret) {
+    protected void addConstantsForNormalNode(SGraph graph, GraphNode node, Set<String> allNodes, GraphNode root, Collection<GraphEdge> blobEdges, Set<Integer> corefIDs, Set<String> ret) {
         //iterate over all source assignments
         for (Map<GraphNode, String> blobTargets : getBlobTargets(graph, node)) {
             //start with constant graph
@@ -661,7 +635,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
     
     //----------------------------------------   helpers   ----------------------------------------------------------
     
-    private SGraph makeConstGraph(Set<String> nodes, SGraph graph, GraphNode root) {
+    protected SGraph makeConstGraph(Set<String> nodes, SGraph graph, GraphNode root) {
         SGraph constGraph = new SGraph();
         for (String nn : nodes) {
             GraphNode node = graph.getNode(nn);
@@ -682,7 +656,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
     }
     
     
-    private String linearizeToAMConstant(SGraph constantGraph, String typeString) {
+    protected String linearizeToAMConstant(SGraph constantGraph, String typeString) {
         try {
             return constantGraph.toIsiAmrStringWithSources()+GRAPH_TYPE_SEP+typeString;
         } catch (Exception ex) {
@@ -1154,7 +1128,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @param node
      * @return 
      */
-    private Collection<Map<GraphNode, String>> getBlobTargets(SGraph graph, GraphNode node) {
+    protected Collection<Map<GraphNode, String>> getBlobTargets(SGraph graph, GraphNode node) {
         Collection<Map<GraphNode, String>> ret = new HashSet<>();
         for (Map<GraphEdge, String> map : getSourceAssignments(blobUtils.getBlobEdges(graph, node), graph)) {
             Map<GraphNode, String> retHere = new HashMap<>();
@@ -1221,7 +1195,53 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
     }
 
 
-    
+    public static class InAndOutNodes {
+        public final Set<GraphNode> inNodes;
+        public final Set<GraphNode> outNodes;
+
+        /**
+         * For a given alignment, computes "inNodes", the set of all nodes that need to be roots in the constant
+         * corresponding to the alignment, i.e. the global root of the whole graph and all nodes with incident edges
+         * from outside blobs (edges entering this constant). Also computes the
+         * "outNodes", the set of all nodes that have edges leaving this constant. If "inNodes" is empty, then , an
+         * arbitrary lexical node (or as a backup if no lexical node exists, an arbitrary node) is added to the set.
+         * So inNodes is never empty.
+         * @param graph The whole graph
+         * @param al The alignment
+         * @param blobUtils
+         */
+        public InAndOutNodes(SGraph graph, Alignment al, AMRBlobUtils blobUtils) {
+            outNodes = new HashSet<>();//contains all nodes that have edges leaving this constant.
+            inNodes = new HashSet<>();//contains all nodes that need to be roots, i.e. the global root and all nodes
+            // with incident edges from outside blobs (edges entering this constant).
+            // None of the above takes edge direction into account, it is only about which blob an edge belongs to.
+            String globalRootNN = graph.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME);
+            if (globalRootNN != null && al.nodes.contains(globalRootNN)) {
+                    inNodes.add(graph.getNode(globalRootNN));
+            }
+            for (String nn : al.nodes) {
+                GraphNode node = graph.getNode(nn);
+                for (GraphEdge e : graph.getGraph().edgesOf(node)) {
+                    if (!al.nodes.contains(e.getSource().getName()) || !al.nodes.contains(e.getTarget().getName())) {
+                        if (blobUtils.isBlobEdge(node, e)) {
+                            outNodes.add(node);
+                        } else {
+                            inNodes.add(node);
+                        }
+                    }
+                }
+            }
+            if (inNodes.isEmpty()) {
+                //take arbitrary node
+                //but prefer the lexical node - ml
+                if (!al.lexNodes.isEmpty()){
+                    inNodes.add(graph.getNode(al.lexNodes.iterator().next()));
+                } else {
+                    inNodes.add(graph.getNode(al.nodes.iterator().next()));
+                }
+            }
+        }
+    }
     
     
 }

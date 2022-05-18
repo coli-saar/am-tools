@@ -4,11 +4,12 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import de.saar.coli.amrtagging.*;
+import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
+import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilderWithMultipleOutNodes;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.TreeAutomaton;
@@ -21,9 +22,9 @@ import de.up.ling.irtg.signature.Signature;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import edu.stanford.nlp.ling.TaggedWord;
 
 import java.io.*;
+import java.rmi.ServerError;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
     @Parameter(names = {"--output", "-o"}, description = "Path to output file", required=true)
     private String outputPath;
 
-    private Corpus corpus;
+    private List<MRInstance> corpus;
     private final List<AmConllSentence> amConllSentences = new ArrayList<>();
 
     public static void main(String args[]) throws CorpusReadingException, IOException, ParseException {
@@ -45,7 +46,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
 
         m.readAltoCorpus();
 
-        m.removeNondecomposableEdges();
+        m.makeGraphsDecomposeable();
 
         m.computeAMTrees();
 
@@ -66,34 +67,66 @@ public class MakeAMConllFromLeamrAltoCorpus {
         loaderIRTG.addInterpretation("graph", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
-        corpus = Corpus.readCorpus(new FileReader(corpusPath), loaderIRTG);
-        System.out.println("Read " + corpus.getNumberOfInstances() + " aligned sentence-graph pairs.");
-        turnGraphStringsIntoRootedGraphs();
+        Corpus altoCorpus = Corpus.readCorpus(new FileReader(corpusPath), loaderIRTG);
+        System.out.println("Read " + altoCorpus.getNumberOfInstances() + " aligned sentence-graph pairs.");
+        turnGraphStringsIntoRootedGraphs(altoCorpus);
+        convertToListOfMrInstancesAndStore(altoCorpus);
     }
 
-    private void turnGraphStringsIntoRootedGraphs() {
-        IsiAmrInputCodec codec = new IsiAmrInputCodec();
-        for (Instance instance : corpus) {
-            String graphString = ((List<String>)instance.getInputObjects().get("graph")).stream().collect(Collectors.joining(" "));
-            graphString = graphString.replaceFirst("/", "<root> /");
-            instance.getInputObjects().put("actual_graph", codec.read(graphString));
+    private void convertToListOfMrInstancesAndStore(Corpus altoCorpus) {
+        corpus = new ArrayList<>();
+        for (Instance inst : altoCorpus) {
+            SGraph graph = (SGraph) inst.getInputObjects().get("actual_graph");
+            List<Alignment> alignments = ((List<String>) inst.getInputObjects().get("alignment")).stream()
+                    .map(Alignment::read).collect(Collectors.toList());
+            List<String> sentence = (List<String>) inst.getInputObjects().get("string");
+            MRInstance mrInst = new MRInstance(sentence, graph, alignments);
+            mrInst.setExtra("original_graph_string", ((List<String>)inst.getInputObjects().get("graph")).stream().collect(Collectors.joining(" ")));
+            corpus.add(mrInst);
         }
     }
 
-    private void removeNondecomposableEdges() throws ParseException {
+    private void turnGraphStringsIntoRootedGraphs(Corpus altoCorpus) {
+        IsiAmrInputCodec codec = new IsiAmrInputCodec();
+        for (Instance instance : altoCorpus) {
+            String graphString = ((List<String>)instance.getInputObjects().get("graph")).stream().collect(Collectors.joining(" "));
+            graphString = graphString.replaceFirst("/", "<root> /");
+            instance.getInputObjects().put("actual_graph", codec.read(graphString));
+            System.out.println("Read graph: " + graphString);
+            System.out.println("Resulting graph: " + instance.getInputObjects().get("actual_graph"));
+            System.out.println(((SGraph)instance.getInputObjects().get("actual_graph")).toIsiAmrStringWithSources());
+        }
+    }
+
+    /**
+     * Unifies in-edge attachment node (i.e. solves multiple root problem by changing the graph) and
+     * removes reentrant edges that cannot be decomposed with this AM algebra signature.
+     * @throws ParseException
+     */
+    private void makeGraphsDecomposeable() throws ParseException {
         MutableInteger totalReentrantEdges = new MutableInteger(0);
         MutableInteger totalRemovedEdges = new MutableInteger(0);
-        for (Instance inst : corpus) {
-            removeNondecomposableEdgesFromInstance(inst, totalReentrantEdges, totalRemovedEdges);
+        UnifyInEdges unifyInEdges = new UnifyInEdges(new AMRBlobUtils());
+        for (MRInstance mrInst : corpus) {
+            try {
+                removeNondecomposableEdgesFromInstance(mrInst, (String) mrInst.getExtra("original_graph_string"), totalReentrantEdges, totalRemovedEdges);
+                unifyInEdges.unifyInEdges(mrInst);
+                removeNondecomposableEdgesFromInstance(mrInst, mrInst.getGraph().toIsiAmrString(), totalReentrantEdges, totalRemovedEdges);
+            } catch (Exception e) {
+                System.err.println("Error while processing instance: " + mrInst.getSentence().stream().collect(Collectors.joining(" ")));
+                e.printStackTrace();
+                System.err.println("This may yield a non-decomposeable graph down the line.");
+            }
         }
         System.out.println("Removed " + totalRemovedEdges + " edges out of " + totalReentrantEdges
                 + " total reentrant edges.");
     }
 
-    private void removeNondecomposableEdgesFromInstance(Instance inst, MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges) throws ParseException {
-        SGraph graph = (SGraph) inst.getInputObjects().get("actual_graph");
-        String graphString = ((List<String>)inst.getInputObjects().get("graph")).stream().collect(Collectors.joining(" "));
+    private void removeNondecomposableEdgesFromInstance(MRInstance inst, String graphString, MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges) throws ParseException {
+        SGraph graph = inst.getGraph();
         int edges_before = graph.getGraph().edgeSet().size();
+        // small note to self: this splitCoref does not take alignments into account. So it is OK that it uses the
+        // simpler AMRSignatureBuilder class, but it may leave some graphs non-decomposeable.
         SplitCoref.split(graphString, graph, totalReentrantEdges);
         int edges_after = graph.getGraph().edgeSet().size();
         totalRemovedEdges.setValue(totalRemovedEdges.getValue() + edges_before - edges_after);
@@ -104,20 +137,19 @@ public class MakeAMConllFromLeamrAltoCorpus {
         int successCount = 0;
         SupertagDictionary supertagDictionary = new SupertagDictionary();
 
-        for (Instance inst : corpus) {
-            SGraph graph = (SGraph) inst.getInputObjects().get("actual_graph");
-            List<Alignment> alignments = ((List<String>) inst.getInputObjects().get("alignment")).stream()
-                    .map(Alignment::read).collect(Collectors.toList());
-            List<String> sentence = (List<String>) inst.getInputObjects().get("string");
-            MRInstance mrInst = new MRInstance( sentence, graph, alignments);
+
+        System.out.println();//just making a line to overwrite later
+        for (MRInstance mrInst : corpus) {
+            i++;
+
 
             try {
                 TreeAutomaton auto;
 
                 // this automaton isn't really being given graph types for the scorer. Is this a problem?
-                AMRSignatureBuilder sigBuilder = new AMRSignatureBuilder();
+                AMRSignatureBuilder sigBuilder = new AMRSignatureBuilderWithMultipleOutNodes();
                 auto = AlignmentTrackingAutomaton.create(mrInst,
-                        sigBuilder, false, (graphTypePair -> AMRSignatureBuilder.scoreGraphPassiveSpecial(graphTypePair)));
+                        sigBuilder, false, (AMRSignatureBuilder::scoreGraphPassiveSpecial));
                 auto.processAllRulesBottomUp(null);
 
                 Tree<String> vit = auto.viterbi();
@@ -126,22 +158,20 @@ public class MakeAMConllFromLeamrAltoCorpus {
                     successCount += 1;
                     AmConllSentence amConllSentence = AmConllSentence.fromIndexedAMTerm(vit, mrInst, supertagDictionary);
                     amConllSentences.add(amConllSentence);
+                } else {
+                    System.err.println("Could not decompose instance " + mrInst.getSentence().stream().collect(Collectors.joining(" ")));
+                    System.err.println("Graph: " + mrInst.getGraph().toString());
+                    System.err.println("Original graph string: " + mrInst.getExtra("original_graph_string"));
                 }
-                if ((i+1) % 500 == 0) {
-                    System.err.println("\nSuccesses: "+successCount+"/"+i+"\n");
-                }
-            } catch (IllegalArgumentException ex) {
-                System.err.println(i);
-                System.err.println(graph.toIsiAmrStringWithSources());
-                System.err.println(ex.toString());
+                System.out.print("\rSuccesses: "+successCount+"/"+i);
             } catch (Exception ex) {
                 System.err.println(i);
-                System.err.println(graph.toIsiAmrStringWithSources());
                 ex.printStackTrace();
+                System.err.println(mrInst.getGraph().toString());
             }
 
-
         }
+        System.out.print("\nDone! Successes: "+successCount+"/"+i + "\n");
     }
 
     private void writeAMConll() throws IOException {
