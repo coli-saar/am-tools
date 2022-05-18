@@ -257,7 +257,7 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
         //if there is no node with blob edge pointing out of alignment node cluster, we are done. Otherwise continue, focussing on that one node.
         if (outNodes.isEmpty()) {
             SGraph constGraph = makeConstGraph(al.nodes, graph, root);
-            return Collections.singleton(constGraph.toIsiAmrStringWithSources()+GRAPH_TYPE_SEP+ApplyModifyGraphAlgebra.Type.EMPTY_TYPE.toString());
+            return Collections.singleton(linearizeToAMConstant(constGraph, ApplyModifyGraphAlgebra.Type.EMPTY_TYPE.toString()));
         }
         GraphNode outNode = outNodes.iterator().next();//at this point, there is exactly one. This is the one node in the alignment with blob edges that leave the alignment. For their endpoints, we need to find sources.
         Set<String> ret = new HashSet<>();
@@ -290,7 +290,6 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * Interface for decomposition version without alignments
      * @param graph
      * @param node
-     * @param root
      * @param ret
      * @param blobEdges
      * @param maxCoref 
@@ -327,7 +326,6 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * actual function for both versions (with or without alignments)
      * @param graph
      * @param node
-     * @param nodes
      * @param root
      * @param ret
      * @param blobEdges
@@ -425,9 +423,11 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
                         typeStrings = Util.appendToAll(typeStrings, ")", false);
                         for (String typeString : typeStrings) {
                             //typeString = new ApplyModifyGraphAlgebra.Type(typeString).closure().toString();
-                            ret.add(constGraph.toIsiAmrStringWithSources()+GRAPH_TYPE_SEP+typeString);
+                            ret.add(linearizeToAMConstant(constGraph, typeString));
                             //coref: index used is the one from alignment!
                             for (int corefID : corefIDs) {
+                                // small note: this does not has as robust error messaging as the rest, because it's too complicated,
+                                // and not in use right now anyway -- JG
                                 String graphString = constGraph.toIsiAmrStringWithSources();
                                 graphString = graphString.replaceFirst("<root>", "<root, COREF"+corefID+">");
                                 ret.add(OP_COREFMARKER+corefID+"_"+graphString+GRAPH_TYPE_SEP+typeString);
@@ -446,7 +446,6 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * Interface for decomposition version without alignments
      * @param graph
      * @param node
-     * @param root
      * @param ret
      * @param blobEdges
      * @param maxCoref 
@@ -483,7 +482,6 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * actual function for both versions (with or without alignments)
      * @param graph
      * @param node
-     * @param nodes
      * @param root
      * @param ret
      * @param blobEdges
@@ -542,9 +540,11 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
             typeStrings = Util.appendToAll(typeStrings, ")", false);
             for (String typeString : typeStrings) {
                 //typeString = new ApplyModifyGraphAlgebra.Type(typeString).closure().toString();
-                ret.add(constGraph.toIsiAmrStringWithSources()+GRAPH_TYPE_SEP+typeString);
+                ret.add(linearizeToAMConstant(constGraph, typeString));
                 //coref: index used is the one from alignment!
                 for (int corefID : corefIDs) {
+                    // small note: this does not has as robust error messaging as the rest, because it's too complicated,
+                    // and not in use right now anyway -- JG
                     String graphString = constGraph.toIsiAmrStringWithSources();
                     graphString = graphString.replaceFirst("<root>", "<root, COREF"+corefID+">");
                     ret.add(OP_COREFMARKER+corefID+"_"+graphString+GRAPH_TYPE_SEP+typeString);
@@ -558,7 +558,6 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * Interface for decomposition version without alignments
      * @param graph
      * @param node
-     * @param root
      * @param ret
      * @param blobEdges
      * @param maxCoref 
@@ -595,7 +594,6 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * actual function for both versions (with or without alignments)
      * @param graph
      * @param node
-     * @param nodes
      * @param root
      * @param ret
      * @param blobEdges
@@ -646,9 +644,11 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
             typeStrings = Util.appendToAll(typeStrings, ")", false);
             for (String typeString : typeStrings) {
                 //typeString = new ApplyModifyGraphAlgebra.Type(typeString).closure().toString();
-                ret.add(constGraph.toIsiAmrStringWithSources()+GRAPH_TYPE_SEP+typeString);
+                ret.add(linearizeToAMConstant(constGraph, typeString));
                 //coref: index used is the one from alignment!
                 for (int corefID : corefIDs) {
+                    // small note: this does not has as robust error messaging as the rest, because it's too complicated,
+                    // and not in use right now anyway -- JG
                     String graphString = constGraph.toIsiAmrStringWithSources();
                     graphString = graphString.replaceFirst("<root>", "<root, COREF"+corefID+">");
                     ret.add(OP_COREFMARKER+corefID+"_"+graphString+GRAPH_TYPE_SEP+typeString);
@@ -657,7 +657,6 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
 
         }
     }
-    
     
     
     //----------------------------------------   helpers   ----------------------------------------------------------
@@ -683,7 +682,13 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
     }
     
     
-    
+    private String linearizeToAMConstant(SGraph constantGraph, String typeString) {
+        try {
+            return constantGraph.toIsiAmrStringWithSources()+GRAPH_TYPE_SEP+typeString;
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Could not linearize graph: "+constantGraph.toString()+"\n"+ex.getMessage());
+        }
+    }
     
     
     
