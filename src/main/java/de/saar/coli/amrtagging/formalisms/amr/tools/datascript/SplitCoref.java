@@ -13,10 +13,7 @@ import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.TreeWithAritiesAlgebra;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphEdge;
-import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.*;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.TreeAutomaton;
 import de.up.ling.irtg.codec.IsiAmrInputCodec;
@@ -32,6 +29,8 @@ import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -40,6 +39,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * Removes reentrant edges that the AM algebra cannot handle.
@@ -342,6 +342,126 @@ public class SplitCoref {
         decomp.processAllRulesBottomUp(null);
         return !decomp.getFinalStates().isEmpty();
     }
-    
-    
+
+
+
+    public SGraph scoreBasedSplit(SGraph graph, Function<GraphEdge, Double> edgeScore) throws ParseException {
+        SGraph mst = getMinimumSpanningTreeKruskal(graph, edgeScore);
+
+        Set<GraphEdge> edgesToAddBackIn = getEdgesToAddBackIn(graph, mst);
+
+        addEdgesThatAreForbiddenToRemove(edgeScore, mst, edgesToAddBackIn);
+
+        addEdgesAsLongAsTheyDontBreakParsing(mst, edgesToAddBackIn);
+
+        return mst;
+    }
+
+    @NotNull
+    private Set<GraphEdge> getEdgesToAddBackIn(SGraph graph, SGraph mst) {
+        Set<GraphEdge> edgesToAddBackIn = new HashSet<>(graph.getGraph().edgeSet());
+        edgesToAddBackIn.removeAll(mst.getGraph().edgeSet());
+        return edgesToAddBackIn;
+    }
+
+    private void addEdgesAsLongAsTheyDontBreakParsing(SGraph mst, Set<GraphEdge> edgesToAddBackIn) throws ParseException {
+        for (GraphEdge edge : edgesToAddBackIn) {
+            GraphEdge addedEdge = mst.addEdge(edge.getSource(), edge.getTarget(), edge.getLabel());
+            if (!testParse(mst)) {
+                mst.getGraph().removeEdge(addedEdge);
+            }
+        }
+    }
+
+    private void addEdgesThatAreForbiddenToRemove(Function<GraphEdge, Double> edgeScore, SGraph mst, Set<GraphEdge> edgesToAddBackIn) {
+        for (Iterator<GraphEdge> iterator = edgesToAddBackIn.iterator(); iterator.hasNext();) {
+            GraphEdge edge = iterator.next();
+            if (edgeScore.apply(edge).equals(Double.NEGATIVE_INFINITY)) {
+                mst.addEdge(edge.getSource(), edge.getTarget(), edge.getLabel());
+                iterator.remove();
+            }
+        }
+    }
+
+    public Function<GraphEdge, Double> scoreEdgesWithAlignmentsAndPreferredRemovals(SGraph graph, List<Alignment> alignments, Set<GraphEdge> preferredRemovals) {
+        Set<GraphEdge> forbiddenRemovals = getForbiddenRemovalsFromAlignments(graph, alignments);
+
+        return scoreEdgesWithPreferredAndForbiddenRemovals(preferredRemovals, forbiddenRemovals);
+    }
+
+    @NotNull
+    private Set<GraphEdge> getForbiddenRemovalsFromAlignments(SGraph graph, List<Alignment> alignments) {
+        Set<GraphEdge> forbiddenRemovals = new HashSet<>();
+        for (Alignment alignment : alignments) {
+            for (GraphEdge edge : graph.getGraph().edgeSet()) {
+                if (alignment.nodes.contains(edge.getSource()) && alignment.nodes.contains(edge.getTarget())) {
+                    forbiddenRemovals.add(edge);
+                }
+            }
+        }
+        return forbiddenRemovals;
+    }
+
+    @NotNull
+    private Function<GraphEdge, Double> scoreEdgesWithPreferredAndForbiddenRemovals(Set<GraphEdge> preferredRemovals, Set<GraphEdge> forbiddenRemovals) {
+        return edge -> {
+            if (forbiddenRemovals.contains(edge)) {
+                return Double.NEGATIVE_INFINITY;
+            } else if (preferredRemovals.contains(edge)) {
+                return Double.POSITIVE_INFINITY;
+            } else {
+                return 0.0;
+            }
+        };
+    }
+
+
+    private SGraph getMinimumSpanningTreeKruskal(SGraph graph, Function<GraphEdge, Double> edgeScore) {
+        List<GraphEdge> edgesLowToHighScore = new ArrayList<>(graph.getGraph().edgeSet());
+        edgesLowToHighScore.sort(Comparator.comparing(edgeScore));
+        SGraph mstGraph = initializeGraphWithNodesOnly(graph);
+        Map<GraphNode, Set<GraphNode>> node2ConnectedComponent = initializeConnectedComponentMapWithSingletons(graph, mstGraph);
+
+        for (GraphEdge edge : edgesLowToHighScore) {
+            if (!node2ConnectedComponent.get(edge.getSource()).equals(node2ConnectedComponent.get(edge.getTarget()))) {
+                addEdge(mstGraph, edge, node2ConnectedComponent);
+            }
+        }
+
+        return mstGraph;
+    }
+
+    @NotNull
+    private SGraph initializeGraphWithNodesOnly(SGraph originalGraph) {
+        SGraph mstGraph = new SGraph();
+        for (GraphNode node : originalGraph.getGraph().vertexSet()) {
+            mstGraph.addNode(node.getName(), node.getLabel());
+        }
+        return mstGraph;
+    }
+
+    @NotNull
+    private Map<GraphNode, Set<GraphNode>> initializeConnectedComponentMapWithSingletons(SGraph graph, SGraph mstGraph) {
+        Map<GraphNode, Set<GraphNode>> node2ConnectedComponent = new HashMap<>();
+        for (GraphNode node : graph.getGraph().vertexSet()) {
+            node2ConnectedComponent.put(node, new HashSet<>(Collections.singleton(node)));
+        }
+        return node2ConnectedComponent;
+    }
+
+    private void addEdge(SGraph mstGraph, GraphEdge edge, Map<GraphNode, Set<GraphNode>> node2ConnectedComponent) {
+        mergeSourceAndTargetConnectedComponents(edge, node2ConnectedComponent);
+        mstGraph.addEdge(edge.getSource(), edge.getTarget(), edge.getLabel());
+    }
+
+    private void mergeSourceAndTargetConnectedComponents(GraphEdge edge, Map<GraphNode, Set<GraphNode>> node2ConnectedComponent) {
+        Set<GraphNode> sourceCC = node2ConnectedComponent.get(edge.getSource());
+        Set<GraphNode> targetCC = node2ConnectedComponent.get(edge.getTarget());
+        sourceCC.addAll(targetCC);
+        for (GraphNode nodeInTargetCC : targetCC) {
+            node2ConnectedComponent.put(nodeInTargetCC, sourceCC);
+        }
+    }
+
+
 }
