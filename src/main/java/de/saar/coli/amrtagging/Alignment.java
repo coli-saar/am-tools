@@ -5,6 +5,13 @@
  */
 package de.saar.coli.amrtagging;
 
+import de.saar.basic.Agenda;
+import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
+import de.up.ling.irtg.algebra.graph.BlobUtils;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
+import de.up.ling.irtg.algebra.graph.GraphNode;
+import de.up.ling.irtg.algebra.graph.SGraph;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Collections;
@@ -229,7 +236,42 @@ public class Alignment {
     public static Alignment read(String input) {
         return read(input, 0);
     }
-    
+
+
+    public boolean isDisconnected(SGraph fullGraph, AMRBlobUtils blobUtils) {
+        if (nodes.size() <= 1) {
+            return false;
+        }
+        Set<String> seenNNs = new HashSet<>();
+        Agenda<String> nnAgenda = new Agenda<>();
+        String seedNN = nodes.iterator().next();
+        seenNNs.add(seedNN);
+        nnAgenda.add(seedNN);
+        while (!nnAgenda.isEmpty()) {
+            String pulledNN = nnAgenda.poll();
+            GraphNode pulledNode = fullGraph.getNode(pulledNN);
+            for (GraphEdge e : fullGraph.getGraph().edgesOf(pulledNode)) {
+                if (mayTraverseEdgeForConnectivity(e, blobUtils)) {
+                    String otherNN = BlobUtils.otherNode(pulledNode, e).getName();
+                    if (!seenNNs.contains(otherNN)) {
+                        seenNNs.add(otherNN);
+                        nnAgenda.add(otherNN);
+                    }
+                }
+            }
+        }
+        return seenNNs.size() < nodes.size();
+    }
+
+    private boolean mayTraverseEdgeForConnectivity(GraphEdge e, AMRBlobUtils blobUtils) {
+        if (nodes.contains(e.getSource().getName()) && blobUtils.isBlobEdge(e.getSource(), e)) {
+            return true;
+        } else if (nodes.contains(e.getTarget().getName()) && blobUtils.isBlobEdge(e.getTarget(), e)) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * A span of indices, including start, excluding end.
      */

@@ -217,7 +217,7 @@ public class ConcreteAlignmentSignatureBuilder implements AMSignatureBuilder {
     }
 
     @Override
-    public Signature makeDecompositionSignatureWithAlignments(SGraph graph, List<Alignment> alignments, boolean coref) throws IllegalArgumentException, ParseException {
+    public Signature makeDecompositionSignatureWithAlignments(SGraph graph, Collection<Alignment> alignments, boolean coref) throws IllegalArgumentException, ParseException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

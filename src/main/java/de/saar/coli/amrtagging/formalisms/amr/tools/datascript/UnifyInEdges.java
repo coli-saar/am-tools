@@ -19,7 +19,6 @@ public class UnifyInEdges {
     }
 
     public void unifyInEdges(MRInstance mrInst) {
-        System.out.println(mrInst.getGraph().toIsiAmrStringWithSources());
         for (Alignment al : mrInst.getAlignments()) {
             unifyInEdgesForAlignment(al, mrInst.getGraph());
         }

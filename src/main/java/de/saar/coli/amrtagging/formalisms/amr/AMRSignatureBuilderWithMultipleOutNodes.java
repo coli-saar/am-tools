@@ -82,21 +82,21 @@ public class AMRSignatureBuilderWithMultipleOutNodes extends AMRSignatureBuilder
             //find source annotations, i.e. build the constant's type. There are several possibilities, so we build a set of possible types.
             Set<String> typeStrings = new HashSet<>();
             typeStrings.add("(");
-            for (GraphEdge edge : allOutEdges) {
+            for (Map.Entry<GraphNode, String> targetNodeAndSource : blobTargets.entrySet()) {
 
-                GraphNode other = getNodeOutsideOfAlignment(edge, allNodes);
+                GraphNode targetNode = targetNodeAndSource.getKey();
 
-                String src = blobTargets.get(other);
+                String src = targetNodeAndSource.getValue();
 
                 //add source to graph
-                constGraph.addSource(src, other.getName());
+                constGraph.addSource(src, targetNode.getName());
 
                 //add source to type
                 typeStrings = Util.appendToAll(typeStrings, ",", false, s -> s.endsWith(")"));
                 typeStrings = Util.appendToAll(typeStrings, src+"(", false);
 
                 //intersection of other's and node's targets
-                Collection<Map<GraphNode, String>> recTargetsSet = getTargets(graph, other);
+                Collection<Map<GraphNode, String>> recTargetsSet = getTargets(graph, targetNode);
                 Set<String> newTypeStrings = new HashSet();
                 for (Map<GraphNode, String> recTargets : recTargetsSet) {
                     Set<GraphNode> intersect = Sets.intersection(blobTargets.keySet(), recTargets.keySet());
@@ -139,6 +139,21 @@ public class AMRSignatureBuilderWithMultipleOutNodes extends AMRSignatureBuilder
                 }
             }
         }
+        // if multiple edges go to the same node, only keep one (with lexically first label)
+        Map<GraphNode, GraphEdge> targetNodeToBestEdge = new HashMap<>();
+        for (GraphEdge edge : allOutEdges) {
+            GraphNode targetNode = getNodeOutsideOfAlignment(edge, nodes);
+            if (!targetNodeToBestEdge.containsKey(targetNode)) {
+                targetNodeToBestEdge.put(targetNode, edge);
+            } else {
+                GraphEdge bestEdgeSoFar = targetNodeToBestEdge.get(targetNode);
+                if (edge.getLabel().compareTo(bestEdgeSoFar.getLabel()) < 0) {
+                    targetNodeToBestEdge.put(targetNode, edge);
+                }
+            }
+        }
+        allOutEdges = new HashSet<>(targetNodeToBestEdge.values());
+
         Collection<Map<GraphNode, String>> ret = new HashSet<>();
         for (Map<GraphEdge, String> map : getSourceAssignments(allOutEdges, graph)) {
             Map<GraphNode, String> retHere = new HashMap<>();
@@ -154,7 +169,7 @@ public class AMRSignatureBuilderWithMultipleOutNodes extends AMRSignatureBuilder
         return ret;
     }
 
-    private GraphNode getNodeOutsideOfAlignment(GraphEdge edge, Set<GraphNode> nodes) {
+    protected GraphNode getNodeOutsideOfAlignment(GraphEdge edge, Set<GraphNode> nodes) {
         if (nodes.contains(edge.getSource())) {
             return edge.getTarget();
         } else {

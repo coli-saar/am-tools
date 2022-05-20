@@ -6,6 +6,7 @@
 package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
 import de.saar.basic.Pair;
+import de.saar.coli.amrtagging.Alignment;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
@@ -36,12 +37,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +46,28 @@ import java.util.concurrent.TimeUnit;
  * @author JG
  */
 public class SplitCoref {
-    
+
+    private final AMRSignatureBuilder signatureBuilder;
+    private final Collection<Alignment> alignments;
+
+    /**
+     * One SplitCoref object is specific to a single graph.
+     * @param signatureBuilder
+     * @param alignments
+     */
+    public SplitCoref(AMRSignatureBuilder signatureBuilder, Collection<Alignment> alignments) {
+        this.signatureBuilder = signatureBuilder;
+        this.alignments = alignments;
+    }
+
+    /**
+     * One SplitCoref object is specific to a single graph. This constructor initializes the signature builder to a
+     * new AMRSignatureBuilder and alignments to null.
+     */
+    public SplitCoref() {
+        this.signatureBuilder = new AMRSignatureBuilder();
+        this.alignments = null;
+    }
     
     /**
      * Calls splitCoref with the arguments in order.
@@ -69,7 +86,7 @@ public class SplitCoref {
         String rawGraph = "(l / look-01 :ARG0 (p / person :ARG0-of (c / capture-01 :ARG1 (h2 / he))) :ARG1 h2)";
         String ourGraph = "(l <root> / look-01 :ARG0 (p / person :ARG0-of (c / capture-01 :ARG1 (h2 / he))) :ARG1 h2)";
         SGraph graph = new IsiAmrInputCodec().read(ourGraph);
-        split(rawGraph, graph, new MutableInteger(0));
+        new SplitCoref().split(rawGraph, graph, new MutableInteger(0));
         System.err.println(graph.toIsiAmrStringWithSources());
 
 //        splitCoref(args[0], args[1], args[2], Integer.valueOf(args[3]), Integer.valueOf(args[4]));
@@ -141,7 +158,7 @@ public class SplitCoref {
                 //inst.getInputObjects().put("graphSplit", graph);
                 
                 try {
-                    split(rawString, newGraph, totalReentrantEdges);
+                    new SplitCoref().split(rawString, newGraph, totalReentrantEdges);
                 } catch (Exception ex) {
                     System.err.println("Exception in instance "+i);
                     ex.printStackTrace();
@@ -197,15 +214,15 @@ public class SplitCoref {
 //        split(graphString, graph);
         
     }
-    
+
     /**
-     * this modifies the graph orig.
+     * This modifies the graph orig.
      * @param graphString
      * @param orig
-     * @throws ParseException 
+     * @throws ParseException
      */
-    static void split(String graphString, SGraph orig,
-            MutableInteger totalReentrantEdges) throws ParseException {
+    void split(String graphString, SGraph orig,
+                      MutableInteger totalReentrantEdges) throws ParseException {
         
         Tree<String> nodeTree = Amr2Tree.amr2NodeTree(graphString);
         
@@ -313,9 +330,13 @@ public class SplitCoref {
         
     }
     
-    private static boolean testParse(SGraph graph) throws ParseException {
-        AMRSignatureBuilder amrSigBuilder = new AMRSignatureBuilder();
-        Signature sig = amrSigBuilder.makeDecompositionSignature(graph, 0);
+    private boolean testParse(SGraph graph) throws ParseException {
+        Signature sig;
+        if (alignments == null) {
+            sig = signatureBuilder.makeDecompositionSignature(graph, 0);
+        } else {
+            sig = signatureBuilder.makeDecompositionSignatureWithAlignments(graph, alignments, false);
+        }
         //de.saar.coli.amrtools.util.Util.printSignatureReadable(sig);
         TreeAutomaton decomp = new ApplyModifyGraphAlgebra(sig).decompose(new Pair(graph, ApplyModifyGraphAlgebra.Type.EMPTY_TYPE));
         decomp.processAllRulesBottomUp(null);

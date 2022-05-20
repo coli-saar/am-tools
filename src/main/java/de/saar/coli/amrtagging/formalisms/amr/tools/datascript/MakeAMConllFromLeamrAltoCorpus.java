@@ -24,9 +24,13 @@ import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.ServerError;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class MakeAMConllFromLeamrAltoCorpus {
@@ -39,12 +43,16 @@ public class MakeAMConllFromLeamrAltoCorpus {
 
     private List<MRInstance> corpus;
     private final List<AmConllSentence> amConllSentences = new ArrayList<>();
+    private final AMRBlobUtils blobUtils = new AMRBlobUtils();
+    private final AMRSignatureBuilderWithMultipleOutNodes signatureBuilder = new AMRSignatureBuilderWithMultipleOutNodes();
 
     public static void main(String args[]) throws CorpusReadingException, IOException, ParseException {
 
         MakeAMConllFromLeamrAltoCorpus m = readCommandLine(args);
 
         m.readAltoCorpus();
+
+        m.filterOutBadGraphsAndAlignments();
 
         m.makeGraphsDecomposeable();
 
@@ -92,10 +100,62 @@ public class MakeAMConllFromLeamrAltoCorpus {
             String graphString = ((List<String>)instance.getInputObjects().get("graph")).stream().collect(Collectors.joining(" "));
             graphString = graphString.replaceFirst("/", "<root> /");
             instance.getInputObjects().put("actual_graph", codec.read(graphString));
-            System.out.println("Read graph: " + graphString);
-            System.out.println("Resulting graph: " + instance.getInputObjects().get("actual_graph"));
-            System.out.println(((SGraph)instance.getInputObjects().get("actual_graph")).toIsiAmrStringWithSources());
+//            System.out.println("Read graph: " + graphString);
+//            System.out.println("Resulting graph: " + instance.getInputObjects().get("actual_graph"));
+//            System.out.println(((SGraph)instance.getInputObjects().get("actual_graph")).toIsiAmrStringWithSources());
         }
+    }
+
+
+    private void filterOutBadGraphsAndAlignments() {
+        filterOutInstancesWithOverlappingAlignmentSpans();
+        filterOutGraphsWithDisconnectedAlignmentSubgraphs();
+    }
+
+    private void filterOutInstancesWithOverlappingAlignmentSpans() {
+        List<MRInstance> filteredCorpus = new ArrayList<>();
+        for (MRInstance mrInst : corpus) {
+            if (!hasOverlappingAlignmentSpans(mrInst)) {
+                filteredCorpus.add(mrInst);
+            }
+        }
+        System.out.println("Filtered out " + (corpus.size() - filteredCorpus.size()) + " instances with overlapping alignment spans.");
+        corpus = filteredCorpus;
+    }
+
+    private boolean hasOverlappingAlignmentSpans(MRInstance mrInst) {
+        Set<Integer> indicesCovered = new HashSet<>();
+        for (Alignment alignment : mrInst.getAlignments()) {
+            for (int i = alignment.span.start; i < alignment.span.end; i++) {
+                if (indicesCovered.contains(i)) {
+                    return true;
+                } else {
+                    indicesCovered.add(i);
+                }
+            }
+        }
+        return false;
+    }
+
+    private void filterOutGraphsWithDisconnectedAlignmentSubgraphs() {
+        List<MRInstance> filteredCorpus = new ArrayList<>();
+        for (MRInstance mrInst : corpus) {
+            if (!hasDisconnectedAlignmentSubgraphs(mrInst)) {
+                filteredCorpus.add(mrInst);
+            }
+        }
+        System.out.println("Filtered out " + (corpus.size() - filteredCorpus.size()) + " instances with disconnected" +
+                "constants based on alignments.");
+        corpus = filteredCorpus;
+    }
+
+    private boolean hasDisconnectedAlignmentSubgraphs(MRInstance mrInst) {
+        for (Alignment alignment : mrInst.getAlignments()) {
+            if (alignment.isDisconnected(mrInst.getGraph(), blobUtils)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -109,11 +169,19 @@ public class MakeAMConllFromLeamrAltoCorpus {
         UnifyInEdges unifyInEdges = new UnifyInEdges(new AMRBlobUtils());
         for (MRInstance mrInst : corpus) {
             try {
-                removeNondecomposableEdgesFromInstance(mrInst, (String) mrInst.getExtra("original_graph_string"), totalReentrantEdges, totalRemovedEdges);
-                unifyInEdges.unifyInEdges(mrInst);
-                removeNondecomposableEdgesFromInstance(mrInst, mrInst.getGraph().toIsiAmrString(), totalReentrantEdges, totalRemovedEdges);
+                SplitCoref splitCoref = new SplitCoref(); // here we split based on single node constants, since decomposition based on alignments may fail before unifyInEdges is called.
+                removeNondecomposableEdgesFromInstance(mrInst, (String) mrInst.getExtra("original_graph_string"), totalReentrantEdges, totalRemovedEdges, splitCoref);
             } catch (Exception e) {
-                System.err.println("Error while processing instance: " + mrInst.getSentence().stream().collect(Collectors.joining(" ")));
+                System.err.println("Error while processing instance:   " + String.join(" ", mrInst.getSentence()));
+                e.printStackTrace();
+                System.err.println("This may yield a non-decomposeable graph down the line.");
+            }
+            try {
+                SplitCoref splitCoref = new SplitCoref(signatureBuilder, mrInst.getAlignments());
+                unifyInEdges.unifyInEdges(mrInst);
+                removeNondecomposableEdgesFromInstance(mrInst, mrInst.getGraph().toIsiAmrString(), totalReentrantEdges, totalRemovedEdges, splitCoref);
+            } catch (Exception e) {
+                System.err.println("Error while processing instance:   " + String.join(" ", mrInst.getSentence()));
                 e.printStackTrace();
                 System.err.println("This may yield a non-decomposeable graph down the line.");
             }
@@ -122,12 +190,12 @@ public class MakeAMConllFromLeamrAltoCorpus {
                 + " total reentrant edges.");
     }
 
-    private void removeNondecomposableEdgesFromInstance(MRInstance inst, String graphString, MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges) throws ParseException {
+    private void removeNondecomposableEdgesFromInstance(MRInstance inst, String graphString, MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges, SplitCoref splitCoref) throws ParseException {
         SGraph graph = inst.getGraph();
         int edges_before = graph.getGraph().edgeSet().size();
         // small note to self: this splitCoref does not take alignments into account. So it is OK that it uses the
         // simpler AMRSignatureBuilder class, but it may leave some graphs non-decomposeable.
-        SplitCoref.split(graphString, graph, totalReentrantEdges);
+        splitCoref.split(graphString, graph, totalReentrantEdges);
         int edges_after = graph.getGraph().edgeSet().size();
         totalRemovedEdges.setValue(totalRemovedEdges.getValue() + edges_before - edges_after);
     }
@@ -147,10 +215,20 @@ public class MakeAMConllFromLeamrAltoCorpus {
                 TreeAutomaton auto;
 
                 // this automaton isn't really being given graph types for the scorer. Is this a problem?
-                AMRSignatureBuilder sigBuilder = new AMRSignatureBuilderWithMultipleOutNodes();
                 auto = AlignmentTrackingAutomaton.create(mrInst,
-                        sigBuilder, false, (AMRSignatureBuilder::scoreGraphPassiveSpecial));
+                        signatureBuilder, false, (AMRSignatureBuilder::scoreGraphPassiveSpecial));
                 auto.processAllRulesBottomUp(null);
+
+                // write the automaton to a file
+                Path folderPath = Paths.get(outputPath).toAbsolutePath().getParent();
+                FileWriter automatonWriter =  new FileWriter(folderPath + "/constants_" + i + ".txt");
+                for (int j = 0; j<= auto.getSignature().getMaxSymbolId(); j++) {
+                    String symbol = auto.getSignature().resolveSymbolId(j);
+                    if (symbol != null && auto.getSignature().getArity(j) == 0) {
+                        automatonWriter.write(symbol + "\n");
+                    }
+                }
+                automatonWriter.close();
 
                 Tree<String> vit = auto.viterbi();
                 //System.err.println(vit);

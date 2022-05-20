@@ -48,7 +48,7 @@ public interface AMSignatureBuilder {
      * @return
      * @throws de.up.ling.tree.ParseException
      */
-    public Signature makeDecompositionSignatureWithAlignments(SGraph graph, List<Alignment> alignments, boolean coref) throws IllegalArgumentException, ParseException;
+    public Signature makeDecompositionSignatureWithAlignments(SGraph graph, Collection<Alignment> alignments, boolean coref) throws IllegalArgumentException, ParseException;
     
     
       /**

@@ -11,12 +11,8 @@ import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.GeneralBlobUtils;
 import de.up.ling.irtg.algebra.ParserException;
-import de.up.ling.irtg.algebra.graph.AMDecompositionAutomaton;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphAlgebra;
-import de.up.ling.irtg.algebra.graph.GraphEdge;
-import de.up.ling.irtg.algebra.graph.GraphNode;
-import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.algebra.graph.*;
+
 import static de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP;
 import static de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra.OP_COREFMARKER;
 import de.up.ling.irtg.automata.TreeAutomaton;
@@ -182,24 +178,22 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      * @deprecated 
      */
     @Override
-    @Deprecated 
-    public Signature makeDecompositionSignatureWithAlignments(SGraph graph, List<Alignment> alignments, boolean addCoref) throws IllegalArgumentException, ParseException {
-        Signature plainSig = new Signature();
+    public Signature makeDecompositionSignatureWithAlignments(SGraph graph, Collection<Alignment> alignments, boolean addCoref) throws IllegalArgumentException, ParseException {
+        Signature ret = new Signature();
         
         //for each alignment, add all possible constants
         for (Alignment al : alignments) {
             Set<String> consts = getConstantsForAlignment(al, graph, addCoref);
-            consts.stream().forEach(c -> plainSig.addSymbol(c, 0));
+            consts.stream().forEach(c -> ret.addSymbol(c, 0));
         }
         Collection<String> sources = getAllPossibleSources(graph);
         
         //add the operations
         for (String s : sources) {
-            plainSig.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION+s, 2);
-            plainSig.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION+s, 2);
+            ret.addSymbol(ApplyModifyGraphAlgebra.OP_APPLICATION+s, 2);
+            ret.addSymbol(ApplyModifyGraphAlgebra.OP_MODIFICATION+s, 2);
         }
-        //TODO add coreference symbols here?
-        return plainSig;
+        return ret;
     }
     
     
@@ -582,23 +576,23 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
             //find source annotations, i.e. build the constant's type. There are several possibilities, so we build a set of possible types.
             Set<String> typeStrings = new HashSet<>();
             typeStrings.add("(");
-            for (GraphEdge edge : blobEdges) {
-                GraphNode other = GeneralBlobUtils.otherNode(node, edge);
-                if (allNodes.contains(other.getName())) {
+            for (Entry<GraphNode, String> targetNodeAndSource : blobTargets.entrySet()) {
+                GraphNode targetNode = targetNodeAndSource.getKey();
+                if (allNodes.contains(targetNode.getName())) {
                     continue;//do not want to add sources to nodes that are already labelled in the graph fragment for this alignment
                 }
 
-                String src = blobTargets.get(other);
+                String src = targetNodeAndSource.getValue();
 
                 //add source to graph
-                constGraph.addSource(src, other.getName());
+                constGraph.addSource(src, targetNode.getName());
 
                 //add source to type
                 typeStrings = Util.appendToAll(typeStrings, ",", false, s -> s.endsWith(")"));
                 typeStrings = Util.appendToAll(typeStrings, src+"(", false);
 
                 //intersection of other's and node's targets
-                Collection<Map<GraphNode, String>> recTargetsSet = getTargets(graph, other);
+                Collection<Map<GraphNode, String>> recTargetsSet = getTargets(graph, targetNode);
                 Set<String> newTypeStrings = new HashSet();
                 for (Map<GraphNode, String> recTargets : recTargetsSet) {
                     Set<GraphNode> intersect = Sets.intersection(blobTargets.keySet(), recTargets.keySet());
@@ -900,12 +894,13 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
             if (s.equals(SUBJ)) {
                 GraphNode n = graph.getNode(graph.getNodeForSource(s));
                 Set<GraphEdge> edges = graph.getGraph().edgesOf(n);
-                if (!edges.isEmpty()) {                    
+                if (!edges.isEmpty()) {
+                    GraphEdge e;
                     if (edges.size() > 1) {
-                        System.err.println("***WARNING*** more than one edge at node "+n.getName());
-                        System.err.println(edges);
+                        e = edges.stream().min(Comparator.comparing(GraphEdge::getLabel)).get();
+                    } else {
+                        e = edges.iterator().next();
                     }
-                    GraphEdge e = edges.iterator().next();
                     if (e.getLabel().equals("ARG0")) {
                         ret *= 2.0;
                     } else if (e.getLabel().equals("ARG1")) {
@@ -1130,7 +1125,22 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
      */
     protected Collection<Map<GraphNode, String>> getBlobTargets(SGraph graph, GraphNode node) {
         Collection<Map<GraphNode, String>> ret = new HashSet<>();
-        for (Map<GraphEdge, String> map : getSourceAssignments(blobUtils.getBlobEdges(graph, node), graph)) {
+        Collection<GraphEdge> allOutEdges = blobUtils.getBlobEdges(graph, node);
+        // if multiple edges go to the same node, only keep one (with lexically first label)
+        Map<GraphNode, GraphEdge> targetNodeToBestEdge = new HashMap<>();
+        for (GraphEdge edge : allOutEdges) {
+            GraphNode targetNode = BlobUtils.otherNode(node, edge);
+            if (!targetNodeToBestEdge.containsKey(targetNode)) {
+                targetNodeToBestEdge.put(targetNode, edge);
+            } else {
+                GraphEdge bestEdgeSoFar = targetNodeToBestEdge.get(targetNode);
+                if (edge.getLabel().compareTo(bestEdgeSoFar.getLabel()) < 0) {
+                    targetNodeToBestEdge.put(targetNode, edge);
+                }
+            }
+        }
+        allOutEdges = new HashSet<>(targetNodeToBestEdge.values());
+        for (Map<GraphEdge, String> map : getSourceAssignments(allOutEdges, graph)) {
             Map<GraphNode, String> retHere = new HashMap<>();
             for (GraphEdge edge : map.keySet()) {
                 retHere.put(GeneralBlobUtils.otherNode(node, edge), map.get(edge));
@@ -1139,9 +1149,9 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
         }
         return ret;
     }
-    
-    
-    
+
+
+
     
     
     
