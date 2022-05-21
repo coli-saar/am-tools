@@ -88,6 +88,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("reentrantedges", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         return loaderIRTG;
     }
 
@@ -99,9 +100,10 @@ public class MakeAMConllFromLeamrAltoCorpus {
                     .map(Alignment::read).collect(Collectors.toList());
             List<String> sentence = (List<String>) inst.getInputObjects().get("string");
             MRInstance mrInst = new MRInstance(sentence, graph, alignments);
-            mrInst.setExtra("original_graph_string", ((List<String>)inst.getInputObjects().get("graph")).stream().collect(Collectors.joining(" ")));
+            mrInst.setExtra("original_graph_string", String.join(" ", ((List<String>) inst.getInputObjects().get("graph"))));
             Set<GraphEdge> reentrantEdges = readReentrantEdges(inst, mrInst);
             mrInst.setExtra("reentrant_edges", reentrantEdges);
+            mrInst.setId(String.join(" ", ((List<String>) inst.getInputObjects().get("id"))));
             corpus.add(mrInst);
         }
     }
@@ -263,6 +265,8 @@ public class MakeAMConllFromLeamrAltoCorpus {
                     successCount += 1;
                     AmConllSentence amConllSentence = AmConllSentence.fromIndexedAMTerm(vit, mrInst, supertagDictionary);
                     amConllSentence = condenseMultiwordAlignmentSpans(amConllSentence, mrInst.getAlignments());
+                    amConllSentence.setId(mrInst.getId());
+                    amConllSentence.setAttr("original_graph_string", (String)mrInst.getExtra("original_graph_string"));
                     amConllSentences.add(amConllSentence);
                 } else {
                     System.err.println("Could not decompose instance " + mrInst.getSentence().stream().collect(Collectors.joining(" ")));
