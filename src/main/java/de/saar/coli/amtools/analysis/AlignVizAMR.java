@@ -188,7 +188,7 @@ public class AlignVizAMR {
         if (viz.alignmentPath == null) {
             loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         }
-        Corpus corpus = Corpus.readCorpus(new FileReader(viz.corpusPath), loaderIRTG);
+        Corpus corpus = Corpus.readCorpusWithStrictFormatting(new FileReader(viz.corpusPath), loaderIRTG);
 
         BufferedReader alBR = null;
         if (viz.alignmentPath != null) {

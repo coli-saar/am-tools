@@ -10,6 +10,9 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilderWithMultipleOut
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.StringAlgebra;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphEdge;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.TreeAutomaton;
@@ -22,15 +25,16 @@ import de.up.ling.irtg.signature.Signature;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.rmi.ServerError;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MakeAMConllFromLeamrAltoCorpus {
@@ -59,7 +63,6 @@ public class MakeAMConllFromLeamrAltoCorpus {
         m.computeAMTrees();
 
         m.writeAMConll();
-
     }
 
     public static MakeAMConllFromLeamrAltoCorpus readCommandLine(String[] args) {
@@ -70,18 +73,25 @@ public class MakeAMConllFromLeamrAltoCorpus {
     }
 
     private void readAltoCorpus() throws IOException, CorpusReadingException {
+        InterpretedTreeAutomaton loaderIRTG = createLoaderIRTG();
+        Corpus altoCorpus = Corpus.readCorpusWithStrictFormatting(new FileReader(corpusPath), loaderIRTG);
+        System.out.println("Read " + altoCorpus.getNumberOfInstances() + " aligned sentence-graph pairs.");
+        turnGraphStringsIntoRootedGraphs(altoCorpus);
+        convertToListOfMRInstancesAndStore(altoCorpus);
+    }
+
+    @NotNull
+    private InterpretedTreeAutomaton createLoaderIRTG() {
         InterpretedTreeAutomaton loaderIRTG = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation("graph", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
-        Corpus altoCorpus = Corpus.readCorpus(new FileReader(corpusPath), loaderIRTG);
-        System.out.println("Read " + altoCorpus.getNumberOfInstances() + " aligned sentence-graph pairs.");
-        turnGraphStringsIntoRootedGraphs(altoCorpus);
-        convertToListOfMrInstancesAndStore(altoCorpus);
+        loaderIRTG.addInterpretation("reentrantedges", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        return loaderIRTG;
     }
 
-    private void convertToListOfMrInstancesAndStore(Corpus altoCorpus) {
+    private void convertToListOfMRInstancesAndStore(Corpus altoCorpus) {
         corpus = new ArrayList<>();
         for (Instance inst : altoCorpus) {
             SGraph graph = (SGraph) inst.getInputObjects().get("actual_graph");
@@ -90,15 +100,34 @@ public class MakeAMConllFromLeamrAltoCorpus {
             List<String> sentence = (List<String>) inst.getInputObjects().get("string");
             MRInstance mrInst = new MRInstance(sentence, graph, alignments);
             mrInst.setExtra("original_graph_string", ((List<String>)inst.getInputObjects().get("graph")).stream().collect(Collectors.joining(" ")));
+            Set<GraphEdge> reentrantEdges = readReentrantEdges(inst, mrInst);
+            mrInst.setExtra("reentrant_edges", reentrantEdges);
             corpus.add(mrInst);
         }
+    }
+
+    @NotNull
+    private Set<GraphEdge> readReentrantEdges(Instance inst, MRInstance mrInst) {
+        Set<GraphEdge> reentrantEdges = new HashSet<>();
+        for (String reentrantEdgeString : (List<String>) inst.getInputObjects().get("reentrantedges")) {
+            String[] parts = reentrantEdgeString.split("->");
+            GraphNode source = mrInst.getGraph().getNode(parts[0]);
+            GraphNode target = mrInst.getGraph().getNode(parts[2]);
+            Set<GraphEdge> candidateEdges = mrInst.getGraph().getGraph().getAllEdges(source, target);
+            for (GraphEdge e : candidateEdges) {
+                if (e.getLabel().equals(parts[1])) {
+                    reentrantEdges.add(e);
+                }
+            }
+        }
+        return reentrantEdges;
     }
 
     private void turnGraphStringsIntoRootedGraphs(Corpus altoCorpus) {
         IsiAmrInputCodec codec = new IsiAmrInputCodec();
         for (Instance instance : altoCorpus) {
             String graphString = ((List<String>)instance.getInputObjects().get("graph")).stream().collect(Collectors.joining(" "));
-            graphString = graphString.replaceFirst("/", "<root> /");
+            graphString = graphString.replaceFirst("/", "<"+ ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME + "> /");
             instance.getInputObjects().put("actual_graph", codec.read(graphString));
 //            System.out.println("Read graph: " + graphString);
 //            System.out.println("Resulting graph: " + instance.getInputObjects().get("actual_graph"));
@@ -144,7 +173,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
                 filteredCorpus.add(mrInst);
             }
         }
-        System.out.println("Filtered out " + (corpus.size() - filteredCorpus.size()) + " instances with disconnected" +
+        System.out.println("Filtered out " + (corpus.size() - filteredCorpus.size()) + " instances with disconnected " +
                 "constants based on alignments.");
         corpus = filteredCorpus;
     }
@@ -166,37 +195,35 @@ public class MakeAMConllFromLeamrAltoCorpus {
     private void makeGraphsDecomposeable() throws ParseException {
         MutableInteger totalReentrantEdges = new MutableInteger(0);
         MutableInteger totalRemovedEdges = new MutableInteger(0);
+        MutableInteger totalMovedEdges = new MutableInteger(0);
         UnifyInEdges unifyInEdges = new UnifyInEdges(new AMRBlobUtils());
         for (MRInstance mrInst : corpus) {
             try {
-                SplitCoref splitCoref = new SplitCoref(); // here we split based on single node constants, since decomposition based on alignments may fail before unifyInEdges is called.
-                removeNondecomposableEdgesFromInstance(mrInst, (String) mrInst.getExtra("original_graph_string"), totalReentrantEdges, totalRemovedEdges, splitCoref);
-            } catch (Exception e) {
-                System.err.println("Error while processing instance:   " + String.join(" ", mrInst.getSentence()));
-                e.printStackTrace();
-                System.err.println("This may yield a non-decomposeable graph down the line.");
-            }
-            try {
-                SplitCoref splitCoref = new SplitCoref(signatureBuilder, mrInst.getAlignments());
-                unifyInEdges.unifyInEdges(mrInst);
-                removeNondecomposableEdgesFromInstance(mrInst, mrInst.getGraph().toIsiAmrString(), totalReentrantEdges, totalRemovedEdges, splitCoref);
+                unifyInEdges.unifyInEdges(mrInst, totalMovedEdges);
+                removeNondecomposableEdgesFromInstance(mrInst, totalReentrantEdges, totalRemovedEdges);
             } catch (Exception e) {
                 System.err.println("Error while processing instance:   " + String.join(" ", mrInst.getSentence()));
                 e.printStackTrace();
                 System.err.println("This may yield a non-decomposeable graph down the line.");
             }
         }
+        System.out.println("Total moved in-edges: " + totalMovedEdges.getValue());
         System.out.println("Removed " + totalRemovedEdges + " edges out of " + totalReentrantEdges
                 + " total reentrant edges.");
     }
 
-    private void removeNondecomposableEdgesFromInstance(MRInstance inst, String graphString, MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges, SplitCoref splitCoref) throws ParseException {
-        SGraph graph = inst.getGraph();
+    private void removeNondecomposableEdgesFromInstance(MRInstance mrInst,
+                                                        MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges)
+            throws ParseException {
+        SplitCoref splitCoref = new SplitCoref(signatureBuilder, mrInst.getAlignments());
+        SGraph graph = mrInst.getGraph();
         int edges_before = graph.getGraph().edgeSet().size();
         // small note to self: this splitCoref does not take alignments into account. So it is OK that it uses the
         // simpler AMRSignatureBuilder class, but it may leave some graphs non-decomposeable.
-        splitCoref.split(graphString, graph, totalReentrantEdges);
-        int edges_after = graph.getGraph().edgeSet().size();
+        Function<GraphEdge, Double> edgeScorer = splitCoref.scoreEdgesWithAlignmentsAndPreferredRemovals(graph,
+                mrInst.getAlignments(), (Set<GraphEdge>)mrInst.getExtra("reentrant_edges"));
+        mrInst.setGraph(splitCoref.scoreBasedSplit(graph, edgeScorer, totalReentrantEdges));
+        int edges_after = mrInst.getGraph().getGraph().edgeSet().size();
         totalRemovedEdges.setValue(totalRemovedEdges.getValue() + edges_before - edges_after);
     }
 
@@ -235,6 +262,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
                 if (vit != null) {
                     successCount += 1;
                     AmConllSentence amConllSentence = AmConllSentence.fromIndexedAMTerm(vit, mrInst, supertagDictionary);
+                    amConllSentence = condenseMultiwordAlignmentSpans(amConllSentence, mrInst.getAlignments());
                     amConllSentences.add(amConllSentence);
                 } else {
                     System.err.println("Could not decompose instance " + mrInst.getSentence().stream().collect(Collectors.joining(" ")));
@@ -250,6 +278,50 @@ public class MakeAMConllFromLeamrAltoCorpus {
 
         }
         System.out.print("\nDone! Successes: "+successCount+"/"+i + "\n");
+    }
+
+
+    private AmConllSentence condenseMultiwordAlignmentSpans(AmConllSentence amConllSentence, List<Alignment> alignments) {
+        AmConllSentence ret = new AmConllSentence();
+        for (int i = 0; i < amConllSentence.size(); i++) {
+            AmConllEntry entry = amConllSentence.get(i);
+            Alignment alignmentThatStartsHere = null;
+            for (Alignment alignment : alignments) {
+                if (alignment.span.start == i) {
+                    alignmentThatStartsHere = alignment;
+                    break;
+                }
+            }
+            if (alignmentThatStartsHere != null && alignmentThatStartsHere.span.end -alignmentThatStartsHere.span.start > 1) {
+                StringBuilder newForm = new StringBuilder(entry.getForm());
+                for (int j = alignmentThatStartsHere.span.start + 1; j < alignmentThatStartsHere.span.end; j++) {
+                    newForm.append(" ").append(amConllSentence.get(j).getForm());
+                }
+                AmConllEntry newEntry = new AmConllEntry(ret.size(), newForm.toString());
+                copyExtras(entry, newEntry);
+                ret.add(newEntry);
+                i = alignmentThatStartsHere.span.end - 1; // -1 because the for loop adds 1 in the end
+            } else {
+                AmConllEntry newEntry = new AmConllEntry(ret.size(), entry.getForm());
+                copyExtras(entry, newEntry);
+                ret.add(newEntry);
+            }
+        }
+        return ret;
+    }
+
+    private static void copyExtras(AmConllEntry from, AmConllEntry to) {
+        to.setAligned(from.isAligned());
+        to.setDelexSupertag(from.getDelexSupertag());
+        to.setLexLabel(from.getLexLabel());
+        to.setHead(from.getHead());
+        to.setEdgeLabel(from.getEdgeLabel());
+        to.setRange(from.getRange());
+        to.setType(from.getType());
+        to.setNe(from.getNe());
+        to.setPos(from.getPos());
+        to.setLemma(from.getLemma());
+        to.setReplacement(from.getReplacement());
     }
 
     private void writeAMConll() throws IOException {

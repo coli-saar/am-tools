@@ -345,8 +345,10 @@ public class SplitCoref {
 
 
 
-    public SGraph scoreBasedSplit(SGraph graph, Function<GraphEdge, Double> edgeScore) throws ParseException {
+    public SGraph scoreBasedSplit(SGraph graph, Function<GraphEdge, Double> edgeScore, MutableInteger totalReentrantEdges) throws ParseException {
         SGraph mst = getMinimumSpanningTreeKruskal(graph, edgeScore);
+
+        totalReentrantEdges.setValue(totalReentrantEdges.getValue() + graph.getGraph().edgeSet().size() - mst.getGraph().edgeSet().size());
 
         Set<GraphEdge> edgesToAddBackIn = getEdgesToAddBackIn(graph, mst);
 
@@ -410,7 +412,7 @@ public class SplitCoref {
             } else if (preferredRemovals.contains(edge)) {
                 return Double.POSITIVE_INFINITY;
             } else {
-                return 0.0;
+                return edge.getLabel().chars().mapToDouble(c -> c).sum(); // more or less an arbitrary mapping, but consistent for the same label
             }
         };
     }
@@ -431,11 +433,19 @@ public class SplitCoref {
         return mstGraph;
     }
 
+    /**
+     * Initializes a graph with the same nodes as the original graph, but no edges. Also copies sources.
+     * @param originalGraph
+     * @return
+     */
     @NotNull
     private SGraph initializeGraphWithNodesOnly(SGraph originalGraph) {
         SGraph mstGraph = new SGraph();
         for (GraphNode node : originalGraph.getGraph().vertexSet()) {
             mstGraph.addNode(node.getName(), node.getLabel());
+        }
+        for (String source : originalGraph.getAllSources()) {
+            mstGraph.addSource(source, originalGraph.getNodeForSource(source));
         }
         return mstGraph;
     }

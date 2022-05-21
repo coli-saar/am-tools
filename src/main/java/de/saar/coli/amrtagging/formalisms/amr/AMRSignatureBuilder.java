@@ -6,6 +6,7 @@
 package de.saar.coli.amrtagging.formalisms.amr;
 
 import com.google.common.collect.Sets;
+import de.saar.basic.Agenda;
 import de.saar.basic.Pair;
 import de.saar.coli.amrtagging.Alignment;
 import de.saar.coli.amrtagging.formalisms.AMSignatureBuilder;
@@ -1247,11 +1248,64 @@ public class AMRSignatureBuilder implements AMSignatureBuilder{
                 if (!al.lexNodes.isEmpty()){
                     inNodes.add(graph.getNode(al.lexNodes.iterator().next()));
                 } else {
-                    inNodes.add(graph.getNode(al.nodes.iterator().next()));
+                    // if there is no lexical node, take the node closest to the root of the full graph
+                    // (if distance is equal, take the one with the lexically first label.
+                    // There is not much reason for this exact heuristic, but it should be quite consistent.
+                    GraphNode closestToRoot = getClosestToRootOrLexicallyFirst(al.nodes.stream().map(graph::getNode)
+                            .collect(Collectors.toSet()), graph);
+                    inNodes.add(closestToRoot);
                 }
             }
         }
     }
-    
-    
+
+    public static GraphNode getClosestToRootOrLexicallyFirst(Set<GraphNode> nodes, SGraph graph) {
+        GraphNode closest = null;
+        int minDistance = Integer.MAX_VALUE;
+        String bestNodeLabel = null;
+        for (GraphNode node : nodes) {
+            int distance = getDistanceToRoot(node, graph);
+            if (distance < minDistance) {
+                closest = node;
+                minDistance = distance;
+                bestNodeLabel = node.getLabel();
+            } else if (distance == minDistance) {
+                if (bestNodeLabel == null || node.getLabel().compareTo(bestNodeLabel) < 0) {
+                    closest = node;
+                    bestNodeLabel = node.getLabel();
+                }
+            }
+        }
+        return closest;
+    }
+
+    private static int getDistanceToRoot(GraphNode node, SGraph graph) {
+        int distance = 0;
+        Set<GraphNode> seen = new HashSet<>();
+        seen.add(node);
+        Agenda<GraphNode> agenda = new Agenda<>();
+        agenda.add(node);
+        GraphNode root = graph.getNode(graph.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME));
+        while (!seen.contains(root)) {
+            distance++;
+            Set<GraphNode> newThisRound = new HashSet<>();
+            while (!agenda.isEmpty()) {
+                GraphNode pulled = agenda.poll();
+                for (GraphEdge e : graph.getGraph().edgesOf(pulled)) {
+                    GraphNode other = BlobUtils.otherNode(pulled, e);
+                    if (!seen.contains(other)) {
+                        seen.add(other);
+                        newThisRound.add(other);
+                    }
+                }
+            }
+            if (newThisRound.isEmpty()) {
+                System.err.println(graph);
+                throw new IllegalArgumentException("Could not find distance to root node in graph. Maybe the graph is not connected, or has no root?");
+            }
+            agenda.addAll(newThisRound);
+        }
+        return distance;
+    }
+
 }

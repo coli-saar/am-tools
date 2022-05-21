@@ -6,6 +6,7 @@ import de.saar.coli.amrtagging.MRInstance;
 import de.saar.coli.amrtagging.formalisms.amr.AMRBlobUtils;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.up.ling.irtg.algebra.graph.*;
+import de.up.ling.irtg.util.MutableInteger;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -18,13 +19,13 @@ public class UnifyInEdges {
         this.blobUtils = blobUtils;
     }
 
-    public void unifyInEdges(MRInstance mrInst) {
+    public void unifyInEdges(MRInstance mrInst, MutableInteger totalMovedEdges) {
         for (Alignment al : mrInst.getAlignments()) {
-            unifyInEdgesForAlignment(al, mrInst.getGraph());
+            unifyInEdgesForAlignment(al, mrInst.getGraph(), totalMovedEdges);
         }
     }
 
-    private void unifyInEdgesForAlignment(Alignment al, SGraph graph) {
+    private void unifyInEdgesForAlignment(Alignment al, SGraph graph, MutableInteger totalMovedEdges) {
         AMRSignatureBuilder.InAndOutNodes inAndOutNodes = new AMRSignatureBuilder.InAndOutNodes(graph, al, blobUtils);
 
 //        if (outNodes.size() > 1) {
@@ -52,23 +53,24 @@ public class UnifyInEdges {
 //        }
 
         if (inAndOutNodes.inNodes.size() > 1) {
-            GraphNode unificationTarget = getClosestToRootOrLexicallyFirst(inAndOutNodes.inNodes, graph);
+            GraphNode unificationTarget = AMRSignatureBuilder.getClosestToRootOrLexicallyFirst(inAndOutNodes.inNodes, graph);
             for (GraphNode node : inAndOutNodes.inNodes) {
                 if (node != unificationTarget) {
                     for (GraphEdge e : graph.getGraph().edgesOf(node)) {
                         if (!blobUtils.isBlobEdge(node, e) && !al.nodes.contains(BlobUtils.otherNode(node, e).getName())) {
                             graph.getGraph().removeEdge(e);
                             if (e.getSource() == node) {
-                                System.out.println(al);
-                                System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
-                                        + "->" + e.getTarget().getName() + " to " + unificationTarget.getName() + "->" + e.getTarget().getName());
+//                                System.out.println(al);
+//                                System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
+//                                        + "->" + e.getTarget().getName() + " to " + unificationTarget.getName() + "->" + e.getTarget().getName());
                                 graph.addEdge(unificationTarget, e.getTarget(), e.getLabel());
                             } else {
-                                System.out.println(al);
-                                System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
-                                        + "->" + e.getTarget().getName() + " to " +  e.getSource().getName() + "->" + unificationTarget.getName());
+//                                System.out.println(al);
+//                                System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
+//                                        + "->" + e.getTarget().getName() + " to " +  e.getSource().getName() + "->" + unificationTarget.getName());
                                 graph.addEdge(e.getSource(), unificationTarget, e.getLabel());
                             }
+                            totalMovedEdges.incValue();
                         }
                     }
                 }
@@ -76,49 +78,7 @@ public class UnifyInEdges {
         }
     }
 
-    private GraphNode getClosestToRootOrLexicallyFirst(Set<GraphNode> nodes, SGraph graph) {
-        GraphNode closest = null;
-        int minDistance = Integer.MAX_VALUE;
-        String bestNodeLabel = null;
-        for (GraphNode node : nodes) {
-            int distance = getDistanceToRoot(node, graph);
-            if (distance < minDistance) {
-                closest = node;
-                minDistance = distance;
-                bestNodeLabel = node.getLabel();
-            } else if (distance == minDistance) {
-                if (bestNodeLabel == null || node.getLabel().compareTo(bestNodeLabel) < 0) {
-                    closest = node;
-                    bestNodeLabel = node.getLabel();
-                }
-            }
-        }
-        return closest;
-    }
 
-    private int getDistanceToRoot(GraphNode node, SGraph graph) {
-        int distance = 0;
-        Set<GraphNode> seen = new HashSet<>();
-        seen.add(node);
-        Agenda<GraphNode> agenda = new Agenda<>();
-        agenda.add(node);
-        GraphNode root = graph.getNode(graph.getNodeForSource(ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME));
-        while (!seen.contains(root)) {
-            distance++;
-            Set<GraphNode> newThisRound = new HashSet<>();
-            while (!agenda.isEmpty()) {
-                GraphNode pulled = agenda.poll();
-                for (GraphEdge e : graph.getGraph().edgesOf(pulled)) {
-                    GraphNode other = BlobUtils.otherNode(pulled, e);
-                    if (!seen.contains(other)) {
-                        seen.add(other);
-                        newThisRound.add(other);
-                    }
-                }
-            }
-            agenda.addAll(newThisRound);
-        }
-        return distance;
-    }
+
 
 }
