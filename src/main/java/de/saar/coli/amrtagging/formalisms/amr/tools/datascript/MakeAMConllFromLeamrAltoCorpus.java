@@ -248,16 +248,16 @@ public class MakeAMConllFromLeamrAltoCorpus {
                         signatureBuilder, false, (AMRSignatureBuilder::scoreGraphPassiveSpecial));
                 auto.processAllRulesBottomUp(null);
 
-                // write the automaton to a file
-                Path folderPath = Paths.get(outputPath).toAbsolutePath().getParent();
-                FileWriter automatonWriter =  new FileWriter(folderPath + "/constants_" + i + ".txt");
-                for (int j = 0; j<= auto.getSignature().getMaxSymbolId(); j++) {
-                    String symbol = auto.getSignature().resolveSymbolId(j);
-                    if (symbol != null && auto.getSignature().getArity(j) == 0) {
-                        automatonWriter.write(symbol + "\n");
-                    }
-                }
-                automatonWriter.close();
+                // write the automaton constants to a file for debugging
+//                Path folderPath = Paths.get(outputPath).toAbsolutePath().getParent();
+//                FileWriter automatonWriter =  new FileWriter(folderPath + "/constants_" + i + ".txt");
+//                for (int j = 0; j<= auto.getSignature().getMaxSymbolId(); j++) {
+//                    String symbol = auto.getSignature().resolveSymbolId(j);
+//                    if (symbol != null && auto.getSignature().getArity(j) == 0) {
+//                        automatonWriter.write(symbol + "\n");
+//                    }
+//                }
+//                automatonWriter.close();
 
                 Tree<String> vit = auto.viterbi();
                 //System.err.println(vit);
