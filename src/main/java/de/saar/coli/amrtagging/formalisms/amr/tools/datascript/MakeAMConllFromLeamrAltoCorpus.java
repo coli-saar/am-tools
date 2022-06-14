@@ -9,6 +9,7 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilderWithMultipleOutNodes;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
+import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
@@ -28,19 +29,19 @@ import de.up.ling.tree.Tree;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.ibm.icu.text.PluralRules.Operand.j;
 
 public class MakeAMConllFromLeamrAltoCorpus {
 
     @Parameter(names = {"--corpus", "-c"}, description = "Path to corpus", required=true)
     private String corpusPath;
+
+    @Parameter(names = {"--supertagDictionary", "-sd"}, description = "Path to supertag dictionary. If file exists, loads dictionary from file. In the end, writes updated dictionary to file.", required=true)
+    private String supertagDictionaryPath;
 
     @Parameter(names = {"--output", "-o"}, description = "Path to output file", required=true)
     private String outputPath;
@@ -50,7 +51,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
     private final AMRBlobUtils blobUtils = new AMRBlobUtils();
     private final AMRSignatureBuilderWithMultipleOutNodes signatureBuilder = new AMRSignatureBuilderWithMultipleOutNodes();
 
-    public static void main(String args[]) throws CorpusReadingException, IOException, ParseException {
+    public static void main(String args[]) throws CorpusReadingException, IOException, ParseException, ParserException {
 
         MakeAMConllFromLeamrAltoCorpus m = readCommandLine(args);
 
@@ -229,10 +230,17 @@ public class MakeAMConllFromLeamrAltoCorpus {
         totalRemovedEdges.setValue(totalRemovedEdges.getValue() + edges_before - edges_after);
     }
 
-    private void computeAMTrees() {
+    private void computeAMTrees() throws ParserException, IOException {
         int i = 0;
         int successCount = 0;
+
+        // create empty supertag dictionary, and load from file if file exists
         SupertagDictionary supertagDictionary = new SupertagDictionary();
+        File supertagDictionaryFile = new File(supertagDictionaryPath);
+        if (supertagDictionaryFile.exists()) {
+            System.out.println("Loading supertag dictionary from file: " + supertagDictionaryPath);
+            supertagDictionary.readFromFile(supertagDictionaryPath);
+        }
 
 
         System.out.println();//just making a line to overwrite later
@@ -281,12 +289,15 @@ public class MakeAMConllFromLeamrAltoCorpus {
             }
 
         }
+        System.out.print("\nWriting supertag dictionary to file: " + supertagDictionaryPath);
+        supertagDictionary.writeToFile(supertagDictionaryPath);
         System.out.print("\nDone! Successes: "+successCount+"/"+i + "\n");
     }
 
 
     private AmConllSentence condenseMultiwordAlignmentSpans(AmConllSentence amConllSentence, List<Alignment> alignments) {
         AmConllSentence ret = new AmConllSentence();
+        Set<Integer> skipped_indices = new HashSet<>();
         for (int i = 0; i < amConllSentence.size(); i++) {
             AmConllEntry entry = amConllSentence.get(i);
             Alignment alignmentThatStartsHere = null;
@@ -297,6 +308,9 @@ public class MakeAMConllFromLeamrAltoCorpus {
                 }
             }
             if (alignmentThatStartsHere != null && alignmentThatStartsHere.span.end -alignmentThatStartsHere.span.start > 1) {
+                for (int j = alignmentThatStartsHere.span.start+1; j< alignmentThatStartsHere.span.end; j++) {
+                    skipped_indices.add(j); // 0-based
+                }
                 StringBuilder newForm = new StringBuilder(entry.getForm());
                 for (int j = alignmentThatStartsHere.span.start + 1; j < alignmentThatStartsHere.span.end; j++) {
                     newForm.append(" ").append(amConllSentence.get(j).getForm());
@@ -310,6 +324,13 @@ public class MakeAMConllFromLeamrAltoCorpus {
                 copyExtras(entry, newEntry);
                 ret.add(newEntry);
             }
+        }
+        // correct the incoming edge indices
+        for (int i = 0; i < ret.size(); i++) {
+            AmConllEntry entry = ret.get(i);
+            int oldIndex = entry.getHead();
+            int newIndex = oldIndex - (int)skipped_indices.stream().filter(j -> j < oldIndex).count();
+            entry.setHead(newIndex);
         }
         return ret;
     }
