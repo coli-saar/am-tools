@@ -152,6 +152,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
     private void filterOutBadGraphsAndAlignments() {
         filterOutInstancesWithOverlappingAlignmentSpans();
         filterOutGraphsWithDisconnectedAlignmentSubgraphs();
+        filterOutGraphsWithTooLargeConstants();
     }
 
     private void filterOutInstancesWithOverlappingAlignmentSpans() {
@@ -188,6 +189,28 @@ public class MakeAMConllFromLeamrAltoCorpus {
         }
         System.out.println("Filtered out " + (corpus.size() - filteredCorpus.size()) + " instances with disconnected " +
                 "constants based on alignments.");
+        corpus = filteredCorpus;
+    }
+
+    /**
+     * Large numbers of nodes in a single
+     */
+    private void filterOutGraphsWithTooLargeConstants() {
+        List<MRInstance> filteredCorpus = new ArrayList<>();
+        for (MRInstance mrInst : corpus) {
+            boolean hasTooBigAlignment = false;
+            for (Alignment al : mrInst.getAlignments()) {
+                if (al.nodes.size() > 10) {
+                    hasTooBigAlignment = true;
+                    break;
+                }
+            }
+            if (!hasTooBigAlignment) {
+                filteredCorpus.add(mrInst);
+            }
+        }
+        System.out.println("Filtered out " + (corpus.size() - filteredCorpus.size()) + " instances with too " +
+                "large constants ( >8 nodes).");
         corpus = filteredCorpus;
     }
 
@@ -228,7 +251,8 @@ public class MakeAMConllFromLeamrAltoCorpus {
     private void removeNondecomposableEdgesFromInstance(MRInstance mrInst,
                                                         MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges)
             throws ParseException {
-        SplitCoref splitCoref = new SplitCoref(signatureBuilder, mrInst.getAlignments());
+        // this is faster than the process later, so we can use a shorter timeout
+        SplitCoref splitCoref = new SplitCoref(signatureBuilder, mrInst.getAlignments(), timeout*1000/3);
         SGraph graph = mrInst.getGraph();
         int edges_before = graph.getGraph().edgeSet().size();
         // small note to self: this splitCoref does not take alignments into account. So it is OK that it uses the

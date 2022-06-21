@@ -50,14 +50,17 @@ public class SplitCoref {
     private final AMRSignatureBuilder signatureBuilder;
     private final Collection<Alignment> alignments;
 
+    private final int timeout;
+
     /**
      * One SplitCoref object is specific to a single graph.
      * @param signatureBuilder
      * @param alignments
      */
-    public SplitCoref(AMRSignatureBuilder signatureBuilder, Collection<Alignment> alignments) {
+    public SplitCoref(AMRSignatureBuilder signatureBuilder, Collection<Alignment> alignments, int timeoutMS) {
         this.signatureBuilder = signatureBuilder;
         this.alignments = alignments;
+        this.timeout = timeoutMS;
     }
 
     /**
@@ -67,6 +70,7 @@ public class SplitCoref {
     public SplitCoref() {
         this.signatureBuilder = new AMRSignatureBuilder();
         this.alignments = null;
+        this.timeout = -1; // no timeout here
     }
     
     /**
@@ -339,7 +343,15 @@ public class SplitCoref {
         }
         //de.saar.coli.amrtools.util.Util.printSignatureReadable(sig);
         TreeAutomaton decomp = new ApplyModifyGraphAlgebra(sig).decompose(new Pair(graph, ApplyModifyGraphAlgebra.Type.EMPTY_TYPE));
-        decomp.processAllRulesBottomUp(null);
+        if (timeout > 0) {
+            try {
+                decomp.processAllRulesBottomUp(null, timeout);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            decomp.processAllRulesBottomUp(null);
+        }
         return !decomp.getFinalStates().isEmpty();
     }
 
