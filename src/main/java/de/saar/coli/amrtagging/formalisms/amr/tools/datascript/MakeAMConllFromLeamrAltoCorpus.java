@@ -26,12 +26,16 @@ import de.up.ling.irtg.signature.Signature;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
+import org.jetbrains.annotations.Mutable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.ibm.icu.text.PluralRules.Operand.j;
 
@@ -45,6 +49,12 @@ public class MakeAMConllFromLeamrAltoCorpus {
 
     @Parameter(names = {"--output", "-o"}, description = "Path to output file", required=true)
     private String outputPath;
+
+    @Parameter(names = {"--timeout"}, description = "Seconds for timeout for a single sentence")
+    private int timeout = 3600;
+
+    @Parameter(names = {"--nrThreads", "-n"}, description = "Number of threads to be used in parallel computation")
+    private int nrThreads = 1;
 
     private List<MRInstance> corpus;
     private final List<AmConllSentence> amConllSentences = new ArrayList<>();
@@ -231,8 +241,8 @@ public class MakeAMConllFromLeamrAltoCorpus {
     }
 
     private void computeAMTrees() throws ParserException, IOException {
-        int i = 0;
-        int successCount = 0;
+        MutableInteger i = new MutableInteger(0);
+        MutableInteger successCount = new MutableInteger(0);
 
         // create empty supertag dictionary, and load from file if file exists
         SupertagDictionary supertagDictionary = new SupertagDictionary();
@@ -242,21 +252,42 @@ public class MakeAMConllFromLeamrAltoCorpus {
             supertagDictionary.readFromFile(supertagDictionaryPath);
         }
 
-
         System.out.println();//just making a line to overwrite later
-        for (MRInstance mrInst : corpus) {
-            i++;
+
+        // c.f. https://stackoverflow.com/questions/21163108/custom-thread-pool-in-java-8-parallel-stream/22269778#22269778
+        ForkJoinPool forkJoinPool = null;
+        try {
+            forkJoinPool = new ForkJoinPool(nrThreads);
+
+            forkJoinPool.submit(() ->
+                corpus.stream().parallel().forEach(mrInst -> {
+                    computeAndStoreAMSentence(i, successCount, supertagDictionary, mrInst);
+                }
+            )).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (forkJoinPool != null) {
+                forkJoinPool.shutdown();
+            }
+        }
 
 
-            try {
-                TreeAutomaton auto;
+        System.out.print("\nWriting supertag dictionary to file: " + supertagDictionaryPath);
+        supertagDictionary.writeToFile(supertagDictionaryPath);
+        System.out.print("\nDone! Successes: "+successCount.getValue()+"/"+i + "\n");
+    }
 
-                // this automaton isn't really being given graph types for the scorer. Is this a problem?
-                auto = AlignmentTrackingAutomaton.create(mrInst,
-                        signatureBuilder, false, (AMRSignatureBuilder::scoreGraphPassiveSpecial));
-                auto.processAllRulesBottomUp(null);
+    private void computeAndStoreAMSentence(MutableInteger i, MutableInteger successCount, SupertagDictionary supertagDictionary, MRInstance mrInst) {
+        try {
+            TreeAutomaton auto;
 
-                // write the automaton constants to a file for debugging
+            // this automaton isn't really being given graph types for the scorer. Is this a problem?
+            auto = AlignmentTrackingAutomaton.create(mrInst,
+                    signatureBuilder, false, (AMRSignatureBuilder::scoreGraphPassiveSpecial));
+            auto.processAllRulesBottomUp(null, timeout*1000);
+
+            // write the automaton constants to a file for debugging
 //                Path folderPath = Paths.get(outputPath).toAbsolutePath().getParent();
 //                FileWriter automatonWriter =  new FileWriter(folderPath + "/constants_" + i + ".txt");
 //                for (int j = 0; j<= auto.getSignature().getMaxSymbolId(); j++) {
@@ -267,35 +298,40 @@ public class MakeAMConllFromLeamrAltoCorpus {
 //                }
 //                automatonWriter.close();
 
-                Tree<String> vit = auto.viterbi();
-                //System.err.println(vit);
-                if (vit != null) {
-                    successCount += 1;
-                    AmConllSentence amConllSentence = AmConllSentence.fromIndexedAMTerm(vit, mrInst, supertagDictionary);
-                    amConllSentence = condenseMultiwordAlignmentSpans(amConllSentence, mrInst.getAlignments());
-                    amConllSentence.setId(mrInst.getId());
-                    amConllSentence.setAttr("original_graph_string", (String)mrInst.getExtra("original_graph_string"));
-                    amConllSentences.add(amConllSentence);
-                } else {
-                    System.err.println("Could not decompose instance " + mrInst.getSentence().stream().collect(Collectors.joining(" ")));
-                    System.err.println("Graph: " + mrInst.getGraph().toString());
-                    System.err.println("Original graph string: " + mrInst.getExtra("original_graph_string"));
+            Tree<String> vit = auto.viterbi();
+            //System.err.println(vit);
+            if (vit != null) {
+                synchronized (this) {
+                    successCount.incValue();
                 }
-                System.out.print("\rSuccesses: "+successCount+"/"+i);
-            } catch (Exception ex) {
-                System.err.println(i);
-                ex.printStackTrace();
-                System.err.println(mrInst.getGraph().toString());
+                AmConllSentence amConllSentence;
+                synchronized (this) {
+                    amConllSentence = AmConllSentence.fromIndexedAMTerm(vit, mrInst, supertagDictionary);
+                }
+                amConllSentence = condenseMultiwordAlignmentSpans(amConllSentence, mrInst.getAlignments());
+                amConllSentence.setId(mrInst.getId());
+                amConllSentence.setAttr("original_graph_string", (String) mrInst.getExtra("original_graph_string"));
+                synchronized(amConllSentences) {
+                    amConllSentences.add(amConllSentence);
+                }
+            } else {
+                System.err.println("Could not decompose instance " + mrInst.getSentence().stream().collect(Collectors.joining(" ")));
+                System.err.println("Graph: " + mrInst.getGraph().toString());
+                System.err.println("Original graph string: " + mrInst.getExtra("original_graph_string"));
             }
-
+            synchronized (this) {
+                i.incValue();
+                System.out.print("\rSuccesses: " + successCount.getValue() + "/" + i.getValue());
+            }
+        } catch (Exception | Error ex) {
+            System.err.println(mrInst.getId());
+            ex.printStackTrace();
+            System.err.println(mrInst.getGraph().toString());
         }
-        System.out.print("\nWriting supertag dictionary to file: " + supertagDictionaryPath);
-        supertagDictionary.writeToFile(supertagDictionaryPath);
-        System.out.print("\nDone! Successes: "+successCount+"/"+i + "\n");
     }
 
 
-    private AmConllSentence condenseMultiwordAlignmentSpans(AmConllSentence amConllSentence, List<Alignment> alignments) {
+    private static AmConllSentence condenseMultiwordAlignmentSpans(AmConllSentence amConllSentence, List<Alignment> alignments) {
         AmConllSentence ret = new AmConllSentence();
         Set<Integer> skipped_indices = new HashSet<>();
         for (int i = 0; i < amConllSentence.size(); i++) {
