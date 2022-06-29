@@ -370,7 +370,7 @@ public class SourceAutomataCLI {
                     }
                 } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
                     nondecomposeable++;
-                } catch (Exception ex) {
+                } catch (Exception | Error ex) {
                     System.err.println(index);
 //                    System.err.println(graph.toIsiAmrStringWithSources());
                     ex.printStackTrace();

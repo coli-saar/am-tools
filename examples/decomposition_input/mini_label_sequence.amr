@@ -1,0 +1,7 @@
+# Format: [AMR ID]&&[AMR graph string]&&[label names]&&[label value sequence]
+# ::snt You can overcome it.
+DF-200-192400-625_7557.36&(p/possible-01
+	:ARG1 (o/overcome-01
+		:ARG0 (y/you)
+		:ARG1 (i/it)))&p o y i&possible-01 overcome-01 you it
+
