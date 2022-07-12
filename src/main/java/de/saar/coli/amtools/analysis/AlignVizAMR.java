@@ -34,39 +34,39 @@ import java.util.*;
  */
 public class AlignVizAMR {
 
-    @Parameter(names = {"--corpus", "-c"}, description = "Path to corpus", required=true)
+    @Parameter(names = {"--corpus", "-c"}, description = "Path to input corpus. This must be an Alto corpus file with a 'graph' and a 'string' interpretation (and an optional 'alignment' interpretation, see --alignments parameter)", required=true)
     private String corpusPath;
 
-    // is optional; if not given, assumes alignments are given in corpus file as [alignment] entry
-    @Parameter(names = {"--alignments", "-a"}, description = "Path to alignment file")
+    //
+    @Parameter(names = {"--alignments", "-a"}, description = "Path to alignment file (.align filetype). This is optional; if this file is not given, alignments must be given in the corpus file as an 'alignment' interpretation.")
     private String alignmentPath = null;
 
     @Parameter(names = {"--outdir", "-o"}, description = "Output folder", required=true)
     private String outDir;
 
-    @Parameter(names = {"--max", "-m"}, description = "maximum number of instances processed. Use -1 for all instances (is default)")
+    @Parameter(names = {"--max", "-m"}, description = "Maximum number of instances processed (i.e. if this is k, only the first k instances of the corpus are visualized). Use -1 for all instances (this is the default)")
     private int max=-1;
 
-    @Parameter(names = {"--set", "-s"}, description = "add this parameter with a list of numbers (comma separated) to do only the indices with this index. Example: -s 5,7,10 will visualize the alignments for instances 5, 7, 10 (0 based)")
+    @Parameter(names = {"--set", "-s"}, description = "add this parameter with a list of numbers (comma separated, no whitespace) to do visualize the instances with this index. Example: -s 5,7,10 will visualize the alignments for instances 5, 7, 10 (0 based)")
     private String set = null;
 
 
-    @Parameter(names = {"--verbose", "-v"}, description = "Add this flag to include node names and word indices in output.")
+    @Parameter(names = {"--verbose", "-v"}, description = "Add this flag to include node names and word indices in the visualization.")
     private boolean verbose = false;
 
-    @Parameter(names = {"--lexBold", "-l"}, description = "Prints nodes marked with a '!' bold.")
+    @Parameter(names = {"--lexBold", "-l"}, description = "Prints lexical nodes (nodes marked with a '!' in the alignment format) bold.")
     private boolean lexBold = false;
 
     @Parameter(names = {"--writeAsPNG", "-png"}, description = "Writes output in png format rather than pdf.")
     private boolean writeAsPNG = false;
 
-    @Parameter(names = {"--highlight-multinode", "-h1"}, description = "Writes output in png format rather than pdf.")
+    @Parameter(names = {"--highlight-multinode", "-h1"}, description = "Highlight alignments where the subgraph has multiple nodes.")
     private boolean highlightMultinode = false;
 
-    @Parameter(names = {"--highlight-multitoken", "-h2"}, description = "Writes output in png format rather than pdf.")
+    @Parameter(names = {"--highlight-multitoken", "-h2"}, description = "Highlight alignments where the span contains multiple tokens.")
     private boolean highlightMultitoken = false;
 
-    @Parameter(names = {"--highlight-disconnected", "-h3"}, description = "Writes output in png format rather than pdf.")
+    @Parameter(names = {"--highlight-disconnected", "-h3"}, description = "Highlight alignments where the subgraph is disconnected.")
     private boolean highlightDisconnected = false;
 
 
