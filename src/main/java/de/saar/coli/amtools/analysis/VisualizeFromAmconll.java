@@ -18,7 +18,7 @@ public class VisualizeFromAmconll {
     
     /**
     Parameters are as in de.saar.coli.amtools.evaluation.EvaluateAMConll. However, the --gold parameter is not used. The --evaluationToolset parameter
-    is not required, unless you want to apply postprocessing. (You may want to use de.saar.coli.amtools.evaluation.toolsets.AMREvaluationToolset for AMR.)
+    is not required, unless you want to apply postprocessing.
     
     @Parameter(names = {"--corpus", "-c"}, description = "Path to the input corpus with decoded AM dependency trees", required = true)
     private String corpusPath = null;
