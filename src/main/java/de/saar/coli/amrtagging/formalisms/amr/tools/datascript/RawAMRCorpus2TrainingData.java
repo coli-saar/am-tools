@@ -26,10 +26,10 @@ import java.io.IOException;
 public class RawAMRCorpus2TrainingData {
 
     @Parameter(names = {"--inputPath", "-i"}, description = "Path to folder containing the original AMR files")
-    private String inputPath = "/home/mego/Documents/amr-dependency-july2019/mini/corpus/training/";
+    private String inputPath = "/home/mego/Documents/datasets/little-prince/corpus/training";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder")
-    private String outputPath = "/home/mego/Documents/amr-dependency-july2019/mini/data/alto/train/";
+    private String outputPath = "/home/mego/Documents/datasets/little-prince/alto/training";
     ;
     
     @Parameter(names = {"--grammarFile", "-g"}, description = "Path to Stanford grammar file englishPCFG.txt. If none is provided, no trees are produced in the corpus", required = false)
@@ -51,13 +51,13 @@ public class RawAMRCorpus2TrainingData {
     private int step = 0;
 
     @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')")
-    private String wordnetPath = "/home/mego/Documents/amr-dependency-july2019/data/wordnet/dict/";
+    private String wordnetPath = "/home/mego/PycharmProjects/am-parser-my-fork/downloaded_models/wordnet3.0/dict";
 
     @Parameter(names = {"--conceptnet"}, description = "Path to ConceptNet csv.gz file", required = false)
     private String conceptnetPath = null;
 
     @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model")
-    private String posModelPath = "/home/mego/Documents/amr-dependency-july2019/data/english-bidirectional-distsim.tagger";
+    private String posModelPath = "/home/mego/PycharmProjects/am-parser-my-fork/downloaded_models/stanford/english-bidirectional-distsim.tagger";
 
     @Parameter(names = {"--trees", "-trees"}, description = "Boolean flag saying whether we're using syntactic parse trees", required = false)
     private boolean useTrees;

@@ -127,12 +127,15 @@ public class FixUnalignedNodes {
                                 
             retCorpus.addInstance(newInst);
             if ((i+1) % 500 == 0) {
-                System.err.println("Successes for absolute alignments: "+success.getValue()+"/"+i);
-                System.err.println("Successes for probabilistic alignments: "+successP.getValue()+"/"+i);
+                System.err.println("Successes for absolute alignments so far: "+success.getValue()+"/"+(i+1));
+                System.err.println("Successes for probabilistic alignments so far: "+successP.getValue()+"/"+(i+1));
             }
             i++;
         }
-        
+
+        System.err.println("Successes for absolute alignments: "+success.getValue()+"/"+(i+1));
+        System.err.println("Successes for probabilistic alignments: "+successP.getValue()+"/"+(i+1));
+
         new CorpusWriter(loaderIRTG, " with added alignments for unaligned stuff", "///###",
                 new FileWriter(corpusPath.substring(0, corpusPath.length()-".corpus".length())+"_AlsFixed.corpus")).writeCorpus(retCorpus);
         alignmentW.close();
