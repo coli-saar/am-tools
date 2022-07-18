@@ -13,6 +13,9 @@ import java.util.Set;
 
 public class UnifyInEdges {
 
+    // when true, prints info about moved edges in non-decomposable graphs
+    boolean VERBOSE = false;
+
     AMRBlobUtils blobUtils;
 
     public UnifyInEdges(AMRBlobUtils blobUtils) {
@@ -22,6 +25,17 @@ public class UnifyInEdges {
     public void unifyInEdges(MRInstance mrInst, MutableInteger totalMovedEdges) {
         for (Alignment al : mrInst.getAlignments()) {
             unifyInEdgesForAlignment(al, mrInst.getGraph(), totalMovedEdges);
+        }
+    }
+
+    public void unifyInEdges(MRInstance mrInst, MutableInteger totalMovedEdges, boolean verbose) {
+        VERBOSE = verbose;
+        int totalMovedEdgesBefore = totalMovedEdges.getValue();
+        for (Alignment al : mrInst.getAlignments()) {
+            unifyInEdgesForAlignment(al, mrInst.getGraph(), totalMovedEdges);
+        }
+        if (totalMovedEdges.getValue() > totalMovedEdgesBefore && VERBOSE) {
+            System.out.println("Moved edges above belong to AMR id " + mrInst.getId());
         }
     }
 
@@ -52,6 +66,7 @@ public class UnifyInEdges {
 //            }
 //        }
 
+        //boolean changedGraph = false;
         if (inAndOutNodes.inNodes.size() > 1) {
             GraphNode unificationTarget = AMRSignatureBuilder.getClosestToRootOrLexicallyFirst(inAndOutNodes.inNodes, graph);
             for (GraphNode node : inAndOutNodes.inNodes) {
@@ -60,22 +75,28 @@ public class UnifyInEdges {
                         if (!blobUtils.isBlobEdge(node, e) && !al.nodes.contains(BlobUtils.otherNode(node, e).getName())) {
                             graph.getGraph().removeEdge(e);
                             if (e.getSource() == node) {
-//                                System.out.println(al);
-//                                System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
-//                                        + "->" + e.getTarget().getName() + " to " + unificationTarget.getName() + "->" + e.getTarget().getName());
+                                if (VERBOSE) {
+                                    System.out.println(al);
+                                    System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
+                                            + "->" + e.getTarget().getName() + " to " + unificationTarget.getName() + "->" + e.getTarget().getName());
+                                }
                                 graph.addEdge(unificationTarget, e.getTarget(), e.getLabel());
                             } else {
-//                                System.out.println(al);
-//                                System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
-//                                        + "->" + e.getTarget().getName() + " to " +  e.getSource().getName() + "->" + unificationTarget.getName());
+                                if (VERBOSE) {
+                                    System.out.println(al);
+                                    System.out.println("reattaching " + e.getLabel() + " in-edge from " + e.getSource().getName()
+                                            + "->" + e.getTarget().getName() + " to " + e.getSource().getName() + "->" + unificationTarget.getName());
+                                }
                                 graph.addEdge(e.getSource(), unificationTarget, e.getLabel());
                             }
                             totalMovedEdges.incValue();
+                            //changedGraph = true;
                         }
                     }
                 }
             }
         }
+        //return changedGraph;
     }
 
 
