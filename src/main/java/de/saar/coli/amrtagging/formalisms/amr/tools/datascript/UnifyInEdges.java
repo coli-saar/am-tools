@@ -7,6 +7,9 @@ import de.saar.coli.amrtagging.formalisms.amr.AMRSignatureBuilder;
 import de.up.ling.irtg.algebra.graph.*;
 import de.up.ling.irtg.util.MutableInteger;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class UnifyInEdges {
 
     // when true, prints info about moved edges in non-decomposable graphs
@@ -27,14 +30,17 @@ public class UnifyInEdges {
         this.setVerbose(false);
     }
 
-    public void runOnInstance(MRInstance mrInst, MutableInteger totalMovedEdges) {
+    public boolean runOnInstance(MRInstance mrInst, MutableInteger totalMovedEdges) {
+        boolean changed = false;
         int totalMovedEdgesBefore = totalMovedEdges.getValue();  // only needed for verbose setting
         for (Alignment al : mrInst.getAlignments()) {
             unifyInEdgesForAlignment(al, mrInst.getGraph(), totalMovedEdges);
         }
         if (totalMovedEdges.getValue() > totalMovedEdgesBefore && this.getVerbose()) {
             System.out.println("Moved edges above belong to AMR id " + mrInst.getId() + "\n");
+            changed = true;
         }
+        return changed;
     }
 
     private void unifyInEdgesForAlignment(Alignment al, SGraph graph, MutableInteger totalMovedEdges) {
