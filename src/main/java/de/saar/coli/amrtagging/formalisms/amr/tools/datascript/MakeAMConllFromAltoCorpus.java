@@ -12,7 +12,6 @@ import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.ParserException;
 import de.up.ling.irtg.algebra.StringAlgebra;
-import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphEdge;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
@@ -42,22 +41,29 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+
 public class MakeAMConllFromAltoCorpus {
 
     @Parameter(names = {"--corpus", "-c"}, description = "Path to corpus", required=true)
     private String corpusPath;
 
-    @Parameter(names = {"--supertagDictionary", "-sd"}, description = "Path to supertag dictionary. If file exists, loads dictionary from file. In the end, writes updated dictionary to file.", required=true)
+    @Parameter(names = {"--supertagDictionary", "-sd"}, description = "Path to supertag dictionary. If file exists, loads dictionary from file. In the end, writes updated dictionary to file.")
     private String supertagDictionaryPath;
 
-    @Parameter(names = {"--output", "-o"}, description = "Path to output file", required=true)
+    @Parameter(names = {"--output", "-o"}, description = "Path to output file if writing new amconll file")
     private String outputPath;
 
     @Parameter(names = {"--timeout"}, description = "Seconds for timeout for a single sentence")
     private int timeout = 3600;
 
-    @Parameter(names = {"--nrThreads", "-n"}, description = "Number of threads to be used in parallel computation")
+    @Parameter(names = {"--threads", "-th"}, description = "Number of threads to be used in parallel computation")
     private int nrThreads = 1;
+
+    @Parameter(names = {"--noReentrancies", "-nr"}, description = "Flag for old alto corpora that don't include reentrancies")
+    private boolean noReentrancies = false;
+
+    @Parameter(names = {"--verbose", "-v"}, description = "Flag: if set, prints info about multiple-root problem moved edges")
+    private boolean verbose = false;
 
     private List<MRInstance> corpus;
     private final List<AmConllSentence> amConllSentences = new ArrayList<>();
@@ -72,13 +78,12 @@ public class MakeAMConllFromAltoCorpus {
 
         m.filterOutBadGraphsAndAlignments();
 
-        m.checkWhetherGraphsAreDecomposeable();
+        m.makeGraphsDecomposeable();
 
-        // m.makeGraphsDecomposeable();
-
-        // m.computeAMTrees();
-
-        // m.writeAMConll();
+        if (m.outputPath != null) {
+            m.computeAMTrees();
+            m.writeAMConll();
+        }
     }
 
     public static MakeAMConllFromAltoCorpus readCommandLine(String[] args) {
@@ -103,8 +108,10 @@ public class MakeAMConllFromAltoCorpus {
         loaderIRTG.addInterpretation("graph", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("string", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("alignment", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
-        // loaderIRTG.addInterpretation("reentrantedges", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
         loaderIRTG.addInterpretation("id", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        if (!this.noReentrancies) {
+            loaderIRTG.addInterpretation("reentrantedges", new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig)));
+        }
         return loaderIRTG;
     }
 
@@ -117,8 +124,10 @@ public class MakeAMConllFromAltoCorpus {
             List<String> sentence = (List<String>) inst.getInputObjects().get("string");
             MRInstance mrInst = new MRInstance(sentence, graph, alignments);
             mrInst.setExtra("original_graph_string", String.join(" ", ((List<String>) inst.getInputObjects().get("graph"))));
-            //Set<GraphEdge> reentrantEdges = readReentrantEdges(inst, mrInst);
-            //mrInst.setExtra("reentrant_edges", reentrantEdges);
+            if (!this.noReentrancies) {
+                Set<GraphEdge> reentrantEdges = readReentrantEdges(inst, mrInst);
+                mrInst.setExtra("reentrant_edges", reentrantEdges);
+            }
             mrInst.setId(String.join(" ", ((List<String>) inst.getInputObjects().get("id"))));
             corpus.add(mrInst);
         }
@@ -145,7 +154,9 @@ public class MakeAMConllFromAltoCorpus {
         IsiAmrInputCodec codec = new IsiAmrInputCodec();
         for (Instance instance : altoCorpus) {
             String graphString = ((List<String>)instance.getInputObjects().get("graph")).stream().collect(Collectors.joining(" "));
-            graphString = graphString.replaceFirst("/", "<"+ ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME + "> /");
+            // this was throwing an error when used with an old namesDatesNumbers_AlsFixed_sorted.corpus file
+            // TODO should it be here?
+//            graphString = graphString.replaceFirst("/", "<"+ ApplyModifyGraphAlgebra.ROOT_SOURCE_NAME + "> /");
             instance.getInputObjects().put("actual_graph", codec.read(graphString));
 //            System.out.println("Read graph: " + graphString);
 //            System.out.println("Resulting graph: " + instance.getInputObjects().get("actual_graph"));
@@ -157,7 +168,7 @@ public class MakeAMConllFromAltoCorpus {
     private void filterOutBadGraphsAndAlignments() {
         filterOutInstancesWithOverlappingAlignmentSpans();
         filterOutGraphsWithDisconnectedAlignmentSubgraphs();
-        // filterOutGraphsWithTooLargeConstants();
+        filterOutGraphsWithTooLargeConstants();
     }
 
     private void filterOutInstancesWithOverlappingAlignmentSpans() {
@@ -220,6 +231,7 @@ public class MakeAMConllFromAltoCorpus {
     }
 
     private boolean hasDisconnectedAlignmentSubgraphs(MRInstance mrInst) {
+        // TODO does this work?
         for (Alignment alignment : mrInst.getAlignments()) {
             if (alignment.isDisconnected(mrInst.getGraph(), blobUtils)) {
                 return true;
@@ -231,51 +243,69 @@ public class MakeAMConllFromAltoCorpus {
     /**
      * Unifies in-edge attachment node (i.e. solves multiple root problem by changing the graph) and
      * removes reentrant edges that cannot be decomposed with this AM algebra signature.
-     * @throws ParseException
+     * Note this only fully works if alto file has a reentrantedges interpretation
+     * @throws ParseException if edge unification or coref removal fails
      */
-    private void makeGraphsDecomposeable() throws ParseException {
+    private void makeGraphsDecomposeable() {
+        if (this.noReentrancies) {
+            System.err.println("Warning: could not make graphs fully decomposable because no reentrancy information was provided");
+        }
         MutableInteger totalReentrantEdges = new MutableInteger(0);
         MutableInteger totalRemovedEdges = new MutableInteger(0);
         MutableInteger totalMovedEdges = new MutableInteger(0);
         UnifyInEdges unifyInEdges = new UnifyInEdges(new AMRBlobUtils());
+        unifyInEdges.setVerbose(verbose);  // a lot of the printing is done by UnifyInEdges
         for (MRInstance mrInst : corpus) {
+            String originalGraph = mrInst.getGraph().toString();
             try {
-                unifyInEdges.unifyInEdges(mrInst, totalMovedEdges);
-                removeNondecomposableEdgesFromInstance(mrInst, totalReentrantEdges, totalRemovedEdges);
+                unifyInEdges.runOnInstance(mrInst, totalMovedEdges);
+                if (!this.noReentrancies) {
+                    removeNondecomposableCorefEdgesFromInstance(mrInst, totalReentrantEdges, totalRemovedEdges);
+                }
 
             } catch (Exception e) {
-                System.err.println("Error while processing instance:   " + String.join(" ", mrInst.getSentence()));
+                System.err.println(originalGraph);
+                System.err.println("Original graph directly above");
+                System.err.println("Error while processing instance " + mrInst.getId() );
+                System.err.println("Sentence: " + String.join(" ", mrInst.getSentence()));
                 e.printStackTrace();
                 System.err.println("This may yield a non-decomposeable graph down the line.");
             }
         }
         System.out.println("Total moved in-edges: " + totalMovedEdges.getValue());
-        System.out.println("Removed " + totalRemovedEdges + " edges out of " + totalReentrantEdges
-                + " total reentrant edges.");
-    }
-
-    /**
-     * Checks whether graphs are decomposable and prints to standard out which are not
-     * @throws ParseException
-     */
-    private void checkWhetherGraphsAreDecomposeable() throws ParseException {
-        MutableInteger totalMovedEdges = new MutableInteger(0);
-        UnifyInEdges unifyInEdges = new UnifyInEdges(new AMRBlobUtils());
-        for (MRInstance mrInst : corpus) {
-            try {
-                unifyInEdges.unifyInEdges(mrInst, totalMovedEdges, true);
-
-            } catch (Exception e) {
-                System.err.println("Error while processing instance:   " + String.join(" ", mrInst.getSentence()));
-                e.printStackTrace();
-                System.err.println("This may yield a non-decomposeable graph down the line.");
-            }
+        if (!this.noReentrancies) {
+            System.out.println("Removed " + totalRemovedEdges + " edges out of " + totalReentrantEdges
+                    + " total reentrant edges.");
         }
-        System.out.println("Total moved in-edges: " + totalMovedEdges.getValue());
     }
 
-    private void removeNondecomposableEdgesFromInstance(MRInstance mrInst,
-                                                        MutableInteger totalReentrantEdges, MutableInteger totalRemovedEdges)
+//    /**
+//     * Checks whether graphs are decomposable and prints to standard out which are not
+//     * @throws ParseException
+//     */
+//    private void checkWhetherGraphsAreDecomposeable() throws ParseException {
+//        MutableInteger totalMovedEdges = new MutableInteger(0);
+//        UnifyInEdges unifyInEdges = new UnifyInEdges(new AMRBlobUtils());
+//        unifyInEdges.setVerbose(true);  // a lot of the printing is done by UnifyInEdges
+//        for (MRInstance mrInst : corpus) {
+//            String originalGraph = mrInst.getGraph().toString();
+//            try {
+//                unifyInEdges.runOnInstance(mrInst, totalMovedEdges);
+//            } catch (Exception e) {
+//                System.err.println(originalGraph);
+//                System.err.println("Original graph directly above");
+//                System.err.println("Error while processing instance " + mrInst.getId() );
+//                System.err.println("Sentence: " + String.join(" ", mrInst.getSentence()));
+//                e.printStackTrace();
+//                System.err.println("This may yield a non-decomposeable graph down the line.");
+//            }
+//        }
+//        System.out.println("Total moved in-edges: " + totalMovedEdges.getValue());
+//    }
+
+    private void removeNondecomposableCorefEdgesFromInstance(MRInstance mrInst,
+                                                             MutableInteger totalReentrantEdges,
+                                                             MutableInteger totalRemovedEdges)
             throws ParseException {
         // this is faster than the process later, so we can use a shorter timeout
         SplitCoref splitCoref = new SplitCoref(signatureBuilder, mrInst.getAlignments(), timeout*1000/3);

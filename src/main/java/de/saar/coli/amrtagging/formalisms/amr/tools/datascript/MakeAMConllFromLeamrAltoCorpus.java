@@ -26,7 +26,6 @@ import de.up.ling.irtg.signature.Signature;
 import de.up.ling.irtg.util.MutableInteger;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import org.jetbrains.annotations.Mutable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -35,9 +34,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static com.ibm.icu.text.PluralRules.Operand.j;
 
 public class MakeAMConllFromLeamrAltoCorpus {
 
@@ -235,7 +231,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
         UnifyInEdges unifyInEdges = new UnifyInEdges(new AMRBlobUtils());
         for (MRInstance mrInst : corpus) {
             try {
-                unifyInEdges.unifyInEdges(mrInst, totalMovedEdges);
+                unifyInEdges.runOnInstance(mrInst, totalMovedEdges);
                 removeNondecomposableEdgesFromInstance(mrInst, totalReentrantEdges, totalRemovedEdges);
             } catch (Exception e) {
                 System.err.println("Error while processing instance:   " + String.join(" ", mrInst.getSentence()));
