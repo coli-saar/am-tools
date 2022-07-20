@@ -57,7 +57,7 @@ public class VisualizeFromAmconll {
 
         EvaluationToolset evaluationToolset = amConllEvaluator.loadEvaluationToolset();
 
-        List<MRInstance> outputCorpus = amConllEvaluator.evaluteAMCorpus(inputAMConllSentences, evaluationToolset);
+        List<MRInstance> outputCorpus = EvaluateAMConll.evaluteAMCorpus(inputAMConllSentences, evaluationToolset);
 
         AlignVizAMR viz = new AlignVizAMR(true, false, false);
 

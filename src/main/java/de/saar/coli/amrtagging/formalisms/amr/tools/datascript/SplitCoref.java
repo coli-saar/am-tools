@@ -132,35 +132,41 @@ public class SplitCoref {
         //setup multithreading
         MutableInteger nextInstanceID = new MutableInteger(0);
         ForkJoinPool forkJoinPool = new ForkJoinPool(threads);
-        
+
         //loop over corpus to split
+        final Set<String> unfinished_IDs = new HashSet<>();
         for (Instance inst : corpus) {
             String rawString = origBR.readLine();
             forkJoinPool.execute(() -> {
                 final int i = nextInstanceID.incValue();//returns old value
-                
+
+                String id = String.join(" ", ((List<String>) inst.getInputObjects().get("id")));
+                synchronized (unfinished_IDs) {
+                    unfinished_IDs.add(id);
+                }
+
                 if ((i+1)%100 == 0) {
                     System.err.println("Up to instance "+i+" (modulo thread reordering):");
                     System.err.println("total edges: "+totalEdges.getValue());
                     System.err.println("reentrant edges: "+totalReentrantEdges.getValue());
                     System.err.println("removed edges: "+totalEdgesRemoved.getValue());
                 }
-                
+
                 SGraph graph = (SGraph)inst.getInputObjects().get("graph");
                 graph.setWriteAsAMR(true);
-                
+
                 synchronized (totalEdges) {
                     totalEdges.setValue(totalEdges.getValue() + graph.getGraph().edgeSet().size());
                 }
-                
+
                 //make a new graph as a copy of the old, and then split it.
                 SGraph newGraph = graph.merge(new IsiAmrInputCodec().read("(r<root>)"));//TODO this is a very hacky way to copy the graph
                 newGraph.setWriteAsAMR(true);
-                
+
                 //add old graph to the instance as a backup for the result, in case something goes wrong.
                 //EDIT: we just overwrite it in the "graph" slot now, so it should be fine
                 //inst.getInputObjects().put("graphSplit", graph);
-                
+
                 try {
                     new SplitCoref().split(rawString, newGraph, totalReentrantEdges);
                 } catch (Exception ex) {
@@ -192,6 +198,12 @@ public class SplitCoref {
                     newGraph = graph;//if we can't write the new graph (why though??), then we just use the old graph.
                 }
                 inst.getInputObjects().put("graph", newGraph);
+
+                synchronized (unfinished_IDs) {
+                    unfinished_IDs.remove(id);
+                    System.out.println("Finished instance with ID " + id);
+                    System.out.println("Remaining ids: " + unfinished_IDs.toString());
+                }
             });
         }
         

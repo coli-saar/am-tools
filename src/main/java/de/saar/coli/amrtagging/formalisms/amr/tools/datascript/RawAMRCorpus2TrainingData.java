@@ -89,7 +89,7 @@ public class RawAMRCorpus2TrainingData {
         try {
             commander.parse(args);
         } catch (com.beust.jcommander.ParameterException ex) {
-            System.err.println("An error occured: " + ex.toString());
+            System.err.println("An error occurred: " + ex.toString());
             System.err.println("\n Available options: ");
             commander.usage();
             return;

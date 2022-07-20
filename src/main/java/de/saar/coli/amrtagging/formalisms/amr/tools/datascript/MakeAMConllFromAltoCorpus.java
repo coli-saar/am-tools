@@ -64,7 +64,7 @@ public class MakeAMConllFromAltoCorpus {
     @Parameter(names = {"--output", "-o"}, description = "Path to output file if writing new amconll file")
     private String outputPath;
 
-    @Parameter(names = {"--changedGraphPath", "-cp"}, description = "Path to file to write changed graph IDs to")
+    @Parameter(names = {"--changedGraphPath", "-g"}, description = "Path to file to write changed graph IDs to")
     private String changedGraphPath;
 
     @Parameter(names = {"--timeout"}, description = "Seconds for timeout for a single sentence")
