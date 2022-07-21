@@ -110,7 +110,7 @@ public class SplitCoref {
      * @throws InterruptedException
      * @throws CorpusReadingException 
      */
-    public static void splitCoref(String corpusPath, String origGraphsPath, String outPath, int threads, int maxMinutes) throws IOException, InterruptedException, CorpusReadingException {
+    public static void splitCoref(String corpusPath, String origGraphsPath, String outPath, int threads, int maxMinutes, boolean verbose) throws IOException, InterruptedException, CorpusReadingException {
         //read input data
         InterpretedTreeAutomaton dummyIrtg = new InterpretedTreeAutomaton(new ConcreteTreeAutomaton<>());
         Signature dummySignature = new Signature();
@@ -195,14 +195,16 @@ public class SplitCoref {
                     System.err.println("Exception in instance "+i);
                     System.err.println("Could not linearize new graph to string");
                     ex.printStackTrace();
-                    newGraph = graph;//if we can't write the new graph (why though??), then we just use the old graph.
+                    newGraph = graph; //if we can't write the new graph (why though??), then we just use the old graph.
                 }
                 inst.getInputObjects().put("graph", newGraph);
 
                 synchronized (unfinished_IDs) {
                     unfinished_IDs.remove(id);
-                    System.out.println("Finished instance with ID " + id);
-                    System.out.println("Remaining ids: " + unfinished_IDs.toString());
+                    if (verbose) {
+                        System.out.println("Finished instance with ID " + id);
+                        System.out.println("Remaining ids: " + unfinished_IDs);
+                    }
                 }
             });
         }
@@ -231,12 +233,16 @@ public class SplitCoref {
         
     }
 
-    /**
-     * This modifies the graph orig.
-     * @param graphString
-     * @param orig
-     * @throws ParseException
-     */
+    public static void splitCoref(String corpusPath, String origGraphsPath, String outPath, int threads, int maxMinutes) throws IOException, InterruptedException, CorpusReadingException {
+        splitCoref(corpusPath, origGraphsPath, outPath, threads, maxMinutes, false);
+    }
+
+        /**
+         * This modifies the graph orig.
+         * @param graphString
+         * @param orig
+         * @throws ParseException
+         */
     void split(String graphString, SGraph orig,
                       MutableInteger totalReentrantEdges) throws ParseException {
         
