@@ -70,7 +70,7 @@ public class AlignVizAMR {
     private boolean highlightDisconnected = false;
 
 
-    @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
+    @Parameter(names = {"--help", "-?", "-h"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
 
 

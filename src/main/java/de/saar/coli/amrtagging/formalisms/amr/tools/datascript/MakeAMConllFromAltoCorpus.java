@@ -82,6 +82,9 @@ public class MakeAMConllFromAltoCorpus {
     @Parameter(names = {"--verbose", "-v"}, description = "Flag: if set, prints info about multiple-root problem moved edges")
     private boolean verbose = false;
 
+    @Parameter(names = {"--help", "-h", "-?"}, description = "displays help", help = true)
+    private boolean help = false;
+
     private List<MRInstance> corpus;
     private final List<AmConllSentence> amConllSentences = new ArrayList<>();
     private final AMRBlobUtils blobUtils = new AMRBlobUtils();
@@ -90,6 +93,10 @@ public class MakeAMConllFromAltoCorpus {
     public static void main(String[] args) throws CorpusReadingException, IOException, ParseException, ParserException {
 
         MakeAMConllFromAltoCorpus m = readCommandLine(args);
+
+        if (m.help) {
+            return;
+        }
 
         if (!m.reentrancies) {
             System.err.println("Warning: no reentrancies in Alto corpus means some graphs probably cannot be made fully decomposable");
@@ -134,7 +141,19 @@ public class MakeAMConllFromAltoCorpus {
     public static MakeAMConllFromAltoCorpus readCommandLine(String[] args) {
         MakeAMConllFromAltoCorpus m = new MakeAMConllFromAltoCorpus();
         JCommander commander = new JCommander(m);
-        commander.parse(args);
+        // commander.parse(args);
+        try {
+            commander.parse(args);
+        } catch (com.beust.jcommander.ParameterException ex) {
+            System.err.println("An error occurred: " + ex.toString());
+            System.err.println("\n Available options: ");
+            commander.usage();
+            System.exit(1);
+        }
+        if (m.help) {
+            commander.usage();
+            System.exit(0);
+        }
         return m;
     }
 

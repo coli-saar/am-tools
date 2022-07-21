@@ -23,11 +23,41 @@ A number of tools are available for error analysis and visualisation. Here are s
 ### Find graphs that are non-decomposable because of the multiple roots problem
 
 Class to use:
-`de.saar.coli.amrtagging.formalisms.amr.tools.datascript.RawAMRCorpus2TrainingData`
+`de.saar.coli.amrtagging.formalisms.amr.tools.datascript.MakeAMConllFromAltoCorpus`
+To see usage from the command line, assuming your `am-tools.jar` is in `build/libs/`, use `-h` flag.
 
-To see usage from the command line, assuming your `am-tools.jar` is in `build/libs/`:
+To get a file of graph IDs that (probably) had a multiple-root problem in a given corpus, use -c for the corpus, -g for the file to print to, and set -nt and -r to false
 
 ```bash
-java -cp build/libs/am-tools.jar de.saar.coli.amrtagging.formalisms.amr.tools.datascript.RawAMRCorpus2TrainingData -?
+java -cp build/libs/am-tools.jar de.saar.coli.amrtagging.formalisms.amr.tools.datascript.MakeAMConllFromAltoCorpus -h
+java -cp build/libs/am-tools.jar de.saar.coli.amrtagging.formalisms.amr.tools.datascript.MakeAMConllFromAltoCorpus -c path/to/namesDatesNumbers_AlsFixed_sorted.corpus -r false -nt false -g path/to/write/changed_graph_ids.txt
 ```
 
+### Visualise all aligned graphs in an amconll file
+
+Makes pdfs using graphviz of AMR and alignments
+
+```bash
+java -cp build/libs/am-tools.jar de.saar.coli.amtools.analysis.VisualizeFromAmconll --corpus path/to/input/file.amconll -o path/to/folder/to/write/to/
+```
+
+### Visualise from Alto-readable corpus (even if the graph isn't AM-decomposable)
+
+```bash
+java -cp build/libs/am-tools.jar de.saar.coli.amtools.analysis.AlignVizAMR --help
+java -cp build/libs/am-tools.jar de.saar.coli.amtools.analysis.AlignVizAMR --corpus path/to/namesDatesNumbers_AlsFixed_sorted.corpus -o path/to/output/folder/
+```
+
+### Count supertags in an amconll corpus
+
+Prints summary of supertags and provides examples of each in a directory called `examples/`
+
+Use the `-k` flag to count supertags with the same graph but different sources as different supertags
+
+```bash
+java -cp build/libs/am-tools.jar de.saar.coli.amtools.decomposition.analysis.CountSupertags -h
+java -cp build/libs/am-tools.jar de.saar.coli.amtools.decomposition.analysis.CountSupertags -i path/to/input.amconll -o path/to/output/directory/ -k
+```
+
+Wiki on visualisation tools in am-parser: https://github.com/coli-saar/am-parser/wiki/Error-analysis:-visualization-of-AM-dependency-trees
+ I think I used #2.
