@@ -30,8 +30,12 @@ To get a file of graph IDs that (probably) had a multiple-root problem in a give
 
 ```bash
 java -cp build/libs/am-tools.jar de.saar.coli.amrtagging.formalisms.amr.tools.datascript.MakeAMConllFromAltoCorpus -h
+```
+
+```bash
 java -cp build/libs/am-tools.jar de.saar.coli.amrtagging.formalisms.amr.tools.datascript.MakeAMConllFromAltoCorpus -c path/to/namesDatesNumbers_AlsFixed_sorted.corpus -r false -nt false -g path/to/write/changed_graph_ids.txt
 ```
+
 
 ### Visualise all aligned graphs in an amconll file
 
@@ -45,8 +49,12 @@ java -cp build/libs/am-tools.jar de.saar.coli.amtools.analysis.VisualizeFromAmco
 
 ```bash
 java -cp build/libs/am-tools.jar de.saar.coli.amtools.analysis.AlignVizAMR --help
+```
+
+```bash
 java -cp build/libs/am-tools.jar de.saar.coli.amtools.analysis.AlignVizAMR --corpus path/to/namesDatesNumbers_AlsFixed_sorted.corpus -o path/to/output/folder/
 ```
+
 
 ### Count supertags in an amconll corpus
 
@@ -56,6 +64,9 @@ Use the `-k` flag to count supertags with the same graph but different sources a
 
 ```bash
 java -cp build/libs/am-tools.jar de.saar.coli.amtools.decomposition.analysis.CountSupertags -h
+```
+
+```bash
 java -cp build/libs/am-tools.jar de.saar.coli.amtools.decomposition.analysis.CountSupertags -i path/to/input.amconll -o path/to/output/directory/ -k
 ```
 
