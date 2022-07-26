@@ -343,6 +343,7 @@ public class MakeAMConllFromAltoCorpus {
             System.out.println("Removed " + totalRemovedEdges + " edges out of " + totalReentrantEdges
                     + " total reentrant edges.");
         }
+        System.out.println("number of graphs with moved edges: " + graphsWithMovedEdges.size());
         return graphsWithMovedEdges;
     }
 

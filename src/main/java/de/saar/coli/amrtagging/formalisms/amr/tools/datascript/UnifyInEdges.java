@@ -36,9 +36,11 @@ public class UnifyInEdges {
         for (Alignment al : mrInst.getAlignments()) {
             unifyInEdgesForAlignment(al, mrInst.getGraph(), totalMovedEdges);
         }
-        if (totalMovedEdges.getValue() > totalMovedEdgesBefore && this.getVerbose()) {
-            System.out.println("Moved edges above belong to AMR id " + mrInst.getId() + "\n");
+        if (totalMovedEdges.getValue() > totalMovedEdgesBefore) {
             changed = true;
+            if (this.getVerbose()) {
+                System.out.println("Moved edges above belong to AMR id " + mrInst.getId() + "\n");
+            }
         }
         return changed;
     }
