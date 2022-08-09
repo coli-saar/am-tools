@@ -57,7 +57,7 @@ public class MakeAMConllFromLeamrAltoCorpus {
     private final AMRBlobUtils blobUtils = new AMRBlobUtils();
     private final AMRSignatureBuilderWithMultipleOutNodes signatureBuilder = new AMRSignatureBuilderWithMultipleOutNodes();
 
-    public static void main(String args[]) throws CorpusReadingException, IOException, ParseException, ParserException {
+    public static void main(String[] args) throws CorpusReadingException, IOException, ParseException, ParserException {
 
         MakeAMConllFromLeamrAltoCorpus m = readCommandLine(args);
 
