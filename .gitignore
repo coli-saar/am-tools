@@ -122,3 +122,4 @@ examples/output/0.pdf
 lib/sdp.jar
 examples/decomposition_input/amr_out/dev.amconll
 examples/decomposition_input/dm_out/dev.amconll
+outputs/*
