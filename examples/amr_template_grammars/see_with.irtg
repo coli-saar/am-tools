@@ -1,0 +1,69 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// non-terminals and their types
+// F: ()
+// NP: ()
+// N: ()
+// DET: ()
+// VP_past: (s)
+// V_intr_past: (s)
+// V_trans_past: (s, o)
+// COORD_empty: (op1, op2)
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// VP attachment: X sees Y with a seeing instrument
+F! -> templateSeeWithInstrument(NP_subject, VP_seeing_verb_with_instrument, NP_non_person_object_seen, NP_seeing_implement) [1.0]
+[string] *(?1,*(?2, *(?3, *('with', ?4))))
+[graph]  APP_subj(APP_obj(APP_instr(?2, ?4), ?3), ?1)
+
+F! -> templateNPAttachmentWithInstrument(NP_subject, VP_incompatible_with_seeing_implement_verb, NP_person_seen, NP_seeing_implement) [1.0]
+[string] *(?1,?2)
+[graph]  APP_s(?2,?1)
+
+F! -> templateNPAttachmentWithProperty(NP_subject, VP_seeing_verb, NP_person_seen, NP_personal_property) [1.0]
+[string] *(?1,?2)
+[graph]  APP_s(?2,?1)
+
+// -------------------------------- seeing verbs with instruments -------------------------------------------
+
+VP_seeing_verb_with_instrument -> see_with_instrument [1.0]
+[string] saw
+[graph] '(r<root> / see-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :instrument (i<instr>))--TYPE--(subj(), obj(), instr())'
+
+VP_seeing_verb_with_instrument -> spy_with_instrument [1.0]
+[string] spied
+[graph] '(r<root> / spy-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :instrument (i<instr>))--TYPE--(subj(), obj(), instr())'
+
+// subjects
+
+NP_subject -> baker [1.0]
+[string] 'The baker'
+[graph] '(p<root> / person :ARG0-of (b / bake-01))'
+
+NP_subject -> professor [1.0]
+[string] 'The professor'
+[graph] '(p<root> / professor)'
+
+// non-person objects seen
+
+NP_non_person_object_seen -> cake [1.0]
+[string] 'the cake'
+[graph] '(c<root> / cake)'
+
+NP_non_person_object_seen -> moon [1.0]
+[string] 'the moon'
+[graph] '(m<root> / moon)'
+
+// seeing instruments
+
+NP_seeing_implement -> telescope [1.0]
+[string] 'the telescope'
+[graph] '(t<root> / telescope)'
+
+NP_seeing_implement -> binoculars [1.0]
+[string] 'the binoculars'
+[graph] '(b<root> / binoculars)'
+
