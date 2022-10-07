@@ -1,8 +1,10 @@
 package de.saar.coli.amtools.script.amr_templates;
 
+import de.saar.basic.Pair;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
 import de.up.ling.tree.Tree;
@@ -10,6 +12,8 @@ import de.up.ling.tree.Tree;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static de.saar.coli.amtools.script.amr_templates.SampleFromTemplate.fixAMRString;
 
 public class SampleFromCoordTemplate {
 
@@ -108,11 +112,10 @@ public class SampleFromCoordTemplate {
         for (Tree<String> sample : samples) {
             System.out.println(sample);
             System.out.println(postprocessString((List<String>)stringInterp.interpret(sample)));
-            System.out.println(graphInterp.interpret(sample));
+            Object graphResult = graphInterp.interpret(sample);
+            System.out.println(fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString()));
             System.out.println();
         }
-
-
 
     }
 

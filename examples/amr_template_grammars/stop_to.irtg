@@ -14,6 +14,13 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // -------------------------------- top-level template rules -------------------------------------------
 
+// The police stopped a plot to bomb the White House.
+// The police stopped a demonstration to let a group of school children through.
+// The police authorized a demonstration to save the whales.
+// The police authorized a plot to infiltrate the mafia.
+
+
+
 // VP attachment: X sees Y with a seeing instrument
 F! -> templateSeeWithInstrument(NP_subject, VP_seeing_verb, NP_non_person_object_seen, NP_seeing_implement) [1.0]
 [string] *(?1,*(?2, *(?3, *('with', ?4))))
@@ -33,8 +40,8 @@ VP_seeing_verb -> see [1.0]
 [string] saw
 [graph] '(r<root> / see-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
-VP_seeing_verb -> look [1.0]
-[string] looked at
+VP_seeing_verb -> spy [1.0]
+[string] spied
 [graph] '(r<root> / spy-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
 VP_seeing_verb -> observe [1.0]

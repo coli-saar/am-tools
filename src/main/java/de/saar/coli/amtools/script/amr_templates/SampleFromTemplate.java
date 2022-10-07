@@ -1,7 +1,10 @@
 package de.saar.coli.amtools.script.amr_templates;
 
+import de.saar.basic.Pair;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
+import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
@@ -15,7 +18,8 @@ public class SampleFromTemplate {
     public static void main(String[] args) throws IOException, ParseException {
         int numSamples = 10;
 
-        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/see_with.irtg");
+        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/unisex_names.irtg");
+//        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/see_with.irtg");
         Interpretation stringInterp = irtg.getInterpretation("string");
         Interpretation graphInterp = irtg.getInterpretation("graph");
         Map<String, List<Tree<String>>> templateCounter = new HashMap<>();
@@ -32,11 +36,16 @@ public class SampleFromTemplate {
                 Object stringResult = stringInterp.getAlgebra().evaluate(stringInterp.getHomomorphism().apply(tree));
                 Object graphResult = graphInterp.getAlgebra().evaluate(graphInterp.getHomomorphism().apply(tree));
                 System.out.println(stringInterp.getAlgebra().representAsString(stringResult));
-                System.out.println(graphInterp.getAlgebra().representAsString(graphResult));
+                System.out.println(fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString()));
             }
             System.out.println("\n\n\n");
         }
 
+    }
+
+    public static String fixAMRString(String amrString) {
+        amrString = amrString.replaceAll("(:op[0-9]+) ([^ ()]+)", "$1 \"$2\"");
+        return amrString.replaceAll("(:wiki) ([^ ()]+)", "$1 \"$2\"");
     }
 
 }
