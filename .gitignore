@@ -123,3 +123,5 @@ lib/sdp.jar
 examples/decomposition_input/amr_out/dev.amconll
 examples/decomposition_input/dm_out/dev.amconll
 outputs/*
+examples/amr_template_grammars/long_lists.txt
+examples/amr_template_grammars/pp_attachment.txt
