@@ -12,6 +12,7 @@ import de.up.ling.tree.Tree;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SampleFromTemplate {
 
@@ -55,6 +56,7 @@ public class SampleFromTemplate {
 
     public static String fixAMRString(String amrString) {
         amrString = amrString.replaceAll("(:op[0-9]+) ([^ ()]+)", "$1 \"$2\"");
+        amrString = amrString.replaceAll("\"\\+\"", "+");
         return amrString.replaceAll("(:wiki) ([^ ()]+)", "$1 \"$2\"");
     }
 
@@ -67,7 +69,7 @@ public class SampleFromTemplate {
         for (Tree<String> sample : samples) {
             Object stringResult = stringInterp.getAlgebra().evaluate(stringInterp.getHomomorphism().apply(sample));
             Object graphResult = graphInterp.getAlgebra().evaluate(graphInterp.getHomomorphism().apply(sample));
-            String sentenceString = stringInterp.getAlgebra().representAsString(stringResult);
+            String sentenceString = postprocessString((List<String>)stringResult);
             w.write("# ::snt " + sentenceString+"\n");
             String graphString = fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString());
             w.write(graphString+"\n\n");
@@ -75,4 +77,8 @@ public class SampleFromTemplate {
         w.close();
     }
 
+    public static String postprocessString(List<String> tokens) {
+        return tokens.stream().collect(Collectors.joining(" ")).replaceAll(" , ", ", ")
+                .replaceAll(" \\.", ".");
+    }
 }

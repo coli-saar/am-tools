@@ -1,0 +1,158 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+F! -> template(NP_and) [1.0]
+[string] *('Please buy', *(?1, '.'))
+[graph]  APP_obj('(v<root> / buy-01 :mode imperative :polite + :ARG0 (y / you) :ARG1 (o2<obj>))--TYPE--(obj())', ?1)
+
+// -------------------------------- bought things -------------------------------------------
+
+NP_thing -> water [1.0]
+[string] 'water'
+[graph]  '(w<root> / water)'
+
+NP_thing -> apples [1.0]
+[string] 'apples'
+[graph]  '(a<root> / apple)'
+
+NP_thing -> oranges [1.0]
+[string] 'oranges'
+[graph]  '(o<root> / orange)'
+
+NP_thing -> batteries [1.0]
+[string] 'batteries'
+[graph]  '(b<root> / battery)'
+
+NP_thing -> map [1.0]
+[string] 'a map'
+[graph]  '(m<root> / map)'
+
+NP_thing -> phone [1.0]
+[string] 'a phone'
+[graph]  '(p<root> / phone)'
+
+NP_thing -> ice [1.0]
+[string] 'ice'
+[graph]  '(i<root> / ice)'
+
+NP_thing -> movie [1.0]
+[string] 'a movie'
+[graph]  '(m<root> / movie)'
+
+NP_thing -> bags [1.0]
+[string] 'bags'
+[graph]  '(b<root> / bag)'
+
+NP_thing -> alcohol [1.0]
+[string] 'alcohol'
+[graph]  '(a<root> / alcohol)'
+
+NP_thing -> meat [1.0]
+[string] 'meat'
+[graph]  '(m<root> / meat)'
+
+NP_thing -> beer [1.0]
+[string] 'beer'
+[graph]  '(b<root> / beer)'
+
+NP_thing -> tools [1.0]
+[string] 'tools'
+[graph]  '(t<root> / tool)'
+
+NP_thing -> milk [1.0]
+[string] 'milk'
+[graph]  '(m<root> / milk)'
+
+NP_thing -> cigarettes [1.0]
+[string] 'cigarettes'
+[graph]  '(c<root> / cigarette)'
+
+NP_thing -> gasoline [1.0]
+[string] 'gasoline'
+[graph]  '(g<root> / gasoline)'
+
+NP_thing -> coffee [1.0]
+[string] 'coffee'
+[graph]  '(c<root> / coffee)'
+
+NP_thing -> chicken [1.0]
+[string] 'a chicken'
+[graph]  '(n<root> / chicken)'
+
+NP_thing -> chips [1.0]
+[string] 'chips'
+[graph]  '(c<root> / chip)'
+
+NP_thing -> tape [1.0]
+[string] 'tape'
+[graph]  '(t<root> / tape)'
+
+NP_thing -> cup [1.0]
+[string] 'a cup'
+[graph]  '(c<root> / cup)'
+
+NP_thing -> juice [1.0]
+[string] 'juice'
+[graph]  '(j<root> / juice)'
+
+NP_thing -> rice [1.0]
+[string] 'rice'
+[graph]  '(r<root> / rice)'
+
+NP_thing -> coal [1.0]
+[string] 'coal'
+[graph]  '(c<root> / coal)'
+
+NP_thing -> light_bulb [1.0]
+[string] 'a light bulb'
+[graph]  '(b<root> / bulb :ARG0-of (l / light-04))'
+
+NP_thing -> wine [1.0]
+[string] 'wine'
+[graph]  '(w<root> / wine)'
+
+NP_thing -> bananas [1.0]
+[string] 'bananas'
+[graph]  '(b<root> / banana)'
+
+NP_thing -> plates [1.0]
+[string] 'plates'
+[graph]  '(p<root> / plate)'
+
+NP_thing -> hat [1.0]
+[string] 'a hat'
+[graph]  '(h<root> / hat)'
+
+NP_thing -> book [1.0]
+[string] 'a book'
+[graph]  '(b<root> / book)'
+
+NP_thing -> expensive_food [1.0]
+[string] 'expensive food'
+[graph]  '(f<root> / food :mod (e / expensive))'
+
+NP_thing -> salt [1.0]
+[string] 'salt'
+[graph]  '(s<root> / salt)'
+
+NP_thing -> paper [1.0]
+[string] 'paper'
+[graph]  '(p<root> / paper)'
+
+NP_thing -> soap [1.0]
+[string] 'soap'
+[graph]  '(s<root> / soap)'
+
+NP_thing -> knife [1.0]
+[string] 'a knife'
+[graph]  '(k<root> / knife)'
+
+NP_thing -> fish [1.0]
+[string] 'fish'
+[graph]  '(f<root> / fish)'
+
+
+

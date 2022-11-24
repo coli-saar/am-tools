@@ -7,9 +7,10 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
+import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
+import de.up.ling.tree.TreeParser;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,23 +19,32 @@ import static de.saar.coli.amtools.script.amr_templates.SampleFromTemplate.fixAM
 
 public class SampleFromCoordTemplate {
 
-    public static void main(String[] args) throws IOException {
-
-        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/and_ice_cream.irtg");
-        Interpretation stringInterp = irtg.getInterpretation("string");
-        Interpretation graphInterp = irtg.getInterpretation("graph");
+    public static void main(String[] args) throws IOException, ParseException {
 
 
-        String outputFile = "examples/amr_template_grammars/long_lists.txt";
-        String description = "Ice cream flavor lists. Created by a grammar.";
 
-        String conjunct_state = "NP_flavor";
-        int maxConjuncts = 50;
+        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/please_buy.irtg");
+        String outputFile = "examples/amr_template_grammars/long_lists_shopping.txt";
+        String outputFileSingletons = "examples/amr_template_grammars/long_lists_shopping_singletons.txt";
+        String description = "Shopping instructions (long list). Created by a grammar.";
+        String descriptionSingletons = "Singletons for checking long list grammar. Created by a grammar.";
+        String conjunct_state = "NP_thing";
+
+//        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/she_visited_countries.irtg");
+//        String outputFile = "examples/amr_template_grammars/long_lists_countries.txt";
+//        String outputFileSingletons = "examples/amr_template_grammars/long_lists_countries_singletons.txt";
+//        String description = "Lists of countries (long list). Created by a grammar.";
+//        String descriptionSingletons = "Singletons for checking long list grammar. Created by a grammar.";
+//        String conjunct_state = "NP_country";
+
+        int maxConjuncts = 35;
         int minConjuncts = 4;
-        int samplesPerConjunctCount = 3;
+        int samplesPerConjunctCount = 1;
         String coord_state = "NP_and";
         String coordination = "and";
 
+        Interpretation stringInterp = irtg.getInterpretation("string");
+        Interpretation graphInterp = irtg.getInterpretation("graph");
         ConcreteTreeAutomaton<String> automaton = (ConcreteTreeAutomaton)irtg.getAutomaton();
 
         List<Rule> conjunct_rules = new ArrayList<>();
@@ -50,6 +60,21 @@ public class SampleFromCoordTemplate {
                     "Using the number of conjunct rules minus 1 instead.");
             maxConjuncts = conjunct_rules.size() - 1;
         }
+
+//        Rule single_rule = automaton.createRule(coord_state, "singleton", new String[]{coord_state});
+        String singleRuleLabel = "singleton";
+        automaton.getSignature().addSymbol(singleRuleLabel, 1);
+        Tree<String> single_tree = Tree.create("?1");
+        stringInterp.getHomomorphism().add(singleRuleLabel, single_tree);
+        graphInterp.getHomomorphism().add(singleRuleLabel, single_tree);
+
+        List<Tree<String>> singletonSamples = new ArrayList<>();
+        for (Rule conjunct_rule : conjunct_rules) {
+            Tree<String> grammar_tree = TreeParser.parse("template("+singleRuleLabel+"("+conjunct_rule.getLabel(automaton)+"))");
+            singletonSamples.add(grammar_tree);
+        }
+        SampleFromTemplate.writeSamplesToFile(outputFileSingletons, singletonSamples, descriptionSingletons, irtg);
+        // never actually added the rule to the automaton, so we don't have to remove it either
 
         for (int i = minConjuncts; i<= maxConjuncts; i++) {
 
@@ -116,7 +141,7 @@ public class SampleFromCoordTemplate {
 
         for (Tree<String> sample : samples) {
             System.out.println(sample);
-            System.out.println(postprocessString((List<String>)stringInterp.interpret(sample)));
+            System.out.println(SampleFromTemplate.postprocessString((List<String>)stringInterp.interpret(sample)));
             Object graphResult = graphInterp.interpret(sample);
             System.out.println(fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString()));
             System.out.println();
@@ -124,11 +149,6 @@ public class SampleFromCoordTemplate {
 
         SampleFromTemplate.writeSamplesToFile(outputFile, samples, description, irtg);
 
-    }
-
-    private static String postprocessString(List<String> tokens) {
-        return tokens.stream().collect(Collectors.joining(" ")).replaceAll(" , ", ", ")
-                .replaceAll(" \\.", ".");
     }
 
 }

@@ -125,3 +125,8 @@ examples/decomposition_input/dm_out/dev.amconll
 outputs/*
 examples/amr_template_grammars/long_lists.txt
 examples/amr_template_grammars/pp_attachment.txt
+examples/amr_template_grammars/long_lists_countries.txt
+examples/amr_template_grammars/long_lists_countries_singletons.txt
+examples/amr_template_grammars/long_lists_shopping.txt
+examples/amr_template_grammars/long_lists_shopping_singletons.txt
+examples/amr_template_grammars/long_lists_singletons.txt

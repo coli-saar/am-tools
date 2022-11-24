@@ -1,0 +1,171 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+F! -> template(NP_and) [1.0]
+[string] *('She visited', *(?1, '.'))
+[graph]  APP_obj('(v<root> / visit-01 :ARG0 (s / she) :ARG1 (o2<obj>))--TYPE--(obj())', ?1)
+
+// -------------------------------- countries -------------------------------------------
+
+NP_country -> china [1.0]
+[string] China
+[graph] '(c<root> / country :wiki "China" :name (n / name :op1 "China"))'
+
+NP_country -> germany [1.0]
+[string] Germany
+[graph] '(c<root> / country :wiki "Germany" :name (n / name :op1 "Germany"))'
+
+NP_country -> india [1.0]
+[string] India
+[graph] '(c<root> / country :wiki "India" :name (n / name :op1 "India"))'
+
+NP_country -> japan [1.0]
+[string] Japan
+[graph] '(c<root> / country :wiki "Japan" :name (n / name :op1 "Japan"))'
+
+NP_country -> russia [1.0]
+[string] Russia
+[graph] '(c<root> / country :wiki "Russia" :name (n / name :op1 "Russia"))'
+
+NP_country -> iran [1.0]
+[string] Iran
+[graph] '(c<root> / country :wiki "Iran" :name (n / name :op1 "Iran"))'
+
+NP_country -> united_states [1.0]
+[string] 'the United States'
+[graph] '(c<root> / country :wiki "United_States" :name (n / name :op1 "United" :op2 "States"))'
+
+NP_country -> britain [1.0]
+[string] Britain
+[graph] '(c<root> / country :wiki "United_Kingdom" :name (n / name :op1 "Britain"))'
+
+NP_country -> france [1.0]
+[string] France
+[graph] '(c<root> / country :wiki "France" :name (n / name :op1 "France"))'
+
+NP_country -> italy [1.0]
+[string] Italy
+[graph] '(c<root> / country :wiki "Italy" :name (n / name :op1 "Italy"))'
+
+NP_country -> spain [1.0]
+[string] Spain
+[graph] '(c<root> / country :wiki "Spain" :name (n / name :op1 "Spain"))'
+
+NP_country -> australia [1.0]
+[string] Australia
+[graph] '(c<root> / country :wiki "Australia" :name (n / name :op1 "Australia"))'
+
+NP_country -> canada [1.0]
+[string] Canada
+[graph] '(c<root> / country :wiki "Canada" :name (n / name :op1 "Canada"))'
+
+NP_country -> brazil [1.0]
+[string] Brazil
+[graph] '(c<root> / country :wiki "Brazil" :name (n / name :op1 "Brazil"))'
+
+NP_country -> iraq [1.0]
+[string] Iraq
+[graph] '(c<root> / country :wiki "Iraq" :name (n / name :op1 "Iraq"))'
+
+NP_country -> afghanistan [1.0]
+[string] Afghanistan
+[graph] '(c<root> / country :wiki "Afghanistan" :name (n / name :op1 "Afghanistan"))'
+
+NP_country -> syria [1.0]
+[string] Syria
+[graph] '(c<root> / country :wiki "Syria" :name (n / name :op1 "Syria"))'
+
+NP_country -> north_korea [1.0]
+[string] 'North Korea'
+[graph] '(c<root> / country :wiki "North_Korea" :name (n / name :op1 "North" :op2 "Korea"))'
+
+NP_country -> south_korea [1.0]
+[string] 'South Korea'
+[graph] '(c<root> / country :wiki "South_Korea" :name (n / name :op1 "South" :op2 "Korea"))'
+
+NP_country -> israel [1.0]
+[string] Israel
+[graph] '(c<root> / country :wiki "Israel" :name (n / name :op1 "Israel"))'
+
+NP_country -> egypt [1.0]
+[string] Egypt
+[graph] '(c<root> / country :wiki "Egypt" :name (n / name :op1 "Egypt"))'
+
+NP_country -> myanmar [1.0]
+[string] Myanmar
+[graph] '(c<root> / country :wiki "Myanmar" :name (n / name :op1 "Myanmar"))'
+
+NP_country -> vietnam [1.0]
+[string] Vietnam
+[graph] '(c<root> / country :wiki "Vietnam" :name (n / name :op1 "Vietnam"))'
+
+NP_country -> thailand [1.0]
+[string] Thailand
+[graph] '(c<root> / country :wiki "Thailand" :name (n / name :op1 "Thailand"))'
+
+NP_country -> indonesia [1.0]
+[string] Indonesia
+[graph] '(c<root> / country :wiki "Indonesia" :name (n / name :op1 "Indonesia"))'
+
+NP_country -> malaysia [1.0]
+[string] Malaysia
+[graph] '(c<root> / country :wiki "Malaysia" :name (n / name :op1 "Malaysia"))'
+
+NP_country -> philippines [1.0]
+[string] 'the Philippines'
+[graph] '(c<root> / country :wiki "Philippines" :name (n / name :op1 "Philippines"))'
+
+NP_country -> pakistan [1.0]
+[string] Pakistan
+[graph] '(c<root> / country :wiki "Pakistan" :name (n / name :op1 "Pakistan"))'
+
+NP_country -> libya [1.0]
+[string] Libya
+[graph] '(c<root> / country :wiki "Libya" :name (n / name :op1 "Libya"))'
+
+NP_country -> Zimbabwe [1.0]
+[string] Zimbabwe
+[graph] '(c<root> / country :wiki "Zimbabwe" :name (n / name :op1 "Zimbabwe"))'
+
+NP_country -> Colombia [1.0]
+[string] Colombia
+[graph] '(c<root> / country :wiki "Colombia" :name (n / name :op1 "Colombia"))'
+
+NP_country -> Haiti [1.0]
+[string] Haiti
+[graph] '(c<root> / country :wiki "Haiti" :name (n / name :op1 "Haiti"))'
+
+NP_country -> Jordan [1.0]
+[string] Jordan
+[graph] '(c<root> / country :wiki "Jordan" :name (n / name :op1 "Jordan"))'
+
+NP_country -> Estonia [1.0]
+[string] Estonia
+[graph] '(c<root> / country :wiki "Estonia" :name (n / name :op1 "Estonia"))'
+
+NP_country -> saudi_arabia [1.0]
+[string] 'Saudi Arabia'
+[graph] '(c<root> / country :wiki "Saudi_Arabia" :name (n / name :op1 "Saudi" :op2 "Arabia"))'
+
+NP_country -> laos [1.0]
+[string] Laos
+[graph] '(c<root> / country :wiki "Laos" :name (n / name :op1 "Laos"))'
+
+NP_country -> palestine [1.0]
+[string] Palestine
+[graph] '(c<root> / country :wiki "State_of_Palestine" :name (n / name :op1 "Palestine"))'
+
+NP_country -> south_africa [1.0]
+[string] 'South Africa'
+[graph] '(c<root> / country :wiki "South_Africa" :name (n / name :op1 "South" :op2 "Africa"))'
+
+NP_country -> singapore [1.0]
+[string] Singapore
+[graph] '(c<root> / country :wiki "Singapore" :name (n / name :op1 "Singapore"))'
+
+
+
+
