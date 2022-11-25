@@ -18,13 +18,15 @@ public class SampleFromTemplate {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void main(String[] args) throws IOException, ParseException {
-        int numSamples = 10;
+        int numSamples = 25;
 
-        String output_file = "examples/amr_template_grammars/pp_attachment.txt";
+        String output_file = "examples/amr_template_grammars/pp_attachment_to.txt";
         String description = "Prepositional Phrase attachment ambiguities. Created by a grammar.";
 
 //        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/unisex_names.irtg");
-        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/see_with.irtg");
+        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/alternative_to.irtg");
+
+
         Interpretation stringInterp = irtg.getInterpretation("string");
         Interpretation graphInterp = irtg.getInterpretation("graph");
         Map<String, List<Tree<String>>> templateCounter = new HashMap<>();
