@@ -1,0 +1,105 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// NP attachment: X keeps object Y that comes from a place Z
+F! -> templateSellToSomeone(NP_subject, VP_sell_ditr, NP_buyer) [1.0]
+[string] *(?1, *(?2, *('an alternative to', *(?3, '.'))))
+[graph]  APP_subj(APP_obj(APP_obj2(?2, ?3), '(a<root>/alternative)'), ?1)
+
+// VP attachment: X withholds information Y from person(s) Z
+F! -> templateAlternativeToSomething(NP_subject, VP_sell_tr, NP_original_thing) [1.0]
+[string] *(?1, *(?2, *('an alternative to', *(?3, '.'))))
+[graph]  APP_subj(APP_obj(?2, APP_to('(a<root> / alternative :prep-to (t<to>))--TYPE--(to())', ?3)), ?1)
+// NOTE that there is another valid annotation for 'alternative': (a2<root> / alternative :ARG1-of (i / instead-of-91 :ARG2 (t<to>)))--TYPE--(to())
+
+
+// -------------------------------- selling verbs -------------------------------------------
+
+VP_sell_ditr -> sell [1.0]
+[string] 'will sell'
+[graph]  '(s<root>/sell-01 :ARG0 (s2<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2())'
+
+VP_sell_ditr -> offer [1.0]
+[string] offers
+[graph]  '(o<root>/offer-01 :ARG0 (s<subj>) :ARG1 (o2<obj>) :ARG3 (o3<obj2>))--TYPE--(subj(), obj(), obj2())'
+
+VP_sell_ditr -> plans_to_provide [1.0]
+[string] 'plans to provide'
+[graph]  '(p<root>/plan-01 :ARG0 (s<subj>) :ARG1 (p2 / provide-01 :ARG0 s :ARG1 (o<obj>) :ARG2 (o2<obj2>)))--TYPE--(subj(), obj(), obj2())'
+
+VP_sell_ditr -> pitch [1.0]
+[string] 'will pitch'
+[graph]  '(p<root>/pitch-04 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG3 (o2<obj2>))--TYPE--(subj(), obj(), obj2())'
+
+VP_sell_tr -> sell_tr [1.0]
+[string] 'will sell'
+[graph]  '(s<root>/sell-01 :ARG0 (s2<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_sell_tr -> offer_tr [1.0]
+[string] offers
+[graph]  '(o<root>/offer-01 :ARG0 (s<subj>) :ARG1 (o2<obj>))--TYPE--(subj(), obj())'
+
+VP_sell_tr -> plans_to_provide_tr [1.0]
+[string] 'plans to provide'
+[graph]  '(p<root>/plan-01 :ARG0 (s<subj>) :ARG1 (p2 / provide-01 :ARG0 s :ARG1 (o<obj>)))--TYPE--(subj(), obj())'
+
+VP_sell_tr -> pitch_tr [1.0]
+[string] 'will pitch'
+[graph]  '(p<root>/pitch-04 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+// -------------------------------- subjects --------------------------------
+
+NP_subject -> company [1.0]
+[string] 'The company'
+[graph] '(p<root> / company)'
+
+NP_subject -> group [1.0]
+[string] 'The group'
+[graph] '(p<root> / group)'
+
+NP_subject -> activists [1.0]
+[string] 'The activists'
+[graph] '(p<root> / activist)'
+
+NP_subject -> team [1.0]
+[string] 'The team'
+[graph] '(p<root> / team)'
+
+// -------------------------------- original things --------------------------------
+
+NP_original_thing -> fossil_fuels [1.0]
+[string] 'fossil fuels'
+[graph] '(f <root> / fuel :mod (f2 / fossil))'
+
+NP_original_thing -> oil [1.0]
+[string] 'oil'
+[graph] '(o <root> / oil)'
+
+NP_original_thing -> outdated_fridges [1.0]
+[string] 'outdated fridges'
+[graph] '(o <root> / fridges :mod (o2 / outdated))'
+
+NP_original_thing -> imported_coffee [1.0]
+[string] 'imported coffee'
+[graph] '(i <root> / coffee :ARG1-of (i3 / import-01))'
+
+// -------------------------------- buyers --------------------------------
+
+NP_buyer -> anyone_lots_of_cash [1.0]
+[string] 'anyone with lots of cash'
+[graph] '(a <root> / anyone :poss-of (c / cash :quant (l / lot)))'
+
+NP_buyer -> everybody [1.0]
+[string] 'everybody'
+[graph] '(a <root> / everybody)'
+
+NP_buyer -> first_to_show_up [1.0]
+[string] 'the first to show up'
+[graph] '(p <root> / person :ord (o / ordinal-entity :value 1) :ARG1-of (s / show-up-02))'
+
+NP_buyer -> every_household [1.0]
+[string] 'every household'
+[graph] '(h <root> / household :mod (e / every))'
