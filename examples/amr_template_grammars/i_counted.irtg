@@ -1,0 +1,313 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+F! -> template(NP_and) [1.0]
+[string] *('I saw', *(?1, '.'))
+[graph]  APP_obj('(s<root> / see-01 :ARG0 (i / i) :ARG1 (o<obj>))--TYPE--(obj())', ?1)
+
+NP_full -> combine(NP_thing, Number) [1.0]
+[string] *(?2, ?1)
+[graph]  APP_t(APP_q('(t<root,t> :quant (q<q>))--TYPE--(t(), q())', ?2), ?1)
+
+// -------------------------------- things -------------------------------------------
+
+NP_thing -> cars [1.0]
+[string] 'cars'
+[graph] '(c<root> / car)'
+
+NP_thing -> rockets [1.0]
+[string] 'rockets'
+[graph] '(r<root> / rocket)'
+
+NP_thing -> spaceships [1.0]
+[string] 'spaceships'
+[graph] '(s<root> / spaceship)'
+
+NP_thing -> boats [1.0]
+[string] 'boats'
+[graph] '(b<root> / boat)'
+
+NP_thing -> submarines [1.0]
+[string] 'submarines'
+[graph] '(s<root> / submarine)'
+
+NP_thing -> trees [1.0]
+[string] 'trees'
+[graph] '(t<root> / tree)'
+
+NP_thing -> lions [1.0]
+[string] 'lions'
+[graph] '(l<root> / lion)'
+
+NP_thing -> dinosaurs [1.0]
+[string] 'dinosaurs'
+[graph] '(d<root> / dinosaur)'
+
+NP_thing -> diamonds [1.0]
+[string] 'diamonds'
+[graph] '(d<root> / diamond)'
+
+NP_thing -> astronauts [1.0]
+[string] 'astronauts'
+[graph] '(a<root> / astronaut)'
+
+NP_thing -> soldiers [1.0]
+[string] 'soldiers'
+[graph] '(s<root> / soldier)'
+
+NP_thing -> clouds [1.0]
+[string] 'clouds'
+[graph] '(c<root> / cloud)'
+
+NP_thing -> rats [1.0]
+[string] 'rats'
+[graph] '(r<root> / rat)'
+
+NP_thing -> foxes [1.0]
+[string] 'foxes'
+[graph] '(f<root> / fox)'
+
+NP_thing -> weapons [1.0]
+[string] 'weapons'
+[graph] '(w<root> / weapon)'
+
+NP_thing -> children [1.0]
+[string] 'children'
+[graph] '(c<root> / child)'
+
+NP_thing -> women [1.0]
+[string] 'women'
+[graph] '(w<root> / woman)'
+
+NP_thing -> universities [1.0]
+[string] 'universities'
+[graph] '(u<root> / university)'
+
+NP_thing -> bombs [1.0]
+[string] 'bombs'
+[graph] '(b<root> / bomb)'
+
+NP_thing -> ships [1.0]
+[string] 'ships'
+[graph] '(s<root> / ship)'
+
+NP_thing -> buses [1.0]
+[string] 'buses'
+[graph] '(b<root> / bus)'
+
+NP_thing -> airports [1.0]
+[string] 'airports'
+[graph] '(a<root> / airport)'
+
+NP_thing -> mosques [1.0]
+[string] 'mosques'
+[graph] '(m<root> / mosque)'
+
+NP_thing -> churches [1.0]
+[string] 'churches'
+[graph] '(c<root> / church)'
+
+NP_thing -> barrels [1.0]
+[string] 'barrels'
+[graph] '(b<root> / barrel)'
+
+NP_thing -> trucks [1.0]
+[string] 'trucks'
+[graph] '(t<root> / truck)'
+
+NP_thing -> roads [1.0]
+[string] 'roads'
+[graph] '(r<root> / road)'
+
+NP_thing -> schools [1.0]
+[string] 'schools'
+[graph] '(s<root> / school)'
+
+NP_thing -> bikes [1.0]
+[string] 'bikes'
+[graph] '(b<root> / bike)'
+
+NP_thing -> dogs [1.0]
+[string] 'dogs'
+[graph] '(d<root> / dog)'
+
+NP_thing -> cats [1.0]
+[string] 'cats'
+[graph] '(c<root> / cat)'
+
+NP_thing -> boxes [1.0]
+[string] 'boxes'
+[graph] '(b<root> / box)'
+
+NP_thing -> tanks [1.0]
+[string] 'tanks'
+[graph] '(t<root> / tank)'
+
+NP_thing -> airplanes [1.0]
+[string] 'airplanes'
+[graph] '(a<root> / airplane)'
+
+NP_thing -> veterinarians [1.0]
+[string] 'veterinarians'
+[graph] '(v<root> / veterinarian)'
+
+NP_thing -> museums [1.0]
+[string] 'museums'
+[graph] '(m<root> / museum)'
+
+// -------------------------------- numbers -------------------------------------------
+
+Number -> two [1.0]
+[string] 'two'
+[graph] '(q<root> / 2)'
+
+Number -> three [1.0]
+[string] 'three'
+[graph] '(q<root> / 3)'
+
+Number -> four [1.0]
+[string] 'four'
+[graph] '(q<root> / 4)'
+
+Number -> five [1.0]
+[string] 'five'
+[graph] '(q<root> / 5)'
+
+Number -> six [1.0]
+[string] 'six'
+[graph] '(q<root> / 6)'
+
+Number -> seven [1.0]
+[string] 'seven'
+[graph] '(q<root> / 7)'
+
+Number -> eight [1.0]
+[string] 'eight'
+[graph] '(q<root> / 8)'
+
+Number -> nine [1.0]
+[string] 'nine'
+[graph] '(q<root> / 9)'
+
+Number -> ten [1.0]
+[string] 'ten'
+[graph] '(q<root> / 10)'
+
+Number -> eleven [1.0]
+[string] 'eleven'
+[graph] '(q<root> / 11)'
+
+Number -> twelve [1.0]
+[string] 'twelve'
+[graph] '(q<root> / 12)'
+
+Number -> n13 [1.0]
+[string] '13'
+[graph] '(q<root> / 13)'
+
+Number -> n14 [1.0]
+[string] '14'
+[graph] '(q<root> / 14)'
+
+Number -> n15 [1.0]
+[string] '15'
+[graph] '(q<root> / 15)'
+
+Number -> n18 [1.0]
+[string] '18'
+[graph] '(q<root> / 18)'
+
+Number -> n20 [1.0]
+[string] '20'
+[graph] '(q<root> / 20)'
+
+Number -> n21 [1.0]
+[string] '21'
+[graph] '(q<root> / 21)'
+
+Number -> n25 [1.0]
+[string] '25'
+[graph] '(q<root> / 25)'
+
+Number -> n29 [1.0]
+[string] '29'
+[graph] '(q<root> / 29)'
+
+Number -> n37 [1.0]
+[string] '37'
+[graph] '(q<root> / 37)'
+
+Number -> n44 [1.0]
+[string] '44'
+[graph] '(q<root> / 44)'
+
+Number -> n51 [1.0]
+[string] '51'
+[graph] '(q<root> / 51)'
+
+Number -> n71 [1.0]
+[string] '71'
+[graph] '(q<root> / 71)'
+
+Number -> n98 [1.0]
+[string] '98'
+[graph] '(q<root> / 98)'
+
+Number -> n122 [1.0]
+[string] '122'
+[graph] '(q<root> / 122)'
+
+Number -> n235 [1.0]
+[string] '235'
+[graph] '(q<root> / 235)'
+
+Number -> n376 [1.0]
+[string] '376'
+[graph] '(q<root> / 376)'
+
+Number -> n513 [1.0]
+[string] '513'
+[graph] '(q<root> / 513)'
+
+Number -> n765 [1.0]
+[string] '765'
+[graph] '(q<root> / 765)'
+
+Number -> n876 [1.0]
+[string] '876'
+[graph] '(q<root> / 876)'
+
+Number -> n107 [1.0]
+[string] '107'
+[graph] '(q<root> / 107)'
+
+Number -> n343 [1.0]
+[string] '343'
+[graph] '(q<root> / 343)'
+
+Number -> n1487 [1.0]
+[string] '1487'
+[graph] '(q<root> / 1487)'
+
+Number -> n2932 [1.0]
+[string] '2932'
+[graph] '(q<root> / 2932)'
+
+Number -> n3874 [1.0]
+[string] '3874'
+[graph] '(q<root> / 3874)'
+
+Number -> n5659 [1.0]
+[string] '5659'
+[graph] '(q<root> / 5659)'
+
+
+
+
+
+
+
+

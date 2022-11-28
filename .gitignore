@@ -130,3 +130,5 @@ examples/amr_template_grammars/long_lists_countries_singletons.txt
 examples/amr_template_grammars/long_lists_shopping.txt
 examples/amr_template_grammars/long_lists_shopping_singletons.txt
 examples/amr_template_grammars/long_lists_singletons.txt
+examples/amr_template_grammars/i_counted.txt
+examples/amr_template_grammars/i_counted_singletons.txt
