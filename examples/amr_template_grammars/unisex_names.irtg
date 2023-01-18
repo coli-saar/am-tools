@@ -1,0 +1,142 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// non-terminals and their types
+// F: ()
+// NP: ()
+// N: ()
+// DET: ()
+// VP_past: (s)
+// V_intr_past: (s)
+// V_trans_past: (s, o)
+// COORD_empty: (op1, op2)
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// "X has reasons to be proud of his career"
+F! -> template_proud_male(NN_male) [1.0]
+[string] *(?1, 'has reasons to be proud of his career.')
+[graph]  APP_subj('(h<root> / have-03
+                        :ARG0 (p2 <subj>)
+                        :ARG1 (r / reason
+                              :ARG0-of (c / cause-01
+                                    :ARG1 (p / pride-01
+                                          :ARG0 p2
+                                          :ARG1 (c2 / career
+                                                :poss p2)))))--TYPE--(subj())', ?1)
+
+F! -> template_proud_female(NN_female) [1.0]
+[string] *(?1, 'has reasons to be proud of her career.')
+[graph]  APP_subj('(h<root> / have-03
+                        :ARG0 (p2 <subj>)
+                        :ARG1 (r / reason
+                              :ARG0-of (c / cause-01
+                                    :ARG1 (p / pride-01
+                                          :ARG0 p2
+                                          :ARG1 (c2 / career
+                                                :poss p2)))))--TYPE--(subj())', ?1)
+
+F! -> template_bakes_female(NN_female) [1.0]
+[string] *("We don't know how often", *(?1, "bakes a cake for herself."))
+[graph] APP_subj('(k<root> / know-01 :polarity -
+                        :ARG0 (w / we)
+                        :ARG1 (t / thing
+                              :frequency-of (b / bake-01
+                                    :ARG0 (p3 <subj>)
+                                    :ARG1 (c3 / cake)
+                                    :ARG3 p3)))--TYPE--(subj())', ?1)
+
+F! -> template_bakes_male(NN_male) [1.0]
+[string] *("We don't know how often", *(?1, "bakes a cake for himself."))
+[graph] APP_subj('(k<root> / know-01 :polarity -
+                        :ARG0 (w / we)
+                        :ARG1 (t / thing
+                              :frequency-of (b / bake-01
+                                    :ARG0 (p3 <subj>)
+                                    :ARG1 (c3 / cake)
+                                    :ARG3 p3)))--TYPE--(subj())', ?1)
+
+F! -> template_mirror_female(NN_female) [1.0]
+[string] *(?1, "looked at herself in the mirror.")
+[graph] APP_subj('(l <root>/ look-01
+                        :ARG0 (p4 <subj>)
+                        :ARG1 p4
+                        :instrument (m / mirror))--TYPE--(subj())', ?1)
+
+F! -> template_mirror_male(NN_male) [1.0]
+[string] *(?1, "looked at himself in the mirror.")
+[graph] APP_subj('(l <root>/ look-01
+                        :ARG0 (p4 <subj>)
+                        :ARG1 p4
+                        :instrument (m / mirror))--TYPE--(subj())', ?1)
+
+F! -> template_wikipedia_female(NN_female) [1.0]
+[string] *("I wonder if", *(?1, "edited her own Wikipedia article."))
+[graph] APP_subj('(w <root>/ wonder-01
+                        :ARG0 (i / i)
+                        :ARG1 (e / edit-01
+                              :ARG0 (p <subj>)
+                              :ARG1 (a / article
+                                    :mod (p2 / publication :wiki "Wikipedia" :name (n / name :op1 "Wikipedia"))
+                                    :topic p)))--TYPE--(subj())', ?1)
+
+F! -> template_wikipedia_male(NN_male) [1.0]
+[string] *("I wonder if", *(?1, "edited his own Wikipedia article."))
+[graph] APP_subj('(w <root>/ wonder-01
+                        :ARG0 (i / i)
+                        :ARG1 (e / edit-01
+                              :ARG0 (p <subj>)
+                              :ARG1 (a / article
+                                    :mod (p2 / publication :wiki "Wikipedia" :name (n / name :op1 "Wikipedia"))
+                                    :topic p)))--TYPE--(subj())', ?1)
+
+// -------------------------------- people -------------------------------------------
+
+NN_male -> kim_amb [1.0]
+[string] 'Kim Amb'
+[graph] '(p<root> / person :name (n / name :op1 "Kim" :op2 "Amb") :wiki "Kim_Amb")'
+
+NN_female -> kim_carnes [1.0]
+[string] 'Kim Carnes'
+[graph] '(p<root> / person :name (n / name :op1 "Kim" :op2 "Carnes") :wiki "Kim_Carnes")'
+
+NN_male -> sasha_skenderija [1.0]
+[string] 'Sasha Skenderija'
+[graph] '(p<root> / person :name (n / name :op1 "Sasha" :op2 "Skenderija") :wiki "Sasha_Skenderija")'
+
+NN_female -> sasha_lane [1.0]
+[string] 'Sasha Lane'
+[graph] '(p<root> / person :name (n / name :op1 "Sasha" :op2 "Lane") :wiki "Sasha_Lane")'
+
+NN_male -> morgan_freeman [1.0]
+[string] 'Morgan Freeman'
+[graph] '(p<root> / person :name (n / name :op1 "Morgan" :op2 "Freeman") :wiki "Morgan_Freeman")'
+
+NN_female -> morgan_fairchild [1.0]
+[string] 'Morgan Fairchild'
+[graph] '(p<root> / person :name (n / name :op1 "Morgan" :op2 "Fairchild") :wiki "Morgan_Fairchild")'
+
+NN_male -> ade_rai [1.0]
+[string] 'Ade Rai'
+[graph] '(p<root> / person :name (n / name :op1 "Ade" :op2 "Rai") :wiki "Ade_Rai")'
+
+NN_female -> ade_solanke [1.0]
+[string] 'Ade Solanke'
+[graph] '(p<root> / person :name (n / name :op1 "Ade" :op2 "Solanke") :wiki "Ade_Solanke")'
+
+NN_male -> jordan_knight [1.0]
+[string] 'Jordan Knight'
+[graph] '(p<root> / person :name (n / name :op1 "Jordan" :op2 "Knight") :wiki "Jordan_Knight")'
+
+NN_female -> jordan_ifueko [1.0]
+[string] 'Jordan Ifueko'
+[graph] '(p<root> / person :name (n / name :op1 "Jordan" :op2 "Ifueko") :wiki "Jordan_Ifueko")'
+
+NN_male -> carey_price [1.0]
+[string] 'Carey Price'
+[graph] '(p<root> / person :name (n / name :op1 "Carey" :op2 "Price") :wiki "Carey_Price")'
+
+NN_female -> carey_mulligan [1.0]
+[string] 'Carey Mulligan'
+[graph] '(p<root> / person :name (n / name :op1 "Carey" :op2 "Mulligan") :wiki "Carey_Mulligan")'

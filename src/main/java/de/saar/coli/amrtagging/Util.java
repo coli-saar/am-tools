@@ -25,13 +25,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.sql.Timestamp;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -440,4 +435,11 @@ public class Util {
     public static String isiAMREscape(String reLex) {
         return reLex.replace("\"","\\\"");
     }
+
+    public static String getTimeStamp() {
+        Timestamp t = new Timestamp(System.currentTimeMillis());
+        Date d = new Date(t.getTime());
+        return d.toString();
+    }
+
 }

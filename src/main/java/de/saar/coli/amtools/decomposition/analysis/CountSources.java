@@ -64,6 +64,9 @@ public class CountSources {
             FileWriter myWriter = new FileWriter(outFilename);
 
             myWriter.write(heading + "\n\n");
+
+            myWriter.write("Total: " + sortedKeys.size());
+            myWriter.write("\nstructure:\nfile name.  item  ####  total number of subtypes\nsubtype: count\n\n");
             // Print for each graph edge label
             for (int i=0; i < sortedKeys.size(); i++) {
                 F label = sortedKeys.get(i);

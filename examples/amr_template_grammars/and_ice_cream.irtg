@@ -1,0 +1,118 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// non-terminals and their types
+// F: ()
+// NP: ()
+// N: ()
+// DET: ()
+// VP_past: (s)
+// V_intr_past: (s)
+// V_trans_past: (s, o)
+// COORD_empty: (op1, op2)
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// VP attachment: X sees Y with a seeing instrument
+F! -> template(NP_and) [1.0]
+[string] *('The local ice cream parlor offers', *(?1, '.'))
+[graph]  APP_obj('(o<root> / offer-01 :ARG0 (p / parlor :ARG1-of (l / local-02) :mod (c / cream :mod (i / ice))) :ARG1 (o2<obj>))--TYPE--(obj())', ?1)
+
+// -------------------------------- flavors -------------------------------------------
+
+NP_flavor -> vanilla [1.0]
+[string] vanilla
+[graph] '(r<root> / vanilla)'
+
+NP_flavor -> chocolate [1.0]
+[string] chocolate
+[graph] '(r<root> / chocolate)'
+
+NP_flavor -> strawberry [1.0]
+[string] strawberry
+[graph] '(r<root> / strawberry)'
+
+NP_flavor -> mint [1.0]
+[string] mint
+[graph] '(r<root> / mint)'
+
+NP_flavor -> coffee [1.0]
+[string] coffee
+[graph] '(r<root> / coffee)'
+
+NP_flavor -> caramel [1.0]
+[string] caramel
+[graph] '(r<root> / caramel)'
+
+NP_flavor -> salted_caramel [1.0]
+[string] 'salted caramel'
+[graph] '(r<root> / caramel :ARG1-of (s / salt-01))'
+
+NP_flavor -> green_apple [1.0]
+[string] 'green apple'
+[graph] '(r<root> / apple :ARG1-of (g / green-02))'
+
+NP_flavor -> lemon [1.0]
+[string] lemon
+[graph] '(r<root> / lemon)'
+
+NP_flavor -> lime [1.0]
+[string] lime
+[graph] '(r<root> / lime)'
+
+NP_flavor -> orange [1.0]
+[string] orange
+[graph] '(r<root> / orange)'
+
+NP_flavor -> peach [1.0]
+[string] peach
+[graph] '(r<root> / peach)'
+
+NP_flavor -> raspberry [1.0]
+[string] raspberry
+[graph] '(r<root> / raspberry)'
+
+NP_flavor -> blueberry [1.0]
+[string] blueberry
+[graph] '(r<root> / blueberry)'
+
+NP_flavor -> pineapple [1.0]
+[string] pineapple
+[graph] '(r<root> / pineapple)'
+
+NP_flavor -> coconut [1.0]
+[string] coconut
+[graph] '(r<root> / coconut)'
+
+NP_flavor -> banana [1.0]
+[string] banana
+[graph] '(r<root> / banana)'
+
+NP_flavor -> mango [1.0]
+[string] mango
+[graph] '(r<root> / mango)'
+
+NP_flavor -> watermelon [1.0]
+[string] watermelon
+[graph] '(r<root> / watermelon)'
+
+NP_flavor -> pistachio [1.0]
+[string] pistachio
+[graph] '(r<root> / pistachio)'
+
+NP_flavor -> walnut [1.0]
+[string] walnut
+[graph] '(r<root> / walnut)'
+
+NP_flavor -> stracciatella [1.0]
+[string] stracciatella
+[graph] '(r<root> / stracciatella)'
+
+NP_flavor -> hazelnut [1.0]
+[string] hazelnut
+[graph] '(r<root> / hazelnut)'
+
+NP_flavor -> yoghurt [1.0]
+[string] yoghurt
+[graph] '(r<root> / yoghurt)'

@@ -7,6 +7,7 @@ package de.saar.coli.amrtagging.formalisms.amr.tools.datascript;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import de.saar.coli.amrtagging.Util;
 import de.saar.coli.amrtagging.formalisms.amr.tools.MakeNETypeLookup;
 import de.saar.coli.amrtagging.formalisms.amr.tools.RareWordsAnnotator;
 import de.saar.coli.amrtagging.formalisms.amr.tools.aligner.Aligner;
@@ -25,11 +26,19 @@ import java.io.IOException;
  */
 public class RawAMRCorpus2TrainingData {
 
+<<<<<<< HEAD
     @Parameter(names = {"--inputPath", "-i"}, description = "Path to folder containing the original AMR files")
     private String inputPath = "/home/mego/Documents/datasets/little-prince/corpus/training";
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder")
     private String outputPath = "/home/mego/Documents/datasets/little-prince/alto/training";
+=======
+    @Parameter(names = {"--inputPath", "-i"}, description = "Path to folder containing the original AMR files", required = true)
+    private String inputPath;
+
+    @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder", required = true)
+    private String outputPath;
+>>>>>>> bf4d48c2c12f8e020c03c5e52219583eb92fad71
     ;
     
     @Parameter(names = {"--grammarFile", "-g"}, description = "Path to Stanford grammar file englishPCFG.txt. If none is provided, no trees are produced in the corpus", required = false)
@@ -50,14 +59,24 @@ public class RawAMRCorpus2TrainingData {
     @Parameter(names = {"--step"}, description = "First step to be executed (default is from the start, step 0). Steps are: 0:altoFormat 1:corefSplit 2:align 3:namesAndDates 4:fixAlignments 5:sortAndFilter")
     private int step = 0;
 
+<<<<<<< HEAD
     @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')")
     private String wordnetPath = "/home/mego/PycharmProjects/am-parser-my-fork/downloaded_models/wordnet3.0/dict";
+=======
+    @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')", required = true)
+    private String wordnetPath;
+>>>>>>> bf4d48c2c12f8e020c03c5e52219583eb92fad71
 
     @Parameter(names = {"--conceptnet"}, description = "Path to ConceptNet csv.gz file", required = false)
     private String conceptnetPath = null;
 
+<<<<<<< HEAD
     @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model")
     private String posModelPath = "/home/mego/PycharmProjects/am-parser-my-fork/downloaded_models/stanford/english-bidirectional-distsim.tagger";
+=======
+    @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model", required = true)
+    private String posModelPath;
+>>>>>>> bf4d48c2c12f8e020c03c5e52219583eb92fad71
 
     @Parameter(names = {"--trees", "-trees"}, description = "Boolean flag saying whether we're using syntactic parse trees", required = false)
     private boolean useTrees;
@@ -65,8 +84,11 @@ public class RawAMRCorpus2TrainingData {
     @Parameter(names = {"--companion"}, description = "Path to MRP companion data (will disable builtin tokenization and POS tagging", required = false)
     private String companionDataPath = null;
 
-    @Parameter(names = {"--help", "-?"}, description = "displays help if this is the only command", help = true)
+    @Parameter(names = {"--help", "-?", "-h"}, description = "displays help if this is the only command", help = true)
     private boolean help = false;
+
+    @Parameter(names = {"--verbose", "-v"}, description = "Flag; if set, during corefSplit prints out all remaining graph IDs in a thread after each graph is done. Makes a huge logfile, but useful for seeing which graphs remain at the end and are taking forever")
+    private boolean verbose = false;
 
     /**
      * Converts a raw AMR corpus to a training corpus in Alto format, including
@@ -89,7 +111,7 @@ public class RawAMRCorpus2TrainingData {
         try {
             commander.parse(args);
         } catch (com.beust.jcommander.ParameterException ex) {
-            System.err.println("An error occured: " + ex.toString());
+            System.err.println("An error occurred: " + ex.toString());
             System.err.println("\n Available options: ");
             commander.usage();
             return;
@@ -113,6 +135,8 @@ public class RawAMRCorpus2TrainingData {
 
         //Step 0: Convert raw AMR corpus into a corpus in Alto format
         if (r2t.step <= 0) {
+            System.err.println("Converting raw AMR corpus into an Alto-formatted corpus");
+            System.err.println(Util.getTimeStamp());
             FullProcess fp = new FullProcess();
             fp.setAmrCorpusPath(r2t.inputPath);
             fp.setOutputPath(path);
@@ -126,7 +150,8 @@ public class RawAMRCorpus2TrainingData {
         if (r2t.corefSplit) {
             if (r2t.step <= 1) {
                 System.err.println("\nRunning coref split");
-                SplitCoref.splitCoref(r2t.outputPath + corpusFileName + ".corpus", r2t.outputPath + "raw.amr", r2t.outputPath + "corefSplit.corpus", r2t.threads, r2t.minutes);
+                System.err.println(Util.getTimeStamp());
+                SplitCoref.splitCoref(r2t.outputPath + corpusFileName + ".corpus", r2t.outputPath + "raw.amr", r2t.outputPath + "corefSplit.corpus", r2t.threads, r2t.minutes, r2t.verbose);
             }
             corpusFileName = "corefSplit";
         }
@@ -134,6 +159,7 @@ public class RawAMRCorpus2TrainingData {
         //Step 2: Alignments
         if (r2t.step <= 2) {
             System.err.println("\nRunning aligner (basic)");
+            System.err.println(Util.getTimeStamp());
 //            String alignerArgs = "-c "+path+corpusFileName+".corpus -o "+path+corpusFileName+".align -w "+r2t.wordnetPath+" -pos "+r2t.posModelPath+" -m p";
 //            Aligner.main(alignerArgs.split(" "));
             Aligner al = new Aligner();
@@ -147,6 +173,7 @@ public class RawAMRCorpus2TrainingData {
             al.align();
 
             System.err.println("\nRunning aligner (all probabilities)");
+            System.err.println(Util.getTimeStamp());
 //            String pAlignerArgs = "-c "+path+corpusFileName+".corpus -o "+path+corpusFileName+".palign -w "+r2t.wordnetPath+" -pos "+r2t.posModelPath+" -m ap";
 //            Aligner.main(pAlignerArgs.split(" "));
             al = new Aligner();
@@ -163,6 +190,7 @@ public class RawAMRCorpus2TrainingData {
         //Step 3: Replacing names, dates and numbers
         if (r2t.step <= 3) {
             System.err.println("\nRunning RareWordsAnnotator");
+            System.err.println(Util.getTimeStamp());
             String rareWordsArgs = "-c " + path + corpusFileName + ".corpus -o " + path + "namesDatesNumbers.corpus -a "
                     + path + corpusFileName + ".align -pa " + path + corpusFileName + ".palign -t 0" + treeString;
             RareWordsAnnotator.main(rareWordsArgs.split(" "));
@@ -172,11 +200,14 @@ public class RawAMRCorpus2TrainingData {
         //Step 4: fix alignments
         if (r2t.step <= 4) {
             System.err.println("\nFixing unaligned words");
+            System.err.println(Util.getTimeStamp());
             FixUnalignedNodes.fixUnalignedNodes(path + "namesDatesNumbers.corpus", 5);
         }
 
         //Step 5: sort and filter corpus
         if (r2t.step <= 5) {
+            System.err.println("\nSorting and filtering corpus");
+            System.err.println(Util.getTimeStamp());
             String sortArgs = path + "namesDatesNumbers_AlsFixed.corpus -m " + r2t.maxNodes + " -gi repgraph";
             SortAndFilterAMRCorpus.main(sortArgs.split(" "));
         }

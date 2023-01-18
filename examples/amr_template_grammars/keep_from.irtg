@@ -1,0 +1,110 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// NP attachment: X keeps object Y that comes from a place Z
+F! -> templateKeepObject(NP_subject, NP_kept_object, NP_location) [1.0]
+[string] *('For thirty years,',*(?1, *('has kept', *(?2, *('from', *(?3, '.'))))))
+[graph]  APP_subj(APP_obj('(k<root> / keep-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())', MOD_from(?2, APP_loc('(r<root, from> :source (i<loc>))--TYPE--(from(), loc())', ?3))), ?1)
+
+// VP attachment: X withholds information Y from person(s) Z
+F! -> templateKeepInformationFrom(NP_subject, NP_information, NP_people_kept_in_the_dark) [1.0]
+[string] *('For thirty years,',*(?1, *('has kept', *(?2, *('from', *(?3, '.'))))))
+[graph]  APP_subj(APP_obj(APP_obj2('(k / keep-04 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2())', ?3), ?2), ?1)
+
+
+// -------------------------------- NP people kept in the dark -------------------------------------------
+
+NP_people_kept_in_the_dark -> children [1.0]
+[string] 'the children'
+[graph] '(p2<root> / child)'
+
+NP_people_kept_in_the_dark -> mark [1.0]
+[string] 'Mark'
+[graph] '(p2<root> / person :wiki - :name (n / name :op1 "Mark"))'
+
+NP_people_kept_in_the_dark -> police [1.0]
+[string] 'the police'
+[graph] '(p2<root> / police)'
+
+NP_people_kept_in_the_dark -> jenny [1.0]
+[string] 'Jenny'
+[graph] '(p2<root> / person :wiki - :name (n / name :op1 "Jenny"))'
+
+
+
+// -------------------------------- subjects --------------------------------
+
+NP_subject -> she [1.0]
+[string] 'she'
+[graph] '(p<root> / she)'
+
+NP_subject -> fool [1.0]
+[string] 'the fool'
+[graph] '(p<root> / fool)'
+
+NP_subject -> Anne [1.0]
+[string] 'Anne'
+[graph] '(p<root> / person :name (n / name :op1 "Anne"))'
+
+NP_subject -> hero [1.0]
+[string] 'the hero'
+[graph] '(p<root> / hero)'
+
+// -------------------------------- kept objects --------------------------------
+
+NP_kept_object -> postcard [1.0]
+[string] 'this postcard'
+[graph] '(p<root> / postcard :mod (t / this))'
+
+NP_kept_object -> letter [1.0]
+[string] 'this letter'
+[graph] '(p<root> / letter :mod (t / this))'
+
+NP_kept_object -> necklace [1.0]
+[string] 'this necklace'
+[graph] '(p<root> / necklace :mod (t / this))'
+
+NP_kept_object -> souvenir [1.0]
+[string] 'this souvenir'
+[graph] '(p<root> / souvenir :mod (t / this))'
+
+// -------------------------------- locations --------------------------------
+
+NP_location -> Minsk [1.0]
+[string] 'Minsk'
+[graph] '(p<root> / city :wiki Minsk :name (n / name :op1 "Minsk"))'
+
+NP_location -> Munich [1.0]
+[string] 'Munich'
+[graph] '(p<root> / city :wiki Munich :name (n / name :op1 "Munich"))'
+
+NP_location -> that_adventure [1.0]
+[string] 'that adventure'
+[graph] '(p<root> / adventure :mod (t / that))'
+
+NP_location -> Haiti [1.0]
+[string] 'Haiti'
+[graph] '(p<root> / country :wiki Haiti :name (n / name :op1 "Haiti"))'
+
+
+
+// -------------------------------- information --------------------------------
+
+NP_information -> information [1.0]
+[string] 'this information'
+[graph] '(p<root> / information :mod (t / this))'
+
+NP_information -> news [1.0]
+[string] 'this news'
+[graph] '(p<root> / news :mod (t / this))'
+
+NP_information -> knowledge [1.0]
+[string] 'this knowledge'
+[graph] '(p<root> / knowledge :mod (t / this))'
+
+NP_information -> wisdom [1.0]
+[string] 'this wisdom'
+[graph] '(p<root> / wisdom :mod (t / this))'

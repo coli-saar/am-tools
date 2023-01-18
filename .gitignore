@@ -122,3 +122,17 @@ examples/output/0.pdf
 lib/sdp.jar
 examples/decomposition_input/amr_out/dev.amconll
 examples/decomposition_input/dm_out/dev.amconll
+outputs/*
+examples/amr_template_grammars/long_lists.txt
+examples/amr_template_grammars/pp_attachment.txt
+examples/amr_template_grammars/long_lists_countries.txt
+examples/amr_template_grammars/long_lists_countries_singletons.txt
+examples/amr_template_grammars/long_lists_shopping.txt
+examples/amr_template_grammars/long_lists_shopping_singletons.txt
+examples/amr_template_grammars/long_lists_singletons.txt
+examples/amr_template_grammars/i_counted.txt
+examples/amr_template_grammars/i_counted_singletons.txt
+examples/amr_template_grammars/pp_attachment_from.txt
+examples/amr_template_grammars/pp_attachment_to.txt
+examples/amr_template_grammars/sampling_test.txt
+examples/amr_template_grammars/centre_embedding.txt

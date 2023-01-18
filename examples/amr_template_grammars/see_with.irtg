@@ -1,0 +1,161 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// non-terminals and their types
+// F: ()
+// NP: ()
+// N: ()
+// DET: ()
+// VP_past: (s)
+// V_intr_past: (s)
+// V_trans_past: (s, o)
+// COORD_empty: (op1, op2)
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// VP attachment: X sees Y with a seeing instrument
+F! -> templateSeeWithInstrument(NP_subject, VP_seeing_verb, NP_non_person_object_seen, NP_seeing_implement) [1.0]
+[string] *(?1,*(?2, *(?3, *('with', *(?4, '.')))))
+[graph]  APP_subj(APP_obj(MOD_with(?2, APP_instr('(r<root, with> :instrument (i<instr>))--TYPE--(with(), instr())', ?4)), ?3), ?1)
+
+F! -> templateNPAttachmentWithInstrument(NP_subject, VP_incompatible_with_seeing_instrument_verb, NP_person_seen, NP_seeing_implement) [1.0]
+[string] *(?1,*(?2, *(?3, *('with', *(?4, '.')))))
+[graph]  APP_subj(APP_obj(?2, MOD_with(?3, APP_poss('(r<root, with> :poss-of (i<poss>))--TYPE--(with(), poss())', ?4))), ?1)
+
+F! -> templateNPAttachmentWithProperty(NP_subject, VP_seeing_verb, NP_person_seen, NP_personal_property) [1.0]
+[string] *(?1,*(?2, *(?3, *('with', *(?4, '.')))))
+[graph]  APP_subj(APP_obj(?2, MOD_with(?3, APP_poss('(r<root, with> :poss-of (i<poss>))--TYPE--(with(), poss())', ?4))), ?1)
+
+// -------------------------------- seeing verbs -------------------------------------------
+
+VP_seeing_verb -> see [1.0]
+[string] saw
+[graph] '(r<root> / see-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_seeing_verb -> look [1.0]
+[string] 'looked at'
+[graph] '(r<root> / look-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_seeing_verb -> observe [1.0]
+[string] observed
+[graph] '(r<root> / observe-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_seeing_verb -> peek [1.0]
+[string] 'peeked at'
+[graph] '(r<root> / peek-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+// -------------------------------- verbs incompatible with seeing instrument -------------------------------------------
+
+VP_incompatible_with_seeing_instrument_verb -> understand [1.0]
+[string] understood
+[graph] '(r<root> / understand-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_incompatible_with_seeing_instrument_verb -> know [1.0]
+[string] knew
+[graph] '(r<root> / know-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_incompatible_with_seeing_instrument_verb -> hate [1.0]
+[string] hated
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_incompatible_with_seeing_instrument_verb -> sing_to [1.0]
+[string] 'sang to'
+[graph] '(r<root> / sing-01 :ARG0 (s<subj>) :ARG2 (o<obj>))--TYPE--(subj(), obj())'
+
+VP_incompatible_with_seeing_instrument_verb -> address [1.0]
+[string] addressed
+[graph] '(r<root> / address-01 :ARG0 (s<subj>) :ARG2 (o<obj>))--TYPE--(subj(), obj())'
+
+// -------------------------------- NP person seen -------------------------------------------
+
+NP_person_seen -> stranger [1.0]
+[string] 'the stranger'
+[graph] '(p2<root> / stranger)'
+
+NP_person_seen -> girl [1.0]
+[string] 'the girl'
+[graph] '(g<root> / girl)'
+
+NP_person_seen -> soldier [1.0]
+[string] 'the soldier'
+[graph] '(z0<root> / soldier)'
+
+NP_person_seen -> journalist [1.0]
+[string] 'the journalist'
+[graph] '(z0<root> / journalist)'
+
+// -------------------------------- subjects --------------------------------
+
+NP_subject -> baker [1.0]
+[string] 'The baker'
+[graph] '(p<root> / person :ARG0-of (b / bake-01))'
+
+NP_subject -> professor [1.0]
+[string] 'The professor'
+[graph] '(p<root> / professor)'
+
+NP_subject -> John [1.0]
+[string] 'John'
+[graph] '(p<root> / person :name (n / name :op1 "John"))'
+
+NP_subject -> Sophie [1.0]
+[string] 'Sophie'
+[graph] '(p<root> / person :name (n / name :op1 "Sophie"))'
+
+NP_subject -> general [1.0]
+[string] 'The general'
+[graph] '(p<root> / person :ARG0-of (z0 / have-org-role-91 :ARG2 (z1 / general)))'
+
+// -------------------------------- non-person objects seen --------------------------------
+
+NP_non_person_object_seen -> northern_lights [1.0]
+[string] 'the northern lights'
+[graph] '(c<root> / light :location (n/north))'  // TODO not sure if this is correct
+
+NP_non_person_object_seen -> moon [1.0]
+[string] 'the moon'
+[graph] '(m<root> / moon)'
+
+NP_non_person_object_seen -> rainfall [1.0]
+[string] 'the rainfall'
+[graph] '(b<root> / rainfall)'
+
+NP_non_person_object_seen -> army [1.0]
+[string] 'the army'
+[graph] '(a<root> / army)'
+
+
+
+// -------------------------------- seeing instruments --------------------------------
+
+NP_seeing_implement -> telescope [1.0]
+[string] 'the telescope'
+[graph] '(t<root> / telescope)'
+
+NP_seeing_implement -> binoculars [1.0]
+[string] 'the binoculars'
+[graph] '(b<root> / binoculars)'
+
+NP_seeing_implement -> spyglass [1.0]
+[string] 'the spyglass'
+[graph] '(b<root> / spyglass)'
+
+// -------------------------------- personal properties --------------------------------
+
+NP_personal_property -> hat [1.0]
+[string] 'the hat'
+[graph] '(h<root> / hat)'
+
+NP_personal_property -> red_t_shirt [1.0]
+[string] 'the red t-shirt'
+[graph] '(t<root> / t-shirt :ARG1-of (r / red-02))'
+
+NP_personal_property -> weird_hair [1.0]
+[string] 'the weird hair'
+[graph] '(h<root> / hair :mod (w / weird))'
+
+NP_personal_property -> large_eyebrows [1.0]
+[string] 'the large eyebrows'
+[graph] '(e<root> / eyebrow :mod (l / large))'
+

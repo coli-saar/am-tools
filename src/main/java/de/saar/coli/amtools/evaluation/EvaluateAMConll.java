@@ -49,7 +49,7 @@ public class EvaluateAMConll {
     @Parameter(names = {"--help", "-?","-h"}, description = "displays help if this is the only command", help = true)
     private boolean help=false;
 
-    public boolean continueBeyondCommandLineArgumentReading;
+    public boolean continueBeyondCommandLineArgumentReading = false;
 
 
 
@@ -80,7 +80,7 @@ public class EvaluateAMConll {
         try {
             commander.parse(args);
         } catch (com.beust.jcommander.ParameterException ex) {
-            System.err.println("An error occured: " + ex.toString());
+            System.err.println("An error occurred: " + ex.toString());
             System.err.println("\n Available options: ");
             commander.usage();
             continueBeyondCommandLineArgumentReading = false;
@@ -89,9 +89,9 @@ public class EvaluateAMConll {
         if (help) {
             commander.usage();
             continueBeyondCommandLineArgumentReading = false;
+        } else {
+            continueBeyondCommandLineArgumentReading = true;
         }
-
-        continueBeyondCommandLineArgumentReading = true;
     }
 
 
