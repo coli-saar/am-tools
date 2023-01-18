@@ -1,0 +1,110 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+// TODO check word senses
+
+// -------------Final TP -------------
+//
+
+TP! -> TP(Vbar, NP) [1.0]
+[string] *(?2, ?1)
+[graph] APP_subj(?1, ?2)
+
+
+// 
+
+ObjRC -> obj_rel(Vtr, NP) [1.0]
+[string] *(who, *(?2, ?1))
+[graph] APP_subj(?1, ?2)
+
+
+// ---------------V'------------------
+
+
+Vbar -> Vbar_tr(Vtr, NP_final) [0.6]
+[string] *(?1, ?2)
+[graph] APP_obj(?1, ?2)
+
+Vbar -> Vbar_intr(Vintr) [0.4]
+[string] ?1
+[graph] ?1
+
+
+
+// ------------- Verbs -----------
+
+Vtr -> likes [0.2]
+[string] likes
+[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+Vtr -> saw [0.2]
+[string] saw
+[graph] '(r<root> / see-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+Vtr -> met [0.2]
+[string] met
+[graph] '(r<root> / meet-02 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+Vtr -> hugged [0.2]
+[string] hugged
+[graph] '(r<root> / hug-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+Vtr -> taught [0.2]
+[string] taught
+[graph] '(r<root> / teach-01 :ARG0 (s<subj>) :ARG2 (o<obj>))--TYPE--(subj(), obj())'
+
+Vtr -> amused [0.2]
+[string] amused
+[graph] '(r<root> / amuse-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+Vintr -> left [0.5]
+[string] left
+[graph] '(r<root> / leave-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
+Vintr -> slept [0.5]
+[string] slept
+[graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
+Vintr -> laughed [0.5]
+[string] laughed
+[graph] '(r<root> / laugh-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
+// -------- NP with RC -------------
+
+NP -> NP_RC(NP_final, ObjRC) [0.5]
+[string] *(?1, ?2)
+[graph] MOD_obj(?1, ?2)
+
+NP -> finish_NP(NP_final) [0.5]
+[string] ?1
+[graph] ?1
+
+// -------- Nouns -------------------
+
+NP_final -> girl [0.1]
+[string] *(the, girl)
+[graph] '(r<root> / girl)--TYPE--()'
+
+NP_final -> child [0.1]
+[string] *(the, child)
+[graph] '(r<root> / child)--TYPE--()'
+
+NP_final -> doctor [0.1]
+[string] *(the, doctor)
+[graph] '(r<root> / doctor)--TYPE--()'
+
+NP_final -> boy [0.1]
+[string] *(the, boy)
+[graph] '(r<root> / boy)--TYPE--()'
+
+NP_final -> woman [0.1]
+[string] *(the, woman)
+[graph] '(r<root> / woman)--TYPE--()'
+
+NP_final -> astronaut [0.1]
+[string] *(the, astronaut)
+[graph] '(r<root> / astronaut)--TYPE--()'
+
+NP_final -> mechanic [0.1]
+[string] *(the, mechanic)
+[graph] '(r<root> / mechanic)--TYPE--()'

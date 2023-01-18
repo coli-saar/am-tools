@@ -1,0 +1,166 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+// non-terminals and their types
+// F!: ()
+// Open_S_inf: (s)  : NT + sleep, jump, attend
+// SubjCrtl: (s, o(s)) : try, want, hate
+// ObjCrtl: (s, o, o2(s->o)) : persuade, ask, beg
+// Subj: () : I, we, you
+// Obj: () : girl, boy, child, doctor, her, him, them
+
+// TODO check word senses
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// to keep the subjects and objects distinct, we made subjects 1st and 2nd person, and objects 3rd person
+
+// Full sentences
+
+F! -> SubjCtrlSent(SubjCtrl, Open_S_to, Subj) [0.5]
+[string] *(*(?3, *(?1, ?2)), '.')
+[graph] APP_subj(APP_obj(?1, ?2), ?3)
+
+F! -> ObjCtrlSent(ObjCtrl, Open_S_to, Obj, Subj) [0.5]
+[string] *(*(?4, *(?1, *(?3, ?2))), '.')
+[graph] APP_subj(APP_obj(APP_obj2(?1, ?2), ?3), ?4)
+
+
+// ------------------------------- TP with PRO subject ------------------------------------------
+
+Open_S_to -> TP_PRO(Open_S_inf) [1.0]
+[string] *(to, ?1)
+[graph] ?1
+
+// ________________________________ V' with missing subject ______________________________________
+
+// recursive rule for nested subject control
+Open_S_inf -> VbarSubjCtrl(SubjCtrl, Open_S_to) [0.2]
+[string] *(?1, ?2)
+[graph]  APP_obj(?1, ?2)
+
+// recursive rule for nested object control
+// WARNING: using this adds indefinitely many 3p Objs which some parsers will interpret as the same person, e.g. I persuaded her to get her to leave
+Open_S_inf -> VbarObjCtrl(ObjCtrl, Open_S_to, Obj) [0.2]
+[string] *(?1, *(?3, ?2))
+[graph]  APP_obj(APP_obj2(?1, ?2), ?3)
+
+
+// constants
+Open_S_inf -> sleep [0.1]
+[string] sleep
+[graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Open_S_inf -> jump [0.1]
+[string] jump
+[graph] '(r<root> / jump-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Open_S_inf -> attend [0.1]
+[string] attend
+[graph] '(r<root> / attend-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Open_S_inf -> Coord_Open_S_inf(And_Open_S, Open_S_inf, Open_S_inf) [0.5]
+[string] *(?2, *(?1, ?3))
+[graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+//Open_S_to -> Coord_Open_S_to(And_Open_S, Open_S_to, Open_S_to) [0.6]
+//[string] *(?2, *(?1, ?3))
+//[graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+SubjCtrl -> Coord_Subj_Ctrl_V(And_Subj_Control_Verb, SubjCtrl, SubjCtrl) [0.25]
+[string] *(?2, *(?1, ?3))
+[graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+
+
+// -------------------------------- conjunctions --------------------------------------------------
+
+And_Open_S -> and_open_s [1.0]
+[string] and
+[graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>))--TYPE--(op1(subj()), op2(subj()))'
+
+And_Subj_Control_Verb -> and_subj_control_verb [1.0]
+[string] and
+[graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>))--TYPE--(op1(obj(subj())), op2(obj(subj())))'
+
+// -------------------------------- subject control verbs -------------------------------------------
+
+SubjCtrl -> try [0.34]
+[string] try
+[graph] '(r<root> / try-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl -> want [0.33]
+[string] want
+[graph] '(r<root> / want-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl -> hate [0.33]
+[string] hate
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl -> love [0.33]
+[string] love
+[graph] '(r<root> / love-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl -> refuse [0.33]
+[string] refuse
+[graph] '(r<root> / refuse-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+// -------------------------------- object control verbs --------------------------------------------
+
+ObjCtrl -> persuade [0.34]
+[string] persuade
+[graph] '(r<root> / persuade-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+ObjCtrl -> ask [0.33]
+[string] ask
+[graph] '(r<root> / ask-02 :ARG0 (s<subj>) :ARG2 (o<obj>) :ARG1 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+ObjCtrl -> beg [0.33]
+[string] beg
+[graph] '(r<root> / beg-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+ObjCtrl -> force [0.33]
+[string] force
+[graph] '(r<root> / force-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+
+
+// -------------------------------- subjects -------------------------------------------------
+// 1st and 2nd person only
+
+Subj -> I [0.33]
+[string] I
+[graph] '(r<root> / i)--TYPE--()'
+
+Subj -> we [0.33]
+[string] We
+[graph] '(r<root> / we)--TYPE--()'
+
+Subj -> you [0.34]
+[string] You
+[graph] '(r<root> / you)--TYPE--()'
+
+
+// -------------------------------- objects -------------------------------------------------
+// 3rd person only
+
+Obj -> them [0.2]
+[string] them
+[graph] '(r<root> / they)--TYPE--()'
+
+Obj -> girl [0.2]
+[string] *(the, girl)
+[graph] '(r<root> / girl)--TYPE--()'
+
+Obj -> child [0.2]
+[string] *(the, child)
+[graph] '(r<root> / child)--TYPE--()'
+
+Obj -> doctor [0.2]
+[string] *(the, doctor)
+[graph] '(r<root> / doctor)--TYPE--()'
+
+Obj -> boy [0.2]
+[string] *(the, boy)
+[graph] '(r<root> / boy)--TYPE--()'
+

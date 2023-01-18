@@ -134,3 +134,5 @@ examples/amr_template_grammars/i_counted.txt
 examples/amr_template_grammars/i_counted_singletons.txt
 examples/amr_template_grammars/pp_attachment_from.txt
 examples/amr_template_grammars/pp_attachment_to.txt
+examples/amr_template_grammars/sampling_test.txt
+examples/amr_template_grammars/centre_embedding.txt
