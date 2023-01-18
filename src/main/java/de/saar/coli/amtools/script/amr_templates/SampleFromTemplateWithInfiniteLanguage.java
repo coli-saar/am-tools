@@ -19,23 +19,25 @@ public class SampleFromTemplateWithInfiniteLanguage {
     static int null_pointer_exception_count = 0;
 
     public static void main(String[] args) throws IOException, ParseException {
+        // for in-line list creation, use Arrays.asList if multiple objects;
+        // use Collections.singletonList if only one object
 
-        int numSamples = 25;
-        int minDepth = 4;
-        int maxDepth = 8;
 
-        int depthStep = 2;
+        // centre embedding
+//        sampleFromGrammar(25, 4, 8, 2,
+//                "examples/amr_template_grammars/centre_embedding.irtg",
+//                "examples/amr_template_grammars/centre_embedding.txt",
+//                "Randomly sampled examples of centre embedding. Created by a grammar.",
+//                new HashSet<>(Arrays.asList("obj_rel", "NP_RC")),
+//                Collections.singletonList(new Pair<>("ObjRC", 0.5)));
 
-        String irtgPath = "examples/amr_template_grammars/centre_embedding.irtg";
-        String outputFile = "examples/amr_template_grammars/centre_embedding.txt";
-        String description = "Randomly sampled examples of centre embedding. Created by a grammar.";
-
-        Set<String> ruleLabelsWithDuplicatesAllowed = new HashSet<>(Arrays.asList("obj_rel", "NP_RC"));
-        List<Pair<String, Double>> insideOverrides = new ArrayList<>();
-        insideOverrides.add(new Pair<>("ObjRC", 0.5));
-
-        sampleFromGrammar(numSamples, minDepth, maxDepth, depthStep, irtgPath, outputFile, description,
-                ruleLabelsWithDuplicatesAllowed, insideOverrides);
+        // centre embedding
+        sampleFromGrammar(25, 4, 8, 2,
+                "examples/amr_template_grammars/centre_embedding.irtg",
+                "examples/amr_template_grammars/centre_embedding.txt",
+                "Randomly sampled examples of centre embedding. Created by a grammar.",
+                new HashSet<>(Arrays.asList("obj_rel", "NP_RC")),
+                Collections.singletonList(new Pair<>("ObjRC", 0.5)));
     }
 
     /**
