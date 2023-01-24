@@ -1,0 +1,278 @@
+# Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.
+
+# ::snt You want to jump and to attend.
+(u_564 / want-01  :ARG0 (r / you  :ARG0-of (u_565 / jump-01  :op1-of (u_562 / and  :op2 (u_563 / attend-01  :ARG0 r)  :ARG1-of u_564))))
+
+# ::snt We want to jump and to sleep.
+(u_568 / want-01  :ARG0 (r / we  :ARG0-of (u_569 / jump-01  :op1-of (u_566 / and  :op2 (u_567 / sleep-01  :ARG0 r)  :ARG1-of u_568))))
+
+# ::snt We refuse to attend and jump.
+(u_572 / refuse-01  :ARG0 (r / we  :ARG0-of (u_573 / attend-01  :op1-of (u_570 / and  :op2 (u_571 / jump-01  :ARG0 r)  :ARG1-of u_572))))
+
+# ::snt We love to attend and to sleep.
+(u_576 / love-01  :ARG0 (r / we  :ARG0-of (u_577 / attend-01  :op1-of (u_574 / and  :op2 (u_575 / sleep-01  :ARG0 r)  :ARG1-of u_576))))
+
+# ::snt I beg the boy to jump and to sleep.
+(u_580 / beg-01  :ARG0 (r / i)  :ARG1 (u_583 / boy  :ARG0-of (u_582 / jump-01  :op1-of (u_578 / and  :op2 (u_579 / sleep-01  :ARG0 u_583)  :ARG2-of u_580))))
+
+# ::snt We refuse to sleep and jump.
+(u_586 / refuse-01  :ARG0 (r / we  :ARG0-of (u_587 / sleep-01  :op1-of (u_584 / and  :op2 (u_585 / jump-01  :ARG0 r)  :ARG1-of u_586))))
+
+# ::snt We beg the girl to attend and to sleep.
+(u_590 / beg-01  :ARG0 (r / we)  :ARG1 (u_593 / girl  :ARG0-of (u_592 / attend-01  :op1-of (u_588 / and  :op2 (u_589 / sleep-01  :ARG0 u_593)  :ARG2-of u_590))))
+
+# ::snt You hate and want to attend and jump.
+(u_594 / and  :op1 (u_598 / hate-01  :ARG0 (r / you  :ARG0-of (u_599 / attend-01  :op1-of (u_596 / and  :op2 (u_597 / jump-01  :ARG0 r)  :ARG1-of u_598  :ARG1-of (u_595 / want-01  :ARG0 r  :op2-of u_594))))))
+
+# ::snt I try to jump and to attend.
+(u_602 / try-01  :ARG0 (r / i  :ARG0-of (u_603 / jump-01  :op1-of (u_600 / and  :op2 (u_601 / attend-01  :ARG0 r)  :ARG1-of u_602))))
+
+# ::snt I want to sleep and to attend.
+(u_606 / want-01  :ARG0 (r / i  :ARG0-of (u_607 / sleep-01  :op1-of (u_604 / and  :op2 (u_605 / attend-01  :ARG0 r)  :ARG1-of u_606))))
+
+# ::snt We try to want to sleep.
+(u_609 / try-01  :ARG0 (r / we  :ARG0-of (u_610 / sleep-01  :ARG1-of (u_608 / want-01  :ARG0 r  :ARG1-of u_609))))
+
+# ::snt You refuse to want to jump.
+(u_612 / refuse-01  :ARG0 (r / you  :ARG0-of (u_613 / jump-01  :ARG1-of (u_611 / want-01  :ARG0 r  :ARG1-of u_612))))
+
+# ::snt I try to love and refuse to attend.
+(u_617 / try-01  :ARG0 (r / i  :ARG0-of (u_618 / attend-01  :ARG1-of (u_616 / love-01  :ARG0 r  :op1-of (u_614 / and  :op2 (u_615 / refuse-01  :ARG0 r  :ARG1 u_618)  :ARG1-of u_617)))))
+
+# ::snt You hate and love to want to attend.
+(u_619 / and  :op1 (u_622 / hate-01  :ARG0 (r / you  :ARG0-of (u_623 / attend-01  :ARG1-of (u_621 / want-01  :ARG0 r  :ARG1-of u_622  :ARG1-of (u_620 / love-01  :ARG0 r  :op2-of u_619))))))
+
+# ::snt I force the girl to try to attend.
+(u_625 / force-01  :ARG0 (r / i)  :ARG1 (u_628 / girl  :ARG0-of (u_627 / attend-01  :ARG1-of (u_624 / try-01  :ARG0 u_628  :ARG2-of u_625))))
+
+# ::snt You refuse to hate to sleep.
+(u_630 / refuse-01  :ARG0 (r / you  :ARG0-of (u_631 / sleep-01  :ARG1-of (u_629 / hate-01  :ARG0 r  :ARG1-of u_630))))
+
+# ::snt You refuse to love to attend.
+(u_633 / refuse-01  :ARG0 (r / you  :ARG0-of (u_634 / attend-01  :ARG1-of (u_632 / love-01  :ARG0 r  :ARG1-of u_633))))
+
+# ::snt You refuse to love to jump.
+(u_636 / refuse-01  :ARG0 (r / you  :ARG0-of (u_637 / jump-01  :ARG1-of (u_635 / love-01  :ARG0 r  :ARG1-of u_636))))
+
+# ::snt We hate to want to sleep.
+(u_639 / hate-01  :ARG0 (r / we  :ARG0-of (u_640 / sleep-01  :ARG1-of (u_638 / want-01  :ARG0 r  :ARG1-of u_639))))
+
+# ::snt You persuade them to love to attend.
+(u_642 / persuade-01  :ARG0 (r / you)  :ARG1 (u_645 / they  :ARG0-of (u_644 / attend-01  :ARG1-of (u_641 / love-01  :ARG0 u_645  :ARG2-of u_642))))
+
+# ::snt We try to want to attend and to sleep.
+(u_649 / try-01  :ARG0 (r / we  :ARG0-of (u_650 / attend-01  :op1-of (u_646 / and  :op2 (u_647 / sleep-01  :ARG0 r)  :ARG1-of (u_648 / want-01  :ARG0 r  :ARG1-of u_649)))))
+
+# ::snt You love to sleep and want to jump.
+(u_654 / love-01  :ARG0 (r / you  :ARG0-of (u_655 / sleep-01  :op1-of (u_652 / and  :op2 (u_651 / want-01  :ARG0 r  :ARG1 (u_653 / jump-01  :ARG0 r))  :ARG1-of u_654))))
+
+# ::snt You hate to try to attend and to jump.
+(u_659 / hate-01  :ARG0 (r / you  :ARG0-of (u_660 / attend-01  :op1-of (u_656 / and  :op2 (u_657 / jump-01  :ARG0 r)  :ARG1-of (u_658 / try-01  :ARG0 r  :ARG1-of u_659)))))
+
+# ::snt We love to try to sleep and jump.
+(u_664 / love-01  :ARG0 (r / we  :ARG0-of (u_665 / sleep-01  :ARG1-of (u_662 / try-01  :ARG0 r  :op1-of (u_661 / and  :op2 (u_663 / jump-01  :ARG0 r)  :ARG1-of u_664)))))
+
+# ::snt I hate to jump and to love to attend.
+(u_669 / hate-01  :ARG0 (r / i  :ARG0-of (u_670 / jump-01  :op1-of (u_667 / and  :op2 (u_666 / love-01  :ARG0 r  :ARG1 (u_668 / attend-01  :ARG0 r))  :ARG1-of u_669))))
+
+# ::snt We love to jump and to try to sleep.
+(u_674 / love-01  :ARG0 (r / we  :ARG0-of (u_675 / jump-01  :op1-of (u_672 / and  :op2 (u_671 / try-01  :ARG0 r  :ARG1 (u_673 / sleep-01  :ARG0 r))  :ARG1-of u_674))))
+
+# ::snt I love to attend and refuse to jump.
+(u_679 / love-01  :ARG0 (r / i  :ARG0-of (u_680 / attend-01  :op1-of (u_677 / and  :op2 (u_676 / refuse-01  :ARG0 r  :ARG1 (u_678 / jump-01  :ARG0 r))  :ARG1-of u_679))))
+
+# ::snt We want to hate to sleep and to refuse to jump.
+(u_685 / want-01  :ARG0 (r / we  :ARG0-of (u_686 / sleep-01  :ARG1-of (u_683 / hate-01  :ARG0 r  :op1-of (u_682 / and  :op2 (u_681 / refuse-01  :ARG0 r  :ARG1 (u_684 / jump-01  :ARG0 r))  :ARG1-of u_685)))))
+
+# ::snt You hate to attend and to love to sleep.
+(u_690 / hate-01  :ARG0 (r / you  :ARG0-of (u_691 / attend-01  :op1-of (u_688 / and  :op2 (u_687 / love-01  :ARG0 r  :ARG1 (u_689 / sleep-01  :ARG0 r))  :ARG1-of u_690))))
+
+# ::snt We hate to sleep and want to attend.
+(u_695 / hate-01  :ARG0 (r / we  :ARG0-of (u_696 / sleep-01  :op1-of (u_693 / and  :op2 (u_692 / want-01  :ARG0 r  :ARG1 (u_694 / attend-01  :ARG0 r))  :ARG1-of u_695))))
+
+# ::snt You want to try to hate to sleep.
+(u_699 / want-01  :ARG0 (r / you  :ARG0-of (u_700 / sleep-01  :ARG1-of (u_697 / hate-01  :ARG0 r  :ARG1-of (u_698 / try-01  :ARG0 r  :ARG1-of u_699)))))
+
+# ::snt We want to refuse to hate to sleep.
+(u_703 / want-01  :ARG0 (r / we  :ARG0-of (u_704 / sleep-01  :ARG1-of (u_701 / hate-01  :ARG0 r  :ARG1-of (u_702 / refuse-01  :ARG0 r  :ARG1-of u_703)))))
+
+# ::snt We beg the boy to love to hate to attend.
+(u_707 / beg-01  :ARG0 (r / we)  :ARG1 (u_710 / boy  :ARG0-of (u_709 / attend-01  :ARG1-of (u_705 / hate-01  :ARG0 u_710  :ARG1-of (u_706 / love-01  :ARG0 u_710  :ARG2-of u_707)))))
+
+# ::snt I love to refuse to hate to attend.
+(u_713 / love-01  :ARG0 (r / i  :ARG0-of (u_714 / attend-01  :ARG1-of (u_711 / hate-01  :ARG0 r  :ARG1-of (u_712 / refuse-01  :ARG0 r  :ARG1-of u_713)))))
+
+# ::snt You force them to hate to refuse to sleep.
+(u_717 / force-01  :ARG0 (r / you)  :ARG1 (u_720 / they  :ARG0-of (u_719 / sleep-01  :ARG1-of (u_715 / refuse-01  :ARG0 u_720  :ARG1-of (u_716 / hate-01  :ARG0 u_720  :ARG2-of u_717)))))
+
+# ::snt I persuade the boy to want to hate to attend.
+(u_723 / persuade-01  :ARG0 (r / i)  :ARG1 (u_726 / boy  :ARG0-of (u_725 / attend-01  :ARG1-of (u_721 / hate-01  :ARG0 u_726  :ARG1-of (u_722 / want-01  :ARG0 u_726  :ARG2-of u_723)))))
+
+# ::snt You hate to want to love to attend.
+(u_729 / hate-01  :ARG0 (r / you  :ARG0-of (u_730 / attend-01  :ARG1-of (u_727 / love-01  :ARG0 r  :ARG1-of (u_728 / want-01  :ARG0 r  :ARG1-of u_729)))))
+
+# ::snt I want to refuse to love to attend.
+(u_733 / want-01  :ARG0 (r / i  :ARG0-of (u_734 / attend-01  :ARG1-of (u_731 / love-01  :ARG0 r  :ARG1-of (u_732 / refuse-01  :ARG0 r  :ARG1-of u_733)))))
+
+# ::snt I refuse to hate to want to sleep.
+(u_737 / refuse-01  :ARG0 (r / i  :ARG0-of (u_738 / sleep-01  :ARG1-of (u_735 / want-01  :ARG0 r  :ARG1-of (u_736 / hate-01  :ARG0 r  :ARG1-of u_737)))))
+
+# ::snt You refuse to love to try to sleep.
+(u_741 / refuse-01  :ARG0 (r / you  :ARG0-of (u_742 / sleep-01  :ARG1-of (u_739 / try-01  :ARG0 r  :ARG1-of (u_740 / love-01  :ARG0 r  :ARG1-of u_741)))))
+
+# ::snt We refuse to love to want to jump and sleep.
+(u_747 / refuse-01  :ARG0 (r / we  :ARG0-of (u_748 / jump-01  :ARG1-of (u_744 / want-01  :ARG0 r  :ARG1-of (u_745 / love-01  :ARG0 r  :op1-of (u_743 / and  :op2 (u_746 / sleep-01  :ARG0 r)  :ARG1-of u_747))))))
+
+# ::snt I force the child to love to attend and to refuse to sleep.
+(u_753 / force-01  :ARG0 (r / i)  :ARG1 (u_756 / child  :ARG0-of (u_755 / attend-01  :op1-of (u_750 / and  :op2 (u_749 / refuse-01  :ARG0 u_756  :ARG1 (u_751 / sleep-01  :ARG0 u_756))  :ARG1-of (u_752 / love-01  :ARG0 u_756  :ARG2-of u_753)))))
+
+# ::snt You want to try to refuse to attend and to sleep.
+(u_761 / want-01  :ARG0 (r / you  :ARG0-of (u_762 / attend-01  :ARG1-of (u_758 / refuse-01  :ARG0 r  :op1-of (u_757 / and  :op2 (u_759 / sleep-01  :ARG0 r)  :ARG1-of (u_760 / try-01  :ARG0 r  :ARG1-of u_761))))))
+
+# ::snt I try to refuse to want to attend and to sleep.
+(u_767 / try-01  :ARG0 (r / i  :ARG0-of (u_768 / attend-01  :op1-of (u_763 / and  :op2 (u_764 / sleep-01  :ARG0 r)  :ARG1-of (u_765 / want-01  :ARG0 r  :ARG1-of (u_766 / refuse-01  :ARG0 r  :ARG1-of u_767))))))
+
+# ::snt You try to want to refuse to attend and sleep.
+(u_773 / try-01  :ARG0 (r / you  :ARG0-of (u_774 / attend-01  :ARG1-of (u_770 / refuse-01  :ARG0 r  :ARG1-of (u_771 / want-01  :ARG0 r  :op1-of (u_769 / and  :op2 (u_772 / sleep-01  :ARG0 r)  :ARG1-of u_773))))))
+
+# ::snt You love to try to want to jump and sleep.
+(u_779 / love-01  :ARG0 (r / you  :ARG0-of (u_780 / jump-01  :ARG1-of (u_776 / want-01  :ARG0 r  :op1-of (u_775 / and  :op2 (u_777 / sleep-01  :ARG0 r)  :ARG1-of (u_778 / try-01  :ARG0 r  :ARG1-of u_779))))))
+
+# ::snt I want to attend and try to hate to jump.
+(u_785 / want-01  :ARG0 (r / i  :ARG0-of (u_786 / attend-01  :op1-of (u_783 / and  :op2 (u_782 / try-01  :ARG0 r  :ARG1 (u_781 / hate-01  :ARG0 r  :ARG1 (u_784 / jump-01  :ARG0 r)))  :ARG1-of u_785))))
+
+# ::snt I love to refuse to hate to jump and to sleep.
+(u_791 / love-01  :ARG0 (r / i  :ARG0-of (u_792 / jump-01  :ARG1-of (u_788 / hate-01  :ARG0 r  :ARG1-of (u_789 / refuse-01  :ARG0 r  :op1-of (u_787 / and  :op2 (u_790 / sleep-01  :ARG0 r)  :ARG1-of u_791))))))
+
+# ::snt I persuade the child to try to want to sleep and attend.
+(u_797 / persuade-01  :ARG0 (r / i)  :ARG1 (u_800 / child  :ARG0-of (u_799 / sleep-01  :ARG1-of (u_794 / want-01  :ARG0 u_800  :ARG1-of (u_795 / try-01  :ARG0 u_800  :op1-of (u_793 / and  :op2 (u_796 / attend-01  :ARG0 u_800)  :ARG2-of u_797))))))
+
+# ::snt You force the girl to hate to refuse to attend and sleep.
+(u_805 / force-01  :ARG0 (r / you)  :ARG1 (u_808 / girl  :ARG0-of (u_807 / attend-01  :ARG1-of (u_802 / refuse-01  :ARG0 u_808  :ARG1-of (u_803 / hate-01  :ARG0 u_808  :op1-of (u_801 / and  :op2 (u_804 / sleep-01  :ARG0 u_808)  :ARG2-of u_805))))))
+
+# ::snt We love to try to hate to refuse to sleep.
+(u_812 / love-01  :ARG0 (r / we  :ARG0-of (u_813 / sleep-01  :ARG1-of (u_809 / refuse-01  :ARG0 r  :ARG1-of (u_810 / hate-01  :ARG0 r  :ARG1-of (u_811 / try-01  :ARG0 r  :ARG1-of u_812))))))
+
+# ::snt We love to refuse to want to hate to sleep.
+(u_817 / love-01  :ARG0 (r / we  :ARG0-of (u_818 / sleep-01  :ARG1-of (u_814 / hate-01  :ARG0 r  :ARG1-of (u_815 / want-01  :ARG0 r  :ARG1-of (u_816 / refuse-01  :ARG0 r  :ARG1-of u_817))))))
+
+# ::snt We refuse and try to want to love to hate to jump.
+(u_819 / and  :op1 (u_824 / refuse-01  :ARG0 (r / we  :ARG0-of (u_825 / jump-01  :ARG1-of (u_821 / hate-01  :ARG0 r  :ARG1-of (u_822 / love-01  :ARG0 r  :ARG1-of (u_823 / want-01  :ARG0 r  :ARG1-of u_824  :ARG1-of (u_820 / try-01  :ARG0 r  :op2-of u_819))))))))
+
+# ::snt We beg the girl to love to try to hate to attend.
+(u_829 / beg-01  :ARG0 (r / we)  :ARG1 (u_832 / girl  :ARG0-of (u_831 / attend-01  :ARG1-of (u_826 / hate-01  :ARG0 u_832  :ARG1-of (u_827 / try-01  :ARG0 u_832  :ARG1-of (u_828 / love-01  :ARG0 u_832  :ARG2-of u_829))))))
+
+# ::snt We beg the girl to love to try to hate to jump.
+(u_836 / beg-01  :ARG0 (r / we)  :ARG1 (u_839 / girl  :ARG0-of (u_838 / jump-01  :ARG1-of (u_833 / hate-01  :ARG0 u_839  :ARG1-of (u_834 / try-01  :ARG0 u_839  :ARG1-of (u_835 / love-01  :ARG0 u_839  :ARG2-of u_836))))))
+
+# ::snt We love to hate to want to refuse to attend.
+(u_843 / love-01  :ARG0 (r / we  :ARG0-of (u_844 / attend-01  :ARG1-of (u_840 / refuse-01  :ARG0 r  :ARG1-of (u_841 / want-01  :ARG0 r  :ARG1-of (u_842 / hate-01  :ARG0 r  :ARG1-of u_843))))))
+
+# ::snt You love to try to want to refuse to jump.
+(u_848 / love-01  :ARG0 (r / you  :ARG0-of (u_849 / jump-01  :ARG1-of (u_845 / refuse-01  :ARG0 r  :ARG1-of (u_846 / want-01  :ARG0 r  :ARG1-of (u_847 / try-01  :ARG0 r  :ARG1-of u_848))))))
+
+# ::snt You beg the doctor to try to hate to love to attend.
+(u_853 / beg-01  :ARG0 (r / you)  :ARG1 (u_856 / doctor  :ARG0-of (u_855 / attend-01  :ARG1-of (u_850 / love-01  :ARG0 u_856  :ARG1-of (u_851 / hate-01  :ARG0 u_856  :ARG1-of (u_852 / try-01  :ARG0 u_856  :ARG2-of u_853))))))
+
+# ::snt We ask the boy to refuse to hate to love to attend.
+(u_860 / ask-02  :ARG0 (r / we)  :ARG2 (u_863 / boy  :ARG0-of (u_862 / attend-01  :ARG1-of (u_857 / love-01  :ARG0 u_863  :ARG1-of (u_858 / hate-01  :ARG0 u_863  :ARG1-of (u_859 / refuse-01  :ARG0 u_863  :ARG1-of u_860))))))
+
+# ::snt I love to try to want to hate to jump.
+(u_867 / love-01  :ARG0 (r / i  :ARG0-of (u_868 / jump-01  :ARG1-of (u_864 / hate-01  :ARG0 r  :ARG1-of (u_865 / want-01  :ARG0 r  :ARG1-of (u_866 / try-01  :ARG0 r  :ARG1-of u_867))))))
+
+# ::snt We love to refuse and want to try to hate to attend and to jump.
+(u_876 / love-01  :ARG0 (r / we  :ARG0-of (u_877 / attend-01  :ARG1-of (u_872 / hate-01  :ARG0 r  :ARG1-of (u_873 / try-01  :ARG0 r  :op1-of (u_871 / and  :op2 (u_874 / jump-01  :ARG0 r)  :ARG1-of (u_875 / refuse-01  :ARG0 r  :op1-of (u_869 / and  :op2 (u_870 / want-01  :ARG0 r  :ARG1 u_871)  :ARG1-of u_876))))))))
+
+# ::snt We want to love to hate to refuse to jump and to attend.
+(u_883 / want-01  :ARG0 (r / we  :ARG0-of (u_884 / jump-01  :ARG1-of (u_879 / refuse-01  :ARG0 r  :ARG1-of (u_880 / hate-01  :ARG0 r  :op1-of (u_878 / and  :op2 (u_881 / attend-01  :ARG0 r)  :ARG1-of (u_882 / love-01  :ARG0 r  :ARG1-of u_883)))))))
+
+# ::snt We refuse to try to sleep and to want to hate to jump.
+(u_890 / refuse-01  :ARG0 (r / we  :ARG0-of (u_891 / sleep-01  :op1-of (u_887 / and  :op2 (u_886 / want-01  :ARG0 r  :ARG1 (u_885 / hate-01  :ARG0 r  :ARG1 (u_888 / jump-01  :ARG0 r)))  :ARG1-of (u_889 / try-01  :ARG0 r  :ARG1-of u_890)))))
+
+# ::snt We try to want to love to refuse to sleep and to jump.
+(u_897 / try-01  :ARG0 (r / we  :ARG0-of (u_898 / sleep-01  :op1-of (u_892 / and  :op2 (u_893 / jump-01  :ARG0 r)  :ARG1-of (u_894 / refuse-01  :ARG0 r  :ARG1-of (u_895 / love-01  :ARG0 r  :ARG1-of (u_896 / want-01  :ARG0 r  :ARG1-of u_897)))))))
+
+# ::snt You refuse to want to jump and love to hate to sleep.
+(u_904 / refuse-01  :ARG0 (r / you  :ARG0-of (u_905 / jump-01  :op1-of (u_901 / and  :op2 (u_900 / love-01  :ARG0 r  :ARG1 (u_899 / hate-01  :ARG0 r  :ARG1 (u_902 / sleep-01  :ARG0 r)))  :ARG1-of (u_903 / want-01  :ARG0 r  :ARG1-of u_904)))))
+
+# ::snt I love to want to attend and try to refuse to sleep.
+(u_911 / love-01  :ARG0 (r / i  :ARG0-of (u_912 / attend-01  :op1-of (u_908 / and  :op2 (u_907 / try-01  :ARG0 r  :ARG1 (u_906 / refuse-01  :ARG0 r  :ARG1 (u_909 / sleep-01  :ARG0 r)))  :ARG1-of (u_910 / want-01  :ARG0 r  :ARG1-of u_911)))))
+
+# ::snt You try to love to refuse to want to jump and attend.
+(u_918 / try-01  :ARG0 (r / you  :ARG0-of (u_919 / jump-01  :ARG1-of (u_914 / want-01  :ARG0 r  :op1-of (u_913 / and  :op2 (u_915 / attend-01  :ARG0 r)  :ARG1-of (u_916 / refuse-01  :ARG0 r  :ARG1-of (u_917 / love-01  :ARG0 r  :ARG1-of u_918)))))))
+
+# ::snt We force them to love to hate to try to sleep and jump.
+(u_925 / force-01  :ARG0 (r / we)  :ARG1 (u_928 / they  :ARG0-of (u_927 / sleep-01  :ARG1-of (u_921 / try-01  :ARG0 u_928  :ARG1-of (u_922 / hate-01  :ARG0 u_928  :op1-of (u_920 / and  :op2 (u_923 / jump-01  :ARG0 u_928)  :ARG1-of (u_924 / love-01  :ARG0 u_928  :ARG2-of u_925)))))))
+
+# ::snt I hate to try to love to refuse to jump and to sleep.
+(u_934 / hate-01  :ARG0 (r / i  :ARG0-of (u_935 / jump-01  :ARG1-of (u_930 / refuse-01  :ARG0 r  :ARG1-of (u_931 / love-01  :ARG0 r  :ARG1-of (u_932 / try-01  :ARG0 r  :op1-of (u_929 / and  :op2 (u_933 / sleep-01  :ARG0 r)  :ARG1-of u_934)))))))
+
+# ::snt We try to refuse to love to hate to jump and to attend.
+(u_941 / try-01  :ARG0 (r / we  :ARG0-of (u_942 / jump-01  :ARG1-of (u_937 / hate-01  :ARG0 r  :ARG1-of (u_938 / love-01  :ARG0 r  :op1-of (u_936 / and  :op2 (u_939 / attend-01  :ARG0 r)  :ARG1-of (u_940 / refuse-01  :ARG0 r  :ARG1-of u_941)))))))
+
+# ::snt You ask the child to hate to try to love to want to jump.
+(u_947 / ask-02  :ARG0 (r / you)  :ARG2 (u_950 / child  :ARG0-of (u_949 / jump-01  :ARG1-of (u_943 / want-01  :ARG0 u_950  :ARG1-of (u_944 / love-01  :ARG0 u_950  :ARG1-of (u_945 / try-01  :ARG0 u_950  :ARG1-of (u_946 / hate-01  :ARG0 u_950  :ARG1-of u_947)))))))
+
+# ::snt We persuade them to hate to try to love to want to attend.
+(u_955 / persuade-01  :ARG0 (r / we)  :ARG1 (u_958 / they  :ARG0-of (u_957 / attend-01  :ARG1-of (u_951 / want-01  :ARG0 u_958  :ARG1-of (u_952 / love-01  :ARG0 u_958  :ARG1-of (u_953 / try-01  :ARG0 u_958  :ARG1-of (u_954 / hate-01  :ARG0 u_958  :ARG2-of u_955)))))))
+
+# ::snt We force them to hate to love to refuse to try to attend.
+(u_963 / force-01  :ARG0 (r / we)  :ARG1 (u_966 / they  :ARG0-of (u_965 / attend-01  :ARG1-of (u_959 / try-01  :ARG0 u_966  :ARG1-of (u_960 / refuse-01  :ARG0 u_966  :ARG1-of (u_961 / love-01  :ARG0 u_966  :ARG1-of (u_962 / hate-01  :ARG0 u_966  :ARG2-of u_963)))))))
+
+# ::snt You ask the doctor to love to try to refuse to hate to attend.
+(u_971 / ask-02  :ARG0 (r / you)  :ARG2 (u_974 / doctor  :ARG0-of (u_973 / attend-01  :ARG1-of (u_967 / hate-01  :ARG0 u_974  :ARG1-of (u_968 / refuse-01  :ARG0 u_974  :ARG1-of (u_969 / try-01  :ARG0 u_974  :ARG1-of (u_970 / love-01  :ARG0 u_974  :ARG1-of u_971)))))))
+
+# ::snt We force the girl to want to love to refuse to try to attend.
+(u_979 / force-01  :ARG0 (r / we)  :ARG1 (u_982 / girl  :ARG0-of (u_981 / attend-01  :ARG1-of (u_975 / try-01  :ARG0 u_982  :ARG1-of (u_976 / refuse-01  :ARG0 u_982  :ARG1-of (u_977 / love-01  :ARG0 u_982  :ARG1-of (u_978 / want-01  :ARG0 u_982  :ARG2-of u_979)))))))
+
+# ::snt You beg the girl to want to hate to refuse to love to attend.
+(u_987 / beg-01  :ARG0 (r / you)  :ARG1 (u_990 / girl  :ARG0-of (u_989 / attend-01  :ARG1-of (u_983 / love-01  :ARG0 u_990  :ARG1-of (u_984 / refuse-01  :ARG0 u_990  :ARG1-of (u_985 / hate-01  :ARG0 u_990  :ARG1-of (u_986 / want-01  :ARG0 u_990  :ARG2-of u_987)))))))
+
+# ::snt I want to try to hate to refuse to love to sleep.
+(u_995 / want-01  :ARG0 (r / i  :ARG0-of (u_996 / sleep-01  :ARG1-of (u_991 / love-01  :ARG0 r  :ARG1-of (u_992 / refuse-01  :ARG0 r  :ARG1-of (u_993 / hate-01  :ARG0 r  :ARG1-of (u_994 / try-01  :ARG0 r  :ARG1-of u_995)))))))
+
+# ::snt We beg the girl to refuse to love to want to hate to jump.
+(u_1001 / beg-01  :ARG0 (r / we)  :ARG1 (u_1004 / girl  :ARG0-of (u_1003 / jump-01  :ARG1-of (u_997 / hate-01  :ARG0 u_1004  :ARG1-of (u_998 / want-01  :ARG0 u_1004  :ARG1-of (u_999 / love-01  :ARG0 u_1004  :ARG1-of (u_1000 / refuse-01  :ARG0 u_1004  :ARG2-of u_1001)))))))
+
+# ::snt I try to want to love to hate to refuse to attend.
+(u_1009 / try-01  :ARG0 (r / i  :ARG0-of (u_1010 / attend-01  :ARG1-of (u_1005 / refuse-01  :ARG0 r  :ARG1-of (u_1006 / hate-01  :ARG0 r  :ARG1-of (u_1007 / love-01  :ARG0 r  :ARG1-of (u_1008 / want-01  :ARG0 r  :ARG1-of u_1009)))))))
+
+# ::snt I want to refuse to hate to love to try to attend.
+(u_1015 / want-01  :ARG0 (r / i  :ARG0-of (u_1016 / attend-01  :ARG1-of (u_1011 / try-01  :ARG0 r  :ARG1-of (u_1012 / love-01  :ARG0 r  :ARG1-of (u_1013 / hate-01  :ARG0 r  :ARG1-of (u_1014 / refuse-01  :ARG0 r  :ARG1-of u_1015)))))))
+
+# ::snt We want to hate to refuse to sleep and try to love to attend.
+(u_1023 / want-01  :ARG0 (r / we  :ARG0-of (u_1024 / sleep-01  :op1-of (u_1019 / and  :op2 (u_1018 / try-01  :ARG0 r  :ARG1 (u_1017 / love-01  :ARG0 r  :ARG1 (u_1020 / attend-01  :ARG0 r)))  :ARG1-of (u_1021 / refuse-01  :ARG0 r  :ARG1-of (u_1022 / hate-01  :ARG0 r  :ARG1-of u_1023))))))
+
+# ::snt You want to try to refuse to love to hate to attend and sleep.
+(u_1031 / want-01  :ARG0 (r / you  :ARG0-of (u_1032 / attend-01  :ARG1-of (u_1026 / hate-01  :ARG0 r  :ARG1-of (u_1027 / love-01  :ARG0 r  :ARG1-of (u_1028 / refuse-01  :ARG0 r  :ARG1-of (u_1029 / try-01  :ARG0 r  :op1-of (u_1025 / and  :op2 (u_1030 / sleep-01  :ARG0 r)  :ARG1-of u_1031))))))))
+
+# ::snt You hate to refuse to sleep and love to try to want to attend.
+(u_1039 / hate-01  :ARG0 (r / you  :ARG0-of (u_1040 / sleep-01  :op1-of (u_1036 / and  :op2 (u_1035 / love-01  :ARG0 r  :ARG1 (u_1034 / try-01  :ARG0 r  :ARG1 (u_1033 / want-01  :ARG0 r  :ARG1 (u_1037 / attend-01  :ARG0 r))))  :ARG1-of (u_1038 / refuse-01  :ARG0 r  :ARG1-of u_1039)))))
+
+# ::snt You refuse to want to try to love to attend and to hate to jump.
+(u_1047 / refuse-01  :ARG0 (r / you  :ARG0-of (u_1048 / attend-01  :op1-of (u_1042 / and  :op2 (u_1041 / hate-01  :ARG0 r  :ARG1 (u_1043 / jump-01  :ARG0 r))  :ARG1-of (u_1044 / love-01  :ARG0 r  :ARG1-of (u_1045 / try-01  :ARG0 r  :ARG1-of (u_1046 / want-01  :ARG0 r  :ARG1-of u_1047)))))))
+
+# ::snt We hate to refuse to want to try to love to attend and to sleep.
+(u_1055 / hate-01  :ARG0 (r / we  :ARG0-of (u_1056 / attend-01  :op1-of (u_1049 / and  :op2 (u_1050 / sleep-01  :ARG0 r)  :ARG1-of (u_1051 / love-01  :ARG0 r  :ARG1-of (u_1052 / try-01  :ARG0 r  :ARG1-of (u_1053 / want-01  :ARG0 r  :ARG1-of (u_1054 / refuse-01  :ARG0 r  :ARG1-of u_1055))))))))
+
+# ::snt I refuse to love to want to try to hate to sleep and to attend.
+(u_1063 / refuse-01  :ARG0 (r / i  :ARG0-of (u_1064 / sleep-01  :ARG1-of (u_1058 / hate-01  :ARG0 r  :ARG1-of (u_1059 / try-01  :ARG0 r  :ARG1-of (u_1060 / want-01  :ARG0 r  :op1-of (u_1057 / and  :op2 (u_1061 / attend-01  :ARG0 r)  :ARG1-of (u_1062 / love-01  :ARG0 r  :ARG1-of u_1063))))))))
+
+# ::snt We try to hate to want to refuse to love to attend and jump.
+(u_1071 / try-01  :ARG0 (r / we  :ARG0-of (u_1072 / attend-01  :op1-of (u_1065 / and  :op2 (u_1066 / jump-01  :ARG0 r)  :ARG1-of (u_1067 / love-01  :ARG0 r  :ARG1-of (u_1068 / refuse-01  :ARG0 r  :ARG1-of (u_1069 / want-01  :ARG0 r  :ARG1-of (u_1070 / hate-01  :ARG0 r  :ARG1-of u_1071))))))))
+
+# ::snt I ask the girl to refuse to love to hate to want to sleep and jump.
+(u_1079 / ask-02  :ARG0 (r / i)  :ARG2 (u_1082 / girl  :ARG0-of (u_1081 / sleep-01  :ARG1-of (u_1074 / want-01  :ARG0 u_1082  :ARG1-of (u_1075 / hate-01  :ARG0 u_1082  :op1-of (u_1073 / and  :op2 (u_1076 / jump-01  :ARG0 u_1082)  :ARG1-of (u_1077 / love-01  :ARG0 u_1082  :ARG1-of (u_1078 / refuse-01  :ARG0 u_1082  :ARG1-of u_1079))))))))
+
+# ::snt You persuade them to jump and try to hate to love to refuse to attend.
+(u_1089 / persuade-01  :ARG0 (r / you)  :ARG1 (u_1092 / they  :ARG0-of (u_1091 / jump-01  :op1-of (u_1087 / and  :op2 (u_1086 / try-01  :ARG0 u_1092  :ARG1 (u_1085 / hate-01  :ARG0 u_1092  :ARG1 (u_1084 / love-01  :ARG0 u_1092  :ARG1 (u_1083 / refuse-01  :ARG0 u_1092  :ARG1 (u_1088 / attend-01  :ARG0 u_1092)))))  :ARG2-of u_1089))))
+
+# ::snt We want to try to refuse to hate to love to jump and to attend.
+(u_1099 / want-01  :ARG0 (r / we  :ARG0-of (u_1100 / jump-01  :ARG1-of (u_1094 / love-01  :ARG0 r  :ARG1-of (u_1095 / hate-01  :ARG0 r  :op1-of (u_1093 / and  :op2 (u_1096 / attend-01  :ARG0 r)  :ARG1-of (u_1097 / refuse-01  :ARG0 r  :ARG1-of (u_1098 / try-01  :ARG0 r  :ARG1-of u_1099))))))))
+
+# ::snt You force the doctor to hate to want to love to refuse to try to jump and to attend.
+(u_1108 / force-01  :ARG0 (r / you)  :ARG1 (u_1111 / doctor  :ARG0-of (u_1110 / jump-01  :ARG1-of (u_1102 / try-01  :ARG0 u_1111  :ARG1-of (u_1103 / refuse-01  :ARG0 u_1111  :ARG1-of (u_1104 / love-01  :ARG0 u_1111  :ARG1-of (u_1105 / want-01  :ARG0 u_1111  :op1-of (u_1101 / and  :op2 (u_1106 / attend-01  :ARG0 u_1111)  :ARG1-of (u_1107 / hate-01  :ARG0 u_1111  :ARG2-of u_1108)))))))))
+
+# ::snt We persuade the girl to love to hate to try to refuse to want to sleep and attend.
+(u_1119 / persuade-01  :ARG0 (r / we)  :ARG1 (u_1122 / girl  :ARG0-of (u_1121 / sleep-01  :ARG1-of (u_1113 / want-01  :ARG0 u_1122  :ARG1-of (u_1114 / refuse-01  :ARG0 u_1122  :ARG1-of (u_1115 / try-01  :ARG0 u_1122  :ARG1-of (u_1116 / hate-01  :ARG0 u_1122  :op1-of (u_1112 / and  :op2 (u_1117 / attend-01  :ARG0 u_1122)  :ARG1-of (u_1118 / love-01  :ARG0 u_1122  :ARG2-of u_1119)))))))))
+

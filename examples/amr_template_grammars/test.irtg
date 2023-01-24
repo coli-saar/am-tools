@@ -2,7 +2,7 @@ interpretation string: de.up.ling.irtg.algebra.StringAlgebra
 interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 
-F! -> SubjCtrlSent(SubjCtrl, Open_S_to, Subj) [0.9]
+F! -> SubjCtrlSent(SubjCtrl, Open_S_to, Subj) [1.0]
 [string] *(*(?3, *(?1, ?2)), '.')
 [graph] APP_subj(APP_obj(?1, ?2), ?3)
 

@@ -1,0 +1,11 @@
+# Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.
+
+# ::snt You persuade the girl to hate to refuse to love to try to want to attend.
+(u_35 / persuade-01  :ARG0 (r / you)  :ARG1 (u_38 / girl  :ARG0-of (u_37 / attend-01  :ARG1-of (u_30 / want-01  :ARG0 u_38  :ARG1-of (u_31 / try-01  :ARG0 u_38  :ARG1-of (u_32 / love-01  :ARG0 u_38  :ARG1-of (u_33 / refuse-01  :ARG0 u_38  :ARG1-of (u_34 / hate-01  :ARG0 u_38  :ARG2-of u_35))))))))
+
+# ::snt I beg the boy to try to want to refuse to hate to love to attend.
+(u_44 / beg-01  :ARG0 (r / i)  :ARG1 (u_47 / boy  :ARG0-of (u_46 / attend-01  :ARG1-of (u_39 / love-01  :ARG0 u_47  :ARG1-of (u_40 / hate-01  :ARG0 u_47  :ARG1-of (u_41 / refuse-01  :ARG0 u_47  :ARG1-of (u_42 / want-01  :ARG0 u_47  :ARG1-of (u_43 / try-01  :ARG0 u_47  :ARG2-of u_44))))))))
+
+# ::snt You beg the boy to love to hate to refuse to try to want to jump and sleep.
+(u_55 / beg-01  :ARG0 (r / you)  :ARG1 (u_58 / boy  :ARG0-of (u_57 / jump-01  :ARG1-of (u_49 / want-01  :ARG0 u_58  :op1-of (u_48 / and  :op2 (u_50 / sleep-01  :ARG0 u_58)  :ARG1-of (u_51 / try-01  :ARG0 u_58  :ARG1-of (u_52 / refuse-01  :ARG0 u_58  :ARG1-of (u_53 / hate-01  :ARG0 u_58  :ARG1-of (u_54 / love-01  :ARG0 u_58  :ARG2-of u_55)))))))))
+
