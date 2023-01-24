@@ -26,20 +26,11 @@ import java.io.IOException;
  */
 public class RawAMRCorpus2TrainingData {
 
-<<<<<<< HEAD
-    @Parameter(names = {"--inputPath", "-i"}, description = "Path to folder containing the original AMR files")
-    private String inputPath = "/home/mego/Documents/datasets/little-prince/corpus/training";
-
-    @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder")
-    private String outputPath = "/home/mego/Documents/datasets/little-prince/alto/training";
-=======
     @Parameter(names = {"--inputPath", "-i"}, description = "Path to folder containing the original AMR files", required = true)
     private String inputPath;
 
     @Parameter(names = {"--outputPath", "-o"}, description = "Path to output folder", required = true)
     private String outputPath;
->>>>>>> bf4d48c2c12f8e020c03c5e52219583eb92fad71
-    ;
     
     @Parameter(names = {"--grammarFile", "-g"}, description = "Path to Stanford grammar file englishPCFG.txt. If none is provided, no trees are produced in the corpus", required = false)
     private String grammarFile;
@@ -59,24 +50,14 @@ public class RawAMRCorpus2TrainingData {
     @Parameter(names = {"--step"}, description = "First step to be executed (default is from the start, step 0). Steps are: 0:altoFormat 1:corefSplit 2:align 3:namesAndDates 4:fixAlignments 5:sortAndFilter")
     private int step = 0;
 
-<<<<<<< HEAD
-    @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')")
-    private String wordnetPath = "/home/mego/PycharmProjects/am-parser-my-fork/downloaded_models/wordnet3.0/dict";
-=======
     @Parameter(names = {"--wordnet", "-w"}, description = "Path to Wordnet dictionary (folder 'dict')", required = true)
     private String wordnetPath;
->>>>>>> bf4d48c2c12f8e020c03c5e52219583eb92fad71
 
     @Parameter(names = {"--conceptnet"}, description = "Path to ConceptNet csv.gz file", required = false)
     private String conceptnetPath = null;
 
-<<<<<<< HEAD
-    @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model")
-    private String posModelPath = "/home/mego/PycharmProjects/am-parser-my-fork/downloaded_models/stanford/english-bidirectional-distsim.tagger";
-=======
     @Parameter(names = {"--posmodel", "-pos"}, description = "Path to POS tagger model", required = true)
     private String posModelPath;
->>>>>>> bf4d48c2c12f8e020c03c5e52219583eb92fad71
 
     @Parameter(names = {"--trees", "-trees"}, description = "Boolean flag saying whether we're using syntactic parse trees", required = false)
     private boolean useTrees;

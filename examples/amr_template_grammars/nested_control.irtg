@@ -17,18 +17,18 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // Full sentences
 
-F! -> SubjCtrlSent(SubjCtrl, Open_S_to, Subj) [0.5]
+F! -> SubjCtrlSent(SubjCtrl, Open_S_to, Subj) [0.9]
 [string] *(*(?3, *(?1, ?2)), '.')
 [graph] APP_subj(APP_obj(?1, ?2), ?3)
 
-F! -> ObjCtrlSent(ObjCtrl, Open_S_to, Obj, Subj) [0.5]
+F! -> ObjCtrlSent(ObjCtrl, Open_S_to, Obj, Subj) [0.1]
 [string] *(*(?4, *(?1, *(?3, ?2))), '.')
 [graph] APP_subj(APP_obj(APP_obj2(?1, ?2), ?3), ?4)
 
 
 // ------------------------------- TP with PRO subject ------------------------------------------
 
-Open_S_to -> TP_PRO(Open_S_inf) [1.0]
+Open_S_to -> TP_PRO(Open_S_inf) [0.4]
 [string] *(to, ?1)
 [graph] ?1
 
@@ -47,27 +47,27 @@ Open_S_inf -> VbarObjCtrl(ObjCtrl, Open_S_to, Obj) [0.2]
 
 
 // constants
-Open_S_inf -> sleep [0.1]
+Open_S_inf -> sleep [0.05]
 [string] sleep
 [graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-Open_S_inf -> jump [0.1]
+Open_S_inf -> jump [0.05]
 [string] jump
 [graph] '(r<root> / jump-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-Open_S_inf -> attend [0.1]
+Open_S_inf -> attend [0.05]
 [string] attend
 [graph] '(r<root> / attend-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-Open_S_inf -> Coord_Open_S_inf(And_Open_S, Open_S_inf, Open_S_inf) [0.5]
+Open_S_inf -> Coord_Open_S_inf(And_Open_S, Open_S_inf, Open_S_inf) [10]
 [string] *(?2, *(?1, ?3))
 [graph] APP_op1(APP_op2(?1, ?3), ?2)
 
-//Open_S_to -> Coord_Open_S_to(And_Open_S, Open_S_to, Open_S_to) [0.6]
-//[string] *(?2, *(?1, ?3))
-//[graph] APP_op1(APP_op2(?1, ?3), ?2)
+Open_S_to -> Coord_Open_S_to(And_Open_S, Open_S_to, Open_S_to) [0.6]
+[string] *(?2, *(?1, ?3))
+[graph] APP_op1(APP_op2(?1, ?3), ?2)
 
-SubjCtrl -> Coord_Subj_Ctrl_V(And_Subj_Control_Verb, SubjCtrl, SubjCtrl) [0.25]
+SubjCtrl -> Coord_Subj_Ctrl_V(And_Subj_Control_Verb, SubjCtrl, SubjCtrl) [0.5]
 [string] *(?2, *(?1, ?3))
 [graph] APP_op1(APP_op2(?1, ?3), ?2)
 
@@ -85,41 +85,41 @@ And_Subj_Control_Verb -> and_subj_control_verb [1.0]
 
 // -------------------------------- subject control verbs -------------------------------------------
 
-SubjCtrl -> try [0.34]
+SubjCtrl -> try [0.1]
 [string] try
 [graph] '(r<root> / try-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-SubjCtrl -> want [0.33]
+SubjCtrl -> want [0.1]
 [string] want
 [graph] '(r<root> / want-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-SubjCtrl -> hate [0.33]
+SubjCtrl -> hate [0.1]
 [string] hate
 [graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-SubjCtrl -> love [0.33]
+SubjCtrl -> love [0.1]
 [string] love
 [graph] '(r<root> / love-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-SubjCtrl -> refuse [0.33]
+SubjCtrl -> refuse [0.1]
 [string] refuse
 [graph] '(r<root> / refuse-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
 // -------------------------------- object control verbs --------------------------------------------
 
-ObjCtrl -> persuade [0.34]
+ObjCtrl -> persuade [0.25]
 [string] persuade
 [graph] '(r<root> / persuade-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
-ObjCtrl -> ask [0.33]
+ObjCtrl -> ask [0.25]
 [string] ask
 [graph] '(r<root> / ask-02 :ARG0 (s<subj>) :ARG2 (o<obj>) :ARG1 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
-ObjCtrl -> beg [0.33]
+ObjCtrl -> beg [0.25]
 [string] beg
 [graph] '(r<root> / beg-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
-ObjCtrl -> force [0.33]
+ObjCtrl -> force [0.25]
 [string] force
 [graph] '(r<root> / force-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 

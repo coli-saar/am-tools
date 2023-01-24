@@ -10,39 +10,39 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 // ---------- DPs -------------------
 
 DP! -> DP(NP_opinion) [1.0]
-[string] *(a, ?1)
+[string] *(the, ?1)
 [graph] ?1
 
 
 // ---------- modified NPs ------------
 
 // OPINION
-NP_opinion -> NP_opinion(NP_size, A_opinion) [1.0]
+NP_opinion -> NP_opinion(NP_size, A_opinion) [0.5]
 [string] *(?2, ?1)
 [graph] MOD_m(?1, ?2)
 
 // syntactic glue
-NP_opinion -> NP_opinion_null(NP_size) [1.0]
+NP_opinion -> NP_opinion_null(NP_size) [0.5]
 [string] ?1
 [graph] ?1
 
 // SIZE
-NP_size -> NP_size(NP_age, A_size) [1.0]
+NP_size -> NP_size(NP_age, A_size) [0.5]
 [string] *(?2, ?1)
 [graph] MOD_m(?1, ?2)
 
 // syntactic glue
-NP_size -> NP_size_null(NP_age) [1.0]
+NP_size -> NP_size_null(NP_age) [0.5]
 [string] ?1
 [graph] ?1
 
 // AGE
-NP_age -> NP_age(NP_shape, A_age) [1.0]
+NP_age -> NP_age(NP_shape, A_age) [0.5]
 [string] *(?2, ?1)
 [graph] MOD_m(?1, ?2)
 
 // syntactic glue
-NP_age -> NP_age_null(NP_shape) [1.0]
+NP_age -> NP_age_null(NP_shape) [0.5]
 [string] ?1
 [graph] ?1
 
@@ -52,27 +52,27 @@ NP_age -> NP_age_null(NP_shape) [1.0]
 //[graph] MOD_m(?1, ?2)
 
 // syntactic glue
-NP_shape -> NP_shape_null(NP_colour) [1.0]
+NP_shape -> NP_shape_null(NP_colour) [0.5]
 [string] ?1
 [graph] ?1
 
 // COLOUR
-NP_colour -> NP_colour(NP_material, A_colour) [1.0]
+NP_colour -> NP_colour(NP_material, A_colour) [0.5]
 [string] *(?2, ?1)
 [graph] MOD_m(?1, ?2)
 
 // syntactic glue
-NP_colour -> NP_colour_null(NP_material) [1.0]
+NP_colour -> NP_colour_null(NP_material) [0.5]
 [string] ?1
 [graph] ?1
 
 // MATERIAL
-NP_material -> NP_material(N, A_material) [1.0]
+NP_material -> NP_material(N, A_material) [0.5]
 [string] *(?2, ?1)
 [graph] MOD_m(?1, ?2)
 
 // syntactic glue
-NP_material -> NP_material_null(N) [1.0]
+NP_material -> NP_material_null(N) [0.5]
 [string] ?1
 [graph] ?1
 
