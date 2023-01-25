@@ -28,11 +28,12 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
         // centre embedding
 //        sampleFromGrammar(25, 4, 8, 2,
+//                SIZE_TYPE_TREE_DEPTH,
 //                "examples/amr_template_grammars/centre_embedding.irtg",
 //                "examples/amr_template_grammars/centre_embedding.txt",
 //                "Randomly sampled examples of centre embedding. Created by a grammar.",
-//                new HashSet<>(Arrays.asList("obj_rel", "NP_RC")),
-//                Collections.singletonList(new Pair<>("ObjRC", 0.5)));
+//                new HashSet<>(Arrays.asList("obj_rel", "NP_RC"))
+//                );
 
         // adjectives
         // we want all sentence lengths with at least 2 adjectives, but all trees are of depth 7 since we use syntactic glue
@@ -42,7 +43,7 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //                "examples/amr_template_grammars/adjectives.txt",
 //                "Randomly sampled examples of stacked adjectives. Created by a grammar.",
 //                new HashSet<>(),
-//                new ArrayList<>());
+//                );
 //
 //        // adjectives: sanity check with just one adjective
 //        sampleFromGrammar(10, 3, 3, 1,
@@ -53,15 +54,29 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //                new HashSet<>(),
 //                new ArrayList<>());
 
-        // nested control
-        sampleFromGrammar(10, 12, 14, 1,
+//        // nested control
+//        sampleFromGrammar(10, 12, 12, 1,
+//                SIZE_TYPE_TREE_DEPTH,
+//                "examples/amr_template_grammars/nested_control.irtg",
+//                "examples/amr_template_grammars/nested_control_more.txt",
+//                "Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.",
+//                new HashSet<>(Arrays.asList("TP_PRO", "VbarSubjCtrl", "VbarObjCtrl"))
+//        );
+
+        // deep recursion
+        sampleFromGrammar(1, 1, 12, 1,
                 SIZE_TYPE_TREE_DEPTH,
-                "examples/amr_template_grammars/nested_control.irtg",
-                "examples/amr_template_grammars/nested_control_more.txt",
-                "Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.",
-                new HashSet<>(Arrays.asList("TP_PRO", "VbarSubjCtrl", "VbarObjCtrl"))
+                "examples/amr_template_grammars/deep_recursion.irtg",
+                "examples/amr_template_grammars/deep_recursion.txt",
+                "Randomly sampled examples of deep recursion with and without coref. Created by a grammar.",
+                new HashSet<>(Arrays.asList("thought", "said", "thought_coref", "said_coref",
+                        "TP_coref_3f", "TP_coref_3m",
+                        "TP_deep_coref_3f", "TP_deep_coref_3m",
+                        "TP_coref_2"
+                )
+                )
         );
-                // also if you get infinite loops with no output from grammar. Can change here or in grammar.
+
     }
 
     /**

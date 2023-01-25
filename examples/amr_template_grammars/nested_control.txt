@@ -291,3 +291,14 @@
 # ::snt We force the girl to hate to love to try to want to refuse to sleep and to attend.
 (u_37 / force-01  :ARG0 (r / we)  :ARG1 (u_40 / girl  :ARG0-of (u_39 / sleep-01  :op1-of (u_30 / and  :op2 (u_31 / attend-01  :ARG0 u_40)  :ARG1-of (u_32 / refuse-01  :ARG0 u_40  :ARG1-of (u_33 / want-01  :ARG0 u_40  :ARG1-of (u_34 / try-01  :ARG0 u_40  :ARG1-of (u_35 / love-01  :ARG0 u_40  :ARG1-of (u_36 / hate-01  :ARG0 u_40  :ARG2-of u_37)))))))))
 
+# ::snt You persuade the girl to try to refuse to want to hate to love to attend.
+(u_835 / persuade-01  :ARG0 (r / you)  :ARG1 (u_838 / girl  :ARG0-of (u_837 / attend-01  :ARG1-of (u_830 / love-01  :ARG0 u_838  :ARG1-of (u_831 / hate-01  :ARG0 u_838  :ARG1-of (u_832 / want-01  :ARG0 u_838  :ARG1-of (u_833 / refuse-01  :ARG0 u_838  :ARG1-of (u_834 / try-01  :ARG0 u_838  :ARG2-of u_835))))))))
+
+# ::snt You force the girl to try to hate to love to jump and refuse to want to sleep.
+(u_846 / force-01  :ARG0 (r / you)  :ARG1 (u_849 / girl  :ARG0-of (u_848 / jump-01  :op1-of (u_841 / and  :op2 (u_840 / refuse-01  :ARG0 u_849  :ARG1 (u_839 / want-01  :ARG0 u_849  :ARG1 (u_842 / sleep-01  :ARG0 u_849)))  :ARG1-of (u_843 / love-01  :ARG0 u_849  :ARG1-of (u_844 / hate-01  :ARG0 u_849  :ARG1-of (u_845 / try-01  :ARG0 u_849  :ARG2-of u_846)))))))
+
+# ::snt You persuade the boy to love to hate to want to refuse to try to jump and sleep.
+(u_857 / persuade-01  :ARG0 (r / you)  :ARG1 (u_860 / boy  :ARG0-of (u_859 / jump-01  :ARG1-of (u_851 / try-01  :ARG0 u_860  :op1-of (u_850 / and  :op2 (u_852 / sleep-01  :ARG0 u_860)  :ARG1-of (u_853 / refuse-01  :ARG0 u_860  :ARG1-of (u_854 / want-01  :ARG0 u_860  :ARG1-of (u_855 / hate-01  :ARG0 u_860  :ARG1-of (u_856 / love-01  :ARG0 u_860  :ARG2-of u_857)))))))))
+
+# ::snt We persuade the doctor to want to love to try to refuse to hate to attend.
+(u_24 / persuade-01  :ARG0 (r / we)  :ARG1 (u_27 / doctor  :ARG0-of (u_26 / attend-01  :ARG1-of (u_19 / hate-01  :ARG0 u_27  :ARG1-of (u_20 / refuse-01  :ARG0 u_27  :ARG1-of (u_21 / try-01  :ARG0 u_27  :ARG1-of (u_22 / love-01  :ARG0 u_27  :ARG1-of (u_23 / want-01  :ARG0 u_27  :ARG2-of u_24))))))))
