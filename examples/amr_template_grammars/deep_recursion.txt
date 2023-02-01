@@ -1,0 +1,11 @@
+# Randomly sampled examples of deep recursion with and without coref. Created by a grammar.
+
+# ::snt she announced that she slept
+(u_14 / announce-01  :ARG0 (r / she  :ARG0-of (u_15 / sleep-01  :ARG1-of u_14)))
+
+# ::snt the doctors thought that he announced that he slept
+(u_18 / think-01  :ARG0 (r / doctor)  :ARG1 (u_16 / announce-01  :ARG0 (u_19 / he  :ARG0-of (u_17 / sleep-01  :ARG1-of u_16))))
+
+# ::snt the doctors thought that he thought that the children said that he slept
+(u_25 / think-01  :ARG0 (r / doctor)  :ARG1 (u_23 / think-01  :ARG0 (u_26 / he  :ARG0-of (u_22 / sleep-01  :ARG1-of (u_20 / say-01  :ARG0 (u_24 / child)  :ARG1-of u_23)))))
+
