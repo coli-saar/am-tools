@@ -42,17 +42,16 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //                "examples/amr_template_grammars/adjectives.irtg",
 //                "examples/amr_template_grammars/adjectives.txt",
 //                "Randomly sampled examples of stacked adjectives. Created by a grammar.",
-//                new HashSet<>(),
+//                new HashSet<>()
 //                );
-//
-//        // adjectives: sanity check with just one adjective
+
+        // adjectives: sanity check with just one adjective
 //        sampleFromGrammar(10, 3, 3, 1,
 //                SIZE_TYPE_STRING_LENGTH,
 //                "examples/amr_template_grammars/adjectives.irtg",
 //                "examples/amr_template_grammars/adjectives_sanity_check.txt",
 //                "Randomly sampled examples of stacked adjectives. Created by a grammar.",
-//                new HashSet<>(),
-//                new ArrayList<>());
+//                new HashSet<>());
 
 //        // nested control
 //        sampleFromGrammar(10, 12, 12, 1,
@@ -64,18 +63,18 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //        );
 
         // deep recursion
-        sampleFromGrammar(1, 1, 12, 1,
-                SIZE_TYPE_TREE_DEPTH,
-                "examples/amr_template_grammars/deep_recursion.irtg",
-                "examples/amr_template_grammars/deep_recursion.txt",
-                "Randomly sampled examples of deep recursion with and without coref. Created by a grammar.",
-                new HashSet<>(Arrays.asList("thought", "said", "thought_coref", "said_coref",
-                        "TP_coref_3f", "TP_coref_3m",
-                        "TP_deep_coref_3f", "TP_deep_coref_3m",
-                        "TP_coref_2"
-                )
-                )
-        );
+//        sampleFromGrammar(1, 1, 12, 1,
+//                SIZE_TYPE_TREE_DEPTH,
+//                "examples/amr_template_grammars/deep_recursion.irtg",
+//                "examples/amr_template_grammars/deep_recursion.txt",
+//                "Randomly sampled examples of deep recursion with and without coref. Created by a grammar.",
+//                new HashSet<>(Arrays.asList("thought", "said", "thought_coref", "said_coref",
+//                        "TP_coref_3f", "TP_coref_3m",
+//                        "TP_deep_coref_3f", "TP_deep_coref_3m",
+//                        "TP_coref_2"
+//                )
+//                )
+//        );
 
     }
 

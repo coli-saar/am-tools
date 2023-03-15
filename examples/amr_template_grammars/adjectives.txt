@@ -1,302 +1,302 @@
 # Randomly sampled examples of stacked adjectives. Created by a grammar.
 
-# ::snt the strange long skirt
-(r / skirt  :mod (u_351 / long)  :mod (u_352 / strange))
+# ::snt a beautiful silk skirt
+(r / skirt  :consist-of (u_351 / silk)  :ARG1-of (u_352 / beautiful-02))
 
-# ::snt the new silk skirt
-(r / skirt  :mod (u_353 / silk)  :mod (u_354 / new))
+# ::snt a fantastic long skirt
+(r / skirt  :mod (u_354 / fantastic)  :ARG1-of (u_353 / long-03))
 
-# ::snt the strange new skirt
-(r / skirt  :mod (u_355 / new)  :mod (u_356 / strange))
+# ::snt a strange blue curtain
+(r / curtain  :mod (u_355 / blue)  :mod (u_356 / strange))
 
-# ::snt the long new skirt
-(r / skirt  :mod (u_357 / new)  :mod (u_358 / long))
+# ::snt a long new skirt
+(r / skirt  :ARG1-of (u_357 / new-01)  :ARG1-of (u_358 / long-03))
 
-# ::snt the new green skirt
-(r / skirt  :mod (u_359 / green)  :mod (u_360 / new))
+# ::snt a fantastic silk curtain
+(r / curtain  :mod (u_360 / fantastic)  :consist-of (u_359 / silk))
 
-# ::snt the long silk curtain
-(r / curtain  :mod (u_361 / silk)  :mod (u_362 / long))
+# ::snt a new blue skirt
+(r / skirt  :mod (u_361 / blue)  :ARG1-of (u_362 / new-01))
 
-# ::snt the beautiful green skirt
-(r / skirt  :mod (u_363 / green)  :mod (u_364 / beautiful))
+# ::snt a short silk skirt
+(r / skirt  :consist-of (u_363 / silk)  :ARG1-of (u_364 / short-07))
 
-# ::snt the strange green curtain
-(r / curtain  :mod (u_365 / green)  :mod (u_366 / strange))
+# ::snt a new red skirt
+(r / skirt  :ARG1-of (u_365 / red-02)  :ARG1-of (u_366 / new-01))
 
-# ::snt the antique silk curtain
-(r / curtain  :mod (u_367 / silk)  :mod (u_368 / antique))
+# ::snt a beautiful strange skirt
+(r / skirt  :mod (u_367 / strange)  :ARG1-of (u_368 / beautiful-02))
 
-# ::snt the green silk skirt
-(r / skirt  :mod (u_369 / silk)  :mod (u_370 / green))
+# ::snt a new silk curtain
+(r / curtain  :consist-of (u_369 / silk)  :ARG1-of (u_370 / new-01))
 
-# ::snt the short antique curtain
-(r / curtain  :mod (u_371 / antique)  :mod (u_372 / short))
+# ::snt a strange new skirt
+(r / skirt  :mod (u_372 / strange)  :ARG1-of (u_371 / new-01))
 
-# ::snt the beautiful long curtain
-(r / curtain  :mod (u_373 / long)  :mod (u_374 / beautiful))
+# ::snt a fantastic blue curtain
+(r / curtain  :mod (u_373 / blue)  :mod (u_374 / fantastic))
 
-# ::snt the antique silk skirt
-(r / skirt  :mod (u_375 / silk)  :mod (u_376 / antique))
+# ::snt a strange blue skirt
+(r / skirt  :mod (u_375 / blue)  :mod (u_376 / strange))
 
-# ::snt the strange antique skirt
-(r / skirt  :mod (u_377 / antique)  :mod (u_378 / strange))
+# ::snt a short blue skirt
+(r / skirt  :mod (u_377 / blue)  :ARG1-of (u_378 / short-07))
 
-# ::snt the antique blue skirt
-(r / skirt  :mod (u_379 / blue)  :mod (u_380 / antique))
+# ::snt a long silk curtain
+(r / curtain  :consist-of (u_379 / silk)  :ARG1-of (u_380 / long-03))
 
-# ::snt the long antique skirt
-(r / skirt  :mod (u_381 / antique)  :mod (u_382 / long))
+# ::snt a antique silk curtain
+(r / curtain  :mod (u_382 / antique)  :consist-of (u_381 / silk))
 
-# ::snt the antique green curtain
-(r / curtain  :mod (u_383 / green)  :mod (u_384 / antique))
+# ::snt a fantastic silk curtain
+(r / curtain  :mod (u_384 / fantastic)  :consist-of (u_383 / silk))
 
-# ::snt the short new curtain
-(r / curtain  :mod (u_385 / new)  :mod (u_386 / short))
+# ::snt a antique blue skirt
+(r / skirt  :mod (u_385 / blue)  :mod (u_386 / antique))
 
-# ::snt the beautiful green curtain
-(r / curtain  :mod (u_387 / green)  :mod (u_388 / beautiful))
+# ::snt a beautiful short curtain
+(r / curtain  :ARG1-of (u_387 / short-07)  :ARG1-of (u_388 / beautiful-02))
 
-# ::snt the beautiful silk skirt
-(r / skirt  :mod (u_389 / silk)  :mod (u_390 / beautiful))
+# ::snt a long blue curtain
+(r / curtain  :mod (u_389 / blue)  :ARG1-of (u_390 / long-03))
 
-# ::snt the long green curtain
-(r / curtain  :mod (u_391 / green)  :mod (u_392 / long))
+# ::snt a beautiful new curtain
+(r / curtain  :ARG1-of (u_391 / new-01)  :ARG1-of (u_392 / beautiful-02))
 
-# ::snt the long blue curtain
-(r / curtain  :mod (u_393 / blue)  :mod (u_394 / long))
+# ::snt a fantastic long skirt
+(r / skirt  :mod (u_394 / fantastic)  :ARG1-of (u_393 / long-03))
 
-# ::snt the long green skirt
-(r / skirt  :mod (u_395 / green)  :mod (u_396 / long))
+# ::snt a long silk skirt
+(r / skirt  :consist-of (u_395 / silk)  :ARG1-of (u_396 / long-03))
 
-# ::snt the green silk curtain
-(r / curtain  :mod (u_397 / silk)  :mod (u_398 / green))
+# ::snt a beautiful silk skirt
+(r / skirt  :consist-of (u_397 / silk)  :ARG1-of (u_398 / beautiful-02))
 
-# ::snt the short silk curtain
-(r / curtain  :mod (u_399 / silk)  :mod (u_400 / short))
+# ::snt a strange short skirt
+(r / skirt  :mod (u_400 / strange)  :ARG1-of (u_399 / short-07))
 
-# ::snt the beautiful new blue curtain
-(r / curtain  :mod (u_401 / blue)  :mod (u_402 / new)  :mod (u_403 / beautiful))
+# ::snt a beautiful long silk curtain
+(r / curtain  :consist-of (u_401 / silk)  :ARG1-of (u_402 / long-03)  :ARG1-of (u_403 / beautiful-02))
 
-# ::snt the beautiful new green curtain
-(r / curtain  :mod (u_404 / green)  :mod (u_405 / new)  :mod (u_406 / beautiful))
+# ::snt a beautiful long silk curtain
+(r / curtain  :consist-of (u_404 / silk)  :ARG1-of (u_405 / long-03)  :ARG1-of (u_406 / beautiful-02))
 
-# ::snt the short antique blue curtain
-(r / curtain  :mod (u_407 / blue)  :mod (u_408 / antique)  :mod (u_409 / short))
+# ::snt a beautiful long silk skirt
+(r / skirt  :consist-of (u_407 / silk)  :ARG1-of (u_408 / long-03)  :ARG1-of (u_409 / beautiful-02))
 
-# ::snt the beautiful short blue curtain
-(r / curtain  :mod (u_410 / blue)  :mod (u_411 / short)  :mod (u_412 / beautiful))
+# ::snt a long blue silk curtain
+(r / curtain  :mod (u_411 / blue)  :consist-of (u_410 / silk)  :ARG1-of (u_412 / long-03))
 
-# ::snt the new green silk skirt
-(r / skirt  :mod (u_413 / silk)  :mod (u_414 / green)  :mod (u_415 / new))
+# ::snt a fantastic new blue skirt
+(r / skirt  :mod (u_413 / blue)  :mod (u_415 / fantastic)  :ARG1-of (u_414 / new-01))
 
-# ::snt the antique blue silk skirt
-(r / skirt  :mod (u_416 / silk)  :mod (u_417 / blue)  :mod (u_418 / antique))
+# ::snt a fantastic new silk curtain
+(r / curtain  :mod (u_418 / fantastic)  :consist-of (u_416 / silk)  :ARG1-of (u_417 / new-01))
 
-# ::snt the long antique green curtain
-(r / curtain  :mod (u_419 / green)  :mod (u_420 / antique)  :mod (u_421 / long))
+# ::snt a strange new red curtain
+(r / curtain  :mod (u_421 / strange)  :ARG1-of (u_419 / red-02)  :ARG1-of (u_420 / new-01))
 
-# ::snt the short antique silk curtain
-(r / curtain  :mod (u_422 / silk)  :mod (u_423 / antique)  :mod (u_424 / short))
+# ::snt a beautiful short antique skirt
+(r / skirt  :mod (u_422 / antique)  :ARG1-of (u_423 / short-07)  :ARG1-of (u_424 / beautiful-02))
 
-# ::snt the beautiful antique blue skirt
-(r / skirt  :mod (u_425 / blue)  :mod (u_426 / antique)  :mod (u_427 / beautiful))
+# ::snt a new red silk skirt
+(r / skirt  :consist-of (u_425 / silk)  :ARG1-of (u_426 / red-02)  :ARG1-of (u_427 / new-01))
 
-# ::snt the short antique green skirt
-(r / skirt  :mod (u_428 / green)  :mod (u_429 / antique)  :mod (u_430 / short))
+# ::snt a beautiful red silk skirt
+(r / skirt  :consist-of (u_428 / silk)  :ARG1-of (u_429 / red-02)  :ARG1-of (u_430 / beautiful-02))
 
-# ::snt the strange long new curtain
-(r / curtain  :mod (u_431 / new)  :mod (u_432 / long)  :mod (u_433 / strange))
+# ::snt a short blue silk skirt
+(r / skirt  :mod (u_432 / blue)  :consist-of (u_431 / silk)  :ARG1-of (u_433 / short-07))
 
-# ::snt the strange blue silk curtain
-(r / curtain  :mod (u_434 / silk)  :mod (u_435 / blue)  :mod (u_436 / strange))
+# ::snt a strange short silk skirt
+(r / skirt  :mod (u_436 / strange)  :consist-of (u_434 / silk)  :ARG1-of (u_435 / short-07))
 
-# ::snt the strange antique blue curtain
-(r / curtain  :mod (u_437 / blue)  :mod (u_438 / antique)  :mod (u_439 / strange))
+# ::snt a fantastic long red curtain
+(r / curtain  :mod (u_439 / fantastic)  :ARG1-of (u_437 / red-02)  :ARG1-of (u_438 / long-03))
 
-# ::snt the beautiful antique green skirt
-(r / skirt  :mod (u_440 / green)  :mod (u_441 / antique)  :mod (u_442 / beautiful))
+# ::snt a strange short new curtain
+(r / curtain  :mod (u_442 / strange)  :ARG1-of (u_440 / new-01)  :ARG1-of (u_441 / short-07))
 
-# ::snt the long antique silk curtain
-(r / curtain  :mod (u_443 / silk)  :mod (u_444 / antique)  :mod (u_445 / long))
+# ::snt a strange antique silk curtain
+(r / curtain  :mod (u_444 / antique)  :mod (u_445 / strange)  :consist-of (u_443 / silk))
 
-# ::snt the short new blue skirt
-(r / skirt  :mod (u_446 / blue)  :mod (u_447 / new)  :mod (u_448 / short))
+# ::snt a beautiful long new curtain
+(r / curtain  :ARG1-of (u_446 / new-01)  :ARG1-of (u_447 / long-03)  :ARG1-of (u_448 / beautiful-02))
 
-# ::snt the short blue silk skirt
-(r / skirt  :mod (u_449 / silk)  :mod (u_450 / blue)  :mod (u_451 / short))
+# ::snt a beautiful antique silk skirt
+(r / skirt  :mod (u_450 / antique)  :consist-of (u_449 / silk)  :ARG1-of (u_451 / beautiful-02))
 
-# ::snt the short green silk skirt
-(r / skirt  :mod (u_452 / silk)  :mod (u_453 / green)  :mod (u_454 / short))
+# ::snt a fantastic beautiful short curtain
+(r / curtain  :mod (u_454 / fantastic)  :ARG1-of (u_452 / short-07)  :ARG1-of (u_453 / beautiful-02))
 
-# ::snt the beautiful new green skirt
-(r / skirt  :mod (u_455 / green)  :mod (u_456 / new)  :mod (u_457 / beautiful))
+# ::snt a long new red curtain
+(r / curtain  :ARG1-of (u_455 / red-02)  :ARG1-of (u_456 / new-01)  :ARG1-of (u_457 / long-03))
 
-# ::snt the long new blue curtain
-(r / curtain  :mod (u_458 / blue)  :mod (u_459 / new)  :mod (u_460 / long))
+# ::snt a short red silk curtain
+(r / curtain  :consist-of (u_458 / silk)  :ARG1-of (u_459 / red-02)  :ARG1-of (u_460 / short-07))
 
-# ::snt the strange short antique curtain
-(r / curtain  :mod (u_461 / antique)  :mod (u_462 / short)  :mod (u_463 / strange))
+# ::snt a fantastic beautiful long skirt
+(r / skirt  :mod (u_463 / fantastic)  :ARG1-of (u_461 / long-03)  :ARG1-of (u_462 / beautiful-02))
 
-# ::snt the beautiful short silk skirt
-(r / skirt  :mod (u_464 / silk)  :mod (u_465 / short)  :mod (u_466 / beautiful))
+# ::snt a beautiful blue silk skirt
+(r / skirt  :mod (u_465 / blue)  :consist-of (u_464 / silk)  :ARG1-of (u_466 / beautiful-02))
 
-# ::snt the long new silk curtain
-(r / curtain  :mod (u_467 / silk)  :mod (u_468 / new)  :mod (u_469 / long))
+# ::snt a strange short silk curtain
+(r / curtain  :mod (u_469 / strange)  :consist-of (u_467 / silk)  :ARG1-of (u_468 / short-07))
 
-# ::snt the beautiful short antique curtain
-(r / curtain  :mod (u_470 / antique)  :mod (u_471 / short)  :mod (u_472 / beautiful))
+# ::snt a strange long silk skirt
+(r / skirt  :mod (u_472 / strange)  :consist-of (u_470 / silk)  :ARG1-of (u_471 / long-03))
 
-# ::snt the beautiful long blue skirt
-(r / skirt  :mod (u_473 / blue)  :mod (u_474 / long)  :mod (u_475 / beautiful))
+# ::snt a fantastic short silk skirt
+(r / skirt  :mod (u_475 / fantastic)  :consist-of (u_473 / silk)  :ARG1-of (u_474 / short-07))
 
-# ::snt the beautiful long green silk curtain
-(r / curtain  :mod (u_476 / silk)  :mod (u_477 / green)  :mod (u_478 / long)  :mod (u_479 / beautiful))
+# ::snt a strange short antique silk curtain
+(r / curtain  :mod (u_477 / antique)  :mod (u_479 / strange)  :consist-of (u_476 / silk)  :ARG1-of (u_478 / short-07))
 
-# ::snt the short antique blue silk skirt
-(r / skirt  :mod (u_480 / silk)  :mod (u_481 / blue)  :mod (u_482 / antique)  :mod (u_483 / short))
+# ::snt a beautiful long new silk skirt
+(r / skirt  :consist-of (u_480 / silk)  :ARG1-of (u_481 / new-01)  :ARG1-of (u_482 / long-03)  :ARG1-of (u_483 / beautiful-02))
 
-# ::snt the short new blue silk curtain
-(r / curtain  :mod (u_484 / silk)  :mod (u_485 / blue)  :mod (u_486 / new)  :mod (u_487 / short))
+# ::snt a beautiful short new silk skirt
+(r / skirt  :consist-of (u_484 / silk)  :ARG1-of (u_485 / new-01)  :ARG1-of (u_486 / short-07)  :ARG1-of (u_487 / beautiful-02))
 
-# ::snt the long new blue silk skirt
-(r / skirt  :mod (u_488 / silk)  :mod (u_489 / blue)  :mod (u_490 / new)  :mod (u_491 / long))
+# ::snt a strange short antique blue skirt
+(r / skirt  :mod (u_488 / blue)  :mod (u_489 / antique)  :mod (u_491 / strange)  :ARG1-of (u_490 / short-07))
 
-# ::snt the short new blue silk skirt
-(r / skirt  :mod (u_492 / silk)  :mod (u_493 / blue)  :mod (u_494 / new)  :mod (u_495 / short))
+# ::snt a long antique red silk skirt
+(r / skirt  :mod (u_494 / antique)  :consist-of (u_492 / silk)  :ARG1-of (u_493 / red-02)  :ARG1-of (u_495 / long-03))
 
-# ::snt the strange short new blue curtain
-(r / curtain  :mod (u_496 / blue)  :mod (u_497 / new)  :mod (u_498 / short)  :mod (u_499 / strange))
+# ::snt a fantastic beautiful short red curtain
+(r / curtain  :mod (u_499 / fantastic)  :ARG1-of (u_496 / red-02)  :ARG1-of (u_497 / short-07)  :ARG1-of (u_498 / beautiful-02))
 
-# ::snt the strange long antique green curtain
-(r / curtain  :mod (u_500 / green)  :mod (u_501 / antique)  :mod (u_502 / long)  :mod (u_503 / strange))
+# ::snt a beautiful new blue silk skirt
+(r / skirt  :mod (u_501 / blue)  :consist-of (u_500 / silk)  :ARG1-of (u_502 / new-01)  :ARG1-of (u_503 / beautiful-02))
 
-# ::snt the beautiful short blue silk curtain
-(r / curtain  :mod (u_504 / silk)  :mod (u_505 / blue)  :mod (u_506 / short)  :mod (u_507 / beautiful))
+# ::snt a short antique red silk curtain
+(r / curtain  :mod (u_506 / antique)  :consist-of (u_504 / silk)  :ARG1-of (u_505 / red-02)  :ARG1-of (u_507 / short-07))
 
-# ::snt the long new blue silk curtain
-(r / curtain  :mod (u_508 / silk)  :mod (u_509 / blue)  :mod (u_510 / new)  :mod (u_511 / long))
+# ::snt a fantastic short new red skirt
+(r / skirt  :mod (u_511 / fantastic)  :ARG1-of (u_508 / red-02)  :ARG1-of (u_509 / new-01)  :ARG1-of (u_510 / short-07))
 
-# ::snt the strange short new green skirt
-(r / skirt  :mod (u_512 / green)  :mod (u_513 / new)  :mod (u_514 / short)  :mod (u_515 / strange))
+# ::snt a fantastic long new blue curtain
+(r / curtain  :mod (u_512 / blue)  :mod (u_515 / fantastic)  :ARG1-of (u_513 / new-01)  :ARG1-of (u_514 / long-03))
 
-# ::snt the beautiful short antique silk skirt
-(r / skirt  :mod (u_516 / silk)  :mod (u_517 / antique)  :mod (u_518 / short)  :mod (u_519 / beautiful))
+# ::snt a fantastic beautiful long antique curtain
+(r / curtain  :mod (u_516 / antique)  :mod (u_519 / fantastic)  :ARG1-of (u_517 / long-03)  :ARG1-of (u_518 / beautiful-02))
 
-# ::snt the strange short new green curtain
-(r / curtain  :mod (u_520 / green)  :mod (u_521 / new)  :mod (u_522 / short)  :mod (u_523 / strange))
+# ::snt a long new blue silk curtain
+(r / curtain  :mod (u_521 / blue)  :consist-of (u_520 / silk)  :ARG1-of (u_522 / new-01)  :ARG1-of (u_523 / long-03))
 
-# ::snt the strange short new silk curtain
-(r / curtain  :mod (u_524 / silk)  :mod (u_525 / new)  :mod (u_526 / short)  :mod (u_527 / strange))
+# ::snt a strange short red silk skirt
+(r / skirt  :mod (u_527 / strange)  :consist-of (u_524 / silk)  :ARG1-of (u_525 / red-02)  :ARG1-of (u_526 / short-07))
 
-# ::snt the beautiful short new silk curtain
-(r / curtain  :mod (u_528 / silk)  :mod (u_529 / new)  :mod (u_530 / short)  :mod (u_531 / beautiful))
+# ::snt a beautiful antique blue silk curtain
+(r / curtain  :mod (u_529 / blue)  :mod (u_530 / antique)  :consist-of (u_528 / silk)  :ARG1-of (u_531 / beautiful-02))
 
-# ::snt the beautiful short green silk skirt
-(r / skirt  :mod (u_532 / silk)  :mod (u_533 / green)  :mod (u_534 / short)  :mod (u_535 / beautiful))
+# ::snt a strange long blue silk skirt
+(r / skirt  :mod (u_533 / blue)  :mod (u_535 / strange)  :consist-of (u_532 / silk)  :ARG1-of (u_534 / long-03))
 
-# ::snt the strange long antique blue skirt
-(r / skirt  :mod (u_536 / blue)  :mod (u_537 / antique)  :mod (u_538 / long)  :mod (u_539 / strange))
+# ::snt a fantastic strange short blue skirt
+(r / skirt  :mod (u_536 / blue)  :mod (u_538 / strange)  :mod (u_539 / fantastic)  :ARG1-of (u_537 / short-07))
 
-# ::snt the beautiful short antique blue curtain
-(r / curtain  :mod (u_540 / blue)  :mod (u_541 / antique)  :mod (u_542 / short)  :mod (u_543 / beautiful))
+# ::snt a strange beautiful short blue skirt
+(r / skirt  :mod (u_540 / blue)  :mod (u_543 / strange)  :ARG1-of (u_541 / short-07)  :ARG1-of (u_542 / beautiful-02))
 
-# ::snt the beautiful long new green skirt
-(r / skirt  :mod (u_544 / green)  :mod (u_545 / new)  :mod (u_546 / long)  :mod (u_547 / beautiful))
+# ::snt a fantastic short blue silk skirt
+(r / skirt  :mod (u_545 / blue)  :mod (u_547 / fantastic)  :consist-of (u_544 / silk)  :ARG1-of (u_546 / short-07))
 
-# ::snt the strange long new silk skirt
-(r / skirt  :mod (u_548 / silk)  :mod (u_549 / new)  :mod (u_550 / long)  :mod (u_551 / strange))
+# ::snt a beautiful strange new silk curtain
+(r / curtain  :mod (u_550 / strange)  :consist-of (u_548 / silk)  :ARG1-of (u_549 / new-01)  :ARG1-of (u_551 / beautiful-02))
 
-# ::snt the strange long green silk curtain
-(r / curtain  :mod (u_552 / silk)  :mod (u_553 / green)  :mod (u_554 / long)  :mod (u_555 / strange))
+# ::snt a beautiful fantastic antique silk skirt
+(r / skirt  :mod (u_553 / antique)  :mod (u_554 / fantastic)  :consist-of (u_552 / silk)  :ARG1-of (u_555 / beautiful-02))
 
-# ::snt the strange short antique green skirt
-(r / skirt  :mod (u_556 / green)  :mod (u_557 / antique)  :mod (u_558 / short)  :mod (u_559 / strange))
+# ::snt a beautiful strange new blue skirt
+(r / skirt  :mod (u_556 / blue)  :mod (u_558 / strange)  :ARG1-of (u_557 / new-01)  :ARG1-of (u_559 / beautiful-02))
 
-# ::snt the short antique green silk skirt
-(r / skirt  :mod (u_560 / silk)  :mod (u_561 / green)  :mod (u_562 / antique)  :mod (u_563 / short))
+# ::snt a beautiful strange short red curtain
+(r / curtain  :mod (u_562 / strange)  :ARG1-of (u_560 / red-02)  :ARG1-of (u_561 / short-07)  :ARG1-of (u_563 / beautiful-02))
 
-# ::snt the beautiful new green silk skirt
-(r / skirt  :mod (u_564 / silk)  :mod (u_565 / green)  :mod (u_566 / new)  :mod (u_567 / beautiful))
+# ::snt a fantastic long antique blue curtain
+(r / curtain  :mod (u_564 / blue)  :mod (u_565 / antique)  :mod (u_567 / fantastic)  :ARG1-of (u_566 / long-03))
 
-# ::snt the strange short antique silk skirt
-(r / skirt  :mod (u_568 / silk)  :mod (u_569 / antique)  :mod (u_570 / short)  :mod (u_571 / strange))
+# ::snt a strange beautiful short new curtain
+(r / curtain  :mod (u_571 / strange)  :ARG1-of (u_568 / new-01)  :ARG1-of (u_569 / short-07)  :ARG1-of (u_570 / beautiful-02))
 
-# ::snt the strange short antique green curtain
-(r / curtain  :mod (u_572 / green)  :mod (u_573 / antique)  :mod (u_574 / short)  :mod (u_575 / strange))
+# ::snt a beautiful short blue silk skirt
+(r / skirt  :mod (u_573 / blue)  :consist-of (u_572 / silk)  :ARG1-of (u_574 / short-07)  :ARG1-of (u_575 / beautiful-02))
 
-# ::snt the beautiful long new blue silk skirt
-(r / skirt  :mod (u_576 / silk)  :mod (u_577 / blue)  :mod (u_578 / new)  :mod (u_579 / long)  :mod (u_580 / beautiful))
+# ::snt a beautiful long antique red silk skirt
+(r / skirt  :mod (u_578 / antique)  :consist-of (u_576 / silk)  :ARG1-of (u_577 / red-02)  :ARG1-of (u_579 / long-03)  :ARG1-of (u_580 / beautiful-02))
 
-# ::snt the strange long antique green silk skirt
-(r / skirt  :mod (u_581 / silk)  :mod (u_582 / green)  :mod (u_583 / antique)  :mod (u_584 / long)  :mod (u_585 / strange))
+# ::snt a strange short new blue silk skirt
+(r / skirt  :mod (u_582 / blue)  :mod (u_585 / strange)  :consist-of (u_581 / silk)  :ARG1-of (u_583 / new-01)  :ARG1-of (u_584 / short-07))
 
-# ::snt the strange long antique blue silk curtain
-(r / curtain  :mod (u_586 / silk)  :mod (u_587 / blue)  :mod (u_588 / antique)  :mod (u_589 / long)  :mod (u_590 / strange))
+# ::snt a beautiful fantastic short new silk curtain
+(r / curtain  :mod (u_589 / fantastic)  :consist-of (u_586 / silk)  :ARG1-of (u_587 / new-01)  :ARG1-of (u_588 / short-07)  :ARG1-of (u_590 / beautiful-02))
 
-# ::snt the beautiful long new blue silk curtain
-(r / curtain  :mod (u_591 / silk)  :mod (u_592 / blue)  :mod (u_593 / new)  :mod (u_594 / long)  :mod (u_595 / beautiful))
+# ::snt a beautiful long new red silk curtain
+(r / curtain  :consist-of (u_591 / silk)  :ARG1-of (u_592 / red-02)  :ARG1-of (u_593 / new-01)  :ARG1-of (u_594 / long-03)  :ARG1-of (u_595 / beautiful-02))
 
-# ::snt the strange short new green silk skirt
-(r / skirt  :mod (u_596 / silk)  :mod (u_597 / green)  :mod (u_598 / new)  :mod (u_599 / short)  :mod (u_600 / strange))
+# ::snt a beautiful short antique blue silk curtain
+(r / curtain  :mod (u_597 / blue)  :mod (u_598 / antique)  :consist-of (u_596 / silk)  :ARG1-of (u_599 / short-07)  :ARG1-of (u_600 / beautiful-02))
 
-# ::snt the strange long new green silk curtain
-(r / curtain  :mod (u_601 / silk)  :mod (u_602 / green)  :mod (u_603 / new)  :mod (u_604 / long)  :mod (u_605 / strange))
+# ::snt a strange long new blue silk skirt
+(r / skirt  :mod (u_602 / blue)  :mod (u_605 / strange)  :consist-of (u_601 / silk)  :ARG1-of (u_603 / new-01)  :ARG1-of (u_604 / long-03))
 
-# ::snt the beautiful short antique green silk skirt
-(r / skirt  :mod (u_606 / silk)  :mod (u_607 / green)  :mod (u_608 / antique)  :mod (u_609 / short)  :mod (u_610 / beautiful))
+# ::snt a beautiful strange new blue silk skirt
+(r / skirt  :mod (u_607 / blue)  :mod (u_609 / strange)  :consist-of (u_606 / silk)  :ARG1-of (u_608 / new-01)  :ARG1-of (u_610 / beautiful-02))
 
-# ::snt the strange long new blue silk skirt
-(r / skirt  :mod (u_611 / silk)  :mod (u_612 / blue)  :mod (u_613 / new)  :mod (u_614 / long)  :mod (u_615 / strange))
+# ::snt a fantastic beautiful short new silk curtain
+(r / curtain  :mod (u_615 / fantastic)  :consist-of (u_611 / silk)  :ARG1-of (u_612 / new-01)  :ARG1-of (u_613 / short-07)  :ARG1-of (u_614 / beautiful-02))
 
-# ::snt the beautiful short antique blue silk skirt
-(r / skirt  :mod (u_616 / silk)  :mod (u_617 / blue)  :mod (u_618 / antique)  :mod (u_619 / short)  :mod (u_620 / beautiful))
+# ::snt a strange fantastic short new silk skirt
+(r / skirt  :mod (u_619 / fantastic)  :mod (u_620 / strange)  :consist-of (u_616 / silk)  :ARG1-of (u_617 / new-01)  :ARG1-of (u_618 / short-07))
 
-# ::snt the beautiful short new blue silk skirt
-(r / skirt  :mod (u_621 / silk)  :mod (u_622 / blue)  :mod (u_623 / new)  :mod (u_624 / short)  :mod (u_625 / beautiful))
+# ::snt a strange fantastic short blue silk curtain
+(r / curtain  :mod (u_622 / blue)  :mod (u_624 / fantastic)  :mod (u_625 / strange)  :consist-of (u_621 / silk)  :ARG1-of (u_623 / short-07))
 
-# ::snt the beautiful long antique blue silk curtain
-(r / curtain  :mod (u_626 / silk)  :mod (u_627 / blue)  :mod (u_628 / antique)  :mod (u_629 / long)  :mod (u_630 / beautiful))
+# ::snt a fantastic strange new blue silk skirt
+(r / skirt  :mod (u_627 / blue)  :mod (u_629 / strange)  :mod (u_630 / fantastic)  :consist-of (u_626 / silk)  :ARG1-of (u_628 / new-01))
 
-# ::snt the strange short antique blue silk skirt
-(r / skirt  :mod (u_631 / silk)  :mod (u_632 / blue)  :mod (u_633 / antique)  :mod (u_634 / short)  :mod (u_635 / strange))
+# ::snt a strange fantastic short blue silk skirt
+(r / skirt  :mod (u_632 / blue)  :mod (u_634 / fantastic)  :mod (u_635 / strange)  :consist-of (u_631 / silk)  :ARG1-of (u_633 / short-07))
 
-# ::snt the beautiful short new green silk skirt
-(r / skirt  :mod (u_636 / silk)  :mod (u_637 / green)  :mod (u_638 / new)  :mod (u_639 / short)  :mod (u_640 / beautiful))
+# ::snt a fantastic beautiful long new silk curtain
+(r / curtain  :mod (u_640 / fantastic)  :consist-of (u_636 / silk)  :ARG1-of (u_637 / new-01)  :ARG1-of (u_638 / long-03)  :ARG1-of (u_639 / beautiful-02))
 
-# ::snt the beautiful short new green silk curtain
-(r / curtain  :mod (u_641 / silk)  :mod (u_642 / green)  :mod (u_643 / new)  :mod (u_644 / short)  :mod (u_645 / beautiful))
+# ::snt a beautiful long antique blue silk skirt
+(r / skirt  :mod (u_642 / blue)  :mod (u_643 / antique)  :consist-of (u_641 / silk)  :ARG1-of (u_644 / long-03)  :ARG1-of (u_645 / beautiful-02))
 
-# ::snt the beautiful long antique green silk skirt
-(r / skirt  :mod (u_646 / silk)  :mod (u_647 / green)  :mod (u_648 / antique)  :mod (u_649 / long)  :mod (u_650 / beautiful))
+# ::snt a beautiful short new red silk curtain
+(r / curtain  :consist-of (u_646 / silk)  :ARG1-of (u_647 / red-02)  :ARG1-of (u_648 / new-01)  :ARG1-of (u_649 / short-07)  :ARG1-of (u_650 / beautiful-02))
 
-# ::snt the strange short new blue silk skirt
-(r / skirt  :mod (u_651 / silk)  :mod (u_652 / blue)  :mod (u_653 / new)  :mod (u_654 / short)  :mod (u_655 / strange))
+# ::snt a fantastic strange short new silk curtain
+(r / curtain  :mod (u_654 / strange)  :mod (u_655 / fantastic)  :consist-of (u_651 / silk)  :ARG1-of (u_652 / new-01)  :ARG1-of (u_653 / short-07))
 
-# ::snt the beautiful long new green silk curtain
-(r / curtain  :mod (u_656 / silk)  :mod (u_657 / green)  :mod (u_658 / new)  :mod (u_659 / long)  :mod (u_660 / beautiful))
+# ::snt a beautiful long antique blue silk curtain
+(r / curtain  :mod (u_657 / blue)  :mod (u_658 / antique)  :consist-of (u_656 / silk)  :ARG1-of (u_659 / long-03)  :ARG1-of (u_660 / beautiful-02))
 
-# ::snt the strange short new green silk curtain
-(r / curtain  :mod (u_661 / silk)  :mod (u_662 / green)  :mod (u_663 / new)  :mod (u_664 / short)  :mod (u_665 / strange))
+# ::snt a strange fantastic short new red curtain
+(r / curtain  :mod (u_664 / fantastic)  :mod (u_665 / strange)  :ARG1-of (u_661 / red-02)  :ARG1-of (u_662 / new-01)  :ARG1-of (u_663 / short-07))
 
-# ::snt the beautiful long antique green silk curtain
-(r / curtain  :mod (u_666 / silk)  :mod (u_667 / green)  :mod (u_668 / antique)  :mod (u_669 / long)  :mod (u_670 / beautiful))
+# ::snt a strange beautiful long antique blue curtain
+(r / curtain  :mod (u_666 / blue)  :mod (u_667 / antique)  :mod (u_670 / strange)  :ARG1-of (u_668 / long-03)  :ARG1-of (u_669 / beautiful-02))
 
-# ::snt the beautiful short antique blue silk curtain
-(r / curtain  :mod (u_671 / silk)  :mod (u_672 / blue)  :mod (u_673 / antique)  :mod (u_674 / short)  :mod (u_675 / beautiful))
+# ::snt a fantastic short new blue silk skirt
+(r / skirt  :mod (u_672 / blue)  :mod (u_675 / fantastic)  :consist-of (u_671 / silk)  :ARG1-of (u_673 / new-01)  :ARG1-of (u_674 / short-07))
 
-# ::snt the beautiful short antique green silk curtain
-(r / curtain  :mod (u_676 / silk)  :mod (u_677 / green)  :mod (u_678 / antique)  :mod (u_679 / short)  :mod (u_680 / beautiful))
+# ::snt a strange short new red silk skirt
+(r / skirt  :mod (u_680 / strange)  :consist-of (u_676 / silk)  :ARG1-of (u_677 / red-02)  :ARG1-of (u_678 / new-01)  :ARG1-of (u_679 / short-07))
 
-# ::snt the strange long antique green silk curtain
-(r / curtain  :mod (u_681 / silk)  :mod (u_682 / green)  :mod (u_683 / antique)  :mod (u_684 / long)  :mod (u_685 / strange))
+# ::snt a fantastic beautiful antique red silk skirt
+(r / skirt  :mod (u_683 / antique)  :mod (u_685 / fantastic)  :consist-of (u_681 / silk)  :ARG1-of (u_682 / red-02)  :ARG1-of (u_684 / beautiful-02))
 
-# ::snt the beautiful short new blue silk curtain
-(r / curtain  :mod (u_686 / silk)  :mod (u_687 / blue)  :mod (u_688 / new)  :mod (u_689 / short)  :mod (u_690 / beautiful))
+# ::snt a strange long antique red silk curtain
+(r / curtain  :mod (u_688 / antique)  :mod (u_690 / strange)  :consist-of (u_686 / silk)  :ARG1-of (u_687 / red-02)  :ARG1-of (u_689 / long-03))
 
-# ::snt the strange short new blue silk curtain
-(r / curtain  :mod (u_691 / silk)  :mod (u_692 / blue)  :mod (u_693 / new)  :mod (u_694 / short)  :mod (u_695 / strange))
+# ::snt a fantastic short new red silk curtain
+(r / curtain  :mod (u_695 / fantastic)  :consist-of (u_691 / silk)  :ARG1-of (u_692 / red-02)  :ARG1-of (u_693 / new-01)  :ARG1-of (u_694 / short-07))
 
-# ::snt the beautiful long antique blue silk skirt
-(r / skirt  :mod (u_696 / silk)  :mod (u_697 / blue)  :mod (u_698 / antique)  :mod (u_699 / long)  :mod (u_700 / beautiful))
+# ::snt a strange beautiful short new silk curtain
+(r / curtain  :mod (u_700 / strange)  :consist-of (u_696 / silk)  :ARG1-of (u_697 / new-01)  :ARG1-of (u_698 / short-07)  :ARG1-of (u_699 / beautiful-02))
 

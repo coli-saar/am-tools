@@ -1,32 +1,32 @@
 # Randomly sampled examples of stacked adjectives. Created by a grammar.
 
-# ::snt the new skirt
-(r / skirt  :mod (u_711 / new))
+# ::snt a long skirt
+(r / skirt  :ARG1-of (u_11 / long-03))
 
-# ::snt the green skirt
-(r / skirt  :mod (u_712 / green))
+# ::snt a antique skirt
+(r / skirt  :mod (u_12 / antique))
 
-# ::snt the short skirt
-(r / skirt  :mod (u_713 / short))
+# ::snt a beautiful curtain
+(r / curtain  :ARG1-of (u_13 / beautiful-02))
 
-# ::snt the long skirt
-(r / skirt  :mod (u_714 / long))
+# ::snt a strange curtain
+(r / curtain  :mod (u_14 / strange))
 
-# ::snt the silk skirt
-(r / skirt  :mod (u_715 / silk))
+# ::snt a beautiful curtain
+(r / curtain  :ARG1-of (u_15 / beautiful-02))
 
-# ::snt the beautiful skirt
-(r / skirt  :mod (u_716 / beautiful))
+# ::snt a strange skirt
+(r / skirt  :mod (u_16 / strange))
 
-# ::snt the antique curtain
-(r / curtain  :mod (u_717 / antique))
+# ::snt a antique curtain
+(r / curtain  :mod (u_17 / antique))
 
-# ::snt the long curtain
-(r / curtain  :mod (u_718 / long))
+# ::snt a beautiful skirt
+(r / skirt  :ARG1-of (u_18 / beautiful-02))
 
-# ::snt the blue skirt
-(r / skirt  :mod (u_719 / blue))
+# ::snt a fantastic skirt
+(r / skirt  :mod (u_19 / fantastic))
 
-# ::snt the blue curtain
-(r / curtain  :mod (u_720 / blue))
+# ::snt a silk skirt
+(r / skirt  :consist-of (u_20 / silk))
 
