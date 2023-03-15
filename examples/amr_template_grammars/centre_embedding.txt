@@ -1,0 +1,227 @@
+# Randomly sampled examples of centre embedding. Created by a grammar.
+
+# ::snt the doctor who the astronaut saw amused the boy
+(u_400 / amuse-01  :ARG0 (r / doctor  :ARG1-of (u_401 / see-01  :ARG0 (u_402 / astronaut)))  :ARG1 (u_403 / boy))
+
+# ::snt the astronaut who the boy amused slept
+(u_406 / sleep-01  :ARG0 (r / astronaut  :ARG1-of (u_404 / amuse-01  :ARG0 (u_405 / boy))))
+
+# ::snt the boy who the astronaut amused slept
+(u_409 / sleep-01  :ARG0 (r / boy  :ARG1-of (u_407 / amuse-01  :ARG0 (u_408 / astronaut))))
+
+# ::snt the girl who the boy amused laughed
+(u_412 / laugh-01  :ARG0 (r / girl  :ARG1-of (u_410 / amuse-01  :ARG0 (u_411 / boy))))
+
+# ::snt the girl who the mechanic saw laughed
+(u_415 / laugh-01  :ARG0 (r / girl  :ARG1-of (u_413 / see-01  :ARG0 (u_414 / mechanic))))
+
+# ::snt the woman who the doctor hugged taught the boy
+(u_416 / teach-01  :ARG0 (r / woman  :ARG1-of (u_417 / hug-01  :ARG0 (u_418 / doctor)))  :ARG2 (u_419 / boy))
+
+# ::snt the doctor who the girl saw laughed
+(u_422 / laugh-01  :ARG0 (r / doctor  :ARG1-of (u_420 / see-01  :ARG0 (u_421 / girl))))
+
+# ::snt the doctor who the boy taught hugged the child
+(u_423 / hug-01  :ARG0 (r / doctor  :ARG2-of (u_424 / teach-01  :ARG0 (u_425 / boy)))  :ARG1 (u_426 / child))
+
+# ::snt the boy who the doctor saw slept
+(u_429 / sleep-01  :ARG0 (r / boy  :ARG1-of (u_427 / see-01  :ARG0 (u_428 / doctor))))
+
+# ::snt the astronaut who the boy met amused the girl
+(u_430 / amuse-01  :ARG0 (r / astronaut  :ARG1-of (u_431 / meet-02  :ARG0 (u_432 / boy)))  :ARG1 (u_433 / girl))
+
+# ::snt the boy who the doctor likes laughed
+(u_436 / laugh-01  :ARG0 (r / boy  :ARG1-of (u_434 / like-01  :ARG0 (u_435 / doctor))))
+
+# ::snt the astronaut who the girl taught saw the child
+(u_437 / see-01  :ARG0 (r / astronaut  :ARG2-of (u_438 / teach-01  :ARG0 (u_439 / girl)))  :ARG1 (u_440 / child))
+
+# ::snt the girl who the doctor saw left
+(u_443 / leave-01  :ARG0 (r / girl  :ARG1-of (u_441 / see-01  :ARG0 (u_442 / doctor))))
+
+# ::snt the boy who the doctor hugged taught the child
+(u_444 / teach-01  :ARG0 (r / boy  :ARG1-of (u_445 / hug-01  :ARG0 (u_446 / doctor)))  :ARG2 (u_447 / child))
+
+# ::snt the girl who the child amused hugged the astronaut
+(u_448 / hug-01  :ARG0 (r / girl  :ARG1-of (u_449 / amuse-01  :ARG0 (u_450 / child)))  :ARG1 (u_451 / astronaut))
+
+# ::snt the mechanic who the woman saw left
+(u_454 / leave-01  :ARG0 (r / mechanic  :ARG1-of (u_452 / see-01  :ARG0 (u_453 / woman))))
+
+# ::snt the girl who the astronaut amused laughed
+(u_457 / laugh-01  :ARG0 (r / girl  :ARG1-of (u_455 / amuse-01  :ARG0 (u_456 / astronaut))))
+
+# ::snt the mechanic who the boy met left
+(u_460 / leave-01  :ARG0 (r / mechanic  :ARG1-of (u_458 / meet-02  :ARG0 (u_459 / boy))))
+
+# ::snt the child who the girl taught laughed
+(u_463 / laugh-01  :ARG0 (r / child  :ARG2-of (u_461 / teach-01  :ARG0 (u_462 / girl))))
+
+# ::snt the mechanic who the doctor taught hugged the woman
+(u_464 / hug-01  :ARG0 (r / mechanic  :ARG2-of (u_465 / teach-01  :ARG0 (u_466 / doctor)))  :ARG1 (u_467 / woman))
+
+# ::snt the boy who the girl saw slept
+(u_470 / sleep-01  :ARG0 (r / boy  :ARG1-of (u_468 / see-01  :ARG0 (u_469 / girl))))
+
+# ::snt the child who the mechanic saw slept
+(u_473 / sleep-01  :ARG0 (r / child  :ARG1-of (u_471 / see-01  :ARG0 (u_472 / mechanic))))
+
+# ::snt the girl who the mechanic saw amused the boy
+(u_474 / amuse-01  :ARG0 (r / girl  :ARG1-of (u_475 / see-01  :ARG0 (u_476 / mechanic)))  :ARG1 (u_477 / boy))
+
+# ::snt the woman who the girl hugged saw the doctor
+(u_478 / see-01  :ARG0 (r / woman  :ARG1-of (u_479 / hug-01  :ARG0 (u_480 / girl)))  :ARG1 (u_481 / doctor))
+
+# ::snt the girl who the astronaut amused left
+(u_484 / leave-01  :ARG0 (r / girl  :ARG1-of (u_482 / amuse-01  :ARG0 (u_483 / astronaut))))
+
+# ::snt the mechanic who the doctor who the child saw likes left
+(u_489 / leave-01  :ARG0 (r / mechanic  :ARG1-of (u_487 / like-01  :ARG0 (u_488 / doctor  :ARG1-of (u_485 / see-01  :ARG0 (u_486 / child))))))
+
+# ::snt the mechanic who the boy who the girl likes met hugged the doctor
+(u_490 / hug-01  :ARG0 (r / mechanic  :ARG1-of (u_493 / meet-02  :ARG0 (u_494 / boy  :ARG1-of (u_491 / like-01  :ARG0 (u_492 / girl)))))  :ARG1 (u_495 / doctor))
+
+# ::snt the doctor who the child who the astronaut hugged amused left
+(u_500 / leave-01  :ARG0 (r / doctor  :ARG1-of (u_498 / amuse-01  :ARG0 (u_499 / child  :ARG1-of (u_496 / hug-01  :ARG0 (u_497 / astronaut))))))
+
+# ::snt the girl who the boy who the child met amused slept
+(u_505 / sleep-01  :ARG0 (r / girl  :ARG1-of (u_503 / amuse-01  :ARG0 (u_504 / boy  :ARG1-of (u_501 / meet-02  :ARG0 (u_502 / child))))))
+
+# ::snt the astronaut who the woman who the child taught likes left
+(u_510 / leave-01  :ARG0 (r / astronaut  :ARG1-of (u_508 / like-01  :ARG0 (u_509 / woman  :ARG2-of (u_506 / teach-01  :ARG0 (u_507 / child))))))
+
+# ::snt the child who the boy who the mechanic met likes slept
+(u_515 / sleep-01  :ARG0 (r / child  :ARG1-of (u_513 / like-01  :ARG0 (u_514 / boy  :ARG1-of (u_511 / meet-02  :ARG0 (u_512 / mechanic))))))
+
+# ::snt the boy who the astronaut who the mechanic met saw hugged the child
+(u_516 / hug-01  :ARG0 (r / boy  :ARG1-of (u_519 / see-01  :ARG0 (u_520 / astronaut  :ARG1-of (u_517 / meet-02  :ARG0 (u_518 / mechanic)))))  :ARG1 (u_521 / child))
+
+# ::snt the doctor who the child who the girl hugged taught laughed
+(u_526 / laugh-01  :ARG0 (r / doctor  :ARG2-of (u_524 / teach-01  :ARG0 (u_525 / child  :ARG1-of (u_522 / hug-01  :ARG0 (u_523 / girl))))))
+
+# ::snt the astronaut who the woman who the doctor met amused left
+(u_531 / leave-01  :ARG0 (r / astronaut  :ARG1-of (u_529 / amuse-01  :ARG0 (u_530 / woman  :ARG1-of (u_527 / meet-02  :ARG0 (u_528 / doctor))))))
+
+# ::snt the boy who the doctor who the astronaut saw hugged taught the woman
+(u_532 / teach-01  :ARG0 (r / boy  :ARG1-of (u_535 / hug-01  :ARG0 (u_536 / doctor  :ARG1-of (u_533 / see-01  :ARG0 (u_534 / astronaut)))))  :ARG2 (u_537 / woman))
+
+# ::snt the girl who the astronaut who the woman taught likes hugged the doctor
+(u_538 / hug-01  :ARG0 (r / girl  :ARG1-of (u_541 / like-01  :ARG0 (u_542 / astronaut  :ARG2-of (u_539 / teach-01  :ARG0 (u_540 / woman)))))  :ARG1 (u_543 / doctor))
+
+# ::snt the child who the astronaut who the doctor hugged amused laughed
+(u_548 / laugh-01  :ARG0 (r / child  :ARG1-of (u_546 / amuse-01  :ARG0 (u_547 / astronaut  :ARG1-of (u_544 / hug-01  :ARG0 (u_545 / doctor))))))
+
+# ::snt the girl who the woman who the astronaut amused hugged taught the doctor
+(u_549 / teach-01  :ARG0 (r / girl  :ARG1-of (u_552 / hug-01  :ARG0 (u_553 / woman  :ARG1-of (u_550 / amuse-01  :ARG0 (u_551 / astronaut)))))  :ARG2 (u_554 / doctor))
+
+# ::snt the girl who the astronaut who the doctor taught amused met the child
+(u_555 / meet-02  :ARG0 (r / girl  :ARG1-of (u_558 / amuse-01  :ARG0 (u_559 / astronaut  :ARG2-of (u_556 / teach-01  :ARG0 (u_557 / doctor)))))  :ARG1 (u_560 / child))
+
+# ::snt the doctor who the mechanic who the child hugged amused slept
+(u_565 / sleep-01  :ARG0 (r / doctor  :ARG1-of (u_563 / amuse-01  :ARG0 (u_564 / mechanic  :ARG1-of (u_561 / hug-01  :ARG0 (u_562 / child))))))
+
+# ::snt the child who the doctor who the girl saw met left
+(u_570 / leave-01  :ARG0 (r / child  :ARG1-of (u_568 / meet-02  :ARG0 (u_569 / doctor  :ARG1-of (u_566 / see-01  :ARG0 (u_567 / girl))))))
+
+# ::snt the child who the woman who the boy hugged taught left
+(u_575 / leave-01  :ARG0 (r / child  :ARG2-of (u_573 / teach-01  :ARG0 (u_574 / woman  :ARG1-of (u_571 / hug-01  :ARG0 (u_572 / boy))))))
+
+# ::snt the child who the boy who the astronaut met likes slept
+(u_580 / sleep-01  :ARG0 (r / child  :ARG1-of (u_578 / like-01  :ARG0 (u_579 / boy  :ARG1-of (u_576 / meet-02  :ARG0 (u_577 / astronaut))))))
+
+# ::snt the doctor who the woman who the child amused likes slept
+(u_585 / sleep-01  :ARG0 (r / doctor  :ARG1-of (u_583 / like-01  :ARG0 (u_584 / woman  :ARG1-of (u_581 / amuse-01  :ARG0 (u_582 / child))))))
+
+# ::snt the astronaut who the girl who the child hugged amused laughed
+(u_590 / laugh-01  :ARG0 (r / astronaut  :ARG1-of (u_588 / amuse-01  :ARG0 (u_589 / girl  :ARG1-of (u_586 / hug-01  :ARG0 (u_587 / child))))))
+
+# ::snt the astronaut who the boy who the child hugged amused taught the woman
+(u_591 / teach-01  :ARG0 (r / astronaut  :ARG1-of (u_594 / amuse-01  :ARG0 (u_595 / boy  :ARG1-of (u_592 / hug-01  :ARG0 (u_593 / child)))))  :ARG2 (u_596 / woman))
+
+# ::snt the girl who the woman who the astronaut hugged met taught the doctor
+(u_597 / teach-01  :ARG0 (r / girl  :ARG1-of (u_600 / meet-02  :ARG0 (u_601 / woman  :ARG1-of (u_598 / hug-01  :ARG0 (u_599 / astronaut)))))  :ARG2 (u_602 / doctor))
+
+# ::snt the girl who the woman who the boy met hugged laughed
+(u_607 / laugh-01  :ARG0 (r / girl  :ARG1-of (u_605 / hug-01  :ARG0 (u_606 / woman  :ARG1-of (u_603 / meet-02  :ARG0 (u_604 / boy))))))
+
+# ::snt the doctor who the girl who the woman taught likes slept
+(u_612 / sleep-01  :ARG0 (r / doctor  :ARG1-of (u_610 / like-01  :ARG0 (u_611 / girl  :ARG2-of (u_608 / teach-01  :ARG0 (u_609 / woman))))))
+
+# ::snt the doctor who the girl who the child likes hugged left
+(u_617 / leave-01  :ARG0 (r / doctor  :ARG1-of (u_615 / hug-01  :ARG0 (u_616 / girl  :ARG1-of (u_613 / like-01  :ARG0 (u_614 / child))))))
+
+# ::snt the boy who the woman who the child who the doctor hugged saw amused laughed
+(u_624 / laugh-01  :ARG0 (r / boy  :ARG1-of (u_622 / amuse-01  :ARG0 (u_623 / woman  :ARG1-of (u_620 / see-01  :ARG0 (u_621 / child  :ARG1-of (u_618 / hug-01  :ARG0 (u_619 / doctor))))))))
+
+# ::snt the mechanic who the girl who the astronaut who the child taught likes met amused the woman
+(u_625 / amuse-01  :ARG0 (r / mechanic  :ARG1-of (u_630 / meet-02  :ARG0 (u_631 / girl  :ARG1-of (u_628 / like-01  :ARG0 (u_629 / astronaut  :ARG2-of (u_626 / teach-01  :ARG0 (u_627 / child)))))))  :ARG1 (u_632 / woman))
+
+# ::snt the astronaut who the woman who the child who the girl met hugged taught left
+(u_639 / leave-01  :ARG0 (r / astronaut  :ARG2-of (u_637 / teach-01  :ARG0 (u_638 / woman  :ARG1-of (u_635 / hug-01  :ARG0 (u_636 / child  :ARG1-of (u_633 / meet-02  :ARG0 (u_634 / girl))))))))
+
+# ::snt the mechanic who the astronaut who the girl who the child amused taught met likes the doctor
+(u_640 / like-01  :ARG0 (r / mechanic  :ARG1-of (u_645 / meet-02  :ARG0 (u_646 / astronaut  :ARG2-of (u_643 / teach-01  :ARG0 (u_644 / girl  :ARG1-of (u_641 / amuse-01  :ARG0 (u_642 / child)))))))  :ARG1 (u_647 / doctor))
+
+# ::snt the mechanic who the boy who the doctor who the girl taught amused saw likes the child
+(u_648 / like-01  :ARG0 (r / mechanic  :ARG1-of (u_653 / see-01  :ARG0 (u_654 / boy  :ARG1-of (u_651 / amuse-01  :ARG0 (u_652 / doctor  :ARG2-of (u_649 / teach-01  :ARG0 (u_650 / girl)))))))  :ARG1 (u_655 / child))
+
+# ::snt the mechanic who the boy who the girl who the doctor amused saw taught left
+(u_662 / leave-01  :ARG0 (r / mechanic  :ARG2-of (u_660 / teach-01  :ARG0 (u_661 / boy  :ARG1-of (u_658 / see-01  :ARG0 (u_659 / girl  :ARG1-of (u_656 / amuse-01  :ARG0 (u_657 / doctor))))))))
+
+# ::snt the girl who the child who the boy who the mechanic met likes saw amused the astronaut
+(u_663 / amuse-01  :ARG0 (r / girl  :ARG1-of (u_668 / see-01  :ARG0 (u_669 / child  :ARG1-of (u_666 / like-01  :ARG0 (u_667 / boy  :ARG1-of (u_664 / meet-02  :ARG0 (u_665 / mechanic)))))))  :ARG1 (u_670 / astronaut))
+
+# ::snt the mechanic who the astronaut who the girl who the child amused hugged met slept
+(u_677 / sleep-01  :ARG0 (r / mechanic  :ARG1-of (u_675 / meet-02  :ARG0 (u_676 / astronaut  :ARG1-of (u_673 / hug-01  :ARG0 (u_674 / girl  :ARG1-of (u_671 / amuse-01  :ARG0 (u_672 / child))))))))
+
+# ::snt the woman who the boy who the girl who the doctor taught hugged amused laughed
+(u_684 / laugh-01  :ARG0 (r / woman  :ARG1-of (u_682 / amuse-01  :ARG0 (u_683 / boy  :ARG1-of (u_680 / hug-01  :ARG0 (u_681 / girl  :ARG2-of (u_678 / teach-01  :ARG0 (u_679 / doctor))))))))
+
+# ::snt the child who the woman who the doctor who the girl taught met amused slept
+(u_691 / sleep-01  :ARG0 (r / child  :ARG1-of (u_689 / amuse-01  :ARG0 (u_690 / woman  :ARG1-of (u_687 / meet-02  :ARG0 (u_688 / doctor  :ARG2-of (u_685 / teach-01  :ARG0 (u_686 / girl))))))))
+
+# ::snt the child who the astronaut who the woman who the doctor hugged saw amused left
+(u_698 / leave-01  :ARG0 (r / child  :ARG1-of (u_696 / amuse-01  :ARG0 (u_697 / astronaut  :ARG1-of (u_694 / see-01  :ARG0 (u_695 / woman  :ARG1-of (u_692 / hug-01  :ARG0 (u_693 / doctor))))))))
+
+# ::snt the astronaut who the girl who the boy who the child hugged met saw laughed
+(u_705 / laugh-01  :ARG0 (r / astronaut  :ARG1-of (u_703 / see-01  :ARG0 (u_704 / girl  :ARG1-of (u_701 / meet-02  :ARG0 (u_702 / boy  :ARG1-of (u_699 / hug-01  :ARG0 (u_700 / child))))))))
+
+# ::snt the boy who the doctor who the child who the mechanic saw amused taught likes the woman
+(u_706 / like-01  :ARG0 (r / boy  :ARG2-of (u_711 / teach-01  :ARG0 (u_712 / doctor  :ARG1-of (u_709 / amuse-01  :ARG0 (u_710 / child  :ARG1-of (u_707 / see-01  :ARG0 (u_708 / mechanic)))))))  :ARG1 (u_713 / woman))
+
+# ::snt the doctor who the girl who the woman who the astronaut likes taught amused laughed
+(u_720 / laugh-01  :ARG0 (r / doctor  :ARG1-of (u_718 / amuse-01  :ARG0 (u_719 / girl  :ARG2-of (u_716 / teach-01  :ARG0 (u_717 / woman  :ARG1-of (u_714 / like-01  :ARG0 (u_715 / astronaut))))))))
+
+# ::snt the mechanic who the astronaut who the girl who the doctor hugged likes met left
+(u_727 / leave-01  :ARG0 (r / mechanic  :ARG1-of (u_725 / meet-02  :ARG0 (u_726 / astronaut  :ARG1-of (u_723 / like-01  :ARG0 (u_724 / girl  :ARG1-of (u_721 / hug-01  :ARG0 (u_722 / doctor))))))))
+
+# ::snt the girl who the woman who the doctor who the mechanic saw taught met left
+(u_734 / leave-01  :ARG0 (r / girl  :ARG1-of (u_732 / meet-02  :ARG0 (u_733 / woman  :ARG2-of (u_730 / teach-01  :ARG0 (u_731 / doctor  :ARG1-of (u_728 / see-01  :ARG0 (u_729 / mechanic))))))))
+
+# ::snt the doctor who the boy who the woman who the mechanic hugged amused likes slept
+(u_741 / sleep-01  :ARG0 (r / doctor  :ARG1-of (u_739 / like-01  :ARG0 (u_740 / boy  :ARG1-of (u_737 / amuse-01  :ARG0 (u_738 / woman  :ARG1-of (u_735 / hug-01  :ARG0 (u_736 / mechanic))))))))
+
+# ::snt the girl who the child who the mechanic who the doctor amused likes met laughed
+(u_748 / laugh-01  :ARG0 (r / girl  :ARG1-of (u_746 / meet-02  :ARG0 (u_747 / child  :ARG1-of (u_744 / like-01  :ARG0 (u_745 / mechanic  :ARG1-of (u_742 / amuse-01  :ARG0 (u_743 / doctor))))))))
+
+# ::snt the girl who the astronaut who the woman who the doctor likes met hugged left
+(u_755 / leave-01  :ARG0 (r / girl  :ARG1-of (u_753 / hug-01  :ARG0 (u_754 / astronaut  :ARG1-of (u_751 / meet-02  :ARG0 (u_752 / woman  :ARG1-of (u_749 / like-01  :ARG0 (u_750 / doctor))))))))
+
+# ::snt the boy who the astronaut who the doctor who the woman met amused hugged left
+(u_762 / leave-01  :ARG0 (r / boy  :ARG1-of (u_760 / hug-01  :ARG0 (u_761 / astronaut  :ARG1-of (u_758 / amuse-01  :ARG0 (u_759 / doctor  :ARG1-of (u_756 / meet-02  :ARG0 (u_757 / woman))))))))
+
+# ::snt the girl who the woman who the child who the boy met hugged taught laughed
+(u_769 / laugh-01  :ARG0 (r / girl  :ARG2-of (u_767 / teach-01  :ARG0 (u_768 / woman  :ARG1-of (u_765 / hug-01  :ARG0 (u_766 / child  :ARG1-of (u_763 / meet-02  :ARG0 (u_764 / boy))))))))
+
+# ::snt the boy who the child who the mechanic who the astronaut likes saw taught laughed
+(u_776 / laugh-01  :ARG0 (r / boy  :ARG2-of (u_774 / teach-01  :ARG0 (u_775 / child  :ARG1-of (u_772 / see-01  :ARG0 (u_773 / mechanic  :ARG1-of (u_770 / like-01  :ARG0 (u_771 / astronaut))))))))
+
+# ::snt the astronaut who the girl who the woman who the mechanic saw amused likes met the child
+(u_777 / meet-02  :ARG0 (r / astronaut  :ARG1-of (u_782 / like-01  :ARG0 (u_783 / girl  :ARG1-of (u_780 / amuse-01  :ARG0 (u_781 / woman  :ARG1-of (u_778 / see-01  :ARG0 (u_779 / mechanic)))))))  :ARG1 (u_784 / child))
+
+# ::snt the astronaut who the child who the girl who the mechanic met amused hugged left
+(u_791 / leave-01  :ARG0 (r / astronaut  :ARG1-of (u_789 / hug-01  :ARG0 (u_790 / child  :ARG1-of (u_787 / amuse-01  :ARG0 (u_788 / girl  :ARG1-of (u_785 / meet-02  :ARG0 (u_786 / mechanic))))))))
+
+# ::snt the astronaut who the girl who the mechanic who the woman saw amused likes laughed
+(u_798 / laugh-01  :ARG0 (r / astronaut  :ARG1-of (u_796 / like-01  :ARG0 (u_797 / girl  :ARG1-of (u_794 / amuse-01  :ARG0 (u_795 / mechanic  :ARG1-of (u_792 / see-01  :ARG0 (u_793 / woman))))))))
+
