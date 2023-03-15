@@ -4,7 +4,7 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 // non-terminals and their types
 // F!: ()
 // Open_S_inf: (s)  : NT + sleep, jump, attend
-// SubjCrtl: (s, o(s)) : try, want, hate
+// SubjCrtl: (s, o(s)) : attempt, want, hate
 // ObjCrtl: (s, o, o2(s->o)) : persuade, ask, beg
 // Subj: () : I, we, you
 // Obj: () : girl, boy, child, doctor, her, him, them
@@ -17,18 +17,22 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // Full sentences
 
-F! -> SubjCtrlSent(SubjCtrl, Open_S_to, Subj) [0.9]
-[string] *(*(?3, *(?1, ?2)), '.')
-[graph] APP_subj(APP_obj(?1, ?2), ?3)
+F! -> Sent(Open_S_fin, Subj) [0.5]
+[string] *(*(?2, ?1), '.')
+[graph] APP_subj(?1, ?2)
 
-F! -> ObjCtrlSent(ObjCtrl, Open_S_to, Obj, Subj) [0.1]
-[string] *(*(?4, *(?1, *(?3, ?2))), '.')
-[graph] APP_subj(APP_obj(APP_obj2(?1, ?2), ?3), ?4)
+Open_S_fin -> SubjCtrlTbar(SubjCtrl_fin, Open_S_to) [0.5]
+[string] *(?1, ?2)
+[graph] APP_obj(?1, ?2)
+
+Open_S_fin -> ObjCtrlTbar(ObjCtrl_fin, Open_S_to, Obj) [0.5]
+[string] *(?1, *(?3, ?2))
+[graph] APP_obj(APP_obj2(?1, ?2), ?3)
 
 
 // ------------------------------- TP with PRO subject ------------------------------------------
 
-Open_S_to -> TP_PRO(Open_S_inf) [0.3]
+Open_S_to -> TP_PRO(Open_S_inf) [1.0]
 [string] *(to, ?1)
 [graph] ?1
 
@@ -41,35 +45,102 @@ Open_S_inf -> VbarSubjCtrl(SubjCtrl, Open_S_to) [0.2]
 
 // recursive rule for nested object control
 // WARNING: using this adds indefinitely many 3p Objs which some parsers will interpret as the same person, e.g. I persuaded her to get her to leave
-//Open_S_inf -> VbarObjCtrl(ObjCtrl, Open_S_to, Obj) [0.2]
-//[string] *(?1, *(?3, ?2))
-//[graph]  APP_obj(APP_obj2(?1, ?2), ?3)
+Open_S_inf -> VbarObjCtrl(ObjCtrl, Open_S_to, Obj) [0.2]
+[string] *(?1, *(?3, ?2))
+[graph]  APP_obj(APP_obj2(?1, ?2), ?3)
 
 
 // constants
-Open_S_inf -> sleep [0.2]
+// infinitival
+Open_S_inf -> sleep [0.1]
 [string] sleep
 [graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-Open_S_inf -> jump [0.2]
+Open_S_inf -> jump [0.1]
 [string] jump
 [graph] '(r<root> / jump-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-Open_S_inf -> attend [0.2]
+Open_S_inf -> attend [0.1]
 [string] attend
 [graph] '(r<root> / attend-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-Open_S_inf -> Coord_Open_S_inf(And_Open_S, Open_S_inf, Open_S_inf) [0.1]
+// finite
+Open_S_fin -> slept [0.1]
+[string] slept
+[graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Open_S_fin -> jumped [0.1]
+[string] jumped
+[graph] '(r<root> / jump-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Open_S_fin -> attended [0.1]
+[string] attended
+[graph] '(r<root> / attend-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+
+// coordinated infinitival VPs
+
+Open_S_inf -> Coord_Open_S_inf(And_Open_S, Open_S_inf, Open_S_inf) [0.25]
 [string] *(?2, *(?1, ?3))
 [graph] APP_op1(APP_op2(?1, ?3), ?2)
 
-Open_S_to -> Coord_Open_S_to(And_Open_S, Open_S_to, Open_S_to) [0.1]
+Open_S_inf -> Coord_3_Open_S_inf(And_Open_S, Open_S_inf, Open_S_inf, Open_S_inf) [0.25]
+[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
+[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
+
+// coordinated finite VPs
+Open_S_fin -> Coord_Open_S_fin(And_Open_S, Open_S_fin, Open_S_fin) [0.25]
 [string] *(?2, *(?1, ?3))
 [graph] APP_op1(APP_op2(?1, ?3), ?2)
 
-SubjCtrl -> Coord_Subj_Ctrl_V(And_Subj_Control_Verb, SubjCtrl, SubjCtrl) [0.1]
+Open_S_fin -> Coord_3_Open_S_fin(And_Open_S, Open_S_fin, Open_S_fin, Open_S_fin) [0.25]
+[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
+[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
+
+// (out)
+//Open_S_to -> Coord_Open_S_to(And_Open_S, Open_S_to, Open_S_to) [0.6]
+//[string] *(?2, *(?1, ?3))
+//[graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+
+
+// -------------------------- coordinated control verbs  --------------------------------------------
+
+// infinitival
+
+SubjCtrl -> Coord_Subj_Ctrl_V(And_Subj_Control_Verb, SubjCtrl, SubjCtrl) [0.125]
 [string] *(?2, *(?1, ?3))
 [graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+SubjCtrl -> Coord_3_Subj_Ctrl_V(And_Subj_Control_Verb_3, SubjCtrl, SubjCtrl, SubjCtrl) [0.125]
+[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
+[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
+
+ObjCtrl -> Coord_Obj_Ctrl_V(And_Obj_Control_Verb, ObjCtrl, ObjCtrl) [0.125]
+[string] *(?2, *(?1, ?3))
+[graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+ObjCtrl -> Coord_3_Obj_Ctrl_V(And_Obj_Control_Verb_3, ObjCtrl, ObjCtrl, ObjCtrl) [0.125]
+[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
+[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
+
+// finite
+
+SubjCtrl_fin -> Coord_Subj_Ctrl_V_fin(And_Subj_Control_Verb, SubjCtrl_fin, SubjCtrl_fin) [0.125]
+[string] *(?2, *(?1, ?3))
+[graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+SubjCtrl_fin -> Coord_3_Subj_Ctrl_V_fin(And_Subj_Control_Verb_3, SubjCtrl_fin, SubjCtrl_fin, SubjCtrl_fin) [0.125]
+[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
+[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
+
+ObjCtrl_fin -> Coord_Obj_Ctrl_V_fin(And_Obj_Control_Verb, ObjCtrl_fin, ObjCtrl_fin) [0.125]
+[string] *(?2, *(?1, ?3))
+[graph] APP_op1(APP_op2(?1, ?3), ?2)
+
+ObjCtrl_fin -> Coord_3_Obj_Ctrl_V_fin(And_Obj_Control_Verb_3, ObjCtrl_fin, ObjCtrl_fin, ObjCtrl_fin) [0.125]
+[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
+[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
 
 
 
@@ -79,48 +150,112 @@ And_Open_S -> and_open_s [1.0]
 [string] and
 [graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>))--TYPE--(op1(subj()), op2(subj()))'
 
+And_Open_S_3 -> and_3_open_s [1.0]
+[string] and
+[graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>) :op3 (op3<op3>))--TYPE--(op1(subj()), op2(subj()), op3(subj()))'
+
 And_Subj_Control_Verb -> and_subj_control_verb [1.0]
 [string] and
 [graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>))--TYPE--(op1(obj(subj())), op2(obj(subj())))'
 
+And_Subj_Control_Verb_3 -> and_3_subj_control_verb [1.0]
+[string] and
+[graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>) :op3 (op3<op3>))--TYPE--(op1(obj(subj())), op2(obj(subj())), op3(obj(subj())))'
+
+And_Obj_Control_Verb -> and_obj_control_verb [1.0]
+[string] and
+[graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>))--TYPE--(op1(subj(), obj(), obj2(subj_UNIFY_obj)), op2(subj(), obj(), obj2(subj_UNIFY_obj)))'
+
+And_Obj_Control_Verb_3 -> and_3_obj_control_verb [1.0]
+[string] and
+[graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>) :op3 (op3<op3>))--TYPE--(op1(subj(), obj(), obj2(subj_UNIFY_obj)), op2(subj(), obj(), obj2(subj_UNIFY_obj)), op3(subj(), obj(), obj2(subj_UNIFY_obj)))'
+
+
 // -------------------------------- subject control verbs -------------------------------------------
 
-SubjCtrl -> try [0.15]
-[string] try
-[graph] '(r<root> / try-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+// infinitival
 
-SubjCtrl -> want [0.15]
+SubjCtrl -> attempt [0.34]
+[string] attempt
+[graph] '(r<root> / attempt-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl -> want [0.33]
 [string] want
 [graph] '(r<root> / want-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-SubjCtrl -> hate [0.15]
+SubjCtrl -> hate [0.33]
 [string] hate
 [graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-SubjCtrl -> love [0.15]
+SubjCtrl -> love [0.33]
 [string] love
 [graph] '(r<root> / love-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-SubjCtrl -> refuse [0.15]
+SubjCtrl -> refuse [0.33]
 [string] refuse
 [graph] '(r<root> / refuse-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
+// finite
+
+SubjCtrl_fin -> attempted [0.34]
+[string] attempted
+[graph] '(r<root> / attempt-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl_fin -> wanted [0.33]
+[string] wanted
+[graph] '(r<root> / want-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl_fin -> hated [0.33]
+[string] hated
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl_fin -> loved [0.33]
+[string] loved
+[graph] '(r<root> / love-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+SubjCtrl_fin -> refused [0.33]
+[string] refused
+[graph] '(r<root> / refuse-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
+
+
+
+
 // -------------------------------- object control verbs --------------------------------------------
 
-ObjCtrl -> persuade [0.25]
+// infinitival
+
+ObjCtrl -> persuade [0.34]
 [string] persuade
 [graph] '(r<root> / persuade-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
-ObjCtrl -> ask [0.25]
+ObjCtrl -> ask [0.33]
 [string] ask
 [graph] '(r<root> / ask-02 :ARG0 (s<subj>) :ARG2 (o<obj>) :ARG1 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
-ObjCtrl -> beg [0.25]
+ObjCtrl -> beg [0.33]
 [string] beg
 [graph] '(r<root> / beg-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
-ObjCtrl -> force [0.25]
+ObjCtrl -> force [0.33]
 [string] force
+[graph] '(r<root> / force-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+// finite
+
+ObjCtrl_fin -> persuaded [0.34]
+[string] persuaded
+[graph] '(r<root> / persuade-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+ObjCtrl_fin -> asked [0.33]
+[string] asked
+[graph] '(r<root> / ask-02 :ARG0 (s<subj>) :ARG2 (o<obj>) :ARG1 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+ObjCtrl_fin -> begged [0.33]
+[string] begged
+[graph] '(r<root> / beg-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
+
+ObjCtrl_fin -> forced [0.33]
+[string] forced
 [graph] '(r<root> / force-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
 
