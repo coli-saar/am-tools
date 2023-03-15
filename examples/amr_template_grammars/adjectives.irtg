@@ -9,14 +9,26 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // ---------- DPs -------------------
 
-DP! -> DP(NP_opinion) [1.0]
-[string] *(the, ?1)
+DP! -> DP(NP_opinion_2) [1.0]
+[string] *(a, ?1)
 [graph] ?1
 
 
 // ---------- modified NPs ------------
 
+
 // OPINION
+
+NP_opinion_2 -> NP_opinion_2(NP_opinion, A_opinion) [0.5]
+[string] *(?2, ?1)
+[graph] MOD_m(?1, ?2)
+
+// syntactic glue
+NP_opinion_2 -> NP_opinion_2_null(NP_opinion) [0.5]
+[string] ?1
+[graph] ?1
+
+
 NP_opinion -> NP_opinion(NP_size, A_opinion) [0.5]
 [string] *(?2, ?1)
 [graph] MOD_m(?1, ?2)
@@ -25,6 +37,7 @@ NP_opinion -> NP_opinion(NP_size, A_opinion) [0.5]
 NP_opinion -> NP_opinion_null(NP_size) [0.5]
 [string] ?1
 [graph] ?1
+
 
 // SIZE
 NP_size -> NP_size(NP_age, A_size) [0.5]
@@ -35,6 +48,7 @@ NP_size -> NP_size(NP_age, A_size) [0.5]
 NP_size -> NP_size_null(NP_age) [0.5]
 [string] ?1
 [graph] ?1
+
 
 // AGE
 NP_age -> NP_age(NP_shape, A_age) [0.5]
@@ -47,7 +61,7 @@ NP_age -> NP_age_null(NP_shape) [0.5]
 [graph] ?1
 
 // SHAPE
-//NP_shape -> NP_shape(NP_colour, A_shape) [1.0]
+//NP_shape -> NP_shape(NP_colour, A_shape) [0.5]
 //[string] *(?2, ?1)
 //[graph] MOD_m(?1, ?2)
 
@@ -79,54 +93,59 @@ NP_material -> NP_material_null(N) [0.5]
 
 // -----------Adjectives ------------------
 
-A_opinion -> beautiful [1.0]
-[string] beautiful
-[graph] '(r<root> / beautiful :mod-of (m<m>))--TYPE--(m)'
 
-A_opinion -> strange [1.0]
+A_opinion -> fantastic [0.3]
+[string] fantastic
+[graph] '(r<root> / fantastic :mod-of (m<m>))--TYPE--(m)'
+
+A_opinion -> beautiful [0.4]
+[string] beautiful
+[graph] '(r<root> / beautiful-02 :ARG1 (m<m>))--TYPE--(m)'
+
+A_opinion -> strange [0.3]
 [string] strange
 [graph] '(r<root> / strange :mod-of (m<m>))--TYPE--(m)'
 
-A_size -> long [1.0]
+A_size -> long [0.5]
 [string] long
-[graph] '(r<root> / long :mod-of (m<m>))--TYPE--(m)'
+[graph] '(r<root> / long-03 :ARG1 (m<m>))--TYPE--(m)'
 
-A_size -> short [1.0]
+A_size -> short [0.5]
 [string] short
-[graph] '(r<root> / short :mod-of (m<m>))--TYPE--(m)'
+[graph] '(r<root> / short-07 :ARG1 (m<m>))--TYPE--(m)'
 
-A_age -> new [1.0]
+A_age -> new [0.5]
 [string] new
-[graph] '(r<root> / new :mod-of (m<m>))--TYPE--(m)'
+[graph] '(r<root> / new-01 :ARG1 (m<m>))--TYPE--(m)'
 
-A_age -> antique [1.0]
+A_age -> antique [0.5]
 [string] antique
 [graph] '(r<root> / antique :mod-of (m<m>))--TYPE--(m)'
 
-A_shape -> round [1.0]
+A_shape -> round [0.5]
 [string] round
-[graph] '(r<root> / round :mod-of (m<m>))--TYPE--(m)'
+[graph] '(r<root> / round-06 :ARG1 (m<m>))--TYPE--(m)'
 
-A_colour -> green [1.0]
-[string] green
-[graph] '(r<root> / green :mod-of (m<m>))--TYPE--(m)'
+A_colour -> red [0.5]
+[string] red
+[graph] '(r<root> / red-02 :ARG1 (m<m>))--TYPE--(m)'
 
-A_colour -> blue [1.0]
+A_colour -> blue [0.5]
 [string] blue
 [graph] '(r<root> / blue :mod-of (m<m>))--TYPE--(m)'
 
 A_material -> silk [1.0]
 [string] silk
-[graph] '(r<root> / silk :mod-of (m<m>))--TYPE--(m)'
+[graph] '(r<root> / silk :consist (m<m>))--TYPE--(m)'
 
 
 // -------- Nouns -------------------
 
-N -> skirt [1.0]
+N -> skirt [0.5]
 [string] skirt
 [graph] '(r<root> / skirt)--TYPE--()'
 
-N -> curtain [1.0]
+N -> curtain [0.5]
 [string] curtain
 [graph] '(r<root> / curtain)--TYPE--()'
 
