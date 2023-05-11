@@ -254,6 +254,21 @@ public class SampleFromTemplateWithInfiniteLanguage {
                 if (depth != targetSize) {
                     return false;
                 }
+            } else if (check_for_coordination_ambiguity) {
+                // don’t allow any VbarSubjCtrl/VbarObjCtrl in ancestors of and_inf, and allow only one VP in left
+                // child of and_inf (same for middle one if and_inf_3).
+                // The and_inf rule labels are:
+                // Coord_Open_S_fin
+                // Coord_3_Open_S_fin
+                // Coord_Subj_Ctrl_V
+                // Coord_3_Subj_Ctrl_V
+                Set<String> andInfRuleLabels = new HashSet<>();
+                andInfRuleLabels.add("Coord_Open_S_fin");
+                andInfRuleLabels.add("Coord_3_Open_S_fin");
+                andInfRuleLabels.add("Coord_Subj_Ctrl_V");
+                andInfRuleLabels.add("Coord_3_Subj_Ctrl_V");
+
+                // TODO finish this
             }
         } catch (NullPointerException ex) {
             null_pointer_exception_count++;
@@ -269,6 +284,28 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
         // return true if we want to keep this one
         return !hasDuplicates;
+    }
+
+    public static int countAncestorDescendantPairsInTree(Tree<String> tree, Set<String> ancestorLabels,
+                                                          Set<String> descendantLabels,
+                                                          boolean ignoreRightmostBranch) {
+        int count = 0;
+        for (Tree<String> subtree :  tree.getAllNodes()) {
+            if (ancestorLabels.contains(subtree.getLabel())) {
+                List<Tree<String>> branchesToConsider = subtree.getChildren();
+                if (ignoreRightmostBranch) {
+                    branchesToConsider = branchesToConsider.subList(0, branchesToConsider.size() - 1);
+                }
+                for (Tree<String> branch : branchesToConsider) {
+                    for (Tree<String> nodeInBranch : branch.getAllNodes()) {
+                        if (descendantLabels.contains(nodeInBranch.getLabel())) {
+                            count++;
+                        }
+                    }
+                }
+            }
+        }
+        return count;
     }
 
 }
