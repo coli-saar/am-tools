@@ -268,7 +268,17 @@ public class SampleFromTemplateWithInfiniteLanguage {
                 andInfRuleLabels.add("Coord_Subj_Ctrl_V");
                 andInfRuleLabels.add("Coord_3_Subj_Ctrl_V");
 
-                // TODO finish this
+                Set<String> forbiddenRuleLabels = new HashSet<>();
+                forbiddenRuleLabels.add("VbarSubjCtrl");
+                forbiddenRuleLabels.add("VbarObjCtrl");
+
+                int countAbove = countAncestorDescendantPairsInTree(tree, forbiddenRuleLabels, andInfRuleLabels,
+                        false);
+                int countBelow = countAncestorDescendantPairsInTree(tree, andInfRuleLabels, forbiddenRuleLabels,
+                        true);
+                if (countAbove > 0 || countBelow > 0) {
+                    return false;
+                }
             }
         } catch (NullPointerException ex) {
             null_pointer_exception_count++;
