@@ -18,6 +18,18 @@ public class SampleFromTemplateWithInfiniteLanguage {
     static int null_pointer_exception_count = 0;
     static final String SIZE_TYPE_STRING_LENGTH = "string length";
     static final String SIZE_TYPE_TREE_DEPTH = "tree depth";
+    private final int minSize;
+    private final int maxSize;
+    private final int sizeStep;
+    private final String sizeType;
+    private final InterpretedTreeAutomaton irtg;
+    private final Interpretation stringInterp;
+    private final Interpretation graphInterp;
+    private final Map<Integer, Double> inside;
+    private final String description;
+    private final Set<String> ruleLabelsWithDuplicatesAllowed;
+    private final boolean check_for_coordination_ambiguity;
+
 
     public static void main(String[] args) throws IOException, ParseException {
         // we want about 100 samples for most grammars
@@ -54,13 +66,15 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //                new HashSet<>());
 
 //        // nested control
-//        sampleFromGrammar(10, 12, 12, 1,
-//                SIZE_TYPE_TREE_DEPTH,
-//                "examples/amr_template_grammars/nested_control.irtg",
-//                "examples/amr_template_grammars/nested_control_more.txt",
-//                "Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.",
-//                new HashSet<>(Arrays.asList("TP_PRO", "VbarSubjCtrl", "VbarObjCtrl"))
-//        );
+        SampleFromTemplateWithInfiniteLanguage sampler = new SampleFromTemplateWithInfiniteLanguage(
+                4, 8, 1,
+                SIZE_TYPE_TREE_DEPTH,
+                "examples/amr_template_grammars/nested_control.irtg",
+                "Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.",
+                new HashSet<>(Arrays.asList("TP_PRO", "VbarSubjCtrl", "VbarObjCtrl")),
+                true
+        );
+        sampler.sampleFromGrammar(10, "examples/amr_template_grammars/nested_control_debugging.txt");
 
         // deep recursion
 //        sampleFromGrammar(1, 1, 12, 1,
@@ -79,37 +93,49 @@ public class SampleFromTemplateWithInfiniteLanguage {
     }
 
     /**
-     * Samples from a grammar and writes the samples to a file.
-     * @param numSamples The number of samples to be generated.
-     * @param minSize The minimum sentence length or (grammar-)tree depth of the samples, depending on sizeType
+     * A class that can sample from a grammar and write the samples to a file.
+     * * @param minSize The minimum sentence length or (grammar-)tree depth of the samples, depending on sizeType
      * @param maxSize The maximum sentence length or (grammar-)tree depth of the samples, depending on sizeType
      * @param sizeStep The step size for increasing the length or depth, depending on sizeType
      * @param sizeType whether we're measuring output sentence length or derivation tree depth.
      *                 Determines what "Size" means in the above parameters (length vs depth)
      *                 Choose between the SIZE_TYPE_ prefixed global variables above
      * @param irtgPath The path to the grammar.
-     * @param outputFile The path to the output file.
      * @param description A description that is added at the start of the output file.
      * @param ruleLabelsWithDuplicatesAllowed A set of rule labels for which multiple instances are allowed. This is
      *                                        important for rules that are used recursively. But by default we do
-     *                                        not allow duplicate rules, so that every lexical item can appear
+            *                                        not allow duplicate rules, so that every lexical item can appear
      *                                        at most once.
+     *
+     **/
+    public SampleFromTemplateWithInfiniteLanguage(int minSize, int maxSize, int sizeStep, String sizeType,
+                                                  String irtgPath, String description,
+                                                  Set<String> ruleLabelsWithDuplicatesAllowed,
+                                                  boolean check_for_coordination_ambiguity) throws IOException {
+        this.minSize = minSize;
+        this.maxSize = maxSize;
+        this.sizeStep = sizeStep;
+        this.sizeType = sizeType;
+        this.description = description;
+        this.ruleLabelsWithDuplicatesAllowed = ruleLabelsWithDuplicatesAllowed;
+        this.irtg = InterpretedTreeAutomaton.fromPath(irtgPath);
+        this.stringInterp = irtg.getInterpretation("string");
+        this.graphInterp = irtg.getInterpretation("graph");
+        this.inside = computeAndFixInsideProbabilities();
+        this.check_for_coordination_ambiguity = check_for_coordination_ambiguity;
+    }
+
+    /**
+     * Samples from a grammar and writes the samples to a file.
+     * @param numSamples The number of samples to be generated.
+     * @param outputFile The path to the output file.
      */
-    @SuppressWarnings({"rawtypes"})
-    private static void sampleFromGrammar(int numSamples, int minSize, int maxSize, int sizeStep, String sizeType,
-                                          String irtgPath,
-                                          String outputFile, String description,
-                                          Set<String> ruleLabelsWithDuplicatesAllowed
-                                          ) throws IOException {
-        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath(irtgPath);
-        Interpretation stringInterp = irtg.getInterpretation("string");
-        Interpretation graphInterp = irtg.getInterpretation("graph");
+    @SuppressWarnings({"rawtypes", "SameParameterValue"})
+    private void sampleFromGrammar(int numSamples, String outputFile) throws IOException {
         irtg.getAutomaton().normalizeRuleWeights();
 
-        Map<Integer, Double> inside = computeAndFixInsideProbabilities(irtg);
 
-        List<Tree<String>> samples = getSamplesAccordingToInsideProbabilities(numSamples, minSize, maxSize, sizeStep,
-                sizeType, ruleLabelsWithDuplicatesAllowed, irtg, stringInterp, graphInterp, inside);
+        List<Tree<String>> samples = getSamplesAccordingToInsideProbabilities(numSamples);
 
         SampleFromTemplate.writeSamplesToFile(outputFile, samples, description, irtg);
         System.out.println("\nTotal samples: " + samples.size());
@@ -117,36 +143,22 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
     @SuppressWarnings({"rawtypes"})
     @NotNull
-    private static List<Tree<String>> getSamplesAccordingToInsideProbabilities(int numSamples, int minSize,
-                                                                               int maxSize, int sizeStep,
-                                                                               String sizeType,
-                                                                               Set<String> ruleLabelsWithDuplicatesAllowed,
-                                                                               InterpretedTreeAutomaton irtg,
-                                                                               Interpretation stringInterp,
-                                                                               Interpretation graphInterp,
-                                                                               Map<Integer, Double> inside) {
+    private List<Tree<String>> getSamplesAccordingToInsideProbabilities(int numSamples) {
         List<Tree<String>> samples = new ArrayList<>();
         for (int targetSize = minSize; targetSize <= maxSize; targetSize += sizeStep) {
-            sampleForTargetSize(numSamples, ruleLabelsWithDuplicatesAllowed, irtg, stringInterp, graphInterp, inside,
-                    samples, targetSize, sizeType);
+            sampleForTargetSize(numSamples, samples, targetSize);
         }
         return samples;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    private static void sampleForTargetSize(int numSamples, Set<String> ruleLabelsWithDuplicatesAllowed,
-                                            InterpretedTreeAutomaton irtg, Interpretation stringInterp,
-                                            Interpretation graphInterp, Map<Integer, Double> inside,
-                                            List<Tree<String>> samples, int targetSize, String sizeType) {
+    private void sampleForTargetSize(int numSamples, List<Tree<String>> samples, int targetSize) {
         System.out.println("\nSamples for target size " + targetSize + ":");
         null_pointer_exception_count = 0;
         List<Tree<String>> samplesHere = new ArrayList<>();
         int backupCounter = 0;
         int sampleFactor = 1000000;
         while (samplesHere.size() < numSamples && backupCounter < numSamples * sampleFactor) {
-            attemptToAddNewSample(ruleLabelsWithDuplicatesAllowed, irtg, stringInterp, graphInterp, inside, targetSize,
-                    sizeType,
-                    samplesHere);
+            attemptToAddNewSample(targetSize, samplesHere);
             backupCounter++;
         }
         samples.addAll(samplesHere);
@@ -155,29 +167,22 @@ public class SampleFromTemplateWithInfiniteLanguage {
         System.out.println("Null pointer exceptions: " + null_pointer_exception_count);
     }
 
-    @SuppressWarnings("rawtypes")
-    private static void attemptToAddNewSample(Set<String> ruleLabelsWithDuplicatesAllowed,
-                                              InterpretedTreeAutomaton irtg,
-                                              Interpretation stringInterpretation,
-                                              Interpretation graphInterpretation,
-                                              Map<Integer, Double> inside,
-                                              int targetSize,
-                                              String sizeType,
-                                              List<Tree<String>> samplesHere) {
+    private void attemptToAddNewSample(int targetSize, List<Tree<String>> samplesHere) {
         Tree<String> tree = irtg.getAutomaton().getRandomTree(inside);
         if (checkTree(tree, samplesHere, targetSize,
                 sizeType,
-                stringInterpretation,
                 ruleLabelsWithDuplicatesAllowed)) {
-            addSample(stringInterpretation, graphInterpretation, samplesHere, tree);
+            addSample(samplesHere, tree);
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static void addSample(Interpretation stringInterp, Interpretation graphInterp, List<Tree<String>> samplesHere, Tree<String> tree) {
+    @SuppressWarnings({"unchecked"})
+    private void addSample(List<Tree<String>> samplesHere, Tree<String> tree) {
         samplesHere.add(tree);
         System.out.println(tree);
         Object stringResult = stringInterp.getAlgebra().evaluate(stringInterp.getHomomorphism().apply(tree));
+        System.out.println("AM algebra term");
+        System.out.println(graphInterp.getHomomorphism().apply(tree));
         Object graphResult = graphInterp.getAlgebra().evaluate(graphInterp.getHomomorphism().apply(tree));
         String sentenceString = stringInterp.getAlgebra().representAsString(stringResult);
         System.out.println(sentenceString);
@@ -186,17 +191,16 @@ public class SampleFromTemplateWithInfiniteLanguage {
     }
 
     @NotNull
-    private static Map<Integer, Double> computeAndFixInsideProbabilities(InterpretedTreeAutomaton irtg) {
-        Map<Integer, Double> inside = irtg.getAutomaton().inside();
+    private Map<Integer, Double> computeAndFixInsideProbabilities() {
+        Map<Integer, Double> inside = this.irtg.getAutomaton().inside();
         // if the grammar contains loops, the inside calculation will not always be correct
-        // we can override erroneous inside values with a sort of made up version
-        // (doesn't have to be exact; inside may in fact be undefined)
-        printAllInsideProbabilities(irtg, inside);  // so we can catch wrongly computed inside probabilities
+        // We therefore override the inside probablities.
+//        printAllInsideProbabilities(this.irtg, inside);  // so we can catch wrongly computed inside probabilities
         fixErroneousInsideProbabilities(inside);
         return inside;
     }
 
-    private static void printAllInsideProbabilities(InterpretedTreeAutomaton irtg, Map<Integer, Double> inside) {
+    private void printAllInsideProbabilities(Map<Integer, Double> inside) {
         System.out.println("Inside probabilities:");
         for (int state_id : inside.keySet()) {
             System.out.println(irtg.getAutomaton().getStateForId(state_id) + " " + inside.get(state_id));
@@ -204,12 +208,22 @@ public class SampleFromTemplateWithInfiniteLanguage {
     }
 
     /**
-     * set all inside probabilities to 1 to prevent problems with infinite languages
-     * still need to keep recursive, tree-widening rule probabilities lower than unary and constants in the grammar
+     * Set all inside probabilities to 1 to prevent problems with infinite languages.
+     * We still need to keep recursive, tree-widening rule probabilities lower than unary and constants. But we do
+     * this in the grammar! Then we normalize the rule weights in the code to make the grammar compatible with the
+     * inside probabilities all being 1. So in the grammar, the rule weights that expand a state don't have to
+     * sum to 1, but relative to each other, they have to make sure that the expansions don't outweight the
+     * contractions.
+     * Let's assume for simplicity that a cycle only occurs directly within rules that expand one state and then have
+     * that state again as a child (if there are longer cycles between same states in the grammar, the math gets more
+     * complicated). So let X be a state, and r_1, ..., r_n be the rules that expand X. Let w(r_i) be the weight of
+     * rule r_i and let NX(r_i) be the number of times that X occurs as a child of r_i. I.e. if NX(r_i) is 0, then
+     * we have a contraction, and if NX(r_i) > 1, we have an expansion. Then to avoid running into infinite loops
+     * during sampling, we need SUM_i(w(r_i) * NX(r_i)) < SUM_i(w(r_i)). (Note that after normalization, the right
+     * side would equal 1).
      * @param inside: inside probabilities to update
      */
-    private static void fixErroneousInsideProbabilities(
-                                                        Map<Integer, Double> inside) {
+    private static void fixErroneousInsideProbabilities(Map<Integer, Double> inside) {
         for (Integer i : new HashSet<>(inside.keySet())) {
             inside.put(i, 1.0);
         }
@@ -217,9 +231,8 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
 
     static int total_depths_printed = 0;
-    public static boolean checkTree(Tree<String> tree, Collection<Tree<String>> samples, int targetSize,
+    public boolean checkTree(Tree<String> tree, Collection<Tree<String>> samples, int targetSize,
                                     String sizeType,
-                                    Interpretation stringInterpretation,
                                     Set<String> ruleLabelsWithDuplicatesAllowed) {
         if (samples.contains(tree)) { return false; }
         // This is catching a bug where sometimes the tree.getHeight method (and other tree methods) throws
@@ -227,7 +240,7 @@ public class SampleFromTemplateWithInfiniteLanguage {
         try {
             // System.out.println(tree);
             if (sizeType.equals(SIZE_TYPE_STRING_LENGTH)) {
-                Object stringResult = stringInterpretation.interpret(tree);
+                Object stringResult = stringInterp.interpret(tree);
                 int sentenceLength = ((List<String>) stringResult).size();
                 if (sentenceLength != targetSize) {
                     return false;

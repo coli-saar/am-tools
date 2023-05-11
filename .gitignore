@@ -137,3 +137,4 @@ examples/amr_template_grammars/pp_attachment_to.txt
 examples/amr_template_grammars/sampling_test.txt
 examples/amr_template_grammars/centre_embedding.txt
 /gradle.zip
+examples/amr_template_grammars/nested_control_debugging.txt
