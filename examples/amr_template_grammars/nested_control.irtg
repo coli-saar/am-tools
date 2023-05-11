@@ -105,6 +105,7 @@ SubjCtrl -> Coord_3_Subj_Ctrl_V(And_Subj_Control_Verb_3, SubjCtrl, SubjCtrl, Sub
 [string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
 [graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
 
+// don't coordinate object control verbs because they're too ambiguous
 //ObjCtrl -> Coord_Obj_Ctrl_V(And_Obj_Control_Verb, ObjCtrl, ObjCtrl) [0.25]
 //[string] *(?2, *(?1, ?3))
 //[graph] APP_op1(APP_op2(?1, ?3), ?2)
@@ -123,13 +124,14 @@ SubjCtrl_fin -> Coord_3_Subj_Ctrl_V_fin(And_Subj_Control_Verb_3, SubjCtrl_fin, S
 [string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
 [graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
 
-ObjCtrl_fin -> Coord_Obj_Ctrl_V_fin(And_Obj_Control_Verb, ObjCtrl_fin, ObjCtrl_fin) [0.25]
-[string] *(?2, *(?1, ?3))
-[graph] APP_op1(APP_op2(?1, ?3), ?2)
+// don't coordinate object control verbs because they're too ambiguous
+//ObjCtrl_fin -> Coord_Obj_Ctrl_V_fin(And_Obj_Control_Verb, ObjCtrl_fin, ObjCtrl_fin) [0.25]
+//[string] *(?2, *(?1, ?3))
+//[graph] APP_op1(APP_op2(?1, ?3), ?2)
 
-ObjCtrl_fin -> Coord_3_Obj_Ctrl_V_fin(And_Obj_Control_Verb_3, ObjCtrl_fin, ObjCtrl_fin, ObjCtrl_fin) [0.1]
-[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
-[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
+//ObjCtrl_fin -> Coord_3_Obj_Ctrl_V_fin(And_Obj_Control_Verb_3, ObjCtrl_fin, ObjCtrl_fin, ObjCtrl_fin) [0.1]
+//[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
+//[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
 
 
 
