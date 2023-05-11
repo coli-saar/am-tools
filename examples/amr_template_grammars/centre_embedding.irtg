@@ -1,6 +1,8 @@
 interpretation string: de.up.ling.irtg.algebra.StringAlgebra
 interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
+// TODO check word senses
+
 // -------------Final TP -------------
 //
 

@@ -96,7 +96,7 @@ NP_material -> NP_material_null(N) [0.5]
 
 A_opinion -> fantastic [0.3]
 [string] fantastic
-[graph] '(r<root> / fantastic :mod-of (m<m>))--TYPE--(m)'
+[graph] '(r<root> / fantastic-02 :ARG1-of (m<m>))--TYPE--(m)'
 
 A_opinion -> beautiful [0.4]
 [string] beautiful
@@ -126,16 +126,16 @@ A_shape -> round [0.5]
 [string] round
 [graph] '(r<root> / round-06 :ARG1 (m<m>))--TYPE--(m)'
 
-A_colour -> red [0.5]
-[string] red
-[graph] '(r<root> / red-02 :ARG1 (m<m>))--TYPE--(m)'
+A_colour -> pale [0.5]
+[string] pale
+[graph] '(r<root> / pale-03 :ARG1 (m<m>))--TYPE--(m)'
 
-A_colour -> blue [0.5]
-[string] blue
-[graph] '(r<root> / blue :mod-of (m<m>))--TYPE--(m)'
+A_colour -> dark [0.5]
+[string] dark
+[graph] '(r<root> / dark-02 :ARG1 (m<m>))--TYPE--(m)'
 
-A_material -> silk [1.0]
-[string] silk
+A_material -> silken [1.0]
+[string] silken
 [graph] '(r<root> / silk :consist (m<m>))--TYPE--(m)'
 
 
