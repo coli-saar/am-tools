@@ -20,7 +20,7 @@ class SampleFromTemplateWithInfiniteLanguageTest {
 
 
     @Test
-    public void testDecode() {
+    public void testDescendantsAncestorsBasic() {
         Tree<String> tree = pt("a(b, a(b), c(b, b))");
         Set<String> ancestors = new HashSet<>();
         ancestors.add("a");
@@ -38,6 +38,26 @@ class SampleFromTemplateWithInfiniteLanguageTest {
                 true);
         assert countIgnoreRightmostBranch == 2;
     }
+
+    @Test
+    public void testDescendantsAncestorsFailCase() {
+        Tree<String> tree = pt("Sent(SubjCtrlTbar(attempted,VbarSubjCtrl(Coord_Subj_Ctrl_V(and_subj_control_verb,want,love),attend)),we)");
+        Set<String> andInfRuleLabels = new HashSet<>();
+        andInfRuleLabels.add("Coord_Open_S_inf");
+        andInfRuleLabels.add("Coord_3_Open_S_inf");
+        andInfRuleLabels.add("Coord_Subj_Ctrl_V");
+        andInfRuleLabels.add("Coord_3_Subj_Ctrl_V");
+
+        Set<String> forbiddenRuleLabels = new HashSet<>();
+        forbiddenRuleLabels.add("VbarSubjCtrl");
+        forbiddenRuleLabels.add("VbarObjCtrl");
+        int count = SampleFromTemplateWithInfiniteLanguage.countAncestorDescendantPairsInTree(tree,
+                forbiddenRuleLabels,
+                andInfRuleLabels,
+                false);
+        assert count == 1;
+    }
+
 
 }
 

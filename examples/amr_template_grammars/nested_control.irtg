@@ -4,10 +4,10 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 // non-terminals and their types
 // F!: ()
 // Open_S_inf: (s)  : NT + sleep, jump, attend
-// SubjCrtl: (s, o(s)) : attempt, want, hate
-// ObjCrtl: (s, o, o2(s->o)) : persuade, ask, beg
-// Subj: () : I, we, you
-// Obj: () : girl, boy, child, doctor, her, him, them
+// SubjCrtl: (s, o(s)) : attempt, want, hate, love, refuse
+// ObjCrtl: (s, o, o2(s->o)) : persuade, ask, beg, force
+// Subj: () : girl, boy
+// Obj: () : me, you, doctor, monster, politician
 
 // TODO check word senses
 
@@ -58,6 +58,14 @@ Open_S_inf -> attend [0.2]
 [string] attend
 [graph] '(r<root> / attend-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
+Open_S_inf -> eat [0.2]
+[string] eat
+[graph] '(r<root> / eat-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Open_S_inf -> focus [0.2]
+[string] focus
+[graph] '(r<root> / focus-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
 // finite
 Open_S_fin -> slept [0.2]
 [string] slept
@@ -71,6 +79,13 @@ Open_S_fin -> attended [0.2]
 [string] attended
 [graph] '(r<root> / attend-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
+Open_S_fin -> ate [0.2]
+[string] ate
+[graph] '(r<root> / eat-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Open_S_fin -> focused [0.2]
+[string] focused
+[graph] '(r<root> / focus-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
 // coordinated infinitival VPs
 
@@ -256,41 +271,37 @@ ObjCtrl_fin -> forced [0.33]
 
 
 // -------------------------------- subjects -------------------------------------------------
-// 1st and 2nd person only
+// 3rd person only to make infinitival verbs unambiguous (if subjects are e.g. first person, then infinitival verbs could be present tense instead)
 
-Subj -> I [0.33]
-[string] I
-[graph] '(r<root> / i)--TYPE--()'
+Subj -> girl [0.33]
+[string] *(The, girl)
+[graph] '(r<root> / girl)--TYPE--()'
 
-Subj -> we [0.33]
-[string] We
-[graph] '(r<root> / we)--TYPE--()'
-
-Subj -> you [0.34]
-[string] You
-[graph] '(r<root> / you)--TYPE--()'
+Subj -> boy [0.33]
+[string] *(The, boy)
+[graph] '(r<root> / boy)--TYPE--()'
 
 
 // -------------------------------- objects -------------------------------------------------
-// 3rd person only
+// can be any kind of person, since we don't have pronouns otherwise.
 
-Obj -> them [0.2]
-[string] them
-[graph] '(r<root> / they)--TYPE--()'
+Obj -> you [0.2]
+[string] you
+[graph] '(r<root> / you)--TYPE--()'
 
-Obj -> girl [0.2]
-[string] *(the, girl)
-[graph] '(r<root> / girl)--TYPE--()'
+Obj -> me [0.2]
+[string] me
+[graph] '(r<root> / i)--TYPE--()'
 
-Obj -> child [0.2]
-[string] *(the, child)
-[graph] '(r<root> / child)--TYPE--()'
+Obj -> monster [0.2]
+[string] *(the, monster)
+[graph] '(r<root> / monster)--TYPE--()'
 
 Obj -> doctor [0.2]
 [string] *(the, doctor)
 [graph] '(r<root> / doctor)--TYPE--()'
 
-Obj -> boy [0.2]
-[string] *(the, boy)
-[graph] '(r<root> / boy)--TYPE--()'
+Obj -> politician [0.2]
+[string] *(the, politician)
+[graph] '(r<root> / politician)--TYPE--()'
 

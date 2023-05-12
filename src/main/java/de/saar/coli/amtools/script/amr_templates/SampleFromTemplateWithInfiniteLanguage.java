@@ -254,35 +254,50 @@ public class SampleFromTemplateWithInfiniteLanguage {
                 if (depth != targetSize) {
                     return false;
                 }
-            } else if (check_for_coordination_ambiguity) {
-                // don’t allow any VbarSubjCtrl/VbarObjCtrl in ancestors of and_inf, and allow only one VP in left
-                // child of and_inf (same for middle one if and_inf_3).
-                // The and_inf rule labels are:
-                // Coord_Open_S_fin
-                // Coord_3_Open_S_fin
-                // Coord_Subj_Ctrl_V
-                // Coord_3_Subj_Ctrl_V
-                Set<String> andInfRuleLabels = new HashSet<>();
-                andInfRuleLabels.add("Coord_Open_S_fin");
-                andInfRuleLabels.add("Coord_3_Open_S_fin");
-                andInfRuleLabels.add("Coord_Subj_Ctrl_V");
-                andInfRuleLabels.add("Coord_3_Subj_Ctrl_V");
-
-                Set<String> forbiddenRuleLabels = new HashSet<>();
-                forbiddenRuleLabels.add("VbarSubjCtrl");
-                forbiddenRuleLabels.add("VbarObjCtrl");
-
-                int countAbove = countAncestorDescendantPairsInTree(tree, forbiddenRuleLabels, andInfRuleLabels,
-                        false);
-                int countBelow = countAncestorDescendantPairsInTree(tree, andInfRuleLabels, forbiddenRuleLabels,
-                        true);
-                if (countAbove > 0 || countBelow > 0) {
-                    return false;
-                }
             }
         } catch (NullPointerException ex) {
             null_pointer_exception_count++;
             return false;
+        }
+
+        if (check_for_coordination_ambiguity) {
+            // it's not the prettiest thing that we hardcode this here, but for the purpose this script serves,
+            // it seems like the most efficient solution. No need to overgeneralize the code.
+
+            // don’t allow any VbarSubjCtrl/VbarObjCtrl in ancestors of and_inf, and allow only one VP in left
+            // child of and_inf (same for middle one if and_inf_3).
+            // The and_inf rule labels are:
+            // Coord_Open_S_fin
+            // Coord_3_Open_S_fin
+            // Coord_Subj_Ctrl_V
+            // Coord_3_Subj_Ctrl_V
+
+            //VbarSubjCtrl(Coord_Subj_Ctrl_V
+            //VbarSubjCtrl(Coord_Subj_Ctrl_V
+            Set<String> andInfRuleLabels = new HashSet<>();
+            andInfRuleLabels.add("Coord_Open_S_inf");
+            andInfRuleLabels.add("Coord_3_Open_S_inf");
+            andInfRuleLabels.add("Coord_Subj_Ctrl_V");
+            andInfRuleLabels.add("Coord_3_Subj_Ctrl_V");
+
+            Set<String> forbiddenRuleLabels = new HashSet<>();
+            forbiddenRuleLabels.add("VbarSubjCtrl");
+            forbiddenRuleLabels.add("VbarObjCtrl");
+
+            int countAbove = countAncestorDescendantPairsInTree(tree, forbiddenRuleLabels, andInfRuleLabels,
+                    false);
+            int countBelow = countAncestorDescendantPairsInTree(tree, andInfRuleLabels, forbiddenRuleLabels,
+                    true);
+            if (countAbove > 0 || countBelow > 0) {
+                return false;
+            }
+
+            // also only allow one "and" in the whole sentence.
+            long andCount = tree.getAllNodes().stream().map(Tree::getLabel).
+                    filter(label -> label.startsWith("Coord")).count();
+            if (andCount > 1) {
+                return false;
+            }
         }
 
         List<String> allLabels = tree.getAllNodes().stream().map(Tree::getLabel).collect(Collectors.toList());
