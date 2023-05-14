@@ -276,10 +276,6 @@ Number -> n765 [1.0]
 [string] '765'
 [graph] '(q<root> / 765)'
 
-Number -> n876 [1.0]
-[string] '876'
-[graph] '(q<root> / 876)'
-
 Number -> n107 [1.0]
 [string] '107'
 [graph] '(q<root> / 107)'
@@ -292,19 +288,17 @@ Number -> n1487 [1.0]
 [string] '1487'
 [graph] '(q<root> / 1487)'
 
-Number -> n2932 [1.0]
-[string] '2932'
-[graph] '(q<root> / 2932)'
-
 Number -> n3874 [1.0]
 [string] '3874'
 [graph] '(q<root> / 3874)'
 
-Number -> n5659 [1.0]
-[string] '5659'
-[graph] '(q<root> / 5659)'
+Number -> few [1.0]
+[string] *(a, few)
+[graph] '(q<root> / few)'
 
-
+Number -> many [1.0]
+[string] 'many'
+[graph] '(q<root> / many)'
 
 
 

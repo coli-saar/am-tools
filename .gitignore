@@ -138,3 +138,6 @@ examples/amr_template_grammars/sampling_test.txt
 examples/amr_template_grammars/centre_embedding.txt
 /gradle.zip
 examples/amr_template_grammars/nested_control_debugging.txt
+examples/amr_template_grammars/long_lists_i_counted.txt
+examples/amr_template_grammars/long_lists_please_buytxt
+examples/amr_template_grammars/long_lists_she_visited_countries.txt

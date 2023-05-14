@@ -7,9 +7,9 @@ import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
+import de.up.ling.irtg.automata.TreeAutomaton;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
-import de.up.ling.tree.TreeParser;
 
 import java.io.IOException;
 import java.util.*;
@@ -20,84 +20,96 @@ import static de.saar.coli.amtools.script.amr_templates.SampleFromTemplate.fixAM
 public class SampleFromCoordTemplate {
 
     public static void main(String[] args) throws IOException, ParseException {
+        sampleFromCoordTemplate("examples/amr_template_grammars/please_buy.irtg",
+                "examples/amr_template_grammars/long_lists_please_buy.txt",
+                "Shopping instructions (long list). Created by a grammar.",
+                "NP_thing",
+                4,
+                35,
+                1,
+                "NP_and",
+                "and",
+                new HashSet<>()
+                );
 
+        sampleFromCoordTemplate("examples/amr_template_grammars/i_counted.irtg",
+                "examples/amr_template_grammars/long_lists_i_counted.txt",
+                "Things I counted (long list). Created by a grammar.",
+                "NP_full",
+                4,
+                35,
+                1,
+                "NP_and",
+                "and",
+                Collections.singleton("combine")
+        );
 
+        sampleFromCoordTemplate("examples/amr_template_grammars/she_visited_countries.irtg",
+                "examples/amr_template_grammars/long_lists_she_visited_countries.txt",
+                "What countries she visited (long list). Created by a grammar.",
+                "NP_country",
+                4,
+                35,
+                1,
+                "NP_and",
+                "and",
+                new HashSet<>()
+        );
 
-        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/please_buy.irtg");
-        String outputFile = "examples/amr_template_grammars/long_lists_shopping.txt";
-        String outputFileSingletons = "examples/amr_template_grammars/long_lists_shopping_singletons.txt";
-        String description = "Shopping instructions (long list). Created by a grammar.";
-        String descriptionSingletons = "Singletons for checking long list grammar. Created by a grammar.";
-        String conjunct_state = "NP_thing";
+//        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/adjectives.irtg");
+//
+//        System.out.println(sampleTreeWithoutRepeatingLabel(irtg.getAutomaton()));
 
-//        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/she_visited_countries.irtg");
-//        String outputFile = "examples/amr_template_grammars/long_lists_countries.txt";
-//        String outputFileSingletons = "examples/amr_template_grammars/long_lists_countries_singletons.txt";
-//        String description = "Lists of countries (long list). Created by a grammar.";
-//        String descriptionSingletons = "Singletons for checking long list grammar. Created by a grammar.";
-//        String conjunct_state = "NP_country";
-
-        int maxConjuncts = 35;
-        int minConjuncts = 4;
-        int samplesPerConjunctCount = 1;
-        String coord_state = "NP_and";
-        String coordination = "and";
+    }
+    private static void sampleFromCoordTemplate(String irtgPath,
+                                                String outputFile,
+                                                String description,
+                                                String conjunct_state,
+                                                int minConjuncts,
+                                                int maxConjuncts,
+                                                int samplesPerConjunctCount,
+                                                String coord_state,
+                                                String coordination,
+                                                Set<String> allowedDuplicateRules) throws IOException, ParseException {
+        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath(irtgPath);
 
         Interpretation stringInterp = irtg.getInterpretation("string");
         Interpretation graphInterp = irtg.getInterpretation("graph");
-        ConcreteTreeAutomaton<String> automaton = (ConcreteTreeAutomaton)irtg.getAutomaton();
+        ConcreteTreeAutomaton<String> automaton = (ConcreteTreeAutomaton<String>) irtg.getAutomaton();
 
-        List<Rule> conjunct_rules = new ArrayList<>();
-        for (Rule rule : automaton.getRuleSet()) {
-            String parentState = automaton.getStateForId(rule.getParent());
-            if (parentState.equals(conjunct_state)) {
-                conjunct_rules.add(rule);
-            }
-        }
 
-        if (maxConjuncts > conjunct_rules.size() - 1) {
-            System.out.println("Warning: max_conjuncts ("+maxConjuncts+") is larger than the number of conjunct rules ("+conjunct_rules.size()+") minus 1. " +
-                    "Using the number of conjunct rules minus 1 instead.");
-            maxConjuncts = conjunct_rules.size() - 1;
-        }
-
-//        Rule single_rule = automaton.createRule(coord_state, "singleton", new String[]{coord_state});
-        String singleRuleLabel = "singleton";
-        automaton.getSignature().addSymbol(singleRuleLabel, 1);
-        Tree<String> single_tree = Tree.create("?1");
-        stringInterp.getHomomorphism().add(singleRuleLabel, single_tree);
-        graphInterp.getHomomorphism().add(singleRuleLabel, single_tree);
-
-        List<Tree<String>> singletonSamples = new ArrayList<>();
-        for (Rule conjunct_rule : conjunct_rules) {
-            Tree<String> grammar_tree = TreeParser.parse("template("+singleRuleLabel+"("+conjunct_rule.getLabel(automaton)+"))");
-            singletonSamples.add(grammar_tree);
-        }
-        SampleFromTemplate.writeSamplesToFile(outputFileSingletons, singletonSamples, descriptionSingletons, irtg);
+//        List<Tree<String>> singletonSamples = new ArrayList<>();
+//        for (Rule conjunct_rule : conjunct_rules) {
+//            Tree<String> grammar_tree = TreeParser.parse("template(" + singleRuleLabel + "(" + conjunct_rule.getLabel(automaton) + "))");
+//            singletonSamples.add(grammar_tree);
+//        }
+//        SampleFromTemplate.writeSamplesToFile(outputFileSingletons, singletonSamples, descriptionSingletons, irtg);
         // never actually added the rule to the automaton, so we don't have to remove it either
 
-        for (int i = minConjuncts; i<= maxConjuncts; i++) {
+        List<Tree<String>> samples = new ArrayList<>();
+        for (int i = minConjuncts; i <= maxConjuncts; i++) {
 
+            ConcreteTreeAutomaton<String> automatonCopy = automaton.asConcreteTreeAutomaton();
 
             List<String> children = new ArrayList<>();
             String parentState = coord_state;
             for (int j = 0; j < i; j++) {
                 children.add(conjunct_state);
             }
-            String grammarLabel = "coord_"+i;
-            automaton.addRule(automaton.createRule(parentState, grammarLabel, children));
+            String grammarLabel = "coord_" + i;
+            automatonCopy.addRule(automatonCopy.createRule(parentState, grammarLabel, children));
 
-            Tree<String> stringTree = Tree.create("*", Tree.create(coordination), Tree.create("?"+i));
-            stringTree = Tree.create("*", Tree.create("?"+(i-1)), stringTree);
-            for (int j = i-2; j >= 1; j--) {
-                stringTree = Tree.create("*", Tree.create("?"+j), Tree.create("*", Tree.create(","), stringTree));
+            Tree<String> stringTree = Tree.create("*", Tree.create(coordination), Tree.create("?" + i));
+            stringTree = Tree.create("*", Tree.create("?" + (i - 1)), stringTree);
+            for (int j = i - 2; j >= 1; j--) {
+                stringTree = Tree.create("*", Tree.create("?" + j), Tree.create("*", Tree.create(","), stringTree));
             }
             stringInterp.getHomomorphism().add(grammarLabel, stringTree);
 //            System.out.println(stringTree);
 
             StringBuilder graphConst = new StringBuilder("(r<root> / " + coordination);
             StringBuilder typeString = new StringBuilder("(");
-            for (int j = 1; j<=i; j++) {
+            for (int j = 1; j <= i; j++) {
                 graphConst.append(" :op").append(j).append(" (e").append(j).append("<op").append(j).append(">)");
                 typeString.append("op").append(j).append("()");
                 if (j < i) {
@@ -109,9 +121,142 @@ public class SampleFromCoordTemplate {
             graphConst.append(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP).append(typeString);
 
 
-            Tree<String> graphTree = Tree.create("APP_op"+i, Tree.create(graphConst.toString()), Tree.create("?"+i));
-            for (int j = i-1; j >= 1; j--) {
-                graphTree = Tree.create("APP_op"+j, graphTree, Tree.create("?"+j));
+            Tree<String> graphTree = Tree.create("APP_op" + i, Tree.create(graphConst.toString()), Tree.create("?" + i));
+            for (int j = i - 1; j >= 1; j--) {
+                graphTree = Tree.create("APP_op" + j, graphTree, Tree.create("?" + j));
+            }
+            graphInterp.getHomomorphism().add(grammarLabel, graphTree);
+//            System.out.println(graphTree);
+
+            int emergency_break = samplesPerConjunctCount * 100;
+            int attemptCounter = 0;
+            Set<Tree<String>> samplesForThisConjunctCount = new HashSet<>();
+            try {
+                while (samplesForThisConjunctCount.size() < samplesPerConjunctCount && attemptCounter < emergency_break) {
+                    samplesForThisConjunctCount.add(sampleTreeWithoutRepeatingLabel(automatonCopy, allowedDuplicateRules));
+                    attemptCounter++;
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("Could not sample a sentence for op-count " + i);
+            }
+            if (attemptCounter >= emergency_break) {
+                System.out.println("Warning: Could not find " + samplesPerConjunctCount + " samples for " + i + " conjuncts. Only found " + samplesForThisConjunctCount.size());
+            }
+            samples.addAll(samplesForThisConjunctCount);
+        }
+
+
+        for (Tree<String> sample : samples) {
+            System.out.println(sample);
+            System.out.println(SampleFromTemplate.postprocessString((List<String>) stringInterp.interpret(sample)));
+            Object graphResult = graphInterp.interpret(sample);
+            System.out.println(fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>) graphResult).left.toIsiAmrString()));
+            System.out.println();
+        }
+
+        SampleFromTemplate.writeSamplesToFile(outputFile, samples, description, irtg);
+
+    }
+    private static void sampleFromCoordTemplateOld(String irtgPath,
+                                                String outputFile,
+//                                                String outputFileSingletons,
+                                                String description,
+//                                                String descriptionSingletons,
+                                                String conjunct_state,
+                                                int minConjuncts,
+                                                int maxConjuncts,
+                                                int samplesPerConjunctCount,
+                                                String coord_state,
+                                                String coordination) throws IOException, ParseException {
+        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath(irtgPath);
+//        String outputFile = "examples/amr_template_grammars/long_lists_shopping.txt";
+//        String outputFileSingletons = "examples/amr_template_grammars/long_lists_shopping_singletons.txt";
+//        String description = "Shopping instructions (long list). Created by a grammar.";
+//        String descriptionSingletons = "Singletons for checking long list grammar. Created by a grammar.";
+//        String conjunct_state = "NP_thing";
+
+//        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/she_visited_countries.irtg");
+//        String outputFile = "examples/amr_template_grammars/long_lists_countries.txt";
+//        String outputFileSingletons = "examples/amr_template_grammars/long_lists_countries_singletons.txt";
+//        String description = "Lists of countries (long list). Created by a grammar.";
+//        String descriptionSingletons = "Singletons for checking long list grammar. Created by a grammar.";
+//        String conjunct_state = "NP_country";
+
+//        int maxConjuncts = 35;
+//        int minConjuncts = 4;
+//        int samplesPerConjunctCount = 1;
+//        String coord_state = "NP_and";
+//        String coordination = "and";
+
+        Interpretation stringInterp = irtg.getInterpretation("string");
+        Interpretation graphInterp = irtg.getInterpretation("graph");
+        ConcreteTreeAutomaton<String> automaton = (ConcreteTreeAutomaton) irtg.getAutomaton();
+
+        List<Rule> conjunct_rules = new ArrayList<>();
+        for (Rule rule : automaton.getRuleSet()) {
+            String parentState = automaton.getStateForId(rule.getParent());
+            if (parentState.equals(conjunct_state)) {
+                conjunct_rules.add(rule);
+            }
+        }
+
+        if (maxConjuncts > conjunct_rules.size() - 1) {
+            System.out.println("Warning: max_conjuncts (" + maxConjuncts + ") is larger than the number of conjunct rules (" + conjunct_rules.size() + ") minus 1. " +
+                    "Using the number of conjunct rules minus 1 instead.");
+            maxConjuncts = conjunct_rules.size() - 1;
+        }
+
+//        Rule single_rule = automaton.createRule(coord_state, "singleton", new String[]{coord_state});
+//        String singleRuleLabel = "singleton";
+//        automaton.getSignature().addSymbol(singleRuleLabel, 1);
+//        Tree<String> single_tree = Tree.create("?1");
+//        stringInterp.getHomomorphism().add(singleRuleLabel, single_tree);
+//        graphInterp.getHomomorphism().add(singleRuleLabel, single_tree);
+
+//        List<Tree<String>> singletonSamples = new ArrayList<>();
+//        for (Rule conjunct_rule : conjunct_rules) {
+//            Tree<String> grammar_tree = TreeParser.parse("template(" + singleRuleLabel + "(" + conjunct_rule.getLabel(automaton) + "))");
+//            singletonSamples.add(grammar_tree);
+//        }
+//        SampleFromTemplate.writeSamplesToFile(outputFileSingletons, singletonSamples, descriptionSingletons, irtg);
+        // never actually added the rule to the automaton, so we don't have to remove it either
+
+        for (int i = minConjuncts; i <= maxConjuncts; i++) {
+
+
+            List<String> children = new ArrayList<>();
+            String parentState = coord_state;
+            for (int j = 0; j < i; j++) {
+                children.add(conjunct_state);
+            }
+            String grammarLabel = "coord_" + i;
+            automaton.addRule(automaton.createRule(parentState, grammarLabel, children));
+
+            Tree<String> stringTree = Tree.create("*", Tree.create(coordination), Tree.create("?" + i));
+            stringTree = Tree.create("*", Tree.create("?" + (i - 1)), stringTree);
+            for (int j = i - 2; j >= 1; j--) {
+                stringTree = Tree.create("*", Tree.create("?" + j), Tree.create("*", Tree.create(","), stringTree));
+            }
+            stringInterp.getHomomorphism().add(grammarLabel, stringTree);
+//            System.out.println(stringTree);
+
+            StringBuilder graphConst = new StringBuilder("(r<root> / " + coordination);
+            StringBuilder typeString = new StringBuilder("(");
+            for (int j = 1; j <= i; j++) {
+                graphConst.append(" :op").append(j).append(" (e").append(j).append("<op").append(j).append(">)");
+                typeString.append("op").append(j).append("()");
+                if (j < i) {
+                    typeString.append(", ");
+                }
+            }
+            graphConst.append(")");
+            typeString.append(")");
+            graphConst.append(ApplyModifyGraphAlgebra.GRAPH_TYPE_SEP).append(typeString);
+
+
+            Tree<String> graphTree = Tree.create("APP_op" + i, Tree.create(graphConst.toString()), Tree.create("?" + i));
+            for (int j = i - 1; j >= 1; j--) {
+                graphTree = Tree.create("APP_op" + j, graphTree, Tree.create("?" + j));
             }
             graphInterp.getHomomorphism().add(grammarLabel, graphTree);
 //            System.out.println(graphTree);
@@ -120,7 +265,7 @@ public class SampleFromCoordTemplate {
         }
 
         List<Tree<String>> samples = new ArrayList<>();
-        for (int i = minConjuncts; i<=maxConjuncts; i++) {
+        for (int i = minConjuncts; i <= maxConjuncts; i++) {
             int emergency_break = samplesPerConjunctCount * 100;
             int attemptCounter = 0;
             Set<Tree<String>> samplesForThisConjunctCount = new HashSet<>();
@@ -133,7 +278,7 @@ public class SampleFromCoordTemplate {
                 attemptCounter++;
             }
             if (attemptCounter >= emergency_break) {
-                System.out.println("Warning: Could not find "+samplesPerConjunctCount+" samples for "+i+" conjuncts. Only found "+samplesForThisConjunctCount.size());
+                System.out.println("Warning: Could not find " + samplesPerConjunctCount + " samples for " + i + " conjuncts. Only found " + samplesForThisConjunctCount.size());
             }
             samples.addAll(samplesForThisConjunctCount);
         }
@@ -141,14 +286,45 @@ public class SampleFromCoordTemplate {
 
         for (Tree<String> sample : samples) {
             System.out.println(sample);
-            System.out.println(SampleFromTemplate.postprocessString((List<String>)stringInterp.interpret(sample)));
+            System.out.println(SampleFromTemplate.postprocessString((List<String>) stringInterp.interpret(sample)));
             Object graphResult = graphInterp.interpret(sample);
-            System.out.println(fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString()));
+            System.out.println(fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>) graphResult).left.toIsiAmrString()));
             System.out.println();
         }
 
         SampleFromTemplate.writeSamplesToFile(outputFile, samples, description, irtg);
 
+    }
+
+
+    private static Tree<String> sampleTreeWithoutRepeatingLabel(TreeAutomaton<String> auto,
+                                                                Set<String> allowedDuplicateRules)
+            throws IllegalArgumentException  {
+        List<Integer> finalStates = new ArrayList<>(auto.getFinalStates());
+        Collections.shuffle(finalStates);
+        int finalState = finalStates.get(0);
+        return sampleFromStateWithoutRepeatingLabel(auto, finalState, new HashSet<>(), allowedDuplicateRules);
+
+    }
+
+    private static Tree<String> sampleFromStateWithoutRepeatingLabel(TreeAutomaton<String> auto, int state,
+                                                                     Set<String> seenLabels,
+                                                                     Set<String> allowedDuplicateRules) throws IllegalArgumentException {
+        List<Rule> rules = new ArrayList<>((Collection<Rule>) auto.getRulesTopDown(state));
+        rules = rules.stream().filter(rule -> allowedDuplicateRules.contains(rule.getLabel(auto))
+                                                            || !seenLabels.contains(rule.getLabel(auto)))
+                .collect(Collectors.toList());
+        if (rules.isEmpty()) {
+            throw new IllegalArgumentException();
+        }
+        Collections.shuffle(rules);
+        Rule r = rules.get(0);
+        seenLabels.add(r.getLabel(auto));
+        List<Tree<String>> children = new ArrayList<>();
+        for (int i = 0; i < r.getArity(); i++) {
+            children.add(sampleFromStateWithoutRepeatingLabel(auto, r.getChildren()[i], seenLabels, allowedDuplicateRules));
+        }
+        return Tree.create(r.getLabel(auto), children);
     }
 
 }
