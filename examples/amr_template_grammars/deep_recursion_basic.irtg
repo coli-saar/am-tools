@@ -1,0 +1,92 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// Downstairs TPs can only have 3pl DPs (REs)
+// upstairs can have 1s, 1p, 2s/p, and 3p subjects, but only 1st and 2nd person can have coref
+// 1 and 2 DPs can be full DPs (eg the boys and I)
+
+
+// ------------------------------ Final states -----------------------------------------------
+
+TP! -> TP_CP(V_CPobj, DP, TP)  [0.2]
+[string] *(?2, *(?1, *(that, ?3)))
+[graph] APP_subj(APP_obj(?1, ?3), ?2)
+
+
+// downstairs TP
+
+TP! -> TP_intr(Vintr, DP) [0.1]
+[string] *(?2, ?1)
+[graph] APP_subj(?1, ?2)
+
+
+
+
+// ---------------------------- "downstairs" Verbs (all intransitive) ------------------------------
+
+
+Vintr -> left [0.5]
+[string] left
+[graph] '(r<root> / leave-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
+Vintr -> slept [0.5]
+[string] slept
+[graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
+
+//--------------------------------- verbs with CP object -----------------------------------------
+
+V_CPobj -> thought [0.5]
+[string] thought
+[graph] '(r<root> / think-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_CPobj -> said [0.5]
+[string] said
+[graph] '(r<root> / say-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+
+
+// ------------------ singular nouns -------------------------
+DP -> doctor [1.0]
+[string] *(the, doctor)
+[graph] (d<root> / doctor)
+
+DP -> astronaut [1.0]
+[string] *(the, astronaut)
+[graph] (a<root> / astronaut)
+
+
+
+// -------------------------------- pronouns -----------------------------------
+
+
+DP -> we  [1.0]
+[string] we
+[graph] '(r<root> / we)--TYPE--()'
+
+DP -> I  [1.0]
+[string] I
+[graph] '(r<root> / i)--TYPE--()'
+
+DP -> you  [1.0]
+[string] you
+[graph] '(r<root> / you)--TYPE--()'
+
+
+
+// -------------------------------- plural Nouns --------------------------------
+
+
+DP -> kids [0.25]
+[string] *(the, kids)
+[graph] '(r<root> / kid)--TYPE--()'
+
+DP -> girls [0.25]
+[string] *(the, girls)
+[graph] '(r<root> / girl)--TYPE--()'
+
+DP -> boys [0.25]
+[string] *(the, boys)
+[graph] '(r<root> / boy)--TYPE--()'
+

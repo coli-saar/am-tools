@@ -2,10 +2,18 @@ interpretation string: de.up.ling.irtg.algebra.StringAlgebra
 interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // COREF doesn't seem to work so I've implemented it as a normal source, in the type system
+// Downstairs TPs can only have 3pl DPs (REs)
+// upstairs can have 1s, 1p, 2s/p, and 3p subjects, but only 1st and 2nd person can have coref
+// 1 and 2 DPs can be full DPs (eg the boys and I)
+
+// TODO (?) the boys that ....... thinks hate Barak Obama actually like him instead
+// close in string, far in tree
+// lowest levels done, need to pass up coref
 
 // ------------------------------ Final states -----------------------------------------------
 
-// No coreference
+// ------------ No coreference ----------------------
+
 TP! -> TP_3p(V_CPobj, DP_plural, TP)  [0.2]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
@@ -34,7 +42,7 @@ TP! -> TP_intr(Vintr, DP_plural) [0.1]
 
 
 
-// Coref
+// ------------ with Coref -------------------------
 // --- you ---
 // resolve coref
 TP_deep_coref_2! -> TP_coref_2(V_CPobj_resolve_coref, You, TP_coref_2) [0.5]
@@ -110,6 +118,18 @@ TP_coref_1p -> TP_CP_1p(V_CPobj_coref, DP_plural, TP_coref_1p) [0.33]
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
 
+// ---------------------------NPs and DPs --------------------------------
+
+NP_plural -> NP_unary(N_plural) [0.5]
+[string] ?1
+[graph] ?1
+
+DP_plural -> DP_plural_the(NP_plural) [0.25]
+[string] *(the, ?1)
+[graph] ?1
+
+
+
 // ---- Relatives ----
 
 RC -> subj_rel(CP_gap, Vintr) [1.0]
@@ -117,9 +137,8 @@ RC -> subj_rel(CP_gap, Vintr) [1.0]
 [graph] MOD_obj(?2, ?1)
 
 // -------- NP with RC -------------
-// TODO prevent recursion here
 
-DP_plural -> DP_RC(DP_plural, RC) [0.25]
+NP_plural -> DP_RC(N_plural, RC) [0.25]
 [string] *(?1, ?2)
 [graph] MOD_subj(?1, ?2)
 
@@ -132,6 +151,12 @@ CP_gap -> CP_with_gap_recursive(CP_gap, CP_gap) [0.5]
 [graph] MOD_obj(?1, ?2)
 
 
+
+// ------------------VP -----------------------
+
+Contrast -> actually(Vtr,
+
+
 // ---------------------------- "downstairs" Verbs ------------------------------
 
 
@@ -141,6 +166,13 @@ CP_gap -> CP_with_gap_recursive(CP_gap, CP_gap) [0.5]
 Vtr -> liked [1.0]
 [string] liked
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+
+// TODO check verb
+Vtr -> hated [1.0]
+[string] hated
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
 
 Vintr -> left [0.5]
 [string] left
@@ -184,6 +216,33 @@ Vbar_coref_1s -> liked_me [0.5]
 [string] *(liked, me)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
 
+// 3s M
+Vbar_coref_3m -> liked_him [0.5]
+[string] *(liked, him)
+[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
+
+Vbar_coref_3f -> liked_her [0.5]
+[string] *(liked, her)
+[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
+
+// 3s F
+Vbar_coref_3m -> hated_him [0.5]
+[string] *(hated, him)
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
+
+Vbar_coref_3f -> hated_her [0.5]
+[string] *(hated, her)
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
+
+// contrast for strong pragmatic effect on coref interpretation
+
+Vbar_contrast_3m -> actually_him(Vbar_coref_3m) [1.0]
+[string] *(*(actually, ?1), instead)
+[graph] TODO
+
+Vbar_contrast_3f -> actually_her(Vbar_coref_3f) [1.0]
+[string] *(*(actually, ?1), instead)
+[graph] TODO
 
 
 //--------------------------------- verbs with CP object -----------------------------------------
@@ -234,6 +293,17 @@ And -> and  [1.0]
 [graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>))--TYPE--(op1, op2)'
 
 
+// ------------------ Proper Names -------------------------
+DP_3m -> doctor [1.0]
+[string] *(the, doctor)
+[graph] TODO
+
+DP_3f ->  [1.0]
+[string] *(Hillary, Clinton)
+[graph] TODO
+
+
+
 // -------------------------------- pronouns -----------------------------------
 
 
@@ -254,18 +324,17 @@ You -> you  [1.0]
 // --------------------------------Nouns --------------------------------
 
 
-DP_plural -> kids [0.25]
-[string] *(the, kids)
+N_plural -> kids [0.25]
+[string] kids
 [graph] '(r<root> / kid)--TYPE--()'
 
-DP_plural -> girls [0.25]
-[string] *(the, girls)
+N_plural -> girls [0.25]
+[string] girls
 [graph] '(r<root> / girl)--TYPE--()'
 
-DP_plural -> boys [0.25]
-[string] *(the, boys)
+N_plural -> boys [0.25]
+[string] boys
 [graph] '(r<root> / boy)--TYPE--()'
-
 
 
 // ------------------------OBSOLETE -----------------------------------
