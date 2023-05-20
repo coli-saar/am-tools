@@ -16,17 +16,18 @@ import java.util.stream.Collectors;
 
 public class SampleFromTemplate {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static void main(String[] args) throws IOException, ParseException {
         int numSamples = 25;
 
-        String output_file = "examples/amr_template_grammars/pp_attachment_to.txt";
+        String output_file = "examples/amr_template_grammars/pp_attachment_for.txt";
         String description = "Prepositional Phrase attachment ambiguities. Created by a grammar.";
+        String grammar_path = "examples/amr_template_grammars/bought_for.irtg";
+        sample(numSamples, grammar_path, output_file, description);
+    }
 
-//        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/unisex_names.irtg");
-        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/alternative_to.irtg");
-
-
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void sample(int numSamples, String grammar_path, String output_file, String description) throws IOException {
+        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath(grammar_path);
         Interpretation stringInterp = irtg.getInterpretation("string");
         Interpretation graphInterp = irtg.getInterpretation("graph");
         Map<String, List<Tree<String>>> templateCounter = new HashMap<>();
