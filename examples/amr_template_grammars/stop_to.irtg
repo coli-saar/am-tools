@@ -19,7 +19,7 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 // The police authorized a demonstration to save the whales.
 // The police authorized a plot to infiltrate the mafia.
 
-
+// The actual grammar has not been updated!
 
 // VP attachment: X sees Y with a seeing instrument
 F! -> templateSeeWithInstrument(NP_subject, VP_seeing_verb, NP_non_person_object_seen, NP_seeing_implement) [1.0]
