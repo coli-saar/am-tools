@@ -141,7 +141,6 @@ TP_coref_2 -> TP_CP_2_subj1p(V_CPobj_coref, We, TP_coref_2) [0.33]
 // argument added to string but not graph (pronouns only)
 // graph has coref source
 // state encodes phi features of argument
-// TODO add other two verbs
 
 // 1p
 VP_coref_1p -> we_slept [0.5]
@@ -152,6 +151,14 @@ Vbar_coref_1p -> liked_us [0.5]
 [string] *(liked, us)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
 
+VP_coref_1p -> we_left [0.5]
+[string] *(we, left)
+[graph] '(r<root> / leave-01 :ARG0 (s<coref>))--TYPE--(coref())'
+
+Vbar_coref_1p -> hated_us [0.5]
+[string] *(hated, us)
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
+
 // you
 VP_coref_2 -> you_slept [0.5]
 [string] *(you, slept)
@@ -161,6 +168,14 @@ Vbar_coref_2 -> liked_you [0.5]
 [string] *(liked, you)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
 
+VP_coref_2 -> you_left [0.5]
+[string] *(you, left)
+[graph] '(r<root> / leave-01 :ARG0 (s<coref>))--TYPE--(coref())'
+
+Vbar_coref_2 -> hated_you [0.5]
+[string] *(hated, you)
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
+
 // 1s
 VP_coref_1s -> I_slept [0.5]
 [string] *(I, slept)
@@ -169,6 +184,14 @@ VP_coref_1s -> I_slept [0.5]
 Vbar_coref_1s -> liked_me [0.5]
 [string] *(liked, me)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
+
+VP_coref_1s -> I_left [0.5]
+[string] *(I, left)
+[graph] '(r<root> / leave-01 :ARG0 (s<coref>))--TYPE--(coref())'
+
+Vbar_coref_1s -> hated_me [0.5]
+[string] *(hated, me)
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
 
 
 //--------------------------------- verbs with CP object -----------------------------------------

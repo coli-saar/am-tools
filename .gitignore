@@ -145,3 +145,5 @@ examples/amr_template_grammars/long_lists_she_visited_countries.txt
 examples/amr_template_grammars/deep_recursion_basic.txt
 examples/amr_template_grammars/deep_recursion_pronouns.txt
 examples/amr_template_grammars/.#*
+examples/amr_template_grammars/deep_recursion_3s.txt
+examples/amr_template_grammars/deep_recursion_rc.txt

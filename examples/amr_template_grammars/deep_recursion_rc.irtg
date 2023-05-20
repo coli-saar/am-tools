@@ -1,8 +1,7 @@
 interpretation string: de.up.ling.irtg.algebra.StringAlgebra
 interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
-// FIltering: to avoid centre embedding, only allow one subj_rel per sentence
-// TODO add more NPs
+// Filtering: to avoid centre embedding, only allow one subj_rel per sentence
 // this is ONLY relative clauses with CPs inside them pushing the relative pronoun away from its verb
 // BUT it includes RCs in object NPs as well (close in tree)
 
@@ -10,29 +9,18 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // ------------ No coreference ----------------------
 
-TP! -> TP_3p(V_CPobj, DP_plural, TP)  [0.2]
+TP! -> TP_CP(V_CPobj, DP, TP)  [0.2]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
-TP! -> TP_1s(V_CPobj, I, TP)  [0.2]
-[string] *(?2, *(?1, *(that, ?3)))
-[graph] APP_subj(APP_obj(?1, ?3), ?2)
-
-TP! -> TP_1p(V_CPobj, We, TP)  [0.2]
-[string] *(?2, *(?1, *(that, ?3)))
-[graph] APP_subj(APP_obj(?1, ?3), ?2)
-
-TP! -> TP_2(V_CPobj, You, TP)  [0.2]
-[string] *(?2, *(?1, *(that, ?3)))
-[graph] APP_subj(APP_obj(?1, ?3), ?2)
 
 // Downstairs TPs
 // 3rd plural only
-TP! -> TP_tr(Vtr, DP_plural, DP_plural)  [0.1]
+TP! -> TP_tr(Vtr, DP_obj, DP_with_RC)  [0.1]
 [string] *(?3, *(?1, ?2))
 [graph] APP_subj(APP_obj(?1, ?2), ?3)
 
-TP! -> TP_intr(Vintr, DP_plural) [0.1]
+TP! -> TP_intr(Vintr, DP_with_RC) [0.1]
 [string] *(?2, ?1)
 [graph] APP_subj(?1, ?2)
 
@@ -40,39 +28,50 @@ TP! -> TP_intr(Vintr, DP_plural) [0.1]
 
 // ---------------------------NPs and DPs --------------------------------
 
-NP_plural -> NP_unary(N_plural) [0.5]
+NP -> NP_unary(N) [0.5]
 [string] ?1
 [graph] ?1
 
-DP_plural -> DP_plural_the(NP_plural) [0.25]
+DP -> DP_the(NP) [0.25]
+[string] *(the, ?1)
+[graph] ?1
+
+DP_obj -> DP_the_obj(NP) [0.25]
+[string] *(the, ?1)
+[graph] ?1
+
+DP_with_RC -> DP_the_with_RC(NP_with_RC) [0.25]
 [string] *(the, ?1)
 [graph] ?1
 
 
-
 // ---- Relatives ----
 
-RC -> subj_rel(CP_gap, Vintr) [1.0]
-[string] *(who, *(?1, *("", ?2)))
+RC -> subj_rel(CP_gap_recursive, Vintr) [1.0]
+[string] *(who, *(?1, ?2))
 [graph] MOD_obj(?2, ?1)
 
 // -------- NP with RC -------------
 
-NP_plural -> DP_RC(N_plural, RC) [0.25]
+NP_with_RC -> DP_RC(N, RC) [0.25]
 [string] *(?1, ?2)
 [graph] MOD_subj(?1, ?2)
 
 
 // the girls thought _
-CP_gap -> CP_with_gap_base(V_CPobj, DP_plural) [0.5]
+CP_gap -> CP_with_gap_base(V_CPobj, DP) [0.5]
 [string] *(?2, ?1)
 [graph] APP_subj(?1, ?2)
 
 
 // weird recusion with mod like in TAGs
-CP_gap -> CP_with_gap_recursive(CP_gap, CP_gap) [0.5]
+CP_gap_recursive -> CP_with_gap_recursive(CP_gap, CP_gap_recursive) [0.5]
 [string] *(?2, *(that, ?1))
 [graph] MOD_obj(?1, ?2)
+
+CP_gap_recursive -> CP_gap_end_recursion(CP_gap) [0.5]
+[string] ?1
+[graph] ?1
 
 
 
@@ -86,6 +85,10 @@ Vtr -> liked [1.0]
 [string] liked
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
+Vtr -> hated [1.0]
+[string] hated
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
 Vintr -> left [0.5]
 [string] left
 [graph] '(r<root> / leave-01 :ARG0 (s<subj>))--TYPE--(subj)'
@@ -94,6 +97,13 @@ Vintr -> slept [0.5]
 [string] slept
 [graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj)'
 
+Vintr -> arrived [0.5]
+[string] arrived
+[graph] '(r<root> / arrive-01 :ARG1 (s<subj>))--TYPE--(subj)'
+
+Vintr -> won [0.5]
+[string] won
+[graph] '(r<root> / win-01 :ARG0 (s<subj>))--TYPE--(subj)'
 
 //--------------------------------- verbs with CP object -----------------------------------------
 
@@ -106,54 +116,60 @@ V_CPobj -> said [0.5]
 [string] said
 [graph] '(r<root> / say-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
+V_CPobj -> assumed [0.5]
+[string] assumed
+[graph] '(r<root> / assume-02 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
-// passes coref up
-V_CPobj_coref -> thought_coref [0.5]
-[string] thought
-[graph] '(r<root> / think-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(coref()))'
+V_CPobj -> claimed [0.5]
+[string] claimed
+[graph] '(r<root> / claim-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
-V_CPobj_coref -> said_coref [0.5]
-[string] said
-[graph] '(r<root> / say-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(coref()))'
-
-
-// resolves coref
-V_CPobj_resolve_coref -> thought_resolve_coref [0.5]
-[string] thought
-[graph] '(r<root> / think-01 :ARG0 (s<coref>) :ARG1 (o<obj>))--TYPE--(coref(), obj(coref()))'
-
-V_CPobj_resolve_coref -> announced_resolve_coref [0.5]
-[string] announced
-[graph] '(r<root> / announce-01 :ARG0 (s<coref>) :ARG1 (o<obj>))--TYPE--(coref(), obj(coref()))'
 
 
 // --------------------------------Nouns --------------------------------
 
 
-N_plural -> kids [0.25]
+N -> kids [0.25]
 [string] kids
 [graph] '(r<root> / kid)--TYPE--()'
 
-N_plural -> girls [0.25]
+N -> girls [0.25]
 [string] girls
 [graph] '(r<root> / girl)--TYPE--()'
 
-N_plural -> boys [0.25]
+N -> boys [0.25]
 [string] boys
 [graph] '(r<root> / boy)--TYPE--()'
 
 // -------------------------------- pronouns -----------------------------------
 
 
-We -> we  [1.0]
+DP -> we  [1.0]
 [string] we
 [graph] '(r<root> / we)--TYPE--()'
 
-I -> I  [1.0]
+DP -> I  [1.0]
 [string] I
 [graph] '(r<root> / i)--TYPE--()'
 
-You -> you  [1.0]
+DP -> you  [1.0]
 [string] you
 [graph] '(r<root> / you)--TYPE--()'
 
+
+// ------------------ singular nouns -------------------------
+N -> doctor [0.25]
+[string] doctor
+[graph] '(d<root> / doctor)'
+
+N -> astronaut [0.25]
+[string] astronaut
+[graph] '(a<root> / astronaut)'
+
+N -> mechanic [0.25]
+[string] mechanic
+[graph] '(m<root> / mechanic)'
+
+N -> soldier [0.25]
+[string] soldier
+[graph] '(s<root> / soldier)'

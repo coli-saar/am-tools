@@ -20,6 +20,7 @@ public class SampleFromTemplateWithInfiniteLanguage {
     static final String SIZE_TYPE_STRING_LENGTH = "string length";
     static final String SIZE_TYPE_TREE_DEPTH = "tree depth";
     static final String SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF = "depth below resolve coref";
+    static final String SIZE_TYPE_DEPTH_BELOW_RC = "depth below relative clause";
     private final int minSize;
     private final int maxSize;
     private final int sizeStep;
@@ -94,20 +95,54 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
         // deep recursion pronouns
         // The 0-based tree depth is (1-based) number of CPs + 1
-        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionPronouns = new SampleFromTemplateWithInfiniteLanguage(
-                2, 11, 1,
-                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF, SIZE_TYPE_TREE_DEPTH),
-                "examples/amr_template_grammars/deep_recursion_pronouns.irtg",
-                "Randomly sampled examples of deep CP recursion (with 1st person singular/plural coreference). Created by a grammar. " +
-                        "Here, size0 is the depth below the CP with the reentrancy (i.e., to get the recursion depth for" +
-                        "the reentrancy part, " +
-                        "subtract 1 from the value of size0 given in this file). And size1 is the depth of the whole tree " +
-                        "(to get the recursion depth of the tree in total, subtract 1 from size1).",
-                new HashSet<>(Arrays.asList("TP_3p", "TP_CP_1s", "TP_CP_1p", "TP_CP_2", "thought", "said", "believed", "knew", "heard", "mentioned",
-                        "thought_coref", "said_coref", "believed_coref", "knew_coref", "heard_coref", "mentioned_coref")),
+//        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionPronouns = new SampleFromTemplateWithInfiniteLanguage(
+//                2, 11, 1,
+//                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF, SIZE_TYPE_TREE_DEPTH),
+//                "examples/amr_template_grammars/deep_recursion_pronouns.irtg",
+//                "Randomly sampled examples of deep CP recursion (with 1st person singular/plural coreference). Created by a grammar. " +
+//                        "Here, size0 is the depth below the CP with the reentrancy (i.e., to get the recursion depth for" +
+//                        "the reentrancy part, " +
+//                        "subtract 1 from the value of size0 given in this file). And size1 is the depth of the whole tree " +
+//                        "(to get the recursion depth of the tree in total, subtract 1 from size1).",
+//                new HashSet<>(Arrays.asList("TP_3p", "TP_CP_1s", "TP_CP_1p", "TP_CP_2", "thought", "said", "believed", "knew", "heard", "mentioned",
+//                        "thought_coref", "said_coref", "believed_coref", "knew_coref", "heard_coref", "mentioned_coref")),
+//                false
+//        );
+//        samplerDeepRecursionPronouns.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_pronouns.txt");
+
+        // The 0-based tree depth is (1-based) number of CPs + 1
+//        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursion3s = new SampleFromTemplateWithInfiniteLanguage(
+//                3, 11, 1,
+//                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF, SIZE_TYPE_TREE_DEPTH),
+//                "examples/amr_template_grammars/deep_recursion_3s.irtg",
+//                "Randomly sampled examples of deep CP recursion (with 3rd person singular coreference). Created by a grammar. " +
+//                        "Here, size0 is the depth below the CP with the reentrancy (i.e., to get the recursion depth for" +
+//                        "the reentrancy part, " +
+//                        "subtract 1 from the value of size0 given in this file). And size1 is the depth of the whole tree " +
+//                        "(to get the recursion depth of the tree in total, subtract 1 from size1).",
+//                new HashSet<>(Arrays.asList("TP_CP", "TP_CP_coref", "make_singular", "thought", "said", "believed", "knew", "heard", "mentioned",
+//                        "thought_coref", "said_coref", "believed_coref", "knew_coref", "heard_coref", "mentioned_coref")),
+//                false
+//        );
+//        samplerDeepRecursion3s.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_3s.txt");
+
+        // The 0-based tree depth is (1-based) number of CPs + 1
+        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionRC = new SampleFromTemplateWithInfiniteLanguage(
+                0, 5, 1,
+                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RC, SIZE_TYPE_TREE_DEPTH),
+                "examples/amr_template_grammars/deep_recursion_rc.irtg",
+                "Randomly sampled examples of deep CP recursion (with relative clauses). Created by a grammar. " +
+                        "Here, size0 is the number of recursions within the relative clause minus 1 " +
+                        "(i.e., to get the recursion depth for" +
+                        "the RC part, " +
+                        "add 1 to the value of size0 given in this file). And size1 is the depth of the whole tree " +
+                        "(to get the recursion depth of the tree in total, subtract 1 from size1) (Not exactly true, since" +
+                        "tree depth depends on the type of lowest DP).",
+                new HashSet<>(Arrays.asList("TP_CP", "NP_unary", "DP_the", "DP_the_obj", "CP_with_gap_recursive",
+                        "CP_with_gap_base", "said", "thought", "claimed", "assumed")),
                 false
         );
-        samplerDeepRecursionPronouns.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_pronouns.txt");
+        samplerDeepRecursionRC.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_rc.txt");
     }
 
     /**
@@ -354,6 +389,11 @@ public class SampleFromTemplateWithInfiniteLanguage {
                 } else {
                     return Integer.MAX_VALUE;
                 }
+            case SIZE_TYPE_DEPTH_BELOW_RC:
+                long recursion_count = tree.getAllNodes().stream().
+                        filter(t -> t.getLabel().equals("CP_with_gap_recursive")).count();
+
+                return (int)recursion_count;
             default:
                 throw new RuntimeException("Unknown size type: " + sizeType);
         }
