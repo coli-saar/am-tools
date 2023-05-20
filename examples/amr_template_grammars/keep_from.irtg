@@ -10,7 +10,7 @@ F! -> templateKeepObject(NP_subject, NP_kept_object, NP_location) [1.0]
 [graph]  APP_subj(APP_obj('(k<root> / keep-01 :duration (temporal-quantity :quant 30 :unit (y / year)) :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())', MOD_from(?2, APP_loc('(r<root, from> :source (i<loc>))--TYPE--(from(), loc())', ?3))), ?1)
 
 // VP attachment: X withholds information Y from person(s) Z
-F! -> templateKeepInformationFrom(NP_subject, NP_information, NP_people_kept_in_the_dark) [1.0]
+F! -> templateKeepInformationFromPerson(NP_subject, NP_information, NP_people_kept_in_the_dark) [1.0]
 [string] *('For thirty years,',*(?1, *('has kept', *(?2, *('from', *(?3, '.'))))))
 [graph]  APP_subj(APP_obj(APP_obj2('(k<root> / keep-04 :duration (temporal-quantity :quant 30 :unit (y / year)) :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2())', ?3), ?2), ?1)
 
