@@ -1,0 +1,181 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+// Filtering: to avoid centre embedding, only allow one subj_rel per sentence
+// this is ONLY relative clauses with CPs inside them pushing the relative pronoun away from its verb
+// BUT it includes RCs in object NPs as well (close in tree)
+
+// ------------------------------ Final states -----------------------------------------------
+
+// ------------ No coreference ----------------------
+
+TP! -> TP_CP(V_CPobj, DP, TP)  [0.2]
+[string] *(?2, *(?1, *(that, ?3)))
+[graph] APP_subj(APP_obj(?1, ?3), ?2)
+
+
+// Downstairs TPs
+// 3rd plural only
+
+TP! -> TP_intrA(VintrA, DP_with_RC_A) [0.1]
+[string] *(?2, ?1)
+[graph] APP_subj(?1, ?2)
+
+TP! -> TP_intrB(VintrB, DP_with_RC_B) [0.1]
+[string] *(?2, ?1)
+[graph] APP_subj(?1, ?2)
+
+
+// ---------------------------NPs and DPs --------------------------------
+
+NP -> NP_unary(N) [0.5]
+[string] ?1
+[graph] ?1
+
+DP -> DP_the(NP) [0.25]
+[string] *(the, ?1)
+[graph] ?1
+
+DP_with_RC_A -> DP_the_with_RC_A(NP_with_RC_A) [0.25]
+[string] *(the, ?1)
+[graph] ?1
+
+DP_with_RC_B -> DP_the_with_RC_B(NP_with_RC_B) [0.25]
+[string] *(the, ?1)
+[graph] ?1
+
+// ---- Relatives ----
+
+RC_A -> subj_relA(CP_gap_recursive, VtrA) [1.0]
+[string] *(who, *(?1, ?2))
+[graph] MOD_obj(?2, ?1)
+
+RC_B -> subj_relB(CP_gap_recursive, VtrB) [1.0]
+[string] *(who, *(?1, ?2))
+[graph] MOD_obj(?2, ?1)
+
+// -------- NP with RC -------------
+
+NP_with_RC_A -> DP_RC_A(N, RC_A, N_obj) [0.25]
+[string] *(?1, *(?2, *(the, ?3)))
+[graph] MOD_subj(?1, APP_obj(?2, ?3))
+
+NP_with_RC_B -> DP_RC_B(N, RC_B, N_obj) [0.25]
+[string] *(?1, *(?2, *(the, ?3)))
+[graph] MOD_subj(?1, APP_obj(?2, ?3))
+
+// the girls thought _
+CP_gap -> CP_with_gap_base(V_CPobj, DP) [0.5]
+[string] *(?2, ?1)
+[graph] APP_subj(?1, ?2)
+
+
+// weird recusion with mod like in TAGs
+CP_gap_recursive -> CP_with_gap_recursive(CP_gap, CP_gap_recursive) [0.5]
+[string] *(?2, *(that, ?1))
+[graph] MOD_obj(?1, ?2)
+
+CP_gap_recursive -> CP_gap_end_recursion(CP_gap) [0.5]
+[string] ?1
+[graph] ?1
+
+
+
+// ---------------------------- "downstairs" Verbs ------------------------------
+
+// since we can't actually build the graphs we need here with the AM algebra, we build a version with
+// one edge (the reentrant ARG1 of the main clause verb) missing, and then add it in postprocessing
+// To ensure that the verbs are contrasting, we have two versions of the rules:
+// A is "who bla bla thought liked the doctor, actually hated her instead"
+// B is "who bla bla thought hated the doctor, actually liked her instead"
+
+VtrA -> liked [1.0]
+[string] liked
+[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+VtrB -> hated [1.0]
+[string] hated
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+// fake intransitive versions where we will add the reentrant ARG1 in postprocessing
+
+VintrB -> liked_fake_intransitive [1.0]
+[string] *(actually, *(liked, *(her, *(after, all) )))
+[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1-of (a / actual-02) :concession (a2 / after-all))--TYPE--(subj())'
+
+VintrA -> hated_fake_intransitive [1.0]
+[string] *(actually, *(hated, *(her, *(after, all) )))
+[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1-of (a / actual-02) :concession (a2 / after-all))--TYPE--(subj())'
+
+//--------------------------------- verbs with CP object -----------------------------------------
+
+// no coref
+V_CPobj -> thought [0.5]
+[string] thought
+[graph] '(r<root> / think-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_CPobj -> said [0.5]
+[string] said
+[graph] '(r<root> / say-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_CPobj -> assumed [0.5]
+[string] assumed
+[graph] '(r<root> / assume-02 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_CPobj -> claimed [0.5]
+[string] claimed
+[graph] '(r<root> / claim-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+
+
+// --------------------------------Nouns --------------------------------
+
+
+N -> kids [0.25]
+[string] kids
+[graph] '(r<root> / kid)--TYPE--()'
+
+N -> girls [0.25]
+[string] girls
+[graph] '(r<root> / girl)--TYPE--()'
+
+N -> boys [0.25]
+[string] boys
+[graph] '(r<root> / boy)--TYPE--()'
+
+// -------------------------------- pronouns -----------------------------------
+
+
+DP -> we  [1.0]
+[string] we
+[graph] '(r<root> / we)--TYPE--()'
+
+DP -> I  [1.0]
+[string] I
+[graph] '(r<root> / i)--TYPE--()'
+
+DP -> you  [1.0]
+[string] you
+[graph] '(r<root> / you)--TYPE--()'
+
+
+// ------------------ singular nouns -------------------------
+N -> unary_N_adapter(N_obj) [1.0]
+[string] ?1
+[graph] ?1
+
+N_obj -> doctor [0.25]
+[string] doctor
+[graph] '(d<root> / doctor)'
+
+N_obj -> astronaut [0.25]
+[string] astronaut
+[graph] '(a<root> / astronaut)'
+
+N_obj -> mechanic [0.25]
+[string] mechanic
+[graph] '(m<root> / mechanic)'
+
+N_obj -> soldier [0.25]
+[string] soldier
+[graph] '(s<root> / soldier)'
