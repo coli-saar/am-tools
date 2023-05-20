@@ -9,7 +9,7 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // ------------------------------ Final states -----------------------------------------------
 
-TP! -> TP_CP(V_CPobj, DP, TP)  [0.2]
+TP! -> TP_CP(V_CPobj, DP, TP)  [0.9]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
@@ -34,9 +34,16 @@ Vintr -> slept [0.5]
 [string] slept
 [graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj)'
 
+Vintr -> arrived [0.5]
+[string] arrived
+[graph] '(r<root> / arrive-01 :ARG1 (s<subj>))--TYPE--(subj)'
+
+Vintr -> won [0.5]
+[string] won
+[graph] '(r<root> / win-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
 
 //--------------------------------- verbs with CP object -----------------------------------------
-
 V_CPobj -> thought [0.5]
 [string] thought
 [graph] '(r<root> / think-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
@@ -45,16 +52,39 @@ V_CPobj -> said [0.5]
 [string] said
 [graph] '(r<root> / say-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
+V_CPobj -> believed [0.5]
+[string] believed
+[graph] '(r<root> / believe-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_CPobj -> knew [0.5]
+[string] knew
+[graph] '(r<root> / know-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_CPobj -> heard [0.5]
+[string] heard
+[graph] '(r<root> / hear-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_CPobj -> mentioned [0.5]
+[string] mentioned
+[graph] '(r<root> / mention-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
 
 // ------------------ singular nouns -------------------------
 DP -> doctor [1.0]
 [string] *(the, doctor)
-[graph] (d<root> / doctor)
+[graph] '(d<root> / doctor)'
 
 DP -> astronaut [1.0]
 [string] *(the, astronaut)
-[graph] (a<root> / astronaut)
+[graph] '(a<root> / astronaut)'
+
+DP -> mechanic [1.0]
+[string] *(the, mechanic)
+[graph] '(m<root> / mechanic)'
+
+DP -> soldier [1.0]
+[string] *(the, soldier)
+[graph] '(s<root> / soldier)'
 
 
 
@@ -78,15 +108,22 @@ DP -> you  [1.0]
 // -------------------------------- plural Nouns --------------------------------
 
 
-DP -> kids [0.25]
+DP -> kids [1.0]
 [string] *(the, kids)
 [graph] '(r<root> / kid)--TYPE--()'
 
-DP -> girls [0.25]
+DP -> girls [1.0]
 [string] *(the, girls)
 [graph] '(r<root> / girl)--TYPE--()'
 
-DP -> boys [0.25]
+DP -> boys [1.0]
 [string] *(the, boys)
 [graph] '(r<root> / boy)--TYPE--()'
 
+DP -> men [1.0]
+[string] *(the, men)
+[graph] '(r<root> / man)--TYPE--()'
+
+DP -> women [1.0]
+[string] *(the, women)
+[graph] '(r<root> / woman)--TYPE--()'

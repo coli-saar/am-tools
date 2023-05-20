@@ -65,31 +65,28 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //                "Randomly sampled examples of stacked adjectives. Created by a grammar.",
 //                new HashSet<>());
 
-//        // nested control
-        SampleFromTemplateWithInfiniteLanguage sampler = new SampleFromTemplateWithInfiniteLanguage(
-                4, 8, 1,
-                SIZE_TYPE_TREE_DEPTH,
-                "examples/amr_template_grammars/nested_control.irtg",
-                "Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.",
-                new HashSet<>(Arrays.asList("TP_PRO", "VbarSubjCtrl", "VbarObjCtrl")),
-                true
-        );
-        sampler.sampleFromGrammar(10, "examples/amr_template_grammars/nested_control_debugging.txt");
+//        // nested control  -- this is the correct format as of late May 2023
+//        SampleFromTemplateWithInfiniteLanguage sampler = new SampleFromTemplateWithInfiniteLanguage(
+//                4, 8, 1,
+//                SIZE_TYPE_TREE_DEPTH,
+//                "examples/amr_template_grammars/nested_control.irtg",
+//                "Randomly sampled examples of nested control structures including nesting inside coordination. Created by a grammar.",
+//                new HashSet<>(Arrays.asList("TP_PRO", "VbarSubjCtrl", "VbarObjCtrl")),
+//                true
+//        );
+//        sampler.sampleFromGrammar(10, "examples/amr_template_grammars/nested_control_debugging.txt");
 
         // deep recursion
-//        sampleFromGrammar(1, 1, 12, 1,
-//                SIZE_TYPE_TREE_DEPTH,
-//                "examples/amr_template_grammars/deep_recursion.irtg",
-//                "examples/amr_template_grammars/deep_recursion.txt",
-//                "Randomly sampled examples of deep recursion with and without coref. Created by a grammar.",
-//                new HashSet<>(Arrays.asList("thought", "said", "thought_coref", "said_coref",
-//                        "TP_coref_3f", "TP_coref_3m",
-//                        "TP_deep_coref_3f", "TP_deep_coref_3m",
-//                        "TP_coref_2"
-//                )
-//                )
-//        );
-
+        // The 0-based tree depth is (1-based) number of CPs + 1
+        SampleFromTemplateWithInfiniteLanguage sampler = new SampleFromTemplateWithInfiniteLanguage(
+                2, 11, 1,
+                SIZE_TYPE_TREE_DEPTH,
+                "examples/amr_template_grammars/deep_recursion_basic.irtg",
+                "Randomly sampled examples of deep CP recursion (standard version). Created by a grammar.",
+                new HashSet<>(Arrays.asList("TP_CP", "thought", "said", "believed", "knew", "heard", "mentioned")),
+                true
+        );
+        sampler.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_basic.txt");
     }
 
     /**
@@ -239,21 +236,9 @@ public class SampleFromTemplateWithInfiniteLanguage {
         // a null pointer exception. This seems to be an alto bug, and we're just ignoring it here.
         try {
             // System.out.println(tree);
-            if (sizeType.equals(SIZE_TYPE_STRING_LENGTH)) {
-                Object stringResult = stringInterp.interpret(tree);
-                int sentenceLength = ((List<String>) stringResult).size();
-                if (sentenceLength != targetSize) {
-                    return false;
-                }
-            } else if (sizeType.equals(SIZE_TYPE_TREE_DEPTH)) {
-                int depth = tree.getHeight();
-//                        if (total_depths_printed < 100) {
-//                            System.err.println("Depth: " + depth);
-//                            total_depths_printed++;
-//                        }
-                if (depth != targetSize) {
-                    return false;
-                }
+            int size = computeTreeSize(tree, sizeType);
+            if (size != targetSize) {
+                return false;
             }
         } catch (NullPointerException ex) {
             null_pointer_exception_count++;
@@ -309,6 +294,17 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
         // return true if we want to keep this one
         return !hasDuplicates;
+    }
+
+    @SuppressWarnings("unchecked")
+    private int computeTreeSize(Tree<String> tree, String sizeType) {
+        if (sizeType.equals(SIZE_TYPE_STRING_LENGTH)) {
+            Object stringResult = stringInterp.interpret(tree);
+            return ((List<String>) stringResult).size();
+        } else if (sizeType.equals(SIZE_TYPE_TREE_DEPTH)) {
+            return tree.getHeight();
+        }
+        return -1;
     }
 
     public static int countAncestorDescendantPairsInTree(Tree<String> tree, Set<String> ancestorLabels,
