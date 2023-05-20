@@ -9,6 +9,7 @@ import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -82,7 +83,9 @@ public class SampleFromTemplateWithInfiniteLanguage {
                 2, 11, 1,
                 SIZE_TYPE_TREE_DEPTH,
                 "examples/amr_template_grammars/deep_recursion_basic.irtg",
-                "Randomly sampled examples of deep CP recursion (standard version). Created by a grammar.",
+                "Randomly sampled examples of deep CP recursion (standard version). Created by a grammar.\n" +
+                        "Size here is number of CPs + 1 (i.e., to get the recursion depth, " +
+                        "subtract 1 from the size given in this file).",
                 new HashSet<>(Arrays.asList("TP_CP", "thought", "said", "believed", "knew", "heard", "mentioned")),
                 true
         );
@@ -134,8 +137,27 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
         List<Tree<String>> samples = getSamplesAccordingToInsideProbabilities(numSamples);
 
-        SampleFromTemplate.writeSamplesToFile(outputFile, samples, description, irtg);
+        writeSamplesToFile(outputFile, samples, description, irtg);
         System.out.println("\nTotal samples: " + samples.size());
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void writeSamplesToFile(String fileName, Iterable<Tree<String>> samples, String description, InterpretedTreeAutomaton irtg) throws IOException {
+        FileWriter w = new FileWriter(fileName);
+        w.write("# " + description+"\n\n");
+        Interpretation stringInterp = irtg.getInterpretation("string");
+        Interpretation graphInterp = irtg.getInterpretation("graph");
+        for (Tree<String> sample : samples) {
+            Object stringResult = stringInterp.getAlgebra().evaluate(stringInterp.getHomomorphism().apply(sample));
+            Object graphResult = graphInterp.getAlgebra().evaluate(graphInterp.getHomomorphism().apply(sample));
+            String sentenceString = SampleFromTemplate.postprocessString((List<String>)stringResult);
+            w.write("# ::snt " + sentenceString+"\n");
+            w.write("# ::tree " + sample.toString()+"\n");
+            w.write("# ::size " + computeTreeSize(sample)+"\n");
+            String graphString = SampleFromTemplate.fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString());
+            w.write(graphString+"\n\n");
+        }
+        w.close();
     }
 
     @SuppressWarnings({"rawtypes"})
@@ -166,9 +188,7 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
     private void attemptToAddNewSample(int targetSize, List<Tree<String>> samplesHere) {
         Tree<String> tree = irtg.getAutomaton().getRandomTree(inside);
-        if (checkTree(tree, samplesHere, targetSize,
-                sizeType,
-                ruleLabelsWithDuplicatesAllowed)) {
+        if (checkTree(tree, samplesHere, targetSize)) {
             addSample(samplesHere, tree);
         }
     }
@@ -228,15 +248,13 @@ public class SampleFromTemplateWithInfiniteLanguage {
 
 
     static int total_depths_printed = 0;
-    public boolean checkTree(Tree<String> tree, Collection<Tree<String>> samples, int targetSize,
-                                    String sizeType,
-                                    Set<String> ruleLabelsWithDuplicatesAllowed) {
+    public boolean checkTree(Tree<String> tree, Collection<Tree<String>> samples, int targetSize) {
         if (samples.contains(tree)) { return false; }
         // This is catching a bug where sometimes the tree.getHeight method (and other tree methods) throws
         // a null pointer exception. This seems to be an alto bug, and we're just ignoring it here.
         try {
             // System.out.println(tree);
-            int size = computeTreeSize(tree, sizeType);
+            int size = computeTreeSize(tree);
             if (size != targetSize) {
                 return false;
             }
@@ -297,7 +315,7 @@ public class SampleFromTemplateWithInfiniteLanguage {
     }
 
     @SuppressWarnings("unchecked")
-    private int computeTreeSize(Tree<String> tree, String sizeType) {
+    private int computeTreeSize(Tree<String> tree) {
         if (sizeType.equals(SIZE_TYPE_STRING_LENGTH)) {
             Object stringResult = stringInterp.interpret(tree);
             return ((List<String>) stringResult).size();

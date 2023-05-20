@@ -74,6 +74,7 @@ public class SampleFromTemplate {
             Object graphResult = graphInterp.getAlgebra().evaluate(graphInterp.getHomomorphism().apply(sample));
             String sentenceString = postprocessString((List<String>)stringResult);
             w.write("# ::snt " + sentenceString+"\n");
+            w.write("# ::tree " + sample.toString()+"\n");
             String graphString = fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString());
             w.write(graphString+"\n\n");
         }
@@ -81,7 +82,9 @@ public class SampleFromTemplate {
     }
 
     public static String postprocessString(List<String> tokens) {
-        return tokens.stream().collect(Collectors.joining(" ")).replaceAll(" , ", ", ")
+        String detokenizedString = tokens.stream().collect(Collectors.joining(" ")).replaceAll(" , ", ", ")
                 .replaceAll(" \\.", ".");
+        // make first token uppercase
+        return detokenizedString.substring(0, 1).toUpperCase() + detokenizedString.substring(1);
     }
 }
