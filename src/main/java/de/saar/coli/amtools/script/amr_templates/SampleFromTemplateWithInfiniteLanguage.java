@@ -19,10 +19,11 @@ public class SampleFromTemplateWithInfiniteLanguage {
     static int null_pointer_exception_count = 0;
     static final String SIZE_TYPE_STRING_LENGTH = "string length";
     static final String SIZE_TYPE_TREE_DEPTH = "tree depth";
+    static final String SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF = "depth below resolve coref";
     private final int minSize;
     private final int maxSize;
     private final int sizeStep;
-    private final String sizeType;
+    private final List<String> sizeTypes;
     private final InterpretedTreeAutomaton irtg;
     private final Interpretation stringInterp;
     private final Interpretation graphInterp;
@@ -77,45 +78,64 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //        );
 //        sampler.sampleFromGrammar(10, "examples/amr_template_grammars/nested_control_debugging.txt");
 
-        // deep recursion
+        // deep recursion basic
         // The 0-based tree depth is (1-based) number of CPs + 1
-        SampleFromTemplateWithInfiniteLanguage sampler = new SampleFromTemplateWithInfiniteLanguage(
+//        SampleFromTemplateWithInfiniteLanguage sampler = new SampleFromTemplateWithInfiniteLanguage(
+//                2, 11, 1,
+//                Collections.singletonList(SIZE_TYPE_TREE_DEPTH),
+//                "examples/amr_template_grammars/deep_recursion_basic.irtg",
+//                "Randomly sampled examples of deep CP recursion (standard version). Created by a grammar. " +
+//                        "Size (size0) here is number of CPs + 1 (i.e., to get the recursion depth, " +
+//                        "subtract 1 from the value of size0 given in this file).",
+//                new HashSet<>(Arrays.asList("TP_CP", "thought", "said", "believed", "knew", "heard", "mentioned")),
+//                false
+//        );
+//        sampler.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_basic.txt");
+
+        // deep recursion pronouns
+        // The 0-based tree depth is (1-based) number of CPs + 1
+        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionPronouns = new SampleFromTemplateWithInfiniteLanguage(
                 2, 11, 1,
-                SIZE_TYPE_TREE_DEPTH,
-                "examples/amr_template_grammars/deep_recursion_basic.irtg",
-                "Randomly sampled examples of deep CP recursion (standard version). Created by a grammar.\n" +
-                        "Size here is number of CPs + 1 (i.e., to get the recursion depth, " +
-                        "subtract 1 from the size given in this file).",
-                new HashSet<>(Arrays.asList("TP_CP", "thought", "said", "believed", "knew", "heard", "mentioned")),
-                true
+                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF, SIZE_TYPE_TREE_DEPTH),
+                "examples/amr_template_grammars/deep_recursion_pronouns.irtg",
+                "Randomly sampled examples of deep CP recursion (with 1st person singular/plural coreference). Created by a grammar. " +
+                        "Here, size0 is the depth below the CP with the reentrancy (i.e., to get the recursion depth for" +
+                        "the reentrancy part, " +
+                        "subtract 1 from the value of size0 given in this file). And size1 is the depth of the whole tree " +
+                        "(to get the recursion depth of the tree in total, subtract 1 from size1).",
+                new HashSet<>(Arrays.asList("TP_3p", "TP_CP_1s", "TP_CP_1p", "TP_CP_2", "thought", "said", "believed", "knew", "heard", "mentioned",
+                        "thought_coref", "said_coref", "believed_coref", "knew_coref", "heard_coref", "mentioned_coref")),
+                false
         );
-        sampler.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_basic.txt");
+        samplerDeepRecursionPronouns.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_pronouns.txt");
     }
 
     /**
      * A class that can sample from a grammar and write the samples to a file.
-     * * @param minSize The minimum sentence length or (grammar-)tree depth of the samples, depending on sizeType
+     * @param minSize The minimum sentence length or (grammar-)tree depth of the samples, depending on sizeType
      * @param maxSize The maximum sentence length or (grammar-)tree depth of the samples, depending on sizeType
      * @param sizeStep The step size for increasing the length or depth, depending on sizeType
-     * @param sizeType whether we're measuring output sentence length or derivation tree depth.
+     * @param sizeTypes whether we're measuring output sentence length or derivation tree depth.
      *                 Determines what "Size" means in the above parameters (length vs depth)
-     *                 Choose between the SIZE_TYPE_ prefixed global variables above
+     *                 Choose between the SIZE_TYPE_ prefixed global variables above.
+     *                  The sampling is done based on the first entry in this (i.e. minSize, maxSize and sizeStep
+     *                  apply to the first entry in this list).
      * @param irtgPath The path to the grammar.
-     * @param description A description that is added at the start of the output file.
+     * @param description A description that is added at the start of the output file. Must be all one line!
      * @param ruleLabelsWithDuplicatesAllowed A set of rule labels for which multiple instances are allowed. This is
      *                                        important for rules that are used recursively. But by default we do
             *                                        not allow duplicate rules, so that every lexical item can appear
      *                                        at most once.
      *
      **/
-    public SampleFromTemplateWithInfiniteLanguage(int minSize, int maxSize, int sizeStep, String sizeType,
+    public SampleFromTemplateWithInfiniteLanguage(int minSize, int maxSize, int sizeStep, List<String> sizeTypes,
                                                   String irtgPath, String description,
                                                   Set<String> ruleLabelsWithDuplicatesAllowed,
                                                   boolean check_for_coordination_ambiguity) throws IOException {
         this.minSize = minSize;
         this.maxSize = maxSize;
         this.sizeStep = sizeStep;
-        this.sizeType = sizeType;
+        this.sizeTypes = sizeTypes;
         this.description = description;
         this.ruleLabelsWithDuplicatesAllowed = ruleLabelsWithDuplicatesAllowed;
         this.irtg = InterpretedTreeAutomaton.fromPath(irtgPath);
@@ -153,7 +173,9 @@ public class SampleFromTemplateWithInfiniteLanguage {
             String sentenceString = SampleFromTemplate.postprocessString((List<String>)stringResult);
             w.write("# ::snt " + sentenceString+"\n");
             w.write("# ::tree " + sample.toString()+"\n");
-            w.write("# ::size " + computeTreeSize(sample)+"\n");
+            for (int i = 0; i < sizeTypes.size(); i++) {
+                w.write("# ::size" + i + " " + computeTreeSize(sample, sizeTypes.get(i)) + "\n");
+            }
             String graphString = SampleFromTemplate.fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString());
             w.write(graphString+"\n\n");
         }
@@ -254,7 +276,8 @@ public class SampleFromTemplateWithInfiniteLanguage {
         // a null pointer exception. This seems to be an alto bug, and we're just ignoring it here.
         try {
             // System.out.println(tree);
-            int size = computeTreeSize(tree);
+            // use first size type to filter for size.
+            int size = computeTreeSize(tree, sizeTypes.get(0));
             if (size != targetSize) {
                 return false;
             }
@@ -315,14 +338,25 @@ public class SampleFromTemplateWithInfiniteLanguage {
     }
 
     @SuppressWarnings("unchecked")
-    private int computeTreeSize(Tree<String> tree) {
-        if (sizeType.equals(SIZE_TYPE_STRING_LENGTH)) {
-            Object stringResult = stringInterp.interpret(tree);
-            return ((List<String>) stringResult).size();
-        } else if (sizeType.equals(SIZE_TYPE_TREE_DEPTH)) {
-            return tree.getHeight();
+    private int computeTreeSize(Tree<String> tree, String sizeType) {
+        switch (sizeType) {
+            case SIZE_TYPE_STRING_LENGTH:
+                Object stringResult = stringInterp.interpret(tree);
+                return ((List<String>) stringResult).size();
+            case SIZE_TYPE_TREE_DEPTH:
+                return tree.getHeight();
+            case SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF:
+                OptionalInt optionalInt = tree.getAllNodes().stream().filter(t -> t.getLabel().startsWith("TP_resolve_coref")).
+                        mapToInt(Tree::getHeight).min();  // doesn't actually matter which one, there should be only one.
+
+                if (optionalInt.isPresent()) {
+                    return optionalInt.getAsInt();
+                } else {
+                    return Integer.MAX_VALUE;
+                }
+            default:
+                throw new RuntimeException("Unknown size type: " + sizeType);
         }
-        return -1;
     }
 
     public static int countAncestorDescendantPairsInTree(Tree<String> tree, Set<String> ancestorLabels,
