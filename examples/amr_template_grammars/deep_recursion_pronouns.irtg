@@ -6,15 +6,12 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 // upstairs can have 1s, 1p, 2s/p, and 3p subjects, but only 1st and 2nd person can have coref
 // 1 and 2 DPs can be full DPs (eg the boys and I)
 
-// TODO (?) the boys that ....... thinks hate Barak Obama actually like him instead
-// close in string, far in tree
-// lowest levels done, need to pass up coref
 
 // ------------------------------ Final states -----------------------------------------------
 
 // ------------ No coreference ----------------------
 
-TP! -> TP_3p(V_CPobj, DP_plural, TP)  [0.2]
+TP! -> TP_3p(V_CPobj, DP, TP)  [0.2]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
@@ -32,11 +29,11 @@ TP! -> TP_2(V_CPobj, You, TP)  [0.2]
 
 // Downstairs TPs
 // 3rd plural only
-TP! -> TP_tr(Vtr, DP_plural, DP_plural)  [0.1]
+TP! -> TP_tr(Vtr, DP, DP)  [0.1]
 [string] *(?3, *(?1, ?2))
 [graph] APP_subj(APP_obj(?1, ?2), ?3)
 
-TP! -> TP_intr(Vintr, DP_plural) [0.1]
+TP! -> TP_intr(Vintr, DP) [0.1]
 [string] *(?2, ?1)
 [graph] APP_subj(?1, ?2)
 
@@ -50,7 +47,7 @@ TP_deep_coref_2! -> TP_coref_2(V_CPobj_resolve_coref, You, TP_coref_2) [0.5]
 [graph] APP_coref(APP_obj(?1, ?3), ?2)
 
 // move coreferent subject deeper
-TP_deep_coref_2! -> TP_coref_2_within(V_CPobj, DP_plural, TP_deep_coref_2) [0.5]
+TP_deep_coref_2! -> TP_coref_2_within(V_CPobj, DP, TP_deep_coref_2) [0.5]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
@@ -61,7 +58,7 @@ TP_deep_coref_1s! -> TP_coref_1s(V_CPobj_resolve_coref, I, TP_coref_1s) [0.5]
 [graph] APP_coref(APP_obj(?1, ?3), ?2)
 
 // move coreferent subject deeper
-TP_deep_coref_1s! -> TP_coref_1s_within(V_CPobj, DP_plural, TP_deep_coref_1s) [0.5]
+TP_deep_coref_1s! -> TP_coref_1s_within(V_CPobj, DP, TP_deep_coref_1s) [0.5]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
@@ -72,7 +69,7 @@ TP_deep_coref_1p! -> TP_coref_1p(V_CPobj_resolve_coref, We, TP_coref_1p) [0.5]
 [graph] APP_coref(APP_obj(?1, ?3), ?2)
 
 // move coreferent subject deeper
-TP_deep_coref_1p! -> TP_coref_1p_within(V_CPobj, DP_plural, TP_deep_coref_1p) [0.5]
+TP_deep_coref_1p! -> TP_coref_1p_within(V_CPobj, DP, TP_deep_coref_1p) [0.5]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
@@ -93,11 +90,11 @@ TP_coref_1s -> TP_intr_1s(VP_coref_1s) [0.34]
 [graph] ?1
 
 // Transitive: Subject must disagree on phi features
-TP_coref_1s -> TP_tr_1s(Vbar_coref_1s, DP_plural) [0.33]
+TP_coref_1s -> TP_tr_1s(Vbar_coref_1s, DP) [0.33]
 [string] *(?2, ?1)
 [graph] APP_subj(?1, ?2)
 
-TP_coref_1s -> TP_CP_1s(V_CPobj_coref, DP_plural, TP_coref_1s) [0.33]
+TP_coref_1s -> TP_CP_1s(V_CPobj_coref, DP, TP_coref_1s) [0.33]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
 
@@ -109,59 +106,18 @@ TP_coref_1p -> TP_intr_1p(VP_coref_1p) [0.34]
 [graph] ?1
 
 // Transitive: Subject must disagree on phi features
-TP_coref_1p -> TP_tr_1p(Vbar_coref_1p, DP_plural) [0.33]
+TP_coref_1p -> TP_tr_1p(Vbar_coref_1p, DP) [0.33]
 [string] *(?2, ?1)
 [graph] APP_subj(?1, ?2)
 
-TP_coref_1p -> TP_CP_1p(V_CPobj_coref, DP_plural, TP_coref_1p) [0.33]
+TP_coref_1p -> TP_CP_1p(V_CPobj_coref, DP, TP_coref_1p) [0.33]
 [string] *(?2, *(?1, *(that, ?3)))
 [graph] APP_subj(APP_obj(?1, ?3), ?2)
-
-
-// ---------------------------NPs and DPs --------------------------------
-
-NP_plural -> NP_unary(N_plural) [0.5]
-[string] ?1
-[graph] ?1
-
-DP_plural -> DP_plural_the(NP_plural) [0.25]
-[string] *(the, ?1)
-[graph] ?1
-
-
-
-// ---- Relatives ----
-
-RC -> subj_rel(CP_gap, Vintr) [1.0]
-[string] *(who, *(?1, ?2))
-[graph] MOD_obj(?2, ?1)
-
-// -------- NP with RC -------------
-
-NP_plural -> DP_RC(N_plural, RC) [0.25]
-[string] *(?1, ?2)
-[graph] MOD_subj(?1, ?2)
-
-CP_gap -> CP_with_gap_base(V_CPobj, DP_plural) [0.5]
-[string] *(?2, ?1)
-[graph] APP_subj(?1, ?2)
-
-CP_gap -> CP_with_gap_recursive(CP_gap, CP_gap) [0.5]
-[string] *(?2, ?1)
-[graph] MOD_obj(?1, ?2)
-
-
-
-// ------------------VP -----------------------
-
-Contrast -> actually(Vtr,
-
 
 // ---------------------------- "downstairs" Verbs ------------------------------
 
 
 // verbs with no co-ref
-// 3rd plural only
 
 Vtr -> liked [1.0]
 [string] liked
@@ -186,7 +142,7 @@ Vintr -> slept [0.5]
 // argument added to string but not graph (pronouns only)
 // graph has coref source
 // state encodes phi features of argument
-
+// TODO add other two verbs
 
 // 1p
 VP_coref_1p -> we_slept [0.5]
@@ -214,34 +170,6 @@ VP_coref_1s -> I_slept [0.5]
 Vbar_coref_1s -> liked_me [0.5]
 [string] *(liked, me)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
-
-// 3s M
-Vbar_coref_3m -> liked_him [0.5]
-[string] *(liked, him)
-[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
-
-Vbar_coref_3f -> liked_her [0.5]
-[string] *(liked, her)
-[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
-
-// 3s F
-Vbar_coref_3m -> hated_him [0.5]
-[string] *(hated, him)
-[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
-
-Vbar_coref_3f -> hated_her [0.5]
-[string] *(hated, her)
-[graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
-
-// contrast for strong pragmatic effect on coref interpretation
-
-Vbar_contrast_3m -> actually_him(Vbar_coref_3m) [1.0]
-[string] *(*(actually, ?1), instead)
-[graph] TODO
-
-Vbar_contrast_3f -> actually_her(Vbar_coref_3f) [1.0]
-[string] *(*(actually, ?1), instead)
-[graph] TODO
 
 
 //--------------------------------- verbs with CP object -----------------------------------------
@@ -276,33 +204,6 @@ V_CPobj_resolve_coref -> announced_resolve_coref [0.5]
 [graph] '(r<root> / announce-01 :ARG0 (s<coref>) :ARG1 (o<obj>))--TYPE--(coref(), obj(coref()))'
 
 
-// ------------------------------- coordination ------------------------------
-
-// conjoined subjects
-
-// 1st person plural
-We -> and_I(And, DP_plural, I)  [1.0]
-[string] *(?2, *(?1, ?3))
-[graph] APP_op1(APP_op2(?1, ?2), ?3)
-
-
-// conjunction
-And -> and  [1.0]
-[string] and
-[graph] '(r<root> / and :op1 (op1<op1>) :op2 (op2<op2>))--TYPE--(op1, op2)'
-
-
-// ------------------ Proper Names -------------------------
-DP_3m -> doctor [1.0]
-[string] *(the, doctor)
-[graph] TODO
-
-DP_3f ->  [1.0]
-[string] *(Hillary, Clinton)
-[graph] TODO
-
-
-
 // -------------------------------- pronouns -----------------------------------
 
 
@@ -320,78 +221,43 @@ You -> you  [1.0]
 
 
 
-// --------------------------------Nouns --------------------------------
+// -------------------------------- plural Nouns --------------------------------
 
 
-N_plural -> kids [0.25]
-[string] kids
+DP -> kids [1.0]
+[string] *(the, kids)
 [graph] '(r<root> / kid)--TYPE--()'
 
-N_plural -> girls [0.25]
-[string] girls
+DP -> girls [1.0]
+[string] *(the, girls)
 [graph] '(r<root> / girl)--TYPE--()'
 
-N_plural -> boys [0.25]
-[string] boys
+DP -> boys [1.0]
+[string] *(the, boys)
 [graph] '(r<root> / boy)--TYPE--()'
 
+DP -> men [1.0]
+[string] *(the, men)
+[graph] '(r<root> / man)--TYPE--()'
 
-// ------------------------OBSOLETE -----------------------------------
-
-// it's either COREF_0 or MARKER_0 I think
-//Nom3f_coref -> she_coref [1.0]
-//[string] she
-//[graph] '(r<root, coref> / she)--TYPE--(coref())'
-
-//Acc3f_coref -> her_coref [1.0]
-//[string] her
-//[graph] '(r<root, coref>)--TYPE--(coref())'
+DP -> women [1.0]
+[string] *(the, women)
+[graph] '(r<root> / woman)--TYPE--()'
 
 
-// Transitive: Subject must disagree on phi features
-//TP_coref_3f -> TP_tr_3fAcc(Vtr, DP_plural, Acc3f_coref) [1.0]
-//[string] *(?2, *(?1, ?3))
-//[graph] APP_subj(APP_obj(?1, ?3), ?2)
+// ------------------ singular nouns -------------------------
+DP -> doctor [1.0]
+[string] *(the, doctor)
+[graph] '(d<root> / doctor)'
 
+DP -> astronaut [1.0]
+[string] *(the, astronaut)
+[graph] '(a<root> / astronaut)'
 
-// past tense so there's null agreement
-// general doesn't seem to work with coref
+DP -> mechanic [1.0]
+[string] *(the, mechanic)
+[graph] '(m<root> / mechanic)'
 
-//Vintr -> slept [1.0]
-//[string] slept
-//[graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj())'
-
-//Vtr -> liked [1.0]
-//[string] liked
-//[graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
-
-// 3f
-// resolve coref
-//TP_deep_coref_3f! -> TP_coref_3f(V_CPobj_resolve_coref, Nom3f, TP_coref_3f) [1.0]
-//[string] *(?2, *(?1, *(that, ?3)))
-//[graph] APP_coref(APP_obj(?1, ?3), ?2)
-
-// move coreferent subject deeper
-//TP_deep_coref_3f! -> TP_coref_3f_within(V_CPobj, DP_plural, TP_deep_coref_3f) [1.0]
-//[string] *(?2, *(?1, *(that, ?3)))
-//[graph] APP_subj(APP_obj(?1, ?3), ?2)
-
-//Nom3f -> she [1.0]
-//[string] she
-//[graph] '(r<root> / she)--TYPE--()'
-
-// -------- 3f -----------
-// Intransitive
-//TP_coref_3f -> TP_intr_3f(VP_coref_3f) [1.0]
-//[string] ?1
-//[graph] ?1
-
-// Transitive: Subject must disagree on phi features
-//TP_coref_3f -> TP_tr_3f(Vbar_coref_3f, DP_plural) [1.0]
-//[string] *(?2, ?1)
-//[graph] APP_subj(?1, ?2)
-
-// with CP object (recursion)
-//TP_coref_3f -> TP_CP_3f(V_CPobj_coref, DP_plural, TP_coref_3f) [1.0]
-//[string] *(?2, *(?1, *(that, ?3)))
-//[graph] APP_subj(APP_obj(?1, ?3), ?2)
+DP -> soldier [1.0]
+[string] *(the, soldier)
+[graph] '(s<root> / soldier)'
