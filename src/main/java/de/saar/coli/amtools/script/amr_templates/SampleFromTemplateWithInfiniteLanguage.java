@@ -4,6 +4,7 @@ import de.saar.basic.Pair;
 import de.up.ling.irtg.Interpretation;
 import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
+import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
@@ -32,6 +33,8 @@ public class SampleFromTemplateWithInfiniteLanguage {
     private final String description;
     private final Set<String> ruleLabelsWithDuplicatesAllowed;
     private final boolean check_for_coordination_ambiguity;
+    private final boolean add_hate_like_edge_in_postprocessing;
+
 
 
     public static void main(String[] args) throws IOException, ParseException {
@@ -127,22 +130,42 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //        samplerDeepRecursion3s.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_3s.txt");
 
         // The 0-based tree depth is (1-based) number of CPs + 1
-        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionRC = new SampleFromTemplateWithInfiniteLanguage(
-                0, 5, 1,
+//        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionRC = new SampleFromTemplateWithInfiniteLanguage(
+//                0, 5, 1,
+//                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RC, SIZE_TYPE_TREE_DEPTH),
+//                "examples/amr_template_grammars/deep_recursion_rc.irtg",
+//                "Randomly sampled examples of deep CP recursion (with relative clauses). Created by a grammar. " +
+//                        "Here, size0 is the number of recursions within the relative clause minus 1 " +
+//                        "(i.e., to get the recursion depth for" +
+//                        "the RC part, " +
+//                        "add 1 to the value of size0 given in this file). And size1 is the depth of the whole tree " +
+//                        "(to get the recursion depth of the tree in total, subtract 1 from size1) (Not exactly true, since" +
+//                        "tree depth depends on the type of lowest DP).",
+//                new HashSet<>(Arrays.asList("TP_CP", "NP_unary", "DP_the", "DP_the_obj", "CP_with_gap_recursive",
+//                        "CP_with_gap_base", "said", "thought", "claimed", "assumed")),
+//                false,
+//                false
+//        );
+//        samplerDeepRecursionRC.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_rc.txt");
+
+        // The 0-based tree depth is (1-based) number of CPs + 1
+        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionRCCoref = new SampleFromTemplateWithInfiniteLanguage(
+                0, 6, 1,
                 Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RC, SIZE_TYPE_TREE_DEPTH),
-                "examples/amr_template_grammars/deep_recursion_rc.irtg",
-                "Randomly sampled examples of deep CP recursion (with relative clauses). Created by a grammar. " +
+                "examples/amr_template_grammars/deep_recursion_rc_contrastive_coref.irtg",
+                "Randomly sampled examples of deep CP recursion (with relative clauses and contrastive coref). Created by a grammar. " +
                         "Here, size0 is the number of recursions within the relative clause minus 1 " +
                         "(i.e., to get the recursion depth for" +
                         "the RC part, " +
                         "add 1 to the value of size0 given in this file). And size1 is the depth of the whole tree " +
                         "(to get the recursion depth of the tree in total, subtract 1 from size1) (Not exactly true, since" +
                         "tree depth depends on the type of lowest DP).",
-                new HashSet<>(Arrays.asList("TP_CP", "NP_unary", "DP_the", "DP_the_obj", "CP_with_gap_recursive",
-                        "CP_with_gap_base", "said", "thought", "claimed", "assumed")),
-                false
+                new HashSet<>(Arrays.asList("TP_CP", "NP_unary", "DP_the", "CP_with_gap_recursive",
+                        "CP_with_gap_base", "unary_N_adapter", "said", "thought", "claimed", "assumed")),
+                false,
+                true
         );
-        samplerDeepRecursionRC.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_rc.txt");
+        samplerDeepRecursionRCCoref.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_rc_contrastive_coref.txt");
     }
 
     /**
@@ -166,7 +189,8 @@ public class SampleFromTemplateWithInfiniteLanguage {
     public SampleFromTemplateWithInfiniteLanguage(int minSize, int maxSize, int sizeStep, List<String> sizeTypes,
                                                   String irtgPath, String description,
                                                   Set<String> ruleLabelsWithDuplicatesAllowed,
-                                                  boolean check_for_coordination_ambiguity) throws IOException {
+                                                  boolean check_for_coordination_ambiguity,
+                                                  boolean add_hate_like_edge_in_postprocessing) throws IOException {
         this.minSize = minSize;
         this.maxSize = maxSize;
         this.sizeStep = sizeStep;
@@ -178,6 +202,7 @@ public class SampleFromTemplateWithInfiniteLanguage {
         this.graphInterp = irtg.getInterpretation("graph");
         this.inside = computeAndFixInsideProbabilities();
         this.check_for_coordination_ambiguity = check_for_coordination_ambiguity;
+        this.add_hate_like_edge_in_postprocessing = add_hate_like_edge_in_postprocessing;
     }
 
     /**
@@ -204,17 +229,43 @@ public class SampleFromTemplateWithInfiniteLanguage {
         Interpretation graphInterp = irtg.getInterpretation("graph");
         for (Tree<String> sample : samples) {
             Object stringResult = stringInterp.getAlgebra().evaluate(stringInterp.getHomomorphism().apply(sample));
-            Object graphResult = graphInterp.getAlgebra().evaluate(graphInterp.getHomomorphism().apply(sample));
+            Pair<SGraph, ApplyModifyGraphAlgebra.Type> graphResult = (Pair)graphInterp.getAlgebra().evaluate(graphInterp.getHomomorphism().apply(sample));
+            if (add_hate_like_edge_in_postprocessing) {
+                addHateLikeEdge(graphResult.left); // adds it in-place, so graphResult itself will be changed.
+            }
             String sentenceString = SampleFromTemplate.postprocessString((List<String>)stringResult);
             w.write("# ::snt " + sentenceString+"\n");
             w.write("# ::tree " + sample.toString()+"\n");
             for (int i = 0; i < sizeTypes.size(); i++) {
                 w.write("# ::size" + i + " " + computeTreeSize(sample, sizeTypes.get(i)) + "\n");
             }
-            String graphString = SampleFromTemplate.fixAMRString(((Pair<SGraph, ApplyModifyGraphAlgebra.Type>)graphResult).left.toIsiAmrString());
+            String graphString = SampleFromTemplate.fixAMRString((graphResult).left.toIsiAmrString());
             w.write(graphString+"\n\n");
         }
         w.close();
+    }
+
+    private static void addHateLikeEdge(SGraph graph) {
+        try {
+            GraphNode likeNode = graph.getGraph().vertexSet().stream().filter(n -> n.getLabel().startsWith("like")).findFirst().get();
+            GraphNode hateNode = graph.getGraph().vertexSet().stream().filter(n -> n.getLabel().startsWith("hate")).findFirst().get();
+
+            boolean likeIsRoot = graph.getSourcesAtNode(likeNode.getName()).contains("root");
+            if (likeIsRoot) {
+                addARG1EdgeFromFirstNodeToArgumentOfSecondNode(likeNode, hateNode, graph);
+            } else {
+                addARG1EdgeFromFirstNodeToArgumentOfSecondNode(hateNode, likeNode, graph);
+            }
+        } catch (NoSuchElementException e) {
+            System.err.println("WARNING: Could not add like-hate edge to graph, because either like or hate was not found.");
+            System.err.println(graph.toIsiAmrStringWithSources());
+        }
+
+    }
+
+    private static void addARG1EdgeFromFirstNodeToArgumentOfSecondNode(GraphNode firstNode, GraphNode secondNode, SGraph graph) {
+        GraphNode jointTarget = graph.getGraph().outgoingEdgesOf(secondNode).stream().filter(e -> e.getLabel().equals("ARG1")).findFirst().get().getTarget();
+        graph.addEdge(firstNode, jointTarget, "ARG1");
     }
 
     @SuppressWarnings({"rawtypes"})
