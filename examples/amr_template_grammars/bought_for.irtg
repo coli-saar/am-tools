@@ -1,0 +1,123 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// VP attachment: X buys object Y for an amount of money Z
+F! -> templateBuyForAmount(NP_subject, V_buy_for, NP_bought_object, NP_amount) [1.0]
+[string] *(?1, *(?2, *(?3, *('for', *(?4, '.')))))
+[graph]  APP_subj(APP_obj(APP_for(?2, ?4), ?3), ?1)
+
+// NP attachment: X buys object Y whose purpose is to be used in a dish Z
+F! -> templateBuyForDish(NP_subject, V_buy, NP_bought_object, NP_dish) [1.0]
+[string] *(?1, *(?2, *(?3, *('for', *(?4, '.')))))
+[graph]  APP_subj(APP_obj(?2, MOD_for(?3, APP_x('(o<for> :purpose (d <x>))--TYPE--(for(), x())', ?4))), ?1)
+
+
+// -------------------------------  V buy for  -----------------------------------------------
+
+V_buy_for -> bought_for [1.0]
+[string] 'bought'
+[graph] '(b<root> / buy-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG3 (f<for>))--TYPE--(subj(), obj(), for())'
+
+V_buy_for -> acquired_for [1.0]
+[string] 'acquired'
+[graph] '(a<root> / acquire-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG3 (f<for>))--TYPE--(subj(), obj(), for())'
+
+V_buy_for -> purchased_for [1.0]
+[string] 'purchased'
+[graph] '(p<root> / purchase-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG3 (f<for>))--TYPE--(subj(), obj(), for())'
+
+V_buy_for -> picked_up_for [1.0]
+[string] 'picked up'
+[graph] '(p<root> / pick-up-04 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG3 (f<for>))--TYPE--(subj(), obj(), for())'
+
+// -------------------------------  V buy  -----------------------------------------------
+
+V_buy -> bought [1.0]
+[string] 'bought'
+[graph] '(b<root> / buy-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_buy -> acquired [1.0]
+[string] 'acquired'
+[graph] '(a<root> / acquire-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_buy -> purchased [1.0]
+[string] 'purchased'
+[graph] '(p<root> / purchase-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+V_buy -> picked_up [1.0]
+[string] 'picked up'
+[graph] '(p<root> / pick-up-04 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
+
+
+
+// -------------------------------- NP objects bought -------------------------------------------
+
+NP_bought_object -> onions [1.0]
+[string] 'onions'
+[graph] '(p2<root> / onion)'
+
+NP_bought_object -> tomatoes [1.0]
+[string] 'tomatoes'
+[graph] '(p2<root> / tomato)'
+
+NP_bought_object -> carrots [1.0]
+[string] 'carrots'
+[graph] '(p2<root> / carrot)'
+
+
+
+// -------------------------------- subjects --------------------------------
+
+NP_subject -> Kim [1.0]
+[string] 'Kim'
+[graph] '(p<root> / person :name (n / name :op1 "Kim"))'
+
+NP_subject -> Dana [1.0]
+[string] 'Dana'
+[graph] '(p<root> / person :name (n / name :op1 "Dana"))'
+
+NP_subject -> chef [1.0]
+[string] 'The chef'
+[graph] '(p<root> / chef)'
+
+// -------------------------------- dishes --------------------------------
+
+NP_dish -> pasta_sauce [1.0]
+[string] 'the pasta sauce'
+[graph] '(p<root> / sauce :mod (t / pasta))'
+
+NP_dish -> salad [1.0]
+[string] 'the salad'
+[graph] '(p<root> / salad)'
+
+NP_dish -> soup [1.0]
+[string] 'the soup'
+[graph] '(p<root> / soup)'
+
+
+// -------------------------------- amounts --------------------------------
+
+NP_amount -> five_dollars [1.0]
+[string] '$5'
+[graph] '(m<root> / monetary-quantity :quant 5 :unit (d / dollar))'
+
+NP_amount -> ten_dollars [1.0]
+[string] '$10'
+[graph] '(m<root> / monetary-quantity :quant 10 :unit (d / dollar))'
+
+NP_amount -> few_bucks [1.0]
+[string] 'a few bucks'
+[graph] '(m<root> / monetary-quantity :quant (f / few) :unit (d / dollar))'
+
+NP_amount -> next_to_nothing [1.0]
+[string] 'next to nothing'
+[graph] '(a<root> / almost :op1 (n2 / nothing))'
+
+NP_amount -> unreasonable_amount [1.0]
+[string] 'an unreasonable amount of money'
+[graph] '(m2<root> / monetary-quantity :mod (u / unreasonable))'
+
+

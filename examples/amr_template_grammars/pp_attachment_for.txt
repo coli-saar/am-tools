@@ -1,0 +1,152 @@
+# Prepositional Phrase attachment ambiguities. Created by a grammar.
+
+# ::snt The chef bought carrots for $10.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt The chef bought tomatoes for next to nothing.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / tomato)  :ARG3 (a / almost  :op1 (n2 / nothing)))
+
+# ::snt The chef acquired tomatoes for $10.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / tomato)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt Kim bought tomatoes for an unreasonable amount of money.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / tomato)  :ARG3 (m2 / monetary-quantity  :mod (u / unreasonable)))
+
+# ::snt Dana purchased tomatoes for $10.
+(u_95 / purchase-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / tomato)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt Kim purchased carrots for $5.
+(u_98 / purchase-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / carrot)  :ARG3 (m / monetary-quantity  :quant 5  :unit (d / dollar)))
+
+# ::snt The chef acquired onions for $10.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / onion)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt Kim purchased onions for a few bucks.
+(u_101 / purchase-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / onion)  :ARG3 (m / monetary-quantity  :quant (f / few)  :unit (d / dollar)))
+
+# ::snt Kim picked up onions for an unreasonable amount of money.
+(u_103 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / onion)  :ARG3 (m2 / monetary-quantity  :mod (u / unreasonable)))
+
+# ::snt The chef bought onions for a few bucks.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / onion)  :ARG3 (m / monetary-quantity  :quant (f / few)  :unit (d / dollar)))
+
+# ::snt The chef bought tomatoes for $5.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / tomato)  :ARG3 (m / monetary-quantity  :quant 5  :unit (d / dollar)))
+
+# ::snt Kim purchased onions for $10.
+(u_107 / purchase-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / onion)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt Dana acquired onions for an unreasonable amount of money.
+(a / acquire-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion)  :ARG3 (m2 / monetary-quantity  :mod (u / unreasonable)))
+
+# ::snt The chef bought carrots for a few bucks.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot)  :ARG3 (m / monetary-quantity  :quant (f / few)  :unit (d / dollar)))
+
+# ::snt Dana picked up tomatoes for $5.
+(u_111 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / tomato)  :ARG3 (m / monetary-quantity  :quant 5  :unit (d / dollar)))
+
+# ::snt The chef acquired carrots for $10.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt Kim picked up tomatoes for a few bucks.
+(u_114 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / tomato)  :ARG3 (m / monetary-quantity  :quant (f / few)  :unit (d / dollar)))
+
+# ::snt Kim bought carrots for $10.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / carrot)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt The chef picked up carrots for $5.
+(u_118 / pick-up-04  :ARG0 (p / chef)  :ARG1 (p2 / carrot)  :ARG3 (m / monetary-quantity  :quant 5  :unit (d / dollar)))
+
+# ::snt Kim bought carrots for next to nothing.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / carrot)  :ARG3 (a / almost  :op1 (n2 / nothing)))
+
+# ::snt The chef picked up carrots for next to nothing.
+(u_120 / pick-up-04  :ARG0 (p / chef)  :ARG1 (p2 / carrot)  :ARG3 (a / almost  :op1 (n2 / nothing)))
+
+# ::snt Dana acquired onions for $10.
+(a / acquire-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt Dana bought onions for $10.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt Dana purchased onions for an unreasonable amount of money.
+(u_126 / purchase-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion)  :ARG3 (m2 / monetary-quantity  :mod (u / unreasonable)))
+
+# ::snt Kim picked up tomatoes for $10.
+(u_129 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / tomato)  :ARG3 (m / monetary-quantity  :quant 10  :unit (d / dollar)))
+
+# ::snt The chef bought carrots for the pasta sauce.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot  :purpose (u_130 / sauce  :mod (t / pasta))))
+
+# ::snt Kim bought tomatoes for the salad.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / tomato  :purpose (u_132 / salad)))
+
+# ::snt The chef picked up tomatoes for the soup.
+(u_133 / pick-up-04  :ARG0 (p / chef)  :ARG1 (p2 / tomato  :purpose (u_134 / soup)))
+
+# ::snt Dana picked up tomatoes for the soup.
+(u_135 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / tomato  :purpose (u_137 / soup)))
+
+# ::snt Dana picked up carrots for the pasta sauce.
+(u_138 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / carrot  :purpose (u_140 / sauce  :mod (t / pasta))))
+
+# ::snt Dana acquired onions for the soup.
+(a / acquire-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion  :purpose (u_142 / soup)))
+
+# ::snt Kim picked up onions for the pasta sauce.
+(u_143 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / onion  :purpose (u_145 / sauce  :mod (t / pasta))))
+
+# ::snt The chef bought carrots for the soup.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot  :purpose (u_146 / soup)))
+
+# ::snt The chef acquired onions for the pasta sauce.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / onion  :purpose (u_147 / sauce  :mod (t / pasta))))
+
+# ::snt Kim acquired carrots for the soup.
+(a / acquire-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / carrot  :purpose (u_149 / soup)))
+
+# ::snt The chef acquired carrots for the salad.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot  :purpose (u_150 / salad)))
+
+# ::snt Dana bought onions for the soup.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion  :purpose (u_152 / soup)))
+
+# ::snt Dana bought tomatoes for the pasta sauce.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / tomato  :purpose (u_154 / sauce  :mod (t / pasta))))
+
+# ::snt Dana purchased onions for the salad.
+(u_155 / purchase-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion  :purpose (u_157 / salad)))
+
+# ::snt The chef acquired carrots for the pasta sauce.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot  :purpose (u_158 / sauce  :mod (t / pasta))))
+
+# ::snt Kim purchased carrots for the pasta sauce.
+(u_159 / purchase-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / carrot  :purpose (u_161 / sauce  :mod (t / pasta))))
+
+# ::snt The chef acquired tomatoes for the salad.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / tomato  :purpose (u_162 / salad)))
+
+# ::snt The chef acquired carrots for the soup.
+(a / acquire-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot  :purpose (u_163 / soup)))
+
+# ::snt Dana picked up onions for the salad.
+(u_164 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion  :purpose (u_166 / salad)))
+
+# ::snt Kim bought carrots for the salad.
+(b / buy-01  :ARG0 (p / person  :name (n / name  :op1 "Kim"))  :ARG1 (p2 / carrot  :purpose (u_168 / salad)))
+
+# ::snt Dana acquired onions for the salad.
+(a / acquire-01  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / onion  :purpose (u_170 / salad)))
+
+# ::snt The chef purchased carrots for the soup.
+(u_171 / purchase-01  :ARG0 (p / chef)  :ARG1 (p2 / carrot  :purpose (u_172 / soup)))
+
+# ::snt The chef purchased onions for the soup.
+(u_173 / purchase-01  :ARG0 (p / chef)  :ARG1 (p2 / onion  :purpose (u_174 / soup)))
+
+# ::snt Dana picked up tomatoes for the salad.
+(u_175 / pick-up-04  :ARG0 (p / person  :name (n / name  :op1 "Dana"))  :ARG1 (p2 / tomato  :purpose (u_177 / salad)))
+
+# ::snt The chef bought tomatoes for the soup.
+(b / buy-01  :ARG0 (p / chef)  :ARG1 (p2 / tomato  :purpose (u_178 / soup)))
+
