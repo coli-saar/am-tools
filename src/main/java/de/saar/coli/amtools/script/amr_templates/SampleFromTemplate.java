@@ -19,9 +19,9 @@ public class SampleFromTemplate {
     public static void main(String[] args) throws IOException, ParseException {
         int numSamples = 25;
 
-        String output_file = "examples/amr_template_grammars/give_up_in.txt";
+        String output_file = "examples/amr_template_grammars/read_by.txt";
         String description = "Prepositional Phrase attachment ambiguities. Created by a grammar.";
-        String grammar_path = "examples/amr_template_grammars/give_up_in.irtg";
+        String grammar_path = "examples/amr_template_grammars/read_by.irtg";
         sample(numSamples, grammar_path, output_file, description);
     }
 

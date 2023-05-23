@@ -19,26 +19,6 @@ F! -> templateReadByLight(NP_subject, V_read, NP_book, PP_light) [1.0]
 [string] *(?1,*(will, *(?2, *(?3, *('by', *(?4, '.'))))))
 [graph]  APP_subj(APP_obj(MOD_manner(?2, ?4), ?3), ?1)
 
-// -------------------------------- NP her ambition -------------------------------------------
-
-NP_her_ambition -> ambition [1.0]
-[string] *(her, ambitions)
-[graph] '(r<root> / ambition :poss (c <subj>))--TYPE--(subj())'
-
-// will maybe need to cut this, if the parsers don't get it right
-NP_her_ambition -> aspiration [1.0]
-[string] *(her, aspirations)
-[graph] '(r<root> / thing :ARG1-of (a / aspire-01 :ARG0 (c <subj>)))--TYPE--(subj())'
-
-NP_her_ambition -> career [1.0]
-[string] *(her, career)
-[graph] '(r<root> / career :poss (c <subj>))--TYPE--(subj())'
-
-// will maybe need to cut this, if the parsers don't get it right
-NP_her_ambition -> dreams [1.0]
-[string] *(her, dreams)
-[graph] '(r<root> / dream-01 :ARG0 (c <subj>))--TYPE--(subj())'
-
 
 // -------------------------------- subjects --------------------------------
 
@@ -60,58 +40,86 @@ NP_subject -> student [1.0]
 
 // -------------------------------- verbs --------------------------------
 
-V_give_up -> give_up [1.0]
-[string] 'gave up'
-[graph] '(p<root> / give-up-07 :ARG0 (s<subj>) :ARG1 (o <obj>))--TYPE--(subj(), obj(subj()))'
+V_read -> read [1.0]
+[string] 'read'
+[graph] '(p<root> / read-01 :ARG0 (s<subj>) :ARG1 (o <obj>))--TYPE--(subj(), obj())'
 
-V_give_up -> abandon [1.0]
-[string] 'abandoned'
-[graph] '(p<root> / abandon-01 :ARG0 (s<subj>) :ARG1 (o <obj>))--TYPE--(subj(), obj(subj()))'
+V_read -> skim [1.0]
+[string] 'skim'
+[graph] '(p<root> / skim-01 :ARG0 (s<subj>) :ARG1 (o <obj>))--TYPE--(subj(), obj())'
 
-// -------------------------------- NP field --------------------------------
+V_read -> devour [1.0]
+[string] 'devour'
+[graph] '(p<root> / devour-01 :ARG0 (s<subj>) :ARG1 (o <obj>))--TYPE--(subj(), obj())'
 
-NP_field_modifier -> mathematics [1.0]
-[string] 'mathematics'
-[graph] '(p<root> / mathematics :topic-of (m<mod>))--TYPE--(mod())'
+// -------------------------------- NP book --------------------------------
 
-NP_field_modifier -> theater [1.0]
-[string] 'theater'
-[graph] '(p<root> / theater :topic-of (m<mod>))--TYPE--(mod())'
+NP_book -> book [1.0]
+[string] 'this book'
+[graph] '(p<root> / book :mod (t / this))'
 
-NP_field_modifier -> weightlifting [1.0]
-[string] 'weightlifting'
-[graph] '(p<root> / lift-01 :ARG1 (w / weight) :topic-of (m<mod>))--TYPE--(mod())'
+NP_book -> essay [1.0]
+[string] 'this essay'
+[graph] '(p<root> / essay :mod (t / this))'
+
+NP_book -> novel [1.0]
+[string] 'this novel'
+[graph] '(p<root> / novel :mod (t / this))'
 
 
+// -------------------------------- NP author --------------------------------
 
-// -------------------------------- PP emotion --------------------------------
+NP_author -> Obama [1.0]
+[string] 'Barack Obama'
+[graph] '(p<root> / person :wiki "Barack_Obama" :name (n / name :op1 "Barack" :op2 "Obama") :ARG0-of (a / author-01 :ARG1 (m<mod>)))--TYPE--(mod())'
 
-PP_emotional_state -> anger [1.0]
-[string] 'anger'
-[graph] '(p<root> / anger-01 :ARG0-of (c / cause-01 :ARG1 (v<cause>)) :ARG1 (s<subj>))--TYPE--(subj(), cause())'
+NP_author -> Austen [1.0]
+[string] 'Jane Austen'
+[graph] '(p<root> / person :wiki "Jane_Austen" :name (n / name :op1 "Jane" :op2 "Austen") :ARG0-of (a / author-01 :ARG1 (m<mod>)))--TYPE--(mod())'
 
-PP_emotional_state -> a_fit_of_despair [1.0]
-[string] 'a fit of despair'
-[graph] '(p<root> / fit-04 :ARG0-of (c / cause-01 :ARG1 (c<cause>)) :ARG2 (d / despair-01 :ARG0 (s<subj>)) :ARG1 s)--TYPE--(subj(), cause())'
+NP_author -> Rowling [1.0]
+[string] 'J. K. Rowling'
+[graph] '(p<root> / person :wiki "J._K._Rowling" :name (n / name :op1 "J." :op2 "K." :op3 "Rowling") :ARG0-of (a / author-01 :ARG1 (m<mod>)))--TYPE--(mod())'
 
-PP_emotional_state -> a_moment_of_clarity [1.0]
-[string] 'a moment of clarity'
-[graph] '(p<root> / moment :ARG0-of (c / cause-01 :ARG1 (c<cause>)) :time-of (clear-06 :ARG2 (s<subj>)))--TYPE--(subj(), cause())'
+NP_author -> Dickens [1.0]
+[string] 'Charles Dickens'
+[graph] '(p<root> / person :wiki "Charles_Dickens" :name (n / name :op1 "Charles" :op2 "Dickens") :ARG0-of (a / author-01 :ARG1 (m<mod>)))--TYPE--(mod())'
 
-// -------------------------------- PP time period --------------------------------
+NP_author -> this_young_author [1.0]
+[string] 'this young author'
+[graph] '(p<root> / person :mod (t / this) :mod (y / young) :ARG0-of (a / author-01 :ARG1 (m<mod>)))--TYPE--(mod())'
 
-PP_time_period -> the_60s [1.0]
-[string] 'the 60s'
-[graph] '(d<root> / date-entity :decade 1960 :time-of (t<time>))--TYPE--(time())'
 
-PP_time_period -> july [1.0]
-[string] 'July'
-[graph] '(d<root> / date-entity :month 7 :time-of (t<time>))--TYPE--(time())'
+// -------------------------------- PP deadline --------------------------------
 
-PP_time_period -> year2012 [1.0]
-[string] '2012'
-[graph] '(d<root> / date-entity :year 2012 :time-of (t<time>))--TYPE--(time())'
+PP_deadline -> tomorrow [1.0]
+[string] 'tomorrow'
+[graph] '(b<root> / by :op1 (t / tomorrow) :time-of (t2<time>))--TYPE--(time())'
 
-PP_time_period -> spring [1.0]
-[string] 'spring'
-[graph] '(d<root> / date-entity :season spring :time-of (t<time>))--TYPE--(time())'
+PP_deadline -> tonight [1.0]
+[string] 'tonight'
+[graph] '(b<root> / by :op1 (t / tonight) :time-of (t2<time>))--TYPE--(time())'
+
+PP_deadline -> monday [1.0]
+[string] 'Monday'
+[graph] '(b<root> / by :op1 (d / date-entity :weekday (m / monday)) :time-of (t2<time>))--TYPE--(time())'
+
+PP_deadline -> tuesday [1.0]
+[string] 'Tuesday'
+[graph] '(b<root> / by :op1 (d / date-entity :weekday (m / tuesday)) :time-of (t2<time>))--TYPE--(time())'
+
+
+// -------------------------------- PP light --------------------------------
+
+PP_light -> candlelight [1.0]
+[string] 'candlelight'
+[graph] '(c <root> / candlelight :manner-of (m<manner>))--TYPE--(manner())'
+
+PP_light -> firelight [1.0]
+[string] 'firelight'
+[graph] '(c <root> / firelight :manner-of (m<manner>))--TYPE--(manner())'
+
+PP_light -> lamplight [1.0]
+[string] 'lamplight'
+[graph] '(c <root> / lamplight :manner-of (m<manner>))--TYPE--(manner())'
+
