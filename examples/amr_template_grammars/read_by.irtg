@@ -1,0 +1,117 @@
+interpretation string: de.up.ling.irtg.algebra.StringAlgebra
+interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
+
+
+// -------------------------------- top-level template rules -------------------------------------------
+
+// NP attachment: X will read object Y by author Z
+F! -> templateReadByAuthor(NP_subject, V_read, NP_book, NP_author) [1.0]
+[string] *(?1,*(will, *(?2, *(?3, *('by', *(?4, '.'))))))
+[graph]  APP_subj(APP_obj(?2, MOD_mod(?3, ?4)), ?1)
+
+// VP attachment: X will read object Y by deadline Z
+F! -> templateReadByDeadline(NP_subject, V_read, NP_book, PP_deadline) [1.0]
+[string] *(?1,*(will, *(?2, *(?3, *('by', *(?4, '.'))))))
+[graph]  APP_subj(APP_obj(MOD_time(?2, ?4), ?3), ?1)
+
+// VP attachment: X will read object Y by (candle/fire)light
+F! -> templateReadByLight(NP_subject, V_read, NP_book, PP_light) [1.0]
+[string] *(?1,*(will, *(?2, *(?3, *('by', *(?4, '.'))))))
+[graph]  APP_subj(APP_obj(MOD_manner(?2, ?4), ?3), ?1)
+
+// -------------------------------- NP her ambition -------------------------------------------
+
+NP_her_ambition -> ambition [1.0]
+[string] *(her, ambitions)
+[graph] '(r<root> / ambition :poss (c <subj>))--TYPE--(subj())'
+
+// will maybe need to cut this, if the parsers don't get it right
+NP_her_ambition -> aspiration [1.0]
+[string] *(her, aspirations)
+[graph] '(r<root> / thing :ARG1-of (a / aspire-01 :ARG0 (c <subj>)))--TYPE--(subj())'
+
+NP_her_ambition -> career [1.0]
+[string] *(her, career)
+[graph] '(r<root> / career :poss (c <subj>))--TYPE--(subj())'
+
+// will maybe need to cut this, if the parsers don't get it right
+NP_her_ambition -> dreams [1.0]
+[string] *(her, dreams)
+[graph] '(r<root> / dream-01 :ARG0 (c <subj>))--TYPE--(subj())'
+
+
+// -------------------------------- subjects --------------------------------
+
+NP_subject -> i [1.0]
+[string] 'I'
+[graph] '(p<root> / i)'
+
+NP_subject -> you [1.0]
+[string] 'You'
+[graph] '(p<root> / you)'
+
+NP_subject -> girl [1.0]
+[string] 'The girl'
+[graph] '(p<root> / girl)'
+
+NP_subject -> student [1.0]
+[string] 'The student'
+[graph] '(p<root> / person :ARG0-of (s / study-01))'
+
+// -------------------------------- verbs --------------------------------
+
+V_give_up -> give_up [1.0]
+[string] 'gave up'
+[graph] '(p<root> / give-up-07 :ARG0 (s<subj>) :ARG1 (o <obj>))--TYPE--(subj(), obj(subj()))'
+
+V_give_up -> abandon [1.0]
+[string] 'abandoned'
+[graph] '(p<root> / abandon-01 :ARG0 (s<subj>) :ARG1 (o <obj>))--TYPE--(subj(), obj(subj()))'
+
+// -------------------------------- NP field --------------------------------
+
+NP_field_modifier -> mathematics [1.0]
+[string] 'mathematics'
+[graph] '(p<root> / mathematics :topic-of (m<mod>))--TYPE--(mod())'
+
+NP_field_modifier -> theater [1.0]
+[string] 'theater'
+[graph] '(p<root> / theater :topic-of (m<mod>))--TYPE--(mod())'
+
+NP_field_modifier -> weightlifting [1.0]
+[string] 'weightlifting'
+[graph] '(p<root> / lift-01 :ARG1 (w / weight) :topic-of (m<mod>))--TYPE--(mod())'
+
+
+
+// -------------------------------- PP emotion --------------------------------
+
+PP_emotional_state -> anger [1.0]
+[string] 'anger'
+[graph] '(p<root> / anger-01 :ARG0-of (c / cause-01 :ARG1 (v<cause>)) :ARG1 (s<subj>))--TYPE--(subj(), cause())'
+
+PP_emotional_state -> a_fit_of_despair [1.0]
+[string] 'a fit of despair'
+[graph] '(p<root> / fit-04 :ARG0-of (c / cause-01 :ARG1 (c<cause>)) :ARG2 (d / despair-01 :ARG0 (s<subj>)) :ARG1 s)--TYPE--(subj(), cause())'
+
+PP_emotional_state -> a_moment_of_clarity [1.0]
+[string] 'a moment of clarity'
+[graph] '(p<root> / moment :ARG0-of (c / cause-01 :ARG1 (c<cause>)) :time-of (clear-06 :ARG2 (s<subj>)))--TYPE--(subj(), cause())'
+
+// -------------------------------- PP time period --------------------------------
+
+PP_time_period -> the_60s [1.0]
+[string] 'the 60s'
+[graph] '(d<root> / date-entity :decade 1960 :time-of (t<time>))--TYPE--(time())'
+
+PP_time_period -> july [1.0]
+[string] 'July'
+[graph] '(d<root> / date-entity :month 7 :time-of (t<time>))--TYPE--(time())'
+
+PP_time_period -> year2012 [1.0]
+[string] '2012'
+[graph] '(d<root> / date-entity :year 2012 :time-of (t<time>))--TYPE--(time())'
+
+PP_time_period -> spring [1.0]
+[string] 'spring'
+[graph] '(d<root> / date-entity :season spring :time-of (t<time>))--TYPE--(time())'
