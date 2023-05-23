@@ -148,3 +148,4 @@ examples/amr_template_grammars/.#*
 examples/amr_template_grammars/deep_recursion_3s.txt
 examples/amr_template_grammars/deep_recursion_rc.txt
 examples/amr_template_grammars/deep_recursion_rc_contrastive_coref.txt
+examples/amr_template_grammars/give_up_in.txt
