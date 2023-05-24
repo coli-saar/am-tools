@@ -6,9 +6,11 @@ import de.up.ling.irtg.InterpretedTreeAutomaton;
 import de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra;
 import de.up.ling.irtg.algebra.graph.GraphNode;
 import de.up.ling.irtg.algebra.graph.SGraph;
+import de.up.ling.irtg.automata.ConcreteTreeAutomaton;
 import de.up.ling.irtg.automata.Rule;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
+import de.up.ling.tree.TreeParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.FileWriter;
@@ -25,60 +27,176 @@ public class SampleSanityChecksFromTemplatesWithInfiniteLanguage {
     private final Set<String> forbiddenRuleLabels;
     private final boolean add_hate_like_edge_in_postprocessing;
 
+    private final static List<Tree<String>> NESTED_CONTROL_SAMPLES;
+    private final static List<Tree<String>> ADJECTIVES_SAMPLES;
+    private final static List<Tree<String>> CENTRE_EMBEDDING_SAMPLES;
+
+    static {
+        try {
+            NESTED_CONTROL_SAMPLES = Arrays.asList(
+                    TreeParser.parse("Sent(SubjCtrlTbar(attempted, sleep), girl)"),
+                    TreeParser.parse("Sent(SubjCtrlTbar(wanted, jump), boy)"),
+                    TreeParser.parse("Sent(SubjCtrlTbar(hated, attend), girl)"),
+                    TreeParser.parse("Sent(SubjCtrlTbar(loved, eat), boy)"),
+                    TreeParser.parse("Sent(SubjCtrlTbar(refused, focus), girl)"),
+                    TreeParser.parse("Sent(ObjCtrlTbar(persuaded, sleep, you), girl)"),
+                    TreeParser.parse("Sent(ObjCtrlTbar(asked, jump, me), boy)"),
+                    TreeParser.parse("Sent(ObjCtrlTbar(begged, attend, monster), girl)"),
+                    TreeParser.parse("Sent(ObjCtrlTbar(forced, eat, doctor), boy)"),
+                    TreeParser.parse("Sent(ObjCtrlTbar(persuaded, focus, politician), girl)"),
+                    TreeParser.parse("Sent(Coord_Open_S_fin(and_open_s, slept, jumped), boy)")
+            );
+            ADJECTIVES_SAMPLES = Arrays.asList(
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion(NP_size_null(" +
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))), fantastic)))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion(NP_size_null(" +
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain))))), beautiful)))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion(NP_size_null(" +
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))), strange)))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size(" +
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain)))), long))))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size(" +
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt)))), short))))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
+                            "NP_age(NP_shape_null(NP_colour_null(NP_material_null(curtain))), new)))))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
+                            "NP_age(NP_shape_null(NP_colour_null(NP_material_null(skirt))), antique)))))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
+                            "NP_age_null(NP_shape_null(NP_colour(NP_material_null(skirt), pale)))))))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
+                            "NP_age_null(NP_shape_null(NP_colour(NP_material_null(curtain), dark)))))))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material(skirt, silken))))))))")
+            );
+            CENTRE_EMBEDDING_SAMPLES = Arrays.asList(
+                    TreeParser.parse("TP(Vbar_tr(likes, girl), finish_NP(doctor))"),
+                    TreeParser.parse("TP(Vbar_tr(saw, child), finish_NP(woman))"),
+                    TreeParser.parse("TP(Vbar_tr(met, boy), finish_NP(astronaut))"),
+                    TreeParser.parse("TP(Vbar_tr(hugged, mechanic), finish_NP(doctor))"),
+                    TreeParser.parse("TP(Vbar_tr(taught, girl), finish_NP(woman))"),
+                    TreeParser.parse("TP(Vbar_tr(amused, child), finish_NP(astronaut))"),
+                    TreeParser.parse("TP(Vbar_intr(left), finish_NP(boy))"),
+                    TreeParser.parse("TP(Vbar_intr(slept), finish_NP(mechanic))"),
+                    TreeParser.parse("TP(Vbar_intr(laughed), finish_NP(astronaut))")
+            );
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
     public static void main(String[] args) throws IOException, ParseException {
 
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/deep_recursion_basic.irtg",
-                "Systematically sampled sanity checks for the deep CP recursion (standard version) dataset." +
-                        " Created by the grammar deep_recursion_basic.irtg. ",
-                Collections.EMPTY_SET, // also want to have the CP verbs in, so one recursion is fine
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerNestedControl = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/nested_control.irtg",
+//                "Systematically sampled sanity checks for the nested control dataset." +
+//                        " Created by the grammar nested_control.irtg. ",
+//                null,
+//                false
+//        );
+//        samplerNestedControl.writeSamplesToFile("examples/amr_template_grammars/nested_control_sanity_check.txt",
+//                 NESTED_CONTROL_SAMPLES);
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerAdjectives = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/adjectives.irtg",
+//                "Systematically sampled sanity checks for the nested adjectives dataset." +
+//                        " Created by the grammar adjectives.irtg. ",
+//                null,
+//                false
+//        );
+//        adjectivesControl.writeSamplesToFile("examples/amr_template_grammars/adjectives_sanity_check.txt",
+//                ADJECTIVES_SAMPLES);
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerCentreEmbedding = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/centre_embedding.irtg",
+                "Systematically sampled sanity checks for the nested centre embedding dataset." +
+                        " Created by the grammar centre_embedding.irtg. ",
+                null,
                 false
         );
-        samplerDeepRecursion.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_basic_sanity_check.txt");
+        samplerCentreEmbedding.writeSamplesToFile("examples/amr_template_grammars/centre_embedding_sanity_check.txt",
+                CENTRE_EMBEDDING_SAMPLES);
 
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListCounted = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/i_counted.irtg",
+//                "Systematically sampled sanity checks for the long lists ('I counted') dataset." +
+//                        " Created by the grammar i_counted.irtg. ",
+//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+//                false
+//        );
+//        longListCounted.addSingletonRuleToGrammar("NP_full");
+//        longListCounted.sampleFromGrammar("examples/amr_template_grammars/i_counted_sanity_check.txt");
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListVisited = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/she_visited_countries.irtg",
+//                "Systematically sampled sanity checks for the long lists ('she visited countries') dataset." +
+//                        " Created by the grammar she_visited_countries.irtg. ",
+//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+//                false
+//        );
+//        longListVisited.addSingletonRuleToGrammar("NP_country");
+//        longListVisited.sampleFromGrammar("examples/amr_template_grammars/she_visited_countries_sanity_check.txt");
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListBuy = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/please_buy.irtg",
+//                "Systematically sampled sanity checks for the long lists ('please buy') dataset." +
+//                        " Created by the grammar please_buy.irtg. ",
+//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+//                false
+//        );
+//        longListBuy.addSingletonRuleToGrammar("NP_thing");
+//        longListBuy.sampleFromGrammar("examples/amr_template_grammars/please_buy_sanity_check.txt");
 
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion3s = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/deep_recursion_3s.irtg",
-                "Systematically sampled sanity checks for the deep CP recursion (with 3s pronoun + noun coreference) dataset." +
-                        " Created by the grammar deep_recursion_3s.irtg. ",
-                new HashSet<>(Arrays.asList("TP_CP", "TP_CP_coref")), // this grammar always has a CP, so we don't want the recursive rule at all.
-                false
-        );
-        samplerDeepRecursion3s.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_3s_sanity_check.txt");
-
-
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionPronouns = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/deep_recursion_pronouns.irtg",
-                "Systematically sampled sanity checks for the deep CP recursion (with 1st/second person singular/plural pronoun coreference) dataset." +
-                        " Created by the grammar deep_recursion_pronouns.irtg. ",
-                new HashSet<>(Arrays.asList("TP_3p", "TP_1s", "TP_1p", "TP_2",
-                        "TP_CP_1s", "TP_CP_1s_subj1p", "TP_CP_1s_subj2",
-                        "TP_CP_1p", "TP_CP_1p_subj1s", "TP_CP_1p_subj2",
-                        "TP_CP_2", "TP_CP_2_subj1s", "TP_CP_2_subj1p")), // this grammar always has a CP, so we don't want the recursive rules at all.
-                false
-        );
-        samplerDeepRecursionPronouns.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_pronouns_sanity_check.txt");
-
-
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRC = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/deep_recursion_rc.irtg",
-                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses) dataset." +
-                        " Created by the grammar deep_recursion_rc.irtg. ",
-                new HashSet<>(Arrays.asList("TP_CP", "CP_with_gap_recursive")), // this grammar always has a CP, so we don't want the recursive rules at all.
-                false
-        );
-        samplerDeepRecursionRC.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_sanity_check.txt");
-
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRCCoref = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/deep_recursion_rc_contrastive_coref.irtg",
-                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses and contrastive coref) dataset." +
-                        " Created by the grammar deep_recursion_rc_contrastive_coref.irtg. ",
-                Collections.singleton("CP_with_gap_recursive"), // this grammar always has a CP, so we don't want the recursive rule at all.
-                true
-        );
-        samplerDeepRecursionRCCoref.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_contrastive_coref_sanity_check.txt");
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/deep_recursion_basic.irtg",
+//                "Systematically sampled sanity checks for the deep CP recursion (standard version) dataset." +
+//                        " Created by the grammar deep_recursion_basic.irtg. ",
+//                Collections.EMPTY_SET, // also want to have the CP verbs in, so one recursion is fine
+//                false
+//        );
+//        samplerDeepRecursion.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_basic_sanity_check.txt");
+//
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion3s = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/deep_recursion_3s.irtg",
+//                "Systematically sampled sanity checks for the deep CP recursion (with 3s pronoun + noun coreference) dataset." +
+//                        " Created by the grammar deep_recursion_3s.irtg. ",
+//                new HashSet<>(Arrays.asList("TP_CP", "TP_CP_coref")), // this grammar always has a CP, so we don't want the recursive rule at all.
+//                false
+//        );
+//        samplerDeepRecursion3s.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_3s_sanity_check.txt");
+//
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionPronouns = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/deep_recursion_pronouns.irtg",
+//                "Systematically sampled sanity checks for the deep CP recursion (with 1st/second person singular/plural pronoun coreference) dataset." +
+//                        " Created by the grammar deep_recursion_pronouns.irtg. ",
+//                new HashSet<>(Arrays.asList("TP_3p", "TP_1s", "TP_1p", "TP_2",
+//                        "TP_CP_1s", "TP_CP_1s_subj1p", "TP_CP_1s_subj2",
+//                        "TP_CP_1p", "TP_CP_1p_subj1s", "TP_CP_1p_subj2",
+//                        "TP_CP_2", "TP_CP_2_subj1s", "TP_CP_2_subj1p")), // this grammar always has a CP, so we don't want the recursive rules at all.
+//                false
+//        );
+//        samplerDeepRecursionPronouns.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_pronouns_sanity_check.txt");
+//
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRC = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/deep_recursion_rc.irtg",
+//                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses) dataset." +
+//                        " Created by the grammar deep_recursion_rc.irtg. ",
+//                new HashSet<>(Arrays.asList("TP_CP", "CP_with_gap_recursive")), // this grammar always has a CP, so we don't want the recursive rules at all.
+//                false
+//        );
+//        samplerDeepRecursionRC.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_sanity_check.txt");
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRCCoref = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/deep_recursion_rc_contrastive_coref.irtg",
+//                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses and contrastive coref) dataset." +
+//                        " Created by the grammar deep_recursion_rc_contrastive_coref.irtg. ",
+//                Collections.singleton("CP_with_gap_recursive"), // this grammar always has a CP, so we don't want the recursive rule at all.
+//                true
+//        );
+//        samplerDeepRecursionRCCoref.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_contrastive_coref_sanity_check.txt");
     }
 
     /**
@@ -110,12 +228,12 @@ public class SampleSanityChecksFromTemplatesWithInfiniteLanguage {
 
         List<Tree<String>> samples = getSamples();
 
-        writeSamplesToFile(outputFile, samples, description, irtg);
+        writeSamplesToFile(outputFile, samples);
         System.out.println("\nTotal samples: " + samples.size());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public void writeSamplesToFile(String fileName, Iterable<Tree<String>> samples, String description, InterpretedTreeAutomaton irtg) throws IOException {
+    private void writeSamplesToFile(String fileName, Iterable<Tree<String>> samples) throws IOException {
         FileWriter w = new FileWriter(fileName);
         w.write("# " + description+"\n\n");
         Interpretation stringInterp = irtg.getInterpretation("string");
@@ -256,6 +374,16 @@ public class SampleSanityChecksFromTemplatesWithInfiniteLanguage {
         System.out.println(graphString);
     }
 
+    private void addSingletonRuleToGrammar(String coordState) {
+        Rule single_rule = irtg.getAutomaton().createRule("NP_and", "singleton", new String[]{coordState});
+        //noinspection rawtypes
+        ((ConcreteTreeAutomaton)irtg.getAutomaton()).addRule(single_rule);
+        String singleRuleLabel = "singleton";
+        irtg.getAutomaton().getSignature().addSymbol(singleRuleLabel, 1);
+        Tree<String> single_tree = Tree.create("?1");
+        stringInterp.getHomomorphism().add(singleRuleLabel, single_tree);
+        graphInterp.getHomomorphism().add(singleRuleLabel, single_tree);
+    }
 
 
 

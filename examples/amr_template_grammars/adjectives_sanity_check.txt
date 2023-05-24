@@ -1,32 +1,42 @@
-# Randomly sampled examples of stacked adjectives. Created by a grammar.
+# Systematically sampled sanity checks for the nested adjectives dataset. Created by the grammar adjectives.irtg. 
 
-# ::snt a long skirt
-(r / skirt  :ARG1-of (u_11 / long-03))
+# ::snt A fantastic skirt
+# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))),fantastic)))
+(r / skirt  :ARG1 (u_34 / fantastic-02))
 
-# ::snt a antique skirt
-(r / skirt  :mod (u_12 / antique))
+# ::snt A beautiful curtain
+# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain))))),beautiful)))
+(r / curtain  :ARG1-of (u_35 / beautiful-02))
 
-# ::snt a beautiful curtain
-(r / curtain  :ARG1-of (u_13 / beautiful-02))
+# ::snt A strange skirt
+# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))),strange)))
+(r / skirt  :mod (u_36 / strange))
 
-# ::snt a strange curtain
-(r / curtain  :mod (u_14 / strange))
+# ::snt A long curtain
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain)))),long))))
+(r / curtain  :ARG1-of (u_37 / long-03))
 
-# ::snt a beautiful curtain
-(r / curtain  :ARG1-of (u_15 / beautiful-02))
+# ::snt A short skirt
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt)))),short))))
+(r / skirt  :ARG1-of (u_38 / short-07))
 
-# ::snt a strange skirt
-(r / skirt  :mod (u_16 / strange))
+# ::snt A new curtain
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age(NP_shape_null(NP_colour_null(NP_material_null(curtain))),new)))))
+(r / curtain  :ARG1-of (u_39 / new-01))
 
-# ::snt a antique curtain
-(r / curtain  :mod (u_17 / antique))
+# ::snt A antique skirt
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age(NP_shape_null(NP_colour_null(NP_material_null(skirt))),antique)))))
+(r / skirt  :mod (u_40 / antique))
 
-# ::snt a beautiful skirt
-(r / skirt  :ARG1-of (u_18 / beautiful-02))
+# ::snt A pale skirt
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour(NP_material_null(skirt),pale)))))))
+(r / skirt  :ARG1-of (u_41 / pale-03))
 
-# ::snt a fantastic skirt
-(r / skirt  :mod (u_19 / fantastic))
+# ::snt A dark curtain
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour(NP_material_null(curtain),dark)))))))
+(r / curtain  :ARG1-of (u_42 / dark-02))
 
-# ::snt a silk skirt
-(r / skirt  :consist-of (u_20 / silk))
+# ::snt A silken skirt
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material(skirt,silken))))))))
+(r / skirt  :consist-of (u_43 / silk))
 

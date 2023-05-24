@@ -60,7 +60,7 @@ NP_age -> NP_age_null(NP_shape) [0.5]
 [string] ?1
 [graph] ?1
 
-// SHAPE
+// SHAPE  -- we don't do shape, because it's not so easy for skirt and curtain.
 //NP_shape -> NP_shape(NP_colour, A_shape) [0.5]
 //[string] *(?2, ?1)
 //[graph] MOD_m(?1, ?2)
