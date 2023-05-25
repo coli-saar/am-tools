@@ -87,25 +87,25 @@ public class SampleSanityChecksFromTemplatesWithInfiniteLanguage {
 
     public static void main(String[] args) throws IOException, ParseException {
 
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerNestedControl = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/nested_control.irtg",
-//                "Systematically sampled sanity checks for the nested control dataset." +
-//                        " Created by the grammar nested_control.irtg. ",
-//                null,
-//                false
-//        );
-//        samplerNestedControl.writeSamplesToFile("examples/amr_template_grammars/nested_control_sanity_check.txt",
-//                 NESTED_CONTROL_SAMPLES);
-//
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerAdjectives = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/adjectives.irtg",
-//                "Systematically sampled sanity checks for the nested adjectives dataset." +
-//                        " Created by the grammar adjectives.irtg. ",
-//                null,
-//                false
-//        );
-//        adjectivesControl.writeSamplesToFile("examples/amr_template_grammars/adjectives_sanity_check.txt",
-//                ADJECTIVES_SAMPLES);
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerNestedControl = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/nested_control.irtg",
+                "Systematically sampled sanity checks for the nested control dataset." +
+                        " Created by the grammar nested_control.irtg. ",
+                null,
+                false
+        );
+        samplerNestedControl.writeSamplesToFile("examples/amr_template_grammars/nested_control_sanity_check.txt",
+                 NESTED_CONTROL_SAMPLES);
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerAdjectives = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/adjectives.irtg",
+                "Systematically sampled sanity checks for the nested adjectives dataset." +
+                        " Created by the grammar adjectives.irtg. ",
+                null,
+                false
+        );
+        samplerAdjectives.writeSamplesToFile("examples/amr_template_grammars/adjectives_sanity_check.txt",
+                ADJECTIVES_SAMPLES);
 
         SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerCentreEmbedding = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
                 "examples/amr_template_grammars/centre_embedding.irtg",
@@ -117,86 +117,86 @@ public class SampleSanityChecksFromTemplatesWithInfiniteLanguage {
         samplerCentreEmbedding.writeSamplesToFile("examples/amr_template_grammars/centre_embedding_sanity_check.txt",
                 CENTRE_EMBEDDING_SAMPLES);
 
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListCounted = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/i_counted.irtg",
-//                "Systematically sampled sanity checks for the long lists ('I counted') dataset." +
-//                        " Created by the grammar i_counted.irtg. ",
-//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
-//                false
-//        );
-//        longListCounted.addSingletonRuleToGrammar("NP_full");
-//        longListCounted.sampleFromGrammar("examples/amr_template_grammars/i_counted_sanity_check.txt");
-//
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListVisited = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/she_visited_countries.irtg",
-//                "Systematically sampled sanity checks for the long lists ('she visited countries') dataset." +
-//                        " Created by the grammar she_visited_countries.irtg. ",
-//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
-//                false
-//        );
-//        longListVisited.addSingletonRuleToGrammar("NP_country");
-//        longListVisited.sampleFromGrammar("examples/amr_template_grammars/she_visited_countries_sanity_check.txt");
-//
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListBuy = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/please_buy.irtg",
-//                "Systematically sampled sanity checks for the long lists ('please buy') dataset." +
-//                        " Created by the grammar please_buy.irtg. ",
-//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
-//                false
-//        );
-//        longListBuy.addSingletonRuleToGrammar("NP_thing");
-//        longListBuy.sampleFromGrammar("examples/amr_template_grammars/please_buy_sanity_check.txt");
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListCounted = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/i_counted.irtg",
+                "Systematically sampled sanity checks for the long lists ('I counted') dataset." +
+                        " Created by the grammar i_counted.irtg. ",
+                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+                false
+        );
+        longListCounted.addSingletonRuleToGrammar("NP_full");
+        longListCounted.sampleFromGrammar("examples/amr_template_grammars/i_counted_sanity_check.txt");
 
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/deep_recursion_basic.irtg",
-//                "Systematically sampled sanity checks for the deep CP recursion (standard version) dataset." +
-//                        " Created by the grammar deep_recursion_basic.irtg. ",
-//                Collections.EMPTY_SET, // also want to have the CP verbs in, so one recursion is fine
-//                false
-//        );
-//        samplerDeepRecursion.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_basic_sanity_check.txt");
-//
-//
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion3s = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/deep_recursion_3s.irtg",
-//                "Systematically sampled sanity checks for the deep CP recursion (with 3s pronoun + noun coreference) dataset." +
-//                        " Created by the grammar deep_recursion_3s.irtg. ",
-//                new HashSet<>(Arrays.asList("TP_CP", "TP_CP_coref")), // this grammar always has a CP, so we don't want the recursive rule at all.
-//                false
-//        );
-//        samplerDeepRecursion3s.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_3s_sanity_check.txt");
-//
-//
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionPronouns = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/deep_recursion_pronouns.irtg",
-//                "Systematically sampled sanity checks for the deep CP recursion (with 1st/second person singular/plural pronoun coreference) dataset." +
-//                        " Created by the grammar deep_recursion_pronouns.irtg. ",
-//                new HashSet<>(Arrays.asList("TP_3p", "TP_1s", "TP_1p", "TP_2",
-//                        "TP_CP_1s", "TP_CP_1s_subj1p", "TP_CP_1s_subj2",
-//                        "TP_CP_1p", "TP_CP_1p_subj1s", "TP_CP_1p_subj2",
-//                        "TP_CP_2", "TP_CP_2_subj1s", "TP_CP_2_subj1p")), // this grammar always has a CP, so we don't want the recursive rules at all.
-//                false
-//        );
-//        samplerDeepRecursionPronouns.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_pronouns_sanity_check.txt");
-//
-//
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRC = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/deep_recursion_rc.irtg",
-//                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses) dataset." +
-//                        " Created by the grammar deep_recursion_rc.irtg. ",
-//                new HashSet<>(Arrays.asList("TP_CP", "CP_with_gap_recursive")), // this grammar always has a CP, so we don't want the recursive rules at all.
-//                false
-//        );
-//        samplerDeepRecursionRC.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_sanity_check.txt");
-//
-//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRCCoref = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-//                "examples/amr_template_grammars/deep_recursion_rc_contrastive_coref.irtg",
-//                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses and contrastive coref) dataset." +
-//                        " Created by the grammar deep_recursion_rc_contrastive_coref.irtg. ",
-//                Collections.singleton("CP_with_gap_recursive"), // this grammar always has a CP, so we don't want the recursive rule at all.
-//                true
-//        );
-//        samplerDeepRecursionRCCoref.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_contrastive_coref_sanity_check.txt");
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListVisited = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/she_visited_countries.irtg",
+                "Systematically sampled sanity checks for the long lists ('she visited countries') dataset." +
+                        " Created by the grammar she_visited_countries.irtg. ",
+                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+                false
+        );
+        longListVisited.addSingletonRuleToGrammar("NP_country");
+        longListVisited.sampleFromGrammar("examples/amr_template_grammars/she_visited_countries_sanity_check.txt");
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListBuy = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/please_buy.irtg",
+                "Systematically sampled sanity checks for the long lists ('please buy') dataset." +
+                        " Created by the grammar please_buy.irtg. ",
+                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+                false
+        );
+        longListBuy.addSingletonRuleToGrammar("NP_thing");
+        longListBuy.sampleFromGrammar("examples/amr_template_grammars/please_buy_sanity_check.txt");
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/deep_recursion_basic.irtg",
+                "Systematically sampled sanity checks for the deep CP recursion (standard version) dataset." +
+                        " Created by the grammar deep_recursion_basic.irtg. ",
+                Collections.EMPTY_SET, // also want to have the CP verbs in, so one recursion is fine
+                false
+        );
+        samplerDeepRecursion.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_basic_sanity_check.txt");
+
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion3s = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/deep_recursion_3s.irtg",
+                "Systematically sampled sanity checks for the deep CP recursion (with 3s pronoun + noun coreference) dataset." +
+                        " Created by the grammar deep_recursion_3s.irtg. ",
+                new HashSet<>(Arrays.asList("TP_CP", "TP_CP_coref")), // this grammar always has a CP, so we don't want the recursive rule at all.
+                false
+        );
+        samplerDeepRecursion3s.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_3s_sanity_check.txt");
+
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionPronouns = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/deep_recursion_pronouns.irtg",
+                "Systematically sampled sanity checks for the deep CP recursion (with 1st/second person singular/plural pronoun coreference) dataset." +
+                        " Created by the grammar deep_recursion_pronouns.irtg. ",
+                new HashSet<>(Arrays.asList("TP_3p", "TP_1s", "TP_1p", "TP_2",
+                        "TP_CP_1s", "TP_CP_1s_subj1p", "TP_CP_1s_subj2",
+                        "TP_CP_1p", "TP_CP_1p_subj1s", "TP_CP_1p_subj2",
+                        "TP_CP_2", "TP_CP_2_subj1s", "TP_CP_2_subj1p")), // this grammar always has a CP, so we don't want the recursive rules at all.
+                false
+        );
+        samplerDeepRecursionPronouns.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_pronouns_sanity_check.txt");
+
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRC = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/deep_recursion_rc.irtg",
+                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses) dataset." +
+                        " Created by the grammar deep_recursion_rc.irtg. ",
+                new HashSet<>(Arrays.asList("TP_CP", "CP_with_gap_recursive")), // this grammar always has a CP, so we don't want the recursive rules at all.
+                false
+        );
+        samplerDeepRecursionRC.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_sanity_check.txt");
+
+        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursionRCCoref = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+                "examples/amr_template_grammars/deep_recursion_rc_contrastive_coref.irtg",
+                "Systematically sampled sanity checks for the deep CP recursion (with relative clauses and contrastive coref) dataset." +
+                        " Created by the grammar deep_recursion_rc_contrastive_coref.irtg. ",
+                Collections.singleton("CP_with_gap_recursive"), // this grammar always has a CP, so we don't want the recursive rule at all.
+                true
+        );
+        samplerDeepRecursionRCCoref.sampleFromGrammar("examples/amr_template_grammars/deep_recursion_rc_contrastive_coref_sanity_check.txt");
     }
 
     /**

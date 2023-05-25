@@ -52,6 +52,18 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //                "Randomly sampled examples of centre embedding. Created by a grammar.",
 //                new HashSet<>(Arrays.asList("obj_rel", "NP_RC"))
 //                );
+        int numSamplesPerSize = 10;
+        SampleFromTemplateWithInfiniteLanguage samplerCentreEmbedding = new SampleFromTemplateWithInfiniteLanguage(
+                4, 8, 2,
+                Collections.singletonList(SIZE_TYPE_TREE_DEPTH),
+                "examples/amr_template_grammars/centre_embedding.irtg",
+                "Randomly sampled examples of centre embedding. Created by a grammar. " +
+                        "Here, size0 is the depth of the tree. The number of recursions is someting like (size0-2) / 2.",
+                new HashSet<>(Arrays.asList("obj_rel", "NP_RC")),
+                false,
+                false
+        );
+        samplerCentreEmbedding.sampleFromGrammar(numSamplesPerSize, "examples/amr_template_grammars/centre_embedding.txt");
 
         // adjectives
         // we want all sentence lengths with at least 2 adjectives, but all trees are of depth 7 since we use syntactic glue
@@ -63,6 +75,17 @@ public class SampleFromTemplateWithInfiniteLanguage {
 //                new HashSet<>()
 //                );
 
+        SampleFromTemplateWithInfiniteLanguage samplerAdjectives = new SampleFromTemplateWithInfiniteLanguage(
+                4, 7, 1,
+                Collections.singletonList(SIZE_TYPE_TREE_DEPTH),
+                "examples/amr_template_grammars/adjectives.irtg",
+                "Randomly sampled examples of stacked adjectives. Created by a grammar. " +
+                        "Here, size0 is the depth of the tree. The number of recursions is someting like size0 - 2.",
+                new HashSet<>(Arrays.asList("obj_rel", "NP_RC")),
+                false,
+                false
+        );
+        samplerAdjectives.sampleFromGrammar(numSamplesPerSize, "examples/amr_template_grammars/adjectives.txt");
         // adjectives: sanity check with just one adjective
 //        sampleFromGrammar(10, 3, 3, 1,
 //                SIZE_TYPE_STRING_LENGTH,
