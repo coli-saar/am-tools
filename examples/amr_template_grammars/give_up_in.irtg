@@ -35,9 +35,9 @@ NP_her_ambition -> career [1.0]
 [graph] '(r<root> / career :poss (c <subj>))--TYPE--(subj())'
 
 // will maybe need to cut this, if the parsers don't get it right
-NP_her_ambition -> dreams [1.0]
-[string] *(her, dreams)
-[graph] '(r<root> / dream-01 :ARG0 (c <subj>))--TYPE--(subj())'
+//NP_her_ambition -> dreams [1.0]
+//[string] *(her, dreams)
+//[graph] '(r<root> / dream-01 :ARG0 (c <subj>))--TYPE--(subj())'
 
 
 // -------------------------------- subjects --------------------------------
@@ -48,7 +48,7 @@ NP_subject -> she [1.0]
 
 NP_subject -> mary [1.0]
 [string] 'Mary'
-[graph] '(p<root> / person :name (n / name :op1 "Mary"))'
+[graph] '(p<root> / person :wiki - :name (n / name :op1 "Mary"))'
 
 NP_subject -> astronaut [1.0]
 [string] 'The astronaut'
@@ -78,9 +78,9 @@ NP_field_modifier -> theater [1.0]
 [string] 'theater'
 [graph] '(p<root> / theater :topic-of (m<mod>))--TYPE--(mod())'
 
-NP_field_modifier -> weightlifting [1.0]
-[string] 'weightlifting'
-[graph] '(p<root> / lift-01 :ARG1 (w / weight) :topic-of (m<mod>))--TYPE--(mod())'
+NP_field_modifier -> crime [1.0]
+[string] 'crime'
+[graph] '(p<root> / crime-02 :topic-of (m<mod>))--TYPE--(mod())'
 
 
 
@@ -88,15 +88,15 @@ NP_field_modifier -> weightlifting [1.0]
 
 PP_emotional_state -> anger [1.0]
 [string] 'anger'
-[graph] '(p<root> / anger-01 :ARG0-of (c / cause-01 :ARG1 (v<cause>)) :ARG1 (s<subj>))--TYPE--(subj(), cause())'
+[graph] '(p<root> / anger-01 :ARG0-of (c / cause-01 :ARG1 (c2<cause>)) :ARG1 (s<subj>))--TYPE--(subj(), cause())'
 
 PP_emotional_state -> a_fit_of_despair [1.0]
 [string] 'a fit of despair'
-[graph] '(p<root> / fit-04 :ARG0-of (c / cause-01 :ARG1 (c<cause>)) :ARG2 (d / despair-01 :ARG0 (s<subj>)) :ARG1 s)--TYPE--(subj(), cause())'
+[graph] '(p<root> / fit-04 :ARG0-of (c / cause-01 :ARG1 (c2<cause>)) :ARG2 (d / despair-01 :ARG0 (s<subj>)) :ARG1 s)--TYPE--(subj(), cause())'
 
 PP_emotional_state -> a_moment_of_clarity [1.0]
 [string] 'a moment of clarity'
-[graph] '(p<root> / moment :ARG0-of (c / cause-01 :ARG1 (c<cause>)) :time-of (clear-06 :ARG2 (s<subj>)))--TYPE--(subj(), cause())'
+[graph] '(p<root> / moment :ARG0-of (c / cause-01 :ARG1 (c2<cause>)) :time-of (c3 / clear-06 :ARG2 (s<subj>)))--TYPE--(subj(), cause())'
 
 // -------------------------------- PP time period --------------------------------
 

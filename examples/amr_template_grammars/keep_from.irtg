@@ -7,12 +7,12 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 // NP attachment: X keeps object Y that comes from a place Z
 F! -> templateKeepObject(NP_subject, NP_kept_object, NP_location) [1.0]
 [string] *('For thirty years,',*(?1, *('has kept', *(?2, *('from', *(?3, '.'))))))
-[graph]  APP_subj(APP_obj('(k<root> / keep-01 :duration (temporal-quantity :quant 30 :unit (y / year)) :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())', MOD_from(?2, APP_loc('(r<root, from> :source (i<loc>))--TYPE--(from(), loc())', ?3))), ?1)
+[graph]  APP_subj(APP_obj('(k<root> / keep-01 :duration (t / temporal-quantity :quant 30 :unit (y / year)) :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())', MOD_from(?2, APP_loc('(r<root, from> :source (i<loc>))--TYPE--(from(), loc())', ?3))), ?1)
 
 // VP attachment: X withholds information Y from person(s) Z
 F! -> templateKeepInformationFromPerson(NP_subject, NP_information, NP_people_kept_in_the_dark) [1.0]
 [string] *('For thirty years,',*(?1, *('has kept', *(?2, *('from', *(?3, '.'))))))
-[graph]  APP_subj(APP_obj(APP_obj2('(k<root> / keep-04 :duration (temporal-quantity :quant 30 :unit (y / year)) :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2())', ?3), ?2), ?1)
+[graph]  APP_subj(APP_obj(APP_obj2('(k<root> / keep-04 :duration (t / temporal-quantity :quant 30 :unit (y / year)) :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2())', ?3), ?2), ?1)
 
 
 // -------------------------------- NP people kept in the dark -------------------------------------------
@@ -38,15 +38,15 @@ NP_people_kept_in_the_dark -> jenny [1.0]
 // -------------------------------- subjects --------------------------------
 
 NP_subject -> she [1.0]
-[string] 'She'
+[string] 'she'
 [graph] '(p<root> / she)'
 
 NP_subject -> fool [1.0]
-[string] 'The fool'
+[string] 'the fool'
 [graph] '(p<root> / fool)'
 
 NP_subject -> hero [1.0]
-[string] 'The hero'
+[string] 'the hero'
 [graph] '(p<root> / hero)'
 
 // -------------------------------- kept objects --------------------------------
@@ -71,11 +71,11 @@ NP_kept_object -> souvenir [1.0]
 
 NP_location -> Minsk [1.0]
 [string] 'Minsk'
-[graph] '(p<root> / city :wiki Minsk :name (n / name :op1 "Minsk"))'
+[graph] '(p<root> / city :wiki "Minsk" :name (n / name :op1 "Minsk"))'
 
 NP_location -> Munich [1.0]
 [string] 'Munich'
-[graph] '(p<root> / city :wiki Munich :name (n / name :op1 "Munich"))'
+[graph] '(p<root> / city :wiki "Munich" :name (n / name :op1 "Munich"))'
 
 NP_location -> that_adventure [1.0]
 [string] 'that adventure'
@@ -83,7 +83,7 @@ NP_location -> that_adventure [1.0]
 
 NP_location -> Haiti [1.0]
 [string] 'Haiti'
-[graph] '(p<root> / country :wiki Haiti :name (n / name :op1 "Haiti"))'
+[graph] '(p<root> / country :wiki "Haiti" :name (n / name :op1 "Haiti"))'
 
 
 

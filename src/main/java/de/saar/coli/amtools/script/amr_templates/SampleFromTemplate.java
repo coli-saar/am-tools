@@ -8,6 +8,7 @@ import de.up.ling.irtg.algebra.graph.SGraph;
 import de.up.ling.irtg.util.Counter;
 import de.up.ling.tree.ParseException;
 import de.up.ling.tree.Tree;
+import de.up.ling.tree.TreeParser;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,12 +18,31 @@ import java.util.stream.Collectors;
 public class SampleFromTemplate {
 
     public static void main(String[] args) throws IOException, ParseException {
+//        InterpretedTreeAutomaton irtg = InterpretedTreeAutomaton.fromPath("examples/amr_template_grammars/give_up_in.irtg");
+//        Tree<String> tree = TreeParser.parse("templateGiveUpAmbitionInEmotionalState(my_sister,give_up,ambition,a_moment_of_clarity)");
+//        System.out.println(irtg.getInterpretation("graph").getHomomorphism().apply(tree));
+//        System.out.println(((Pair<SGraph, Object>)irtg.getInterpretation("graph").interpret(tree)).left.toIsiAmrStringWithSources());
+
+        // replace double quotes with single quotes
+//        System.out.println(":wiki \"\"J._K._Rowling\"\"".replaceAll("\"\"", "\""));
+
         int numSamples = 25;
 
-        String output_file = "examples/amr_template_grammars/read_by.txt";
-        String description = "Prepositional Phrase attachment ambiguities. Created by a grammar.";
-        String grammar_path = "examples/amr_template_grammars/read_by.irtg";
-        sample(numSamples, grammar_path, output_file, description);
+        sample(numSamples, "examples/amr_template_grammars/see_with.irtg",
+                "examples/amr_template_grammars/see_with.txt",
+                "Prepositional Phrase attachment ambiguities. Created by a grammar.");
+        sample(numSamples, "examples/amr_template_grammars/read_by.irtg",
+                "examples/amr_template_grammars/read_by.txt",
+                "Prepositional Phrase attachment ambiguities. Created by a grammar.");
+        sample(numSamples, "examples/amr_template_grammars/bought_for.irtg",
+                "examples/amr_template_grammars/bought_for.txt",
+                "Prepositional Phrase attachment ambiguities. Created by a grammar.");
+        sample(numSamples, "examples/amr_template_grammars/keep_from.irtg",
+                "examples/amr_template_grammars/keep_from.txt",
+                "Prepositional Phrase attachment ambiguities. Created by a grammar.");
+        sample(numSamples, "examples/amr_template_grammars/give_up_in.irtg",
+                "examples/amr_template_grammars/give_up_in.txt",
+                "Prepositional Phrase attachment ambiguities. Created by a grammar.");
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -58,9 +78,12 @@ public class SampleFromTemplate {
 
 
     public static String fixAMRString(String amrString) {
-        amrString = amrString.replaceAll("(:op[0-9]+) ([^ ()]+)", "$1 \"$2\"");
+        amrString = amrString.replaceAll("(:op[0-9]+) ([^ \"()]+)", "$1 \"$2\"");
         amrString = amrString.replaceAll("\"\\+\"", "+");
-        return amrString.replaceAll("(:wiki) ([^ ()]+)", "$1 \"$2\"");
+//        amrString = amrString.replaceAll("\\\"\\\"", "\"");
+        amrString = amrString.replaceAll("(:wiki) ([^ \"()]+)", "$1 \"$2\"");
+        amrString = amrString.replaceAll("\"-\"", "-");
+        return amrString;
     }
 
 

@@ -119,7 +119,7 @@ PP_light -> firelight [1.0]
 [string] 'firelight'
 [graph] '(c <root> / firelight :manner-of (m<manner>))--TYPE--(manner())'
 
-PP_light -> lamplight [1.0]
-[string] 'lamplight'
-[graph] '(c <root> / lamplight :manner-of (m<manner>))--TYPE--(manner())'
+//PP_light -> lamplight [1.0]
+//[string] 'lamplight'
+//[graph] '(c <root> / lamplight :manner-of (m<manner>))--TYPE--(manner())'
 

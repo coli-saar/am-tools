@@ -55,9 +55,13 @@ V_buy -> picked_up [1.0]
 
 // -------------------------------- NP objects bought -------------------------------------------
 
-NP_bought_object -> onions [1.0]
-[string] 'onions'
-[graph] '(p2<root> / onion)'
+//NP_bought_object -> onions [1.0]
+//[string] 'onions'
+//[graph] '(p2<root> / onion)'
+
+NP_bought_object -> mushrooms [1.0]
+[string] 'mushrooms'
+[graph] '(p2<root> / mushroom)'
 
 NP_bought_object -> tomatoes [1.0]
 [string] 'tomatoes'
@@ -73,11 +77,11 @@ NP_bought_object -> carrots [1.0]
 
 NP_subject -> Kim [1.0]
 [string] 'Kim'
-[graph] '(p<root> / person :name (n / name :op1 "Kim"))'
+[graph] '(p<root> / person :wiki - :name (n / name :op1 "Kim"))'
 
 NP_subject -> Dana [1.0]
 [string] 'Dana'
-[graph] '(p<root> / person :name (n / name :op1 "Dana"))'
+[graph] '(p<root> / person :wiki - :name (n / name :op1 "Dana"))'
 
 NP_subject -> chef [1.0]
 [string] 'The chef'
@@ -108,16 +112,16 @@ NP_amount -> ten_dollars [1.0]
 [string] '$10'
 [graph] '(m<root> / monetary-quantity :quant 10 :unit (d / dollar))'
 
-NP_amount -> few_bucks [1.0]
-[string] 'a few bucks'
+NP_amount -> few_dollars [1.0]
+[string] 'a few dollars'
 [graph] '(m<root> / monetary-quantity :quant (f / few) :unit (d / dollar))'
 
-NP_amount -> next_to_nothing [1.0]
-[string] 'next to nothing'
+NP_amount -> almost_nothing [1.0]
+[string] 'almost nothing'
 [graph] '(a<root> / almost :op1 (n2 / nothing))'
 
 NP_amount -> unreasonable_amount [1.0]
 [string] 'an unreasonable amount of money'
-[graph] '(m2<root> / monetary-quantity :mod (u / unreasonable))'
+[graph] '(m2<root> / monetary-quantity :ARG1-of (u / reasonable-02 :polarity -))'
 
 
