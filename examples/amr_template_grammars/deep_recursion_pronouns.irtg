@@ -153,7 +153,7 @@ Vbar_coref_1p -> liked_us [0.5]
 
 VP_coref_1p -> we_left [0.5]
 [string] *(we, left)
-[graph] '(r<root> / leave-01 :ARG0 (s<coref>))--TYPE--(coref())'
+[graph] '(r<root> / leave-11 :ARG0 (s<coref>))--TYPE--(coref())'
 
 Vbar_coref_1p -> hated_us [0.5]
 [string] *(hated, us)
@@ -170,7 +170,7 @@ Vbar_coref_2 -> liked_you [0.5]
 
 VP_coref_2 -> you_left [0.5]
 [string] *(you, left)
-[graph] '(r<root> / leave-01 :ARG0 (s<coref>))--TYPE--(coref())'
+[graph] '(r<root> / leave-11 :ARG0 (s<coref>))--TYPE--(coref())'
 
 Vbar_coref_2 -> hated_you [0.5]
 [string] *(hated, you)
@@ -187,7 +187,7 @@ Vbar_coref_1s -> liked_me [0.5]
 
 VP_coref_1s -> I_left [0.5]
 [string] *(I, left)
-[graph] '(r<root> / leave-01 :ARG0 (s<coref>))--TYPE--(coref())'
+[graph] '(r<root> / leave-11 :ARG0 (s<coref>))--TYPE--(coref())'
 
 Vbar_coref_1s -> hated_me [0.5]
 [string] *(hated, me)
@@ -324,9 +324,9 @@ DP -> astronaut [1.0]
 [string] *(the, astronaut)
 [graph] '(a<root> / astronaut)'
 
-DP -> mechanic [1.0]
-[string] *(the, mechanic)
-[graph] '(m<root> / mechanic)'
+DP -> lawyer [1.0]
+[string] *(the, lawyer)
+[graph] '(m<root> / lawyer)'
 
 DP -> soldier [1.0]
 [string] *(the, soldier)

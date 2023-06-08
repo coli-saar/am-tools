@@ -28,7 +28,7 @@ TP! -> TP_intr(Vintr, DP) [0.1]
 
 Vintr -> left [0.5]
 [string] left
-[graph] '(r<root> / leave-01 :ARG0 (s<subj>))--TYPE--(subj)'
+[graph] '(r<root> / leave-11 :ARG0 (s<subj>))--TYPE--(subj)'
 
 Vintr -> slept [0.5]
 [string] slept
@@ -78,9 +78,9 @@ DP -> astronaut [1.0]
 [string] *(the, astronaut)
 [graph] '(a<root> / astronaut)'
 
-DP -> mechanic [1.0]
-[string] *(the, mechanic)
-[graph] '(m<root> / mechanic)'
+DP -> lawyer [1.0]
+[string] *(the, lawyer)
+[graph] '(m<root> / lawyer)'
 
 DP -> soldier [1.0]
 [string] *(the, soldier)

@@ -182,9 +182,9 @@ N_obj -> astronaut [0.25]
 [string] astronaut
 [graph] '(a<root> / astronaut)'
 
-N_obj -> mechanic [0.25]
-[string] mechanic
-[graph] '(m<root> / mechanic)'
+N_obj -> lawyer [0.25]
+[string] lawyer
+[graph] '(m<root> / lawyer)'
 
 N_obj -> soldier [0.25]
 [string] soldier

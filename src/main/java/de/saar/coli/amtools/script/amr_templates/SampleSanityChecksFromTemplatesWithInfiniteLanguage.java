@@ -48,25 +48,27 @@ public class SampleSanityChecksFromTemplatesWithInfiniteLanguage {
             );
             ADJECTIVES_SAMPLES = Arrays.asList(
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion(NP_size_null(" +
-                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))), fantastic)))"),
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(plate))))), fantastic)))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion(NP_size_null(" +
-                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain))))), beautiful)))"),
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(container))))), beautiful)))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion(NP_size_null(" +
-                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))), strange)))"),
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(plate))))), strange)))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size(" +
-                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain)))), long))))"),
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(container)))), big))))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size(" +
-                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt)))), short))))"),
+                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(plate)))), small))))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
-                            "NP_age(NP_shape_null(NP_colour_null(NP_material_null(curtain))), new)))))"),
+                            "NP_age(NP_shape_null(NP_colour_null(NP_material_null(container))), new)))))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
-                            "NP_age(NP_shape_null(NP_colour_null(NP_material_null(skirt))), antique)))))"),
+                            "NP_age(NP_shape_null(NP_colour_null(NP_material_null(plate))), antique)))))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
-                            "NP_age_null(NP_shape_null(NP_colour(NP_material_null(skirt), pale)))))))"),
+                            "NP_age_null(NP_shape(NP_colour_null(NP_material_null(plate)), round))))))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
-                            "NP_age_null(NP_shape_null(NP_colour(NP_material_null(curtain), dark)))))))"),
+                            "NP_age_null(NP_shape(NP_colour_null(NP_material_null(plate)), square))))))"),
                     TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
-                            "NP_age_null(NP_shape_null(NP_colour_null(NP_material(skirt, silken))))))))")
+                            "NP_age_null(NP_shape_null(NP_colour(NP_material_null(plate), pale)))))))"),
+                    TreeParser.parse("DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(" +
+                            "NP_age_null(NP_shape_null(NP_colour(NP_material_null(container), dark)))))))")
             );
             CENTRE_EMBEDDING_SAMPLES = Arrays.asList(
                     TreeParser.parse("TP(Vbar_tr(likes, girl), finish_NP(doctor))"),
@@ -87,66 +89,67 @@ public class SampleSanityChecksFromTemplatesWithInfiniteLanguage {
 
     public static void main(String[] args) throws IOException, ParseException {
 
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerNestedControl = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/nested_control.irtg",
-                "Systematically sampled sanity checks for the nested control dataset." +
-                        " Created by the grammar nested_control.irtg. ",
-                null,
-                false
-        );
-        samplerNestedControl.writeSamplesToFile("examples/amr_template_grammars/nested_control_sanity_check.txt",
-                 NESTED_CONTROL_SAMPLES);
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerNestedControl = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/nested_control.irtg",
+//                "Systematically sampled sanity checks for the nested control dataset." +
+//                        " Created by the grammar nested_control.irtg. ",
+//                null,
+//                false
+//        );
+//        samplerNestedControl.writeSamplesToFile("examples/amr_template_grammars/nested_control_sanity_check.txt",
+//                 NESTED_CONTROL_SAMPLES);
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerAdjectives = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/adjectives.irtg",
+//                "Systematically sampled sanity checks for the nested adjectives dataset." +
+//                        " Created by the grammar adjectives.irtg. ",
+//                null,
+//                false
+//        );
+//        samplerAdjectives.writeSamplesToFile("examples/amr_template_grammars/adjectives_sanity_check.txt",
+//                ADJECTIVES_SAMPLES);
 
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerAdjectives = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/adjectives.irtg",
-                "Systematically sampled sanity checks for the nested adjectives dataset." +
-                        " Created by the grammar adjectives.irtg. ",
-                null,
-                false
-        );
-        samplerAdjectives.writeSamplesToFile("examples/amr_template_grammars/adjectives_sanity_check.txt",
-                ADJECTIVES_SAMPLES);
-
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerCentreEmbedding = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/centre_embedding.irtg",
-                "Systematically sampled sanity checks for the nested centre embedding dataset." +
-                        " Created by the grammar centre_embedding.irtg. ",
-                null,
-                false
-        );
-        samplerCentreEmbedding.writeSamplesToFile("examples/amr_template_grammars/centre_embedding_sanity_check.txt",
-                CENTRE_EMBEDDING_SAMPLES);
-
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListCounted = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/i_counted.irtg",
-                "Systematically sampled sanity checks for the long lists ('I counted') dataset." +
-                        " Created by the grammar i_counted.irtg. ",
-                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
-                false
-        );
-        longListCounted.addSingletonRuleToGrammar("NP_full");
-        longListCounted.sampleFromGrammar("examples/amr_template_grammars/i_counted_sanity_check.txt");
-
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListVisited = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/she_visited_countries.irtg",
-                "Systematically sampled sanity checks for the long lists ('she visited countries') dataset." +
-                        " Created by the grammar she_visited_countries.irtg. ",
-                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
-                false
-        );
-        longListVisited.addSingletonRuleToGrammar("NP_country");
-        longListVisited.sampleFromGrammar("examples/amr_template_grammars/she_visited_countries_sanity_check.txt");
-
-        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListBuy = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
-                "examples/amr_template_grammars/please_buy.irtg",
-                "Systematically sampled sanity checks for the long lists ('please buy') dataset." +
-                        " Created by the grammar please_buy.irtg. ",
-                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
-                false
-        );
-        longListBuy.addSingletonRuleToGrammar("NP_thing");
-        longListBuy.sampleFromGrammar("examples/amr_template_grammars/please_buy_sanity_check.txt");
-
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerCentreEmbedding = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/centre_embedding.irtg",
+//                "Systematically sampled sanity checks for the nested centre embedding dataset." +
+//                        " Created by the grammar centre_embedding.irtg. ",
+//                null,
+//                false
+//        );
+//        samplerCentreEmbedding.writeSamplesToFile("examples/amr_template_grammars/centre_embedding_sanity_check.txt",
+//                CENTRE_EMBEDDING_SAMPLES);
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListCounted = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/i_counted.irtg",
+//                "Systematically sampled sanity checks for the long lists ('I counted') dataset." +
+//                        " Created by the grammar i_counted.irtg. ",
+//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+//                false
+//        );
+//        longListCounted.addSingletonRuleToGrammar("NP_full");
+//        longListCounted.sampleFromGrammar("examples/amr_template_grammars/i_counted_sanity_check.txt");
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListVisited = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/she_visited_countries.irtg",
+//                "Systematically sampled sanity checks for the long lists ('she visited countries') dataset." +
+//                        " Created by the grammar she_visited_countries.irtg. ",
+//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+//                false
+//        );
+//        longListVisited.addSingletonRuleToGrammar("NP_country");
+//        longListVisited.sampleFromGrammar("examples/amr_template_grammars/she_visited_countries_sanity_check.txt");
+//
+//        SampleSanityChecksFromTemplatesWithInfiniteLanguage longListBuy = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
+//                "examples/amr_template_grammars/please_buy.irtg",
+//                "Systematically sampled sanity checks for the long lists ('please buy') dataset." +
+//                        " Created by the grammar please_buy.irtg. ",
+//                Collections.EMPTY_SET,  // there's no actual recursion for the long lists, so we don't have to block rules.
+//                false
+//        );
+//        longListBuy.addSingletonRuleToGrammar("NP_thing");
+//        longListBuy.sampleFromGrammar("examples/amr_template_grammars/please_buy_sanity_check.txt");
+//
         SampleSanityChecksFromTemplatesWithInfiniteLanguage samplerDeepRecursion = new SampleSanityChecksFromTemplatesWithInfiniteLanguage(
                 "examples/amr_template_grammars/deep_recursion_basic.irtg",
                 "Systematically sampled sanity checks for the deep CP recursion (standard version) dataset." +

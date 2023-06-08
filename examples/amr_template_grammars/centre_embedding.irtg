@@ -59,7 +59,7 @@ Vtr -> amused [0.2]
 
 Vintr -> left [0.5]
 [string] left
-[graph] '(r<root> / leave-01 :ARG0 (s<subj>))--TYPE--(subj)'
+[graph] '(r<root> / leave-11 :ARG0 (s<subj>))--TYPE--(subj)'
 
 Vintr -> slept [0.5]
 [string] slept

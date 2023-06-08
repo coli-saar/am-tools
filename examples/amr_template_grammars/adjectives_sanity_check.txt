@@ -1,42 +1,46 @@
 # Systematically sampled sanity checks for the nested adjectives dataset. Created by the grammar adjectives.irtg. 
 
-# ::snt A fantastic skirt
-# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))),fantastic)))
-(r / skirt  :ARG1 (u_34 / fantastic-02))
+# ::snt A fantastic plate
+# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(plate))))),fantastic)))
+(r / plate  :ARG1 (u_1 / fantastic-02))
 
-# ::snt A beautiful curtain
-# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain))))),beautiful)))
-(r / curtain  :ARG1-of (u_35 / beautiful-02))
+# ::snt A beautiful container
+# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(container))))),beautiful)))
+(r / container  :ARG1-of (u_2 / beautiful-02))
 
-# ::snt A strange skirt
-# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt))))),strange)))
-(r / skirt  :mod (u_36 / strange))
+# ::snt A strange plate
+# ::tree DP(NP_opinion_2_null(NP_opinion(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(plate))))),strange)))
+(r / plate  :mod (u_3 / strange))
 
-# ::snt A long curtain
-# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(curtain)))),long))))
-(r / curtain  :ARG1-of (u_37 / long-03))
+# ::snt A big container
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(container)))),big))))
+(r / container  :ARG1-of (u_4 / big-01))
 
-# ::snt A short skirt
-# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(skirt)))),short))))
-(r / skirt  :ARG1-of (u_38 / short-07))
+# ::snt A small plate
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size(NP_age_null(NP_shape_null(NP_colour_null(NP_material_null(plate)))),small))))
+(r / plate  :ARG1-of (u_5 / small-01))
 
-# ::snt A new curtain
-# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age(NP_shape_null(NP_colour_null(NP_material_null(curtain))),new)))))
-(r / curtain  :ARG1-of (u_39 / new-01))
+# ::snt A new container
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age(NP_shape_null(NP_colour_null(NP_material_null(container))),new)))))
+(r / container  :ARG1-of (u_6 / new-01))
 
-# ::snt A antique skirt
-# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age(NP_shape_null(NP_colour_null(NP_material_null(skirt))),antique)))))
-(r / skirt  :mod (u_40 / antique))
+# ::snt A antique plate
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age(NP_shape_null(NP_colour_null(NP_material_null(plate))),antique)))))
+(r / plate  :mod (u_7 / antique))
 
-# ::snt A pale skirt
-# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour(NP_material_null(skirt),pale)))))))
-(r / skirt  :ARG1-of (u_41 / pale-03))
+# ::snt A round plate
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape(NP_colour_null(NP_material_null(plate)),round))))))
+(r / plate  :ARG1-of (u_8 / round-06))
 
-# ::snt A dark curtain
-# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour(NP_material_null(curtain),dark)))))))
-(r / curtain  :ARG1-of (u_42 / dark-02))
+# ::snt A square plate
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape(NP_colour_null(NP_material_null(plate)),square))))))
+(r / plate  :mod (u_9 / square))
 
-# ::snt A silken skirt
-# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour_null(NP_material(skirt,silken))))))))
-(r / skirt  :consist-of (u_43 / silk))
+# ::snt A pale plate
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour(NP_material_null(plate),pale)))))))
+(r / plate  :ARG1-of (u_10 / pale-03))
+
+# ::snt A dark container
+# ::tree DP(NP_opinion_2_null(NP_opinion_null(NP_size_null(NP_age_null(NP_shape_null(NP_colour(NP_material_null(container),dark)))))))
+(r / container  :ARG1-of (u_11 / dark-02))
 
