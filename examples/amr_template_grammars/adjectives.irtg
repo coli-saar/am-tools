@@ -61,9 +61,9 @@ NP_age -> NP_age_null(NP_shape) [0.5]
 [graph] ?1
 
 // SHAPE  -- we don't do shape, because it's not so easy for skirt and curtain.
-//NP_shape -> NP_shape(NP_colour, A_shape) [0.5]
-//[string] *(?2, ?1)
-//[graph] MOD_m(?1, ?2)
+NP_shape -> NP_shape(NP_colour, A_shape) [0.5]
+[string] *(?2, ?1)
+[graph] MOD_m(?1, ?2)
 
 // syntactic glue
 NP_shape -> NP_shape_null(NP_colour) [0.5]
@@ -80,10 +80,10 @@ NP_colour -> NP_colour_null(NP_material) [0.5]
 [string] ?1
 [graph] ?1
 
-// MATERIAL
-NP_material -> NP_material(N, A_material) [0.5]
-[string] *(?2, ?1)
-[graph] MOD_m(?1, ?2)
+// MATERIAL  -- not using it anymore, since it proved problematic lexically
+//NP_material -> NP_material(N, A_material) [0.5]
+//[string] *(?2, ?1)
+//[graph] MOD_m(?1, ?2)
 
 // syntactic glue
 NP_material -> NP_material_null(N) [0.5]
@@ -106,13 +106,13 @@ A_opinion -> strange [0.3]
 [string] strange
 [graph] '(r<root> / strange :mod-of (m<m>))--TYPE--(m)'
 
-A_size -> long [0.5]
-[string] long
-[graph] '(r<root> / long-03 :ARG1 (m<m>))--TYPE--(m)'
+A_size -> big [0.5]
+[string] big
+[graph] '(r<root> / big-01 :ARG1 (m<m>))--TYPE--(m)'
 
-A_size -> short [0.5]
-[string] short
-[graph] '(r<root> / short-07 :ARG1 (m<m>))--TYPE--(m)'
+A_size -> small [0.5]
+[string] small
+[graph] '(r<root> / small-01 :ARG1 (m<m>))--TYPE--(m)'
 
 A_age -> new [0.5]
 [string] new
@@ -126,6 +126,10 @@ A_shape -> round [0.5]
 [string] round
 [graph] '(r<root> / round-06 :ARG1 (m<m>))--TYPE--(m)'
 
+A_shape -> square [0.5]
+[string] square
+[graph] '(r<root> / square :mod-of (m<m>))--TYPE--(m)'
+
 A_colour -> pale [0.5]
 [string] pale
 [graph] '(r<root> / pale-03 :ARG1 (m<m>))--TYPE--(m)'
@@ -134,18 +138,18 @@ A_colour -> dark [0.5]
 [string] dark
 [graph] '(r<root> / dark-02 :ARG1 (m<m>))--TYPE--(m)'
 
-A_material -> silken [1.0]
-[string] silken
-[graph] '(r<root> / silk :consist (m<m>))--TYPE--(m)'
+//A_material -> silken [1.0]
+//[string] silken
+//[graph] '(r<root> / silk :consist (m<m>))--TYPE--(m)'
 
 
 // -------- Nouns -------------------
 
-N -> skirt [0.5]
-[string] skirt
-[graph] '(r<root> / skirt)--TYPE--()'
+N -> plate [0.5]
+[string] plate
+[graph] '(r<root> / plate)--TYPE--()'
 
-N -> curtain [0.5]
-[string] curtain
-[graph] '(r<root> / curtain)--TYPE--()'
+N -> container [0.5]
+[string] container
+[graph] '(r<root> / container)--TYPE--()'
 

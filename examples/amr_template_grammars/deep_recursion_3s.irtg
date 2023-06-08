@@ -206,9 +206,9 @@ DP_s -> astronaut [1.0]
 [string] *(the, astronaut)
 [graph] '(a<root> / astronaut)'
 
-DP_s -> mechanic [1.0]
-[string] *(the, mechanic)
-[graph] '(m<root> / mechanic)'
+DP_s -> lawyer [1.0]
+[string] *(the, lawyer)
+[graph] '(m<root> / lawyer)'
 
 DP_s -> soldier [1.0]
 [string] *(the, soldier)

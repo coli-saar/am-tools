@@ -91,7 +91,7 @@ Vtr -> hated [1.0]
 
 Vintr -> left [0.5]
 [string] left
-[graph] '(r<root> / leave-01 :ARG0 (s<subj>))--TYPE--(subj)'
+[graph] '(r<root> / leave-11 :ARG0 (s<subj>))--TYPE--(subj)'
 
 Vintr -> slept [0.5]
 [string] slept
@@ -166,9 +166,9 @@ N -> astronaut [0.25]
 [string] astronaut
 [graph] '(a<root> / astronaut)'
 
-N -> mechanic [0.25]
-[string] mechanic
-[graph] '(m<root> / mechanic)'
+N -> lawyer [0.25]
+[string] lawyer
+[graph] '(m<root> / lawyer)'
 
 N -> soldier [0.25]
 [string] soldier

@@ -52,7 +52,7 @@ Open_S_inf -> sleep [0.2]
 
 Open_S_inf -> jump [0.2]
 [string] jump
-[graph] '(r<root> / jump-01 :ARG0 (s<subj>))--TYPE--(subj())'
+[graph] '(r<root> / jump-03 :ARG0 (s<subj>))--TYPE--(subj())'
 
 Open_S_inf -> attend [0.2]
 [string] attend
@@ -73,7 +73,7 @@ Open_S_fin -> slept [0.2]
 
 Open_S_fin -> jumped [0.2]
 [string] jumped
-[graph] '(r<root> / jump-01 :ARG0 (s<subj>))--TYPE--(subj())'
+[graph] '(r<root> / jump-03 :ARG0 (s<subj>))--TYPE--(subj())'
 
 Open_S_fin -> attended [0.2]
 [string] attended
