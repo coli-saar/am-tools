@@ -48,7 +48,7 @@ public class StripSemevalData {
         if (!outputPath.endsWith("/")) {
             outputPath = outputPath+"/";
         }
-        File folder = new File(inputPath);
+        File inputFile = new File(inputPath);
         new File(outputPath).mkdirs();
         FileWriter ENwr;
         try (FileWriter AMRwr = new FileWriter(outputPath+"raw.amr")) {
@@ -56,7 +56,13 @@ public class StripSemevalData {
             FileWriter graphIDWriter = new FileWriter(outputPath+"graphIDs.txt");
             StringJoiner graphBuilder = new StringJoiner(" ");
             int i = 0;
-            for (File file : folder.listFiles((File pathname) -> !pathname.isDirectory())) {
+            File[] inputFiles;
+            if (inputFile.isDirectory()) {
+                inputFiles = inputFile.listFiles(pathname -> !pathname.isDirectory());
+            } else {
+                inputFiles = new File[]{inputFile};
+            }
+            for (File file : inputFiles) {
                 if (file.getName().endsWith("~")) {
                     continue;
                 }
