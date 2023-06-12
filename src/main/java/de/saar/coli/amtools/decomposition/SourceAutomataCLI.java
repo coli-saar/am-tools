@@ -346,7 +346,7 @@ public class SourceAutomataCLI {
 //                                    System.err.println();
 //                                }
                             } else {
-                                successCounter.add("fail");
+                                successCounter.add("fail (unable to reconstruct graph -- probably non-decomposeable)");
                             }
 //                            System.out.println(concreteTreeAutomaton.reduceTopDown().getNumberOfRules());
                             int automatonSize = (int)concreteTreeAutomaton.reduceTopDown().getNumberOfRules();
@@ -359,6 +359,7 @@ public class SourceAutomataCLI {
                             System.err.println(index);
                             System.err.println(graph.toIsiAmrStringWithSources());
                             System.err.println(resultGraph.toIsiAmrStringWithSources());
+                            successCounter.add("fail (reconstruct graph does not match original. Bug in decomposition code?)");
                             fails++;
                         }
                     } catch (Exception ex) {
@@ -366,14 +367,20 @@ public class SourceAutomataCLI {
 //                        System.err.println(graph.toIsiAmrStringWithSources());
 //                        System.err.println(result);
                         ex.printStackTrace();
+                        successCounter.add("fail (error when reconstructing graph -- non-decomposeable, or bug?)");
                         fails++;
                     }
-                } catch (DAGComponent.NoEdgeToRequiredModifieeException | DAGComponent.CyclicGraphException ex) {
+                } catch (DAGComponent.NoEdgeToRequiredModifieeException ex) {
+                    successCounter.add("fail (nondecomposeable: missing modifier edge / impossible diamond structure)");
+                    nondecomposeable++;
+                } catch (DAGComponent.CyclicGraphException ex) {
+                    successCounter.add("fail (nondecomposeable: cyclic graph)");
                     nondecomposeable++;
                 } catch (Exception | Error ex) {
                     System.err.println(index);
 //                    System.err.println(graph.toIsiAmrStringWithSources());
                     ex.printStackTrace();
+                    successCounter.add("fail (error during automaton construction)");
                     fails++;
                 }
             }
