@@ -5,6 +5,7 @@
  */
 package de.saar.coli.amrtagging.formalisms.amr.tools.wordnet;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -76,4 +77,50 @@ public interface IWordnet {
      * @return 
      */
     public String findNounStem(String word);
+
+    public static class DummyIWordnet implements IWordnet {
+        /**
+         * A dummy implementation of IWordnet, that simply always returns the input word (and in scoreRel only
+         * returns 0 if the two words are the same, and -1000 -- the score for no match -- in all other cases).
+         * In other words, this assumes that there are no hypernyms, related words, stems etc. It's all just
+         * the original word.
+         * @param word
+         * @return
+         */
+
+        @Override
+        public Set<String> getAllNounHypernyms(String word) {
+            return Collections.singleton(word);
+        }
+
+        @Override
+        public Set<String> getWNCandidates(String word) {
+            return Collections.singleton(word);
+        }
+
+        @Override
+        public double scoreRel(String word, String lemma2check) {
+            if (word.equals(lemma2check)) {
+                return 0;
+            } else {
+                return -1000;
+            }
+        }
+
+        @Override
+        public String findVerbStem(String word) {
+            return word;
+        }
+
+        @Override
+        public String findRelatedVerbStem(String word) {
+            return word;
+        }
+
+        @Override
+        public String findNounStem(String word) {
+            return word;
+        }
+    }
+
 }
