@@ -169,6 +169,16 @@ public class AlignmentExtender {
                         }
                     }
                     return Math.max(0, ret);//was 0.0001
+                } else {
+                    double factor = 0.0;
+                    for (Pair<TaggedWord, Double> wAndP : wordsAndProbs) {
+                        String word = wAndP.left.word().toLowerCase();
+                        String nodeLabel = to.getLabel().toLowerCase();
+                        if (word.contains(nodeLabel)){
+                            factor += wAndP.right;
+                        }
+                    }
+                    return Math.max(0, AlignmentScorer.SCP_EXTENSION*factor);
                 }
             }
         }
