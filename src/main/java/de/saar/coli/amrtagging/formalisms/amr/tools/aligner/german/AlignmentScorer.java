@@ -289,11 +289,11 @@ public class AlignmentScorer {
         return ret;
     }
         
-    static double basicScoreProb(IWordnet we, String word, String label) {
+    static double basicScoreProb(IWordnet we, String word, String lemma, String label) {
         Set<String> wnLemmas = we.getWNCandidates(word);
         Set<String> closeLabels = FixedNodeToWordRules.getDirectWords(label);
         
-        if (closeLabels.contains(word)) {
+        if (closeLabels.contains(word) || closeLabels.contains(lemma)) {
             return SCP_PERFECT;
         }
         
@@ -301,12 +301,12 @@ public class AlignmentScorer {
         Set<String> closeIntersection = Sets.intersection(wnLemmas, closeLabels);
         
         if (!closeIntersection.isEmpty()) {
-            return SCP_PERFECT + SCP_WE_MULT * closeIntersection.stream().map(lemma -> we.scoreRel(word, lemma))
+            return SCP_PERFECT + SCP_WE_MULT * closeIntersection.stream().map(l -> we.scoreRel(word, l))
                     .collect(Collectors.maxBy(Comparator.naturalOrder())).get();
         } else {
             Set<String> indirectIntersection = Sets.intersection(wnLemmas, relLabels);
             if (!indirectIntersection.isEmpty()) {
-                return (SCP_PERFECT + SCP_WE_MULT * indirectIntersection.stream().map(lemma -> we.scoreRel(word, lemma))
+                return (SCP_PERFECT + SCP_WE_MULT * indirectIntersection.stream().map(l -> we.scoreRel(word, l))
                         .collect(Collectors.maxBy(Comparator.naturalOrder())).get()) * SCP_INDIRECT_NODE_FACTOR;
             } else {
                 return SCP_NO_MATCH;

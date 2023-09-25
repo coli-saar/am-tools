@@ -137,6 +137,7 @@ public class Aligner {
         Signature dummySig = new Signature();
         loaderIRTG.addInterpretation(new Interpretation(new GraphAlgebra(), new Homomorphism(dummySig, dummySig), "graph"));
         loaderIRTG.addInterpretation(new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "string"));
+        loaderIRTG.addInterpretation(new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "lemmas"));
         loaderIRTG.addInterpretation(new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "id"));
         if (accuracyWRTGold) {
             loaderIRTG.addInterpretation(new Interpretation(new StringAlgebra(), new Homomorphism(dummySig, dummySig), "alignment"));
@@ -162,6 +163,7 @@ public class Aligner {
             }
             try {
                 List<String> sent = (List) inst.getInputObjects().get("string");
+                List<String> lemmas = (List) inst.getInputObjects().get("lemmas");
                 SGraph graph = (SGraph) inst.getInputObjects().get("graph");
 
                 List<String> ids = (List) inst.getInputObjects().get("id");
@@ -184,10 +186,10 @@ public class Aligner {
 
                     switch (mode) {
                         case "p":
-                            alignmentWriter.write(probabilityAlign(graph, sent, i, we, posTags, goldAligments) + "\n");
+                            alignmentWriter.write(probabilityAlign(graph, sent, i, we, posTags, lemmas, goldAligments) + "\n");
                             break;
                         case "ap":
-                            alignmentWriter.write(allProbableAlign(graph, sent, i, we, posTags) + "\n");
+                            alignmentWriter.write(allProbableAlign(graph, sent, i, we, posTags, lemmas) + "\n");
                             break;
                     }
 
@@ -225,7 +227,7 @@ public class Aligner {
      * @throws IOException
      */
     private String probabilityAlign(SGraph graph, List<String> sent, int instanceIndex, IWordnet we,
-                                    List<TaggedWord> posTags, Collection<Alignment> goldAligments) throws IOException {
+                                    List<TaggedWord> posTags, List<String> lemmas, Collection<Alignment> goldAligments) throws IOException {
 
         Writer verboseWriter = null;
         if (verboseDir != null) {
@@ -233,7 +235,7 @@ public class Aligner {
         }
         Map<String, Alignment> nn2fixedAlign = new HashMap<>();//use valueSet as set of all alignments
         IntSet coveredIndices = new IntOpenHashSet();
-        Pair<Map<String, Set<Alignment>>, Set<Alignment>> candidateData = CandidateMatcher.findCandidatesForProb(graph, sent, posTags, we);
+        Pair<Map<String, Set<Alignment>>, Set<Alignment>> candidateData = CandidateMatcher.findCandidatesForProb(graph, sent, posTags, lemmas, we);
         Map<String, Set<Alignment>> nn2candidates = candidateData.left;//has one to one correspondence between node names and candidates
         //to be more precise: in one set, all alignments have the same nodes (vary only in span). One of the nodes is chosen as the key. The set of these sets
         //partitions the set of all graph nodes.
@@ -537,10 +539,10 @@ public class Aligner {
      * @throws IOException
      */
     private String allProbableAlign(SGraph graph, List<String> sent, int instanceIndex,
-                                    IWordnet we, List<TaggedWord> posTags) {
+                                    IWordnet we, List<TaggedWord> posTags, List<String> lemmas) {
 
 //        List<TaggedWord> tags = tagger.apply(sent.stream().map(word -> new Word(word)).collect(Collectors.toList()));
-        Set<Alignment> candidates = CandidateMatcher.findCandidatesForProb(graph, sent, posTags, we).right;
+        Set<Alignment> candidates = CandidateMatcher.findCandidatesForProb(graph, sent, posTags, lemmas, we).right;
 
         Set<Set<String>> coordinationTuples = Util.coordinationTuples(graph);
 

@@ -39,7 +39,7 @@ public class CandidateMatcher {
      * @return 
      */
     static Pair<Map<String, Set<Alignment>>, Set<Alignment>> findCandidatesForProb(SGraph graph,
-            List<String> sent, List<TaggedWord> tags, IWordnet we) {
+            List<String> sent, List<TaggedWord> tags, List<String> lemmas, IWordnet we) {
         Set<Alignment> ret = new HashSet<>();
         Map<String, Set<Alignment>> nn2als = new HashMap<>();
         Map<String, List<String>> nn2words = new HashMap<>();       // node names -> set of words that might match the node label
@@ -57,7 +57,9 @@ public class CandidateMatcher {
         // check wordnet list to generate matches; this includes exact matches of the fixed node to word rules
         for (int j = 0; j < sent.size(); j++) {
             String word = sent.get(j);
-            Set<String> candidates = we.getWNCandidates(word);
+            Set<String> candidates = new HashSet<>(we.getWNCandidates(word));
+            // add lemma as candidate here, since we don't use WordNet for the German version.
+            candidates.add(lemmas.get(j));
             
             // collect all matches
             for (String nn : nn2words.keySet()) {
@@ -348,7 +350,7 @@ public class CandidateMatcher {
                     double score = AlignmentScorer.SCP_PERFECT*
                             Math.max(Math.max(AlignmentScorer.matchFraction(label, sent.get(c)),
                                     Util.matchFractionLiteral(sent.get(c), Util.stripSenseSuffix(label))),
-                                    AlignmentScorer.basicScoreProb(we, sent.get(c), label));
+                                    AlignmentScorer.basicScoreProb(we, sent.get(c), lemmas.get(c), label));
                     if (tags.get(c).tag().startsWith("VB") && !label.matches(".+-[0-8][0-9]")) {
                         score *= AlignmentScorer.SCP_VERB2NOUN_FACTOR;
                     }

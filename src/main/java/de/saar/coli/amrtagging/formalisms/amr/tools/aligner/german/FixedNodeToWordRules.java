@@ -77,13 +77,11 @@ public class FixedNodeToWordRules {
         FIXED_SECONDARY_RULES.put("multi-sentence", new String[]{","});
         FIXED_SECONDARY_RULES.put("ich",new String[]{"ich", "mir", "mich", "mein", "meine", "meiner", "meines", "meins"});
         FIXED_SECONDARY_RULES.put("du",new String[]{"du", "dir", "dich", "dein", "deine", "deiner", "deines", "deins"});
-        FIXED_SECONDARY_RULES.put("sie",new String[]{"sie", "ihnen", "ihr", "ihre", "ihrer", "ihres", "ihrs"});
+        FIXED_SECONDARY_RULES.put("sie",new String[]{"sie", "ihnen", "ihr", "ihre", "ihrer", "ihres", "ihrs"});// includes words for 2nd person singular (polite), 3rd person singular and 3rd person plural
         FIXED_SECONDARY_RULES.put("er",new String[]{"er", "ihm", "ihn", "sein", "seine", "seiner", "seines", "seins"});
-        FIXED_SECONDARY_RULES.put("sie",new String[]{"sie", "ihr", "ihre", "ihrer", "ihres", "ihrs"});
         FIXED_SECONDARY_RULES.put("es",new String[]{"es", "sein", "seine", "seiner", "seines", "seins"});
         FIXED_SECONDARY_RULES.put("wir",new String[]{"wir", "uns", "unser", "unsere", "unseres", "userer", "unsers"});
         FIXED_SECONDARY_RULES.put("ihr",new String[]{"ihr", "euch", "euer", "eure", "eures", "eurer", "eurs"});
-        FIXED_SECONDARY_RULES.put("sie",new String[]{"sie", "ihnen", "ihr", "ihre", "ihres", "ihrer", "ihrs"});
 
         FIXED_SECONDARY_RULES.put("1",new String[]{"ein", "eine"});
         FIXED_SECONDARY_RULES.put("interrogative",new String[]{"ob"});
