@@ -24,10 +24,11 @@ import java.util.stream.Collectors;
  * @author Jonas
  */
 public class CandidateMatcher {
-    
-    private final static Set<String> NAME_FILLERS = new HashSet(Arrays.asList(new String[]{"of", "and", "the", "for", "new", "on"}));
-    private final static Set<String> NO_LITERAL_MATCH = new HashSet(Arrays.asList(new String[]{"of", "in", "the", "for", "on", "to", "a", "an", "as", "by", "but", "as"}));
-    private final static Set<String> PRONOUNS = new HashSet(Arrays.asList(new String[]{"i", "you", "he", "she", "it", "we", "they"}));
+
+    // NAME_FILLERS probably not required for the Little Prince.
+    // In any case, the corpus does not contain enough relevant examples to properly develop this set.
+    private final static Set<String> NAME_FILLERS = new HashSet(Collections.emptyList());
+    private final static Set<String> PRONOUNS = new HashSet(Arrays.asList("ich", "du", "er", "sie", "es", "wir", "ihr", "sie"));
     
     /**
      * Creates candidate alignments (based on lexical rules and matches).
@@ -174,63 +175,10 @@ public class CandidateMatcher {
                         }
                     }
                 }
-                // ###### special maps
-                //America -> United States
-                if (nameNodesInOrder.size() == 2 && graph.getNode(nameNodesInOrder.get(0)).getLabel().equals("United")
-                        && graph.getNode(nameNodesInOrder.get(1)).getLabel().equals("States")) {
-                    for (int i = 0; i<sent.size(); i++) {
-                        if (sent.get(i).toLowerCase().startsWith("america")) {
-                            Alignment al = new Alignment(allNnsHere, new Alignment.Span(i, i+1), Collections.singleton(node.getName()), 0,
-                                AlignmentScorer.SCP_PERFECT * AlignmentScorer.matchFraction("America", sent.get(i)));//TODO: first bonus
-                            alsHere.add(al);
-                            ret.add(al );
-                        }
-                    }
-                }
-                //French->France
-                if (nameNodesInOrder.size() == 1 && graph.getNode(nameNodesInOrder.get(0)).getLabel().equals("France")) {
-                    for (int i = 0; i<sent.size(); i++) {
-                        if (sent.get(i).toLowerCase().startsWith("french")) {
-                            Alignment al = new Alignment(allNnsHere, new Alignment.Span(i, i+1), Collections.singleton(node.getName()), 0,
-                                AlignmentScorer.SCP_PERFECT * AlignmentScorer.matchFraction("French", sent.get(i)));//TODO: first bonus
-                            alsHere.add(al);
-                            ret.add(al );
-                        }
-                    }
-                }
-                //Great Britain / British -> Great Britain
-                if ((nameNodesInOrder.size() == 2 && graph.getNode(nameNodesInOrder.get(0)).getLabel().equals("Great")
-                        && graph.getNode(nameNodesInOrder.get(1)).getLabel().equals("Britain"))) {
-                    for (int i = 0; i<sent.size(); i++) {
-                        if (sent.get(i).toLowerCase().equals("britain")) {
-                            Alignment al = new Alignment(allNnsHere, new Alignment.Span(i, i+1), Collections.singleton(node.getName()), 0,
-                                AlignmentScorer.SCP_PERFECT * AlignmentScorer.matchFraction("Britain", sent.get(i)));//TODO: first bonus
-                            alsHere.add(al);
-                            ret.add(al );
-                        } else if (sent.get(i).toLowerCase().equals("british")) {
-                            Alignment al = new Alignment(allNnsHere, new Alignment.Span(i, i+1), Collections.singleton(node.getName()), 0,
-                                AlignmentScorer.SCP_PERFECT * AlignmentScorer.matchFraction("British", sent.get(i)));//TODO: first bonus
-                            alsHere.add(al);
-                            ret.add(al );
-                        }
-                    }
-                }
-                //Great Britain / British -> Great Britain
-                if (nameNodesInOrder.size() == 1 && graph.getNode(nameNodesInOrder.get(0)).getLabel().equals("Islam")) {
-                    for (int i = 0; i<sent.size(); i++) {
-                        if (sent.get(i).toLowerCase().startsWith("muslim")) {
-                            Alignment al = new Alignment(allNnsHere, new Alignment.Span(i, i+1), Collections.singleton(node.getName()), 0,
-                                AlignmentScorer.SCP_PERFECT * AlignmentScorer.matchFraction("Muslim", sent.get(i)));//TODO: first bonus
-                            alsHere.add(al);
-                            ret.add(al );
-                        }
-                    }
-                }
                 if (!alsHere.isEmpty()) {
                     untouchedNns.removeAll(allNnsHere);
                     nn2als.put(node.getName(), alsHere);
                 }
-                //TODO: abbreviations
             //date entity patterns
             } else if (Util.matchesDatePattern(node, graph)) {
                 Set<Alignment> alsHere = new HashSet<>();

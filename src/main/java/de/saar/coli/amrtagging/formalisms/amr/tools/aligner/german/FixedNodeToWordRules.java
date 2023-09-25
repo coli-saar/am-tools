@@ -18,60 +18,48 @@ public class FixedNodeToWordRules {
     private final static Map<String, String[]> FIXED_SECONDARY_RULES = new HashMap<>();
     
     static {
-        FIXED_RULES.put("-", new String[]{"no", "non", "not", "dont", "don't", "n't", "without", 
-                "ain't", "aint", "doesn't", "doesnt", "didn't", "didnt"});//TODO should we check whether this is actually attached to a :polarity edge?
-        FIXED_RULES.put("+", new String[]{"please"});//TODO should we check whether this is actually attached to a :polite edge?
-        FIXED_RULES.put("1",new String[]{"one", "first", "Monday", "January", "Jan"});
-        FIXED_RULES.put("2",new String[]{"two", "second", "Tuesday", "February", "Feb"});
-        FIXED_RULES.put("3",new String[]{"three", "third", "Wednesday", "March", "Mar"});
-        FIXED_RULES.put("4",new String[]{"four", "fourth", "Thursday", "april", "apr"});
-        FIXED_RULES.put("5",new String[]{"five", "fifth", "Friday", "may"});
-        FIXED_RULES.put("6",new String[]{"six", "sixth", "Saturday", "June", "Jun"});
-        FIXED_RULES.put("7",new String[]{"seven", "seventh", "Sunday", "July", "Jul"});
-        FIXED_RULES.put("8",new String[]{"eight", "eighth", "August", "Aug"});
-        FIXED_RULES.put("9",new String[]{"nine", "ninth", "September", "Sep"});
-        FIXED_RULES.put("10",new String[]{"ten", "tenth", "October", "Oct"});
-        FIXED_RULES.put("11",new String[]{"eleven", "November", "Nov"});
-        FIXED_RULES.put("12",new String[]{"twelve", "December", "Dec"});
-        FIXED_RULES.put("13",new String[]{"thirteen"});
-        FIXED_RULES.put("14",new String[]{"fourteen"});
-        FIXED_RULES.put("15",new String[]{"fifteen"});
-        FIXED_RULES.put("16",new String[]{"sixteen"});
-        FIXED_RULES.put("17",new String[]{"seventeen"});
-        FIXED_RULES.put("18",new String[]{"eighteen"});
-        FIXED_RULES.put("19",new String[]{"nineteen"});
-        FIXED_RULES.put("20",new String[]{"twenty"});
-        FIXED_RULES.put("30",new String[]{"thirty"});
-        FIXED_RULES.put("40",new String[]{"fourty", "forty"});
-        FIXED_RULES.put("50",new String[]{"fifty"});
-        FIXED_RULES.put("60",new String[]{"sixty"});
-        FIXED_RULES.put("70",new String[]{"seventy"});
-        FIXED_RULES.put("80",new String[]{"eighty"});
-        FIXED_RULES.put("90",new String[]{"ninety"});
-        FIXED_RULES.put("100",new String[]{"hundred"});
-        FIXED_RULES.put("1000",new String[]{"thousand"});
-        FIXED_RULES.put("possible-01",new String[]{"can", "ca", "could", "couldn't", "might", "may", "can't", "cannot", "able"});//be able to, been able to
-        FIXED_RULES.put("conform-01",new String[]{"within"});
-        FIXED_RULES.put("recommend-01",new String[]{"should"});
-        FIXED_RULES.put("cause-01",new String[]{"as", "because", "since", "due", "if", "such", "reason", "therefore", "thus", "hence"});
-        FIXED_RULES.put("infer-01",new String[]{"therefore", "since", "thus", "hence"});
-        FIXED_RULES.put("contrast-01",new String[]{"while", "however", "but"});
-        FIXED_RULES.put("have-concession-91",new String[]{"although", "though", "anyway", "but"});
-        FIXED_RULES.put("obligate-01",new String[]{"must"});//TODO: word combinations such as "has to"
-        //fixedRules.put("HAVE_ORG_ROLE",new String[]{"at"});
-        FIXED_RULES.put("before",new String[]{"ago", "since"});
-        FIXED_RULES.put("lack-01",new String[]{"without"});
-        FIXED_RULES.put("and",new String[]{"addition"});
+        FIXED_RULES.put("-", new String[]{"nein", "nicht", "non"});
+        FIXED_RULES.put("+", new String[]{"bitte"});
+        FIXED_RULES.put("1",new String[]{"eins", "erste", "erster", "erstes", "Montag", "Januar"});
+        FIXED_RULES.put("2",new String[]{"zwei", "zweite", "zweiter", "zweites", "Dienstag", "Februar"});
+        FIXED_RULES.put("3",new String[]{"drei", "dritte", "dritter", "drittes", "Mittwoch", "Maerz"});
+        FIXED_RULES.put("4",new String[]{"vier", "vierte", "vierter", "viertes", "Donnerstag", "April"});
+        FIXED_RULES.put("5",new String[]{"fuenf", "fuenfte", "fuenfter", "fuenftes", "Freitag", "Mai"});
+        FIXED_RULES.put("6",new String[]{"sechs", "sechste", "sechster", "sechstes", "Samstag", "Juni"});
+        FIXED_RULES.put("7",new String[]{"sieben", "siebte", "siebter", "siebtes", "Sonntag", "Juli"});
+        FIXED_RULES.put("8",new String[]{"acht", "achte", "achter", "achtes", "August"});
+        FIXED_RULES.put("9",new String[]{"neun", "neunte", "neunter", "neuntes", "September"});
+        FIXED_RULES.put("10",new String[]{"zehn", "zehnte", "zehnter", "zehntes", "Oktober"});
+        FIXED_RULES.put("11",new String[]{"elf", "elfte", "elfter", "elftes", "November"});
+        FIXED_RULES.put("12",new String[]{"zwoelf", "zwoelfte", "zwoelfter", "zwoelftes", "Dezember", "duzend"});
+        FIXED_RULES.put("13",new String[]{"dreizehn"});
+        FIXED_RULES.put("14",new String[]{"vierzehn"});
+        FIXED_RULES.put("15",new String[]{"fuenfzehn"});
+        FIXED_RULES.put("16",new String[]{"sechzehn"});
+        FIXED_RULES.put("17",new String[]{"siebzehn"});
+        FIXED_RULES.put("18",new String[]{"achtzehn"});
+        FIXED_RULES.put("19",new String[]{"neunzehn"});
+        FIXED_RULES.put("20",new String[]{"zwanzig"});
+        FIXED_RULES.put("30",new String[]{"dreissig"});
+        FIXED_RULES.put("40",new String[]{"vierzig"});
+        FIXED_RULES.put("50",new String[]{"fuenfzig"});
+        FIXED_RULES.put("60",new String[]{"sechzig"});
+        FIXED_RULES.put("70",new String[]{"siebzig"});
+        FIXED_RULES.put("80",new String[]{"achtzig"});
+        FIXED_RULES.put("90",new String[]{"neunzig"});
+        FIXED_RULES.put("100",new String[]{"hundert"});
+        FIXED_RULES.put("1000",new String[]{"tausend"});
+        FIXED_RULES.put("possible-01",new String[]{"kann", "moeglich", "koennte", "vielleicht"});//be able to, been able to
+        FIXED_RULES.put("recommend-01",new String[]{"sollte"});
+        FIXED_RULES.put("cause-01",new String[]{"weil", "wegen", "Grund", "deshalb", "deswegen", "daher", "Ursache", "so", "also"});
+        FIXED_RULES.put("infer-01",new String[]{"daher", "deshalb", "deswegen"});
+        FIXED_RULES.put("contrast-01",new String[]{"aber", "jedoch"});
+        FIXED_RULES.put("have-concession-91",new String[]{"obwohl", "trotzdem", "trotz", "obgleich"});
+        FIXED_RULES.put("verpflichten-01",new String[]{"muss"});
+        FIXED_RULES.put("fehlen-01",new String[]{"ohne"});
         FIXED_RULES.put("multi-sentence",new String[]{".", ";"});
-        FIXED_RULES.put("mean-01",new String[]{":", "i.e."});
-        FIXED_RULES.put("oppose-01",new String[]{"anti"});
-        FIXED_RULES.put("counter-01",new String[]{"anti"});
-        FIXED_RULES.put("this",new String[]{"these"});
-        FIXED_RULES.put("that",new String[]{"those"});
-        FIXED_RULES.put("okay",new String[]{"ok", "o.k."});
-        FIXED_RULES.put("have-03",new String[]{"with"});
-        FIXED_RULES.put("say-01",new String[]{"according"});
-        FIXED_RULES.put("include-91",new String[]{"of", "also"});
+        FIXED_RULES.put("bedeuten-01",new String[]{":", "also"});
+        FIXED_RULES.put("sagen-01",new String[]{"nach"});
         FIXED_RULES.put("expressive",new String[]{"!","..", "...", "...."});
         FIXED_RULES.put("interrogative",new String[]{"?"});
         FIXED_RULES.put("slash",new String[]{"/"});
@@ -79,28 +67,28 @@ public class FixedNodeToWordRules {
         FIXED_RULES.put("dollar",new String[]{"$"});
         FIXED_RULES.put("seismic-quanity",new String[]{"magnitude"});
         FIXED_RULES.put("date-entity",new String[]{"o'clock"});
-        FIXED_RULES.put("amr-unknown",new String[]{"who", "why", "what", "how", "where", "when", "which", "whose", "whom"});
+        FIXED_RULES.put("amr-unknown",new String[]{"wer", "wieso", "weshalb", "warum", "wo", "wann", "welche", "welcher", "welches", "wessen", "wen", "wem"});
         FIXED_RULES.put("et-cetera", new String[]{"etc", "etc.", "etcetera"});
-        FIXED_RULES.put("byline-91", new String[]{"by"});
-        FIXED_RULES.put("rate-entity-91", new String[]{"per", "every", "each"});
-        FIXED_RULES.put("choose-01", new String[]{"choice"});
-        FIXED_RULES.put("have-condition-91", new String[]{"if", "otherwise"});
+        FIXED_RULES.put("rate-entity-91", new String[]{"pro", "jeden", "am"});
+        FIXED_RULES.put("have-condition-91", new String[]{"falls", "wenn"});
+        FIXED_RULES.put("jemals", new String[]{"nie"});
+        FIXED_RULES.put("aehneln-01", new String[]{"wie"});
         
         FIXED_SECONDARY_RULES.put("multi-sentence", new String[]{","});
-        FIXED_SECONDARY_RULES.put("we",new String[]{"us", "our", "ours", "ourselves"});
-        FIXED_SECONDARY_RULES.put("i",new String[]{"me", "my", "mine", "myself"});
-        FIXED_SECONDARY_RULES.put("he",new String[]{"him", "his", "himself"});
-        FIXED_SECONDARY_RULES.put("she",new String[]{"her", "hers", "herself"});
-        FIXED_SECONDARY_RULES.put("it",new String[]{"its", "itself"});
-        FIXED_SECONDARY_RULES.put("you",new String[]{"your", "yours", "yourself", "yourselves"});
-        FIXED_SECONDARY_RULES.put("they",new String[]{"them", "their", "theirs", "themselves"});
-        FIXED_SECONDARY_RULES.put("and",new String[]{",", ";"});
-        FIXED_SECONDARY_RULES.put("mean",new String[]{",", "-"});
-        FIXED_SECONDARY_RULES.put("1",new String[]{"a", "an"});
-        FIXED_SECONDARY_RULES.put("after",new String[]{"in"});
-        FIXED_SECONDARY_RULES.put("interrogative",new String[]{"if", "whether"});
-        FIXED_SECONDARY_RULES.put("infer-01",new String[]{"so", "for", "must"});
-        FIXED_SECONDARY_RULES.put("person",new String[]{"they"});
+        FIXED_SECONDARY_RULES.put("ich",new String[]{"ich", "mir", "mich", "mein", "meine", "meiner", "meines", "meins"});
+        FIXED_SECONDARY_RULES.put("du",new String[]{"du", "dir", "dich", "dein", "deine", "deiner", "deines", "deins"});
+        FIXED_SECONDARY_RULES.put("sie",new String[]{"sie", "ihnen", "ihr", "ihre", "ihrer", "ihres", "ihrs"});
+        FIXED_SECONDARY_RULES.put("er",new String[]{"er", "ihm", "ihn", "sein", "seine", "seiner", "seines", "seins"});
+        FIXED_SECONDARY_RULES.put("sie",new String[]{"sie", "ihr", "ihre", "ihrer", "ihres", "ihrs"});
+        FIXED_SECONDARY_RULES.put("es",new String[]{"es", "sein", "seine", "seiner", "seines", "seins"});
+        FIXED_SECONDARY_RULES.put("wir",new String[]{"wir", "uns", "unser", "unsere", "unseres", "userer", "unsers"});
+        FIXED_SECONDARY_RULES.put("ihr",new String[]{"ihr", "euch", "euer", "eure", "eures", "eurer", "eurs"});
+        FIXED_SECONDARY_RULES.put("sie",new String[]{"sie", "ihnen", "ihr", "ihre", "ihres", "ihrer", "ihrs"});
+
+        FIXED_SECONDARY_RULES.put("1",new String[]{"ein", "eine"});
+        FIXED_SECONDARY_RULES.put("interrogative",new String[]{"ob"});
+        FIXED_SECONDARY_RULES.put("person",new String[]{"sie"});
+        FIXED_SECONDARY_RULES.put("stammen-01",new String[]{"sein", "kommen"});
     }
     
     

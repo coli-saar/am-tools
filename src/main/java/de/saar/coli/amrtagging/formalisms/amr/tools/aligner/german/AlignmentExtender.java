@@ -24,10 +24,9 @@ import java.util.Set;
  * @author Jonas
  */
 public class AlignmentExtender {
-    
-    private static final Set<String> DATE_EDGES = new HashSet<>(Arrays.asList(new String[]{"day", "month", "year"}));
+
         
-    private static final List<String> ALL_DATE_EDGES_ORDERED= Arrays.asList(new String[]{"timezone", "quarter", "season", "decade", "century", "calendar", "era", "dayperiod", "time", "weekday","day", "month", "year2", "year"});
+    private static final List<String> ALL_DATE_EDGES_ORDERED= Arrays.asList("timezone", "quarter", "season", "decade", "century", "calendar", "era", "dayperiod", "time", "weekday","day", "month", "year2", "year");
     
     
     private static final AMRBlobUtils blobUtils = new AMRBlobUtils();
@@ -71,7 +70,7 @@ public class AlignmentExtender {
                 return AlignmentScorer.SCP_EXTENSION;
             } else if (edge.getLabel().equals("mode") && to.getLabel().equals("imperative") && edge.getTarget().equals(to)) {
                 return AlignmentScorer.SCP_EXTENSION;  // extends verb to imperative
-            } else if ((edge.getLabel().startsWith("ARG") || edge.getLabel().equals("domain")) && to.getLabel().equals("you") && edge.getTarget().equals(to)) {
+            } else if ((edge.getLabel().startsWith("ARG") || edge.getLabel().equals("domain")) && to.getLabel().equals("du") && edge.getTarget().equals(to)) {
                 return AlignmentScorer.SCP_MAYBE_EXTENSION;  // imperatives have an implicit "you".
                                                              //This should extend the alignment from the verb to "you" just if they are currently unaligned.
             } else if (edge.getLabel().equals("degree") && from.getLabel().equals("thing")) {
@@ -103,7 +102,7 @@ public class AlignmentExtender {
                     }
                     return Math.max(0, AlignmentScorer.SCP_EXTENSION*factor);
                 } else if (edge.getLabel().equals("polarity") && to.getLabel().equals("-") && edge.getTarget().equals(to)
-                        && from.getLabel().equals("ever")) {
+                        && from.getLabel().equals("jemals")) {
                     return AlignmentScorer.SCP_EXTENSION;  // if "never" was accidentally made with negation on ever, woohoo! Extend that baby.
                 } else if (edge.getLabel().equals("ARG1") && to.getLabel().equals("possible-01") && edge.getSource().equals(to)) {
                     double factor = 0.0;
