@@ -57,17 +57,37 @@ Vtr -> amused [0.2]
 [string] amused
 [graph] '(r<root> / amuse-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
-Vintr -> left [0.5]
-[string] left
-[graph] '(r<root> / leave-11 :ARG0 (s<subj>))--TYPE--(subj)'
+// ---- Intr ----
+// Note: before Oct, there were 3, all weight 0.5
 
-Vintr -> slept [0.5]
+
+Vintr -> sneezed [0.2]
+[string] sneezed
+[graph] '(r<root> / sneeze-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
+Vintr -> slept [0.2]
 [string] slept
 [graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj)'
 
-Vintr -> laughed [0.5]
+Vintr -> laughed [0.2]
 [string] laughed
 [graph] '(r<root> / laugh-01 :ARG0 (s<subj>))--TYPE--(subj)'
+
+Vintr -> jumped [0.2]
+[string] jumped
+[graph] '(r<root> / jump-03 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Vintr -> attended [0.2]
+[string] attended
+[graph] '(r<root> / attend-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Vintr -> ate [0.2]
+[string] ate
+[graph] '(r<root> / eat-01 :ARG0 (s<subj>))--TYPE--(subj())'
+
+Vintr -> focused [0.2]
+[string] focused
+[graph] '(r<root> / focus-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
 // -------- NP with RC -------------
 

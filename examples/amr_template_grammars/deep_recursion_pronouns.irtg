@@ -151,9 +151,9 @@ Vbar_coref_1p -> liked_us [0.5]
 [string] *(liked, us)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
 
-VP_coref_1p -> we_left [0.5]
-[string] *(we, left)
-[graph] '(r<root> / leave-11 :ARG0 (s<coref>))--TYPE--(coref())'
+VP_coref_1p -> we_sneezed [0.5]
+[string] *(we, sneezed)
+[graph] '(r<root> / sneeze-01 :ARG0 (s<coref>))--TYPE--(coref())'
 
 Vbar_coref_1p -> hated_us [0.5]
 [string] *(hated, us)
@@ -168,9 +168,9 @@ Vbar_coref_2 -> liked_you [0.5]
 [string] *(liked, you)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
 
-VP_coref_2 -> you_left [0.5]
-[string] *(you, left)
-[graph] '(r<root> / leave-11 :ARG0 (s<coref>))--TYPE--(coref())'
+VP_coref_2 -> you_sneezed [0.5]
+[string] *(you, sneezed)
+[graph] '(r<root> / sneeze-01 :ARG0 (s<coref>))--TYPE--(coref())'
 
 Vbar_coref_2 -> hated_you [0.5]
 [string] *(hated, you)
@@ -185,9 +185,9 @@ Vbar_coref_1s -> liked_me [0.5]
 [string] *(liked, me)
 [graph] '(r<root> / like-01 :ARG0 (s<subj>) :ARG1 (o<coref>))--TYPE--(subj(), coref())'
 
-VP_coref_1s -> I_left [0.5]
-[string] *(I, left)
-[graph] '(r<root> / leave-11 :ARG0 (s<coref>))--TYPE--(coref())'
+VP_coref_1s -> I_sneezed [0.5]
+[string] *(I, sneezed)
+[graph] '(r<root> / sneeze-01 :ARG0 (s<coref>))--TYPE--(coref())'
 
 Vbar_coref_1s -> hated_me [0.5]
 [string] *(hated, me)

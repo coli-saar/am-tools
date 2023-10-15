@@ -89,9 +89,9 @@ Vtr -> hated [1.0]
 [string] hated
 [graph] '(r<root> / hate-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj())'
 
-Vintr -> left [0.5]
-[string] left
-[graph] '(r<root> / leave-11 :ARG0 (s<subj>))--TYPE--(subj)'
+Vintr -> sneezed [0.5]
+[string] sneezed
+[graph] '(r<root> / sneeze-01 :ARG0 (s<subj>))--TYPE--(subj)'
 
 Vintr -> slept [0.5]
 [string] slept

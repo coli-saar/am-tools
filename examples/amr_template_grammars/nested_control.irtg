@@ -6,10 +6,9 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 // Open_S_inf: (s)  : NT + sleep, jump, attend
 // SubjCrtl: (s, o(s)) : attempt, want, hate, love, refuse
 // ObjCrtl: (s, o, o2(s->o)) : persuade, ask, beg, force
-// Subj: () : girl, boy
-// Obj: () : me, you, doctor, monster, politician
-
-// TODO check word senses
+// Subj: () : girl, boy, kid (Oct 15, 2023: added kid)
+// Obj: () : you, doctor, monster, politician, astronaut, lawyer, soldier
+// Update Oct 15, 2023: removed "me", added last 3 Obj
 
 // -------------------------------- top-level template rules -------------------------------------------
 
@@ -45,7 +44,7 @@ Open_S_inf -> VbarObjCtrl(ObjCtrl, Open_S_inf, Obj) [0.8]
 
 
 // constants
-// infinitival
+// ------------infinitival-----------
 Open_S_inf -> sleep [0.2]
 [string] sleep
 [graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj())'
@@ -66,7 +65,7 @@ Open_S_inf -> focus [0.2]
 [string] focus
 [graph] '(r<root> / focus-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-// finite
+// -------- finite ------------
 Open_S_fin -> slept [0.2]
 [string] slept
 [graph] '(r<root> / sleep-01 :ARG0 (s<subj>))--TYPE--(subj())'
@@ -87,7 +86,7 @@ Open_S_fin -> focused [0.2]
 [string] focused
 [graph] '(r<root> / focus-01 :ARG0 (s<subj>))--TYPE--(subj())'
 
-// coordinated infinitival VPs
+// ----------- coordinated infinitival VPs --------------
 
 Open_S_inf -> Coord_Open_S_inf(And_Open_S, Open_S_inf, Open_S_inf) [0.25]
 [string] *(?2, *(?1, ?3))
@@ -110,7 +109,7 @@ Open_S_fin -> Coord_3_Open_S_fin(And_Open_S_3, Open_S_fin, Open_S_fin, Open_S_fi
 
 // -------------------------- coordinated control verbs  --------------------------------------------
 
-// infinitival
+// ------ infinitival ------------
 
 SubjCtrl -> Coord_Subj_Ctrl_V(And_Subj_Control_Verb, SubjCtrl, SubjCtrl) [0.25]
 [string] *(?2, *(?1, ?3))
@@ -129,7 +128,7 @@ SubjCtrl -> Coord_3_Subj_Ctrl_V(And_Subj_Control_Verb_3, SubjCtrl, SubjCtrl, Sub
 //[string] *(?2, *(",", *(?3, *(",", *(?1, ?4)))))
 //[graph] APP_op1(APP_op2(APP_op3(?1, ?4), ?3), ?2)
 
-// finite
+// ------ finite ------------
 
 SubjCtrl_fin -> Coord_Subj_Ctrl_V_fin(And_Subj_Control_Verb, SubjCtrl_fin, SubjCtrl_fin) [0.25]
 [string] *(?2, *(?1, ?3))
@@ -182,7 +181,7 @@ And_Subj_Control_Verb_3 -> and_3_subj_control_verb [1.0]
 // -------------------------------- subject control verbs -------------------------------------------
 // add "to" here to reduce ambiguity
 
-// infinitival
+// --------- infinitival -------------
 
 SubjCtrl -> attempt [0.2]
 [string] *(attempt, to)
@@ -204,7 +203,7 @@ SubjCtrl -> refuse [0.2]
 [string] *(refuse, to)
 [graph] '(r<root> / refuse-01 :ARG0 (s<subj>) :ARG1 (o<obj>))--TYPE--(subj(), obj(subj))'
 
-// finite
+// ----------- finite ----------------
 
 SubjCtrl_fin -> attempted [0.2]
 [string] *(attempted, to)
@@ -232,7 +231,7 @@ SubjCtrl_fin -> refused [0.2]
 // -------------------------------- object control verbs --------------------------------------------
 // for these, add "to" at in ObjCtrlTbar since we can't add them here
 
-// infinitival
+// -------------- infinitival -------------------
 
 ObjCtrl -> persuade [0.34]
 [string] persuade
@@ -250,7 +249,7 @@ ObjCtrl -> force [0.33]
 [string] force
 [graph] '(r<root> / force-01 :ARG0 (s<subj>) :ARG1 (o<obj>) :ARG2 (o2<obj2>))--TYPE--(subj(), obj(), obj2(subj_UNIFY_obj))'
 
-// finite
+// ----------- finite ----------------
 
 ObjCtrl_fin -> persuaded [0.34]
 [string] persuaded
@@ -281,17 +280,18 @@ Subj -> boy [0.33]
 [string] *(The, boy)
 [graph] '(r<root> / boy)--TYPE--()'
 
+Subj -> kid [0.33]
+[string] *(The, kid)
+[graph] '(r<root> / kid)--TYPE--()'
+
 
 // -------------------------------- objects -------------------------------------------------
 // can be any kind of person, since we don't have pronouns otherwise.
+// Note: added more Oct 15. Weights all left at 0.2
 
 Obj -> you [0.2]
 [string] you
 [graph] '(r<root> / you)--TYPE--()'
-
-Obj -> me [0.2]
-[string] me
-[graph] '(r<root> / i)--TYPE--()'
 
 Obj -> monster [0.2]
 [string] *(the, monster)
@@ -305,3 +305,14 @@ Obj -> politician [0.2]
 [string] *(the, politician)
 [graph] '(r<root> / politician)--TYPE--()'
 
+Obj -> astronaut [0.2]
+[string] *(the, astronaut)
+[graph] '(a<root> / astronaut)'
+
+Obj -> lawyer [0.2]
+[string] *(the, lawyer)
+[graph] '(m<root> / lawyer)'
+
+Obj -> soldier [0.2]
+[string] *(the, soldier)
+[graph] '(s<root> / soldier)'
