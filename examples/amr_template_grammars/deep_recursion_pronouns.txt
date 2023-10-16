@@ -1,0 +1,602 @@
+# Randomly sampled examples of deep CP recursion (with 1st person singular/plural coreference). Created by a grammar. Here, size0 is the depth below the CP with the reentrancy (i.e., to get the recursion depth forthe reentrancy part, subtract 1 from the value of size0 given in this file). And size1 is the depth of the whole tree (to get the recursion depth of the tree in total, subtract 1 from size1).
+
+# ::snt The soldier knew that the men mentioned that we knew that we slept
+# ::tree TP_3p(knew,soldier,TP_3p(mentioned,men,TP_resolve_coref_1p(knew_resolve_coref,we,TP_intr_1p(we_slept))))
+# ::size0 2
+# ::size1 4
+(u_5055 / know-01  :ARG0 (s / soldier)  :ARG1 (u_5053 / mention-01  :ARG0 (r / man)  :ARG1 (u_5051 / know-01  :ARG0 (u_5054 / we  :ARG0-of (u_5052 / sleep-01  :ARG1-of u_5051)))))
+
+# ::snt We knew that we sneezed
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_intr_1p(we_sneezed))
+# ::size0 2
+# ::size1 2
+(u_5056 / know-01  :ARG0 (r / we  :ARG0-of (u_5057 / sneeze-01  :ARG1-of u_5056)))
+
+# ::snt The astronaut said that the boys believed that I knew that I slept
+# ::tree TP_3p(said,astronaut,TP_3p(believed,boys,TP_resolve_coref_1s(knew_resolve_coref,I,TP_intr_1s(I_slept))))
+# ::size0 2
+# ::size1 4
+(u_5062 / say-01  :ARG0 (a / astronaut)  :ARG1 (u_5060 / believe-01  :ARG0 (r / boy)  :ARG1 (u_5058 / know-01  :ARG0 (u_5061 / i  :ARG0-of (u_5059 / sleep-01  :ARG1-of u_5058)))))
+
+# ::snt You mentioned that the doctor hated you
+# ::tree TP_resolve_coref_2(mentioned_resolve_coref,you,TP_tr_2(hated_you,doctor))
+# ::size0 2
+# ::size1 2
+(u_5063 / mention-01  :ARG0 (r / you  :ARG1-of (u_5064 / hate-01  :ARG0 (d / doctor)  :ARG1-of u_5063)))
+
+# ::snt We believed that you believed that the women believed that I knew that the soldier hated me
+# ::tree TP_1p(believed,we,TP_2(believed,you,TP_3p(believed,women,TP_resolve_coref_1s(knew_resolve_coref,I,TP_tr_1s(hated_me,soldier)))))
+# ::size0 2
+# ::size1 5
+(u_5073 / believe-01  :ARG0 (r / we)  :ARG1 (u_5070 / believe-01  :ARG0 (u_5075 / you)  :ARG1 (u_5067 / believe-01  :ARG0 (u_5072 / woman)  :ARG1 (u_5065 / know-01  :ARG0 (u_5069 / i  :ARG1-of (u_5066 / hate-01  :ARG0 (s / soldier)  :ARG1-of u_5065))))))
+
+# ::snt You thought that the girls believed that we said that we sneezed
+# ::tree TP_2(thought,you,TP_3p(believed,girls,TP_resolve_coref_1p(said_resolve_coref,we,TP_intr_1p(we_sneezed))))
+# ::size0 2
+# ::size1 4
+(u_5080 / think-01  :ARG0 (r / you)  :ARG1 (u_5078 / believe-01  :ARG0 (u_5081 / girl)  :ARG1 (u_5076 / say-01  :ARG0 (u_5079 / we  :ARG0-of (u_5077 / sneeze-01  :ARG1-of u_5076)))))
+
+# ::snt I thought that the lawyer liked me
+# ::tree TP_resolve_coref_1s(thought_resolve_coref,I,TP_tr_1s(liked_me,lawyer))
+# ::size0 2
+# ::size1 2
+(u_5082 / think-01  :ARG0 (r / i  :ARG1-of (u_5083 / like-01  :ARG0 (m / lawyer)  :ARG1-of u_5082)))
+
+# ::snt I heard that the men liked me
+# ::tree TP_resolve_coref_1s(heard_resolve_coref,I,TP_tr_1s(liked_me,men))
+# ::size0 2
+# ::size1 2
+(u_5085 / hear-01  :ARG0 (r / i  :ARG1-of (u_5084 / like-01  :ARG0 (u_5086 / man)  :ARG1-of u_5085)))
+
+# ::snt The soldier knew that we heard that we sneezed
+# ::tree TP_3p(knew,soldier,TP_resolve_coref_1p(heard_resolve_coref,we,TP_intr_1p(we_sneezed)))
+# ::size0 2
+# ::size1 3
+(u_5089 / know-01  :ARG0 (s / soldier)  :ARG1 (u_5087 / hear-01  :ARG0 (r / we  :ARG0-of (u_5088 / sneeze-01  :ARG1-of u_5087))))
+
+# ::snt The soldier heard that you said that you sneezed
+# ::tree TP_3p(heard,soldier,TP_resolve_coref_2(said_resolve_coref,you,TP_intr_2(you_sneezed)))
+# ::size0 2
+# ::size1 3
+(u_5092 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_5090 / say-01  :ARG0 (r / you  :ARG0-of (u_5091 / sneeze-01  :ARG1-of u_5090))))
+
+# ::snt We mentioned that the soldier mentioned that we slept
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(mentioned_coref,soldier,TP_intr_1p(we_slept)))
+# ::size0 3
+# ::size1 3
+(u_5096 / mention-01  :ARG0 (r / we  :ARG0-of (u_5097 / sleep-01  :ARG1-of (u_5093 / mention-01  :ARG0 (s / soldier)  :ARG1-of u_5096))))
+
+# ::snt We thought that the soldier heard that we slept
+# ::tree TP_resolve_coref_1p(thought_resolve_coref,we,TP_CP_1p(heard_coref,soldier,TP_intr_1p(we_slept)))
+# ::size0 3
+# ::size1 3
+(u_5101 / think-01  :ARG0 (r / we  :ARG0-of (u_5102 / sleep-01  :ARG1-of (u_5098 / hear-01  :ARG0 (s / soldier)  :ARG1-of u_5101))))
+
+# ::snt You thought that the boys heard that you sneezed
+# ::tree TP_resolve_coref_2(thought_resolve_coref,you,TP_CP_2(heard_coref,boys,TP_intr_2(you_sneezed)))
+# ::size0 3
+# ::size1 3
+(u_5106 / think-01  :ARG0 (r / you  :ARG0-of (u_5105 / sneeze-01  :ARG1-of (u_5103 / hear-01  :ARG0 (u_5107 / boy)  :ARG1-of u_5106))))
+
+# ::snt You mentioned that the boys thought that the soldier hated you
+# ::tree TP_resolve_coref_2(mentioned_resolve_coref,you,TP_CP_2(thought_coref,boys,TP_tr_2(hated_you,soldier)))
+# ::size0 3
+# ::size1 3
+(u_5111 / mention-01  :ARG0 (r / you  :ARG1-of (u_5110 / hate-01  :ARG0 (s / soldier)  :ARG1-of (u_5108 / think-01  :ARG0 (u_5112 / boy)  :ARG1-of u_5111))))
+
+# ::snt We knew that the women thought that the boys liked us
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_CP_1p(thought_coref,women,TP_tr_1p(liked_us,boys)))
+# ::size0 3
+# ::size1 3
+(u_5116 / know-01  :ARG0 (r / we  :ARG1-of (u_5113 / like-01  :ARG0 (u_5115 / boy)  :ARG1-of (u_5114 / think-01  :ARG0 (u_5117 / woman)  :ARG1-of u_5116))))
+
+# ::snt You knew that we said that you sneezed
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2_subj1p(said_coref,we,TP_intr_2(you_sneezed)))
+# ::size0 3
+# ::size1 3
+(u_5121 / know-01  :ARG0 (r / you  :ARG0-of (u_5120 / sneeze-01  :ARG1-of (u_5118 / say-01  :ARG0 (u_5122 / we)  :ARG1-of u_5121))))
+
+# ::snt The boys thought that you thought that we believed that I believed that the soldier liked us
+# ::tree TP_3p(thought,boys,TP_2(thought,you,TP_resolve_coref_1p(believed_resolve_coref,we,TP_CP_1p_subj1s(believed_coref,I,TP_tr_1p(liked_us,soldier)))))
+# ::size0 3
+# ::size1 5
+(u_5131 / think-01  :ARG0 (r / boy)  :ARG1 (u_5128 / think-01  :ARG0 (u_5133 / you)  :ARG1 (u_5126 / believe-01  :ARG0 (u_5130 / we  :ARG1-of (u_5125 / like-01  :ARG0 (s / soldier)  :ARG1-of (u_5123 / believe-01  :ARG0 (u_5127 / i)  :ARG1-of u_5126))))))
+
+# ::snt You thought that the soldier heard that we mentioned that I believed that the lawyer liked us
+# ::tree TP_2(thought,you,TP_3p(heard,soldier,TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p_subj1s(believed_coref,I,TP_tr_1p(liked_us,lawyer)))))
+# ::size0 3
+# ::size1 5
+(u_5139 / think-01  :ARG0 (r / you)  :ARG1 (u_5138 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_5136 / mention-01  :ARG0 (u_5141 / we  :ARG1-of (u_5135 / like-01  :ARG0 (m / lawyer)  :ARG1-of (u_5134 / believe-01  :ARG0 (u_5137 / i)  :ARG1-of u_5136))))))
+
+# ::snt You knew that the lawyer believed that the astronaut liked you
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2(believed_coref,lawyer,TP_tr_2(liked_you,astronaut)))
+# ::size0 3
+# ::size1 3
+(u_5143 / know-01  :ARG0 (r / you  :ARG1-of (u_5144 / like-01  :ARG0 (a / astronaut)  :ARG1-of (u_5142 / believe-01  :ARG0 (m / lawyer)  :ARG1-of u_5143))))
+
+# ::snt I mentioned that the astronaut thought that you said that the girls believed that you slept
+# ::tree TP_1s(mentioned,I,TP_3p(thought,astronaut,TP_resolve_coref_2(said_resolve_coref,you,TP_CP_2(believed_coref,girls,TP_intr_2(you_slept)))))
+# ::size0 3
+# ::size1 5
+(u_5151 / mention-01  :ARG0 (r / i)  :ARG1 (u_5150 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_5148 / say-01  :ARG0 (u_5152 / you  :ARG0-of (u_5147 / sleep-01  :ARG1-of (u_5145 / believe-01  :ARG0 (u_5149 / girl)  :ARG1-of u_5148))))))
+
+# ::snt The boys mentioned that I heard that we thought that the kids said that the soldier liked me
+# ::tree TP_3p(mentioned,boys,TP_resolve_coref_1s(heard_resolve_coref,I,TP_CP_1s_subj1p(thought_coref,we,TP_CP_1s(said_coref,kids,TP_tr_1s(liked_me,soldier)))))
+# ::size0 4
+# ::size1 5
+(u_5161 / mention-01  :ARG0 (r / boy)  :ARG1 (u_5159 / hear-01  :ARG0 (u_5163 / i  :ARG1-of (u_5155 / like-01  :ARG0 (s / soldier)  :ARG1-of (u_5153 / say-01  :ARG0 (u_5158 / kid)  :ARG1-of (u_5156 / think-01  :ARG0 (u_5160 / we)  :ARG1-of u_5159))))))
+
+# ::snt I said that you mentioned that we thought that the boys hated me
+# ::tree TP_resolve_coref_1s(said_resolve_coref,I,TP_CP_1s_subj2(mentioned_coref,you,TP_CP_1s_subj1p(thought_coref,we,TP_tr_1s(hated_me,boys))))
+# ::size0 4
+# ::size1 4
+(u_5169 / say-01  :ARG0 (r / i  :ARG1-of (u_5164 / hate-01  :ARG0 (u_5166 / boy)  :ARG1-of (u_5165 / think-01  :ARG0 (u_5168 / we)  :ARG1-of (u_5167 / mention-01  :ARG0 (u_5170 / you)  :ARG1-of u_5169)))))
+
+# ::snt We believed that the astronaut knew that I said that the girls said that the men said that I slept
+# ::tree TP_1p(believed,we,TP_3p(knew,astronaut,TP_resolve_coref_1s(said_resolve_coref,I,TP_CP_1s(said_coref,girls,TP_CP_1s(said_coref,men,TP_intr_1s(I_slept))))))
+# ::size0 4
+# ::size1 6
+(u_5180 / believe-01  :ARG0 (r / we)  :ARG1 (u_5179 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_5177 / say-01  :ARG0 (u_5181 / i  :ARG0-of (u_5173 / sleep-01  :ARG1-of (u_5171 / say-01  :ARG0 (u_5176 / man)  :ARG1-of (u_5174 / say-01  :ARG0 (u_5178 / girl)  :ARG1-of u_5177)))))))
+
+# ::snt The men heard that the doctor said that we thought that the soldier knew that the lawyer thought that we slept
+# ::tree TP_3p(heard,men,TP_3p(said,doctor,TP_resolve_coref_1p(thought_resolve_coref,we,TP_CP_1p(knew_coref,soldier,TP_CP_1p(thought_coref,lawyer,TP_intr_1p(we_slept))))))
+# ::size0 4
+# ::size1 6
+(u_5191 / hear-01  :ARG0 (r / man)  :ARG1 (u_5189 / say-01  :ARG0 (d / doctor)  :ARG1 (u_5187 / think-01  :ARG0 (u_5193 / we  :ARG0-of (u_5188 / sleep-01  :ARG1-of (u_5182 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_5184 / know-01  :ARG0 (s / soldier)  :ARG1-of u_5187)))))))
+
+# ::snt I mentioned that we knew that you believed that I slept
+# ::tree TP_resolve_coref_1s(mentioned_resolve_coref,I,TP_CP_1s_subj1p(knew_coref,we,TP_CP_1s_subj2(believed_coref,you,TP_intr_1s(I_slept))))
+# ::size0 4
+# ::size1 4
+(u_5200 / mention-01  :ARG0 (r / i  :ARG0-of (u_5196 / sleep-01  :ARG1-of (u_5194 / believe-01  :ARG0 (u_5199 / you)  :ARG1-of (u_5197 / know-01  :ARG0 (u_5201 / we)  :ARG1-of u_5200)))))
+
+# ::snt We said that the astronaut thought that I thought that the girls liked us
+# ::tree TP_resolve_coref_1p(said_resolve_coref,we,TP_CP_1p(thought_coref,astronaut,TP_CP_1p_subj1s(thought_coref,I,TP_tr_1p(liked_us,girls))))
+# ::size0 4
+# ::size1 4
+(u_5206 / say-01  :ARG0 (r / we  :ARG1-of (u_5202 / like-01  :ARG0 (u_5204 / girl)  :ARG1-of (u_5203 / think-01  :ARG0 (u_5207 / i)  :ARG1-of (u_5205 / think-01  :ARG0 (a / astronaut)  :ARG1-of u_5206)))))
+
+# ::snt We heard that I believed that you thought that we sneezed
+# ::tree TP_resolve_coref_1p(heard_resolve_coref,we,TP_CP_1p_subj1s(believed_coref,I,TP_CP_1p_subj2(thought_coref,you,TP_intr_1p(we_sneezed))))
+# ::size0 4
+# ::size1 4
+(u_5214 / hear-01  :ARG0 (r / we  :ARG0-of (u_5210 / sneeze-01  :ARG1-of (u_5208 / think-01  :ARG0 (u_5213 / you)  :ARG1-of (u_5211 / believe-01  :ARG0 (u_5215 / i)  :ARG1-of u_5214)))))
+
+# ::snt We thought that the lawyer heard that the girls thought that we slept
+# ::tree TP_resolve_coref_1p(thought_resolve_coref,we,TP_CP_1p(heard_coref,lawyer,TP_CP_1p(thought_coref,girls,TP_intr_1p(we_slept))))
+# ::size0 4
+# ::size1 4
+(u_5221 / think-01  :ARG0 (r / we  :ARG0-of (u_5218 / sleep-01  :ARG1-of (u_5216 / think-01  :ARG0 (u_5222 / girl)  :ARG1-of (u_5219 / hear-01  :ARG0 (m / lawyer)  :ARG1-of u_5221)))))
+
+# ::snt I mentioned that the astronaut believed that the girls mentioned that the men liked me
+# ::tree TP_resolve_coref_1s(mentioned_resolve_coref,I,TP_CP_1s(believed_coref,astronaut,TP_CP_1s(mentioned_coref,girls,TP_tr_1s(liked_me,men))))
+# ::size0 4
+# ::size1 4
+(u_5227 / mention-01  :ARG0 (r / i  :ARG1-of (u_5223 / like-01  :ARG0 (u_5225 / man)  :ARG1-of (u_5224 / mention-01  :ARG0 (u_5228 / girl)  :ARG1-of (u_5226 / believe-01  :ARG0 (a / astronaut)  :ARG1-of u_5227)))))
+
+# ::snt I believed that the boys thought that we thought that the astronaut hated me
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_CP_1s(thought_coref,boys,TP_CP_1s_subj1p(thought_coref,we,TP_tr_1s(hated_me,astronaut))))
+# ::size0 4
+# ::size1 4
+(u_5233 / believe-01  :ARG0 (r / i  :ARG1-of (u_5230 / hate-01  :ARG0 (a / astronaut)  :ARG1-of (u_5229 / think-01  :ARG0 (u_5232 / we)  :ARG1-of (u_5231 / think-01  :ARG0 (u_5234 / boy)  :ARG1-of u_5233)))))
+
+# ::snt The doctor heard that the soldier thought that we mentioned that you mentioned that I believed that the boys believed that the girls liked us
+# ::tree TP_3p(heard,doctor,TP_3p(thought,soldier,TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p_subj2(mentioned_coref,you,TP_CP_1p_subj1s(believed_coref,I,TP_CP_1p(believed_coref,boys,TP_tr_1p(liked_us,girls)))))))
+# ::size0 5
+# ::size1 7
+(u_5245 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_5244 / think-01  :ARG0 (s / soldier)  :ARG1 (u_5242 / mention-01  :ARG0 (r / we  :ARG1-of (u_5235 / like-01  :ARG0 (u_5237 / girl)  :ARG1-of (u_5236 / believe-01  :ARG0 (u_5239 / boy)  :ARG1-of (u_5238 / believe-01  :ARG0 (u_5241 / i)  :ARG1-of (u_5240 / mention-01  :ARG0 (u_5243 / you)  :ARG1-of u_5242))))))))
+
+# ::snt You mentioned that the doctor heard that I said that the men believed that the lawyer liked you
+# ::tree TP_resolve_coref_2(mentioned_resolve_coref,you,TP_CP_2(heard_coref,doctor,TP_CP_2_subj1s(said_coref,I,TP_CP_2(believed_coref,men,TP_tr_2(liked_you,lawyer)))))
+# ::size0 5
+# ::size1 5
+(u_5252 / mention-01  :ARG0 (r / you  :ARG1-of (u_5248 / like-01  :ARG0 (m / lawyer)  :ARG1-of (u_5247 / believe-01  :ARG0 (u_5250 / man)  :ARG1-of (u_5249 / say-01  :ARG0 (u_5253 / i)  :ARG1-of (u_5251 / hear-01  :ARG0 (d / doctor)  :ARG1-of u_5252))))))
+
+# ::snt I believed that the women said that the kids knew that the astronaut believed that I slept
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_CP_1s(said_coref,women,TP_CP_1s(knew_coref,kids,TP_CP_1s(believed_coref,astronaut,TP_intr_1s(I_slept)))))
+# ::size0 5
+# ::size1 5
+(u_5262 / believe-01  :ARG0 (r / i  :ARG0-of (u_5258 / sleep-01  :ARG1-of (u_5254 / believe-01  :ARG0 (a / astronaut)  :ARG1-of (u_5256 / know-01  :ARG0 (u_5261 / kid)  :ARG1-of (u_5259 / say-01  :ARG0 (u_5263 / woman)  :ARG1-of u_5262))))))
+
+# ::snt I believed that you knew that we said that the women thought that I sneezed
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_CP_1s_subj2(knew_coref,you,TP_CP_1s_subj1p(said_coref,we,TP_CP_1s(thought_coref,women,TP_intr_1s(I_sneezed)))))
+# ::size0 5
+# ::size1 5
+(u_5273 / believe-01  :ARG0 (r / i  :ARG0-of (u_5266 / sneeze-01  :ARG1-of (u_5264 / think-01  :ARG0 (u_5269 / woman)  :ARG1-of (u_5267 / say-01  :ARG0 (u_5272 / we)  :ARG1-of (u_5270 / know-01  :ARG0 (u_5274 / you)  :ARG1-of u_5273))))))
+
+# ::snt We knew that the soldier heard that the women heard that the doctor mentioned that we slept
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_CP_1p(heard_coref,soldier,TP_CP_1p(heard_coref,women,TP_CP_1p(mentioned_coref,doctor,TP_intr_1p(we_slept)))))
+# ::size0 5
+# ::size1 5
+(u_5283 / know-01  :ARG0 (r / we  :ARG0-of (u_5279 / sleep-01  :ARG1-of (u_5275 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_5277 / hear-01  :ARG0 (u_5284 / woman)  :ARG1-of (u_5280 / hear-01  :ARG0 (s / soldier)  :ARG1-of u_5283))))))
+
+# ::snt I mentioned that the women knew that the astronaut mentioned that the soldier knew that I slept
+# ::tree TP_resolve_coref_1s(mentioned_resolve_coref,I,TP_CP_1s(knew_coref,women,TP_CP_1s(mentioned_coref,astronaut,TP_CP_1s(knew_coref,soldier,TP_intr_1s(I_slept)))))
+# ::size0 5
+# ::size1 5
+(u_5293 / mention-01  :ARG0 (r / i  :ARG0-of (u_5292 / sleep-01  :ARG1-of (u_5285 / know-01  :ARG0 (s / soldier)  :ARG1-of (u_5288 / mention-01  :ARG0 (a / astronaut)  :ARG1-of (u_5290 / know-01  :ARG0 (u_5294 / woman)  :ARG1-of u_5293))))))
+
+# ::snt The girls said that I mentioned that the kids thought that we believed that the women believed that the astronaut liked me
+# ::tree TP_3p(said,girls,TP_resolve_coref_1s(mentioned_resolve_coref,I,TP_CP_1s(thought_coref,kids,TP_CP_1s_subj1p(believed_coref,we,TP_CP_1s(believed_coref,women,TP_tr_1s(liked_me,astronaut))))))
+# ::size0 5
+# ::size1 6
+(u_5303 / say-01  :ARG0 (r / girl)  :ARG1 (u_5301 / mention-01  :ARG0 (u_5304 / i  :ARG1-of (u_5296 / like-01  :ARG0 (a / astronaut)  :ARG1-of (u_5295 / believe-01  :ARG0 (u_5298 / woman)  :ARG1-of (u_5297 / believe-01  :ARG0 (u_5300 / we)  :ARG1-of (u_5299 / think-01  :ARG0 (u_5302 / kid)  :ARG1-of u_5301)))))))
+
+# ::snt We knew that the lawyer heard that the soldier said that you said that we sneezed
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_CP_1p(heard_coref,lawyer,TP_CP_1p(said_coref,soldier,TP_CP_1p_subj2(said_coref,you,TP_intr_1p(we_sneezed)))))
+# ::size0 5
+# ::size1 5
+(u_5313 / know-01  :ARG0 (r / we  :ARG0-of (u_5307 / sneeze-01  :ARG1-of (u_5305 / say-01  :ARG0 (u_5314 / you)  :ARG1-of (u_5308 / say-01  :ARG0 (s / soldier)  :ARG1-of (u_5311 / hear-01  :ARG0 (m / lawyer)  :ARG1-of u_5313))))))
+
+# ::snt We mentioned that you mentioned that the kids said that the girls knew that the soldier hated us
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p_subj2(mentioned_coref,you,TP_CP_1p(said_coref,kids,TP_CP_1p(knew_coref,girls,TP_tr_1p(hated_us,soldier)))))
+# ::size0 5
+# ::size1 5
+(u_5324 / mention-01  :ARG0 (r / we  :ARG1-of (u_5317 / hate-01  :ARG0 (s / soldier)  :ARG1-of (u_5315 / know-01  :ARG0 (u_5320 / girl)  :ARG1-of (u_5318 / say-01  :ARG0 (u_5323 / kid)  :ARG1-of (u_5321 / mention-01  :ARG0 (u_5325 / you)  :ARG1-of u_5324))))))
+
+# ::snt We said that the women mentioned that the boys knew that the girls knew that we sneezed
+# ::tree TP_resolve_coref_1p(said_resolve_coref,we,TP_CP_1p(mentioned_coref,women,TP_CP_1p(knew_coref,boys,TP_CP_1p(knew_coref,girls,TP_intr_1p(we_sneezed)))))
+# ::size0 5
+# ::size1 5
+(u_5335 / say-01  :ARG0 (r / we  :ARG0-of (u_5328 / sneeze-01  :ARG1-of (u_5326 / know-01  :ARG0 (u_5331 / girl)  :ARG1-of (u_5329 / know-01  :ARG0 (u_5334 / boy)  :ARG1-of (u_5332 / mention-01  :ARG0 (u_5336 / woman)  :ARG1-of u_5335))))))
+
+# ::snt We believed that the kids thought that the girls said that you said that I thought that we slept
+# ::tree TP_resolve_coref_1p(believed_resolve_coref,we,TP_CP_1p(thought_coref,kids,TP_CP_1p(said_coref,girls,TP_CP_1p_subj2(said_coref,you,TP_CP_1p_subj1s(thought_coref,I,TP_intr_1p(we_slept))))))
+# ::size0 6
+# ::size1 6
+(u_5349 / believe-01  :ARG0 (r / we  :ARG0-of (u_5339 / sleep-01  :ARG1-of (u_5337 / think-01  :ARG0 (u_5342 / i)  :ARG1-of (u_5340 / say-01  :ARG0 (u_5345 / you)  :ARG1-of (u_5343 / say-01  :ARG0 (u_5348 / girl)  :ARG1-of (u_5346 / think-01  :ARG0 (u_5350 / kid)  :ARG1-of u_5349)))))))
+
+# ::snt The lawyer said that you knew that the girls knew that the kids knew that we knew that the boys knew that you sneezed
+# ::tree TP_3p(said,lawyer,TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2(knew_coref,girls,TP_CP_2(knew_coref,kids,TP_CP_2_subj1p(knew_coref,we,TP_CP_2(knew_coref,boys,TP_intr_2(you_sneezed)))))))
+# ::size0 6
+# ::size1 7
+(u_5365 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_5363 / know-01  :ARG0 (r / you  :ARG0-of (u_5353 / sneeze-01  :ARG1-of (u_5351 / know-01  :ARG0 (u_5356 / boy)  :ARG1-of (u_5354 / know-01  :ARG0 (u_5359 / we)  :ARG1-of (u_5357 / know-01  :ARG0 (u_5362 / kid)  :ARG1-of (u_5360 / know-01  :ARG0 (u_5364 / girl)  :ARG1-of u_5363))))))))
+
+# ::snt We knew that the astronaut heard that I mentioned that the soldier heard that the kids mentioned that the women liked us
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_CP_1p(heard_coref,astronaut,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(heard_coref,soldier,TP_CP_1p(mentioned_coref,kids,TP_tr_1p(liked_us,women))))))
+# ::size0 6
+# ::size1 6
+(u_5375 / know-01  :ARG0 (r / we  :ARG1-of (u_5366 / like-01  :ARG0 (u_5368 / woman)  :ARG1-of (u_5367 / mention-01  :ARG0 (u_5372 / kid)  :ARG1-of (u_5369 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_5370 / mention-01  :ARG0 (u_5376 / i)  :ARG1-of (u_5373 / hear-01  :ARG0 (a / astronaut)  :ARG1-of u_5375)))))))
+
+# ::snt The doctor mentioned that we mentioned that the astronaut knew that I thought that the kids knew that the boys knew that the soldier knew that the women knew that the men hated me
+# ::tree TP_3p(mentioned,doctor,TP_1p(mentioned,we,TP_3p(knew,astronaut,TP_resolve_coref_1s(thought_resolve_coref,I,TP_CP_1s(knew_coref,kids,TP_CP_1s(knew_coref,boys,TP_CP_1s(knew_coref,soldier,TP_CP_1s(knew_coref,women,TP_tr_1s(hated_me,men)))))))))
+# ::size0 6
+# ::size1 9
+(u_5394 / mention-01  :ARG0 (d / doctor)  :ARG1 (u_5391 / mention-01  :ARG0 (r / we)  :ARG1 (u_5389 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_5387 / think-01  :ARG0 (u_5393 / i  :ARG1-of (u_5377 / hate-01  :ARG0 (u_5379 / man)  :ARG1-of (u_5378 / know-01  :ARG0 (u_5383 / woman)  :ARG1-of (u_5380 / know-01  :ARG0 (s / soldier)  :ARG1-of (u_5381 / know-01  :ARG0 (u_5386 / boy)  :ARG1-of (u_5384 / know-01  :ARG0 (u_5388 / kid)  :ARG1-of u_5387))))))))))
+
+# ::snt I thought that the boys knew that we heard that the women heard that you knew that I sneezed
+# ::tree TP_resolve_coref_1s(thought_resolve_coref,I,TP_CP_1s(knew_coref,boys,TP_CP_1s_subj1p(heard_coref,we,TP_CP_1s(heard_coref,women,TP_CP_1s_subj2(knew_coref,you,TP_intr_1s(I_sneezed))))))
+# ::size0 6
+# ::size1 6
+(u_5408 / think-01  :ARG0 (r / i  :ARG0-of (u_5398 / sneeze-01  :ARG1-of (u_5396 / know-01  :ARG0 (u_5401 / you)  :ARG1-of (u_5399 / hear-01  :ARG0 (u_5404 / woman)  :ARG1-of (u_5402 / hear-01  :ARG0 (u_5407 / we)  :ARG1-of (u_5405 / know-01  :ARG0 (u_5409 / boy)  :ARG1-of u_5408)))))))
+
+# ::snt We knew that you mentioned that the boys knew that the men believed that the girls said that we sneezed
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_CP_1p_subj2(mentioned_coref,you,TP_CP_1p(knew_coref,boys,TP_CP_1p(believed_coref,men,TP_CP_1p(said_coref,girls,TP_intr_1p(we_sneezed))))))
+# ::size0 6
+# ::size1 6
+(u_5422 / know-01  :ARG0 (r / we  :ARG0-of (u_5412 / sneeze-01  :ARG1-of (u_5410 / say-01  :ARG0 (u_5415 / girl)  :ARG1-of (u_5413 / believe-01  :ARG0 (u_5418 / man)  :ARG1-of (u_5416 / know-01  :ARG0 (u_5421 / boy)  :ARG1-of (u_5419 / mention-01  :ARG0 (u_5423 / you)  :ARG1-of u_5422)))))))
+
+# ::snt We thought that I believed that the soldier knew that the men thought that the women believed that we slept
+# ::tree TP_resolve_coref_1p(thought_resolve_coref,we,TP_CP_1p_subj1s(believed_coref,I,TP_CP_1p(knew_coref,soldier,TP_CP_1p(thought_coref,men,TP_CP_1p(believed_coref,women,TP_intr_1p(we_slept))))))
+# ::size0 6
+# ::size1 6
+(u_5436 / think-01  :ARG0 (r / we  :ARG0-of (u_5426 / sleep-01  :ARG1-of (u_5424 / believe-01  :ARG0 (u_5429 / woman)  :ARG1-of (u_5427 / think-01  :ARG0 (u_5435 / man)  :ARG1-of (u_5430 / know-01  :ARG0 (s / soldier)  :ARG1-of (u_5433 / believe-01  :ARG0 (u_5437 / i)  :ARG1-of u_5436)))))))
+
+# ::snt We knew that I said that the men mentioned that the doctor heard that the astronaut heard that we slept
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_CP_1p_subj1s(said_coref,I,TP_CP_1p(mentioned_coref,men,TP_CP_1p(heard_coref,doctor,TP_CP_1p(heard_coref,astronaut,TP_intr_1p(we_slept))))))
+# ::size0 6
+# ::size1 6
+(u_5448 / know-01  :ARG0 (r / we  :ARG0-of (u_5444 / sleep-01  :ARG1-of (u_5438 / hear-01  :ARG0 (a / astronaut)  :ARG1-of (u_5440 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_5442 / mention-01  :ARG0 (u_5447 / man)  :ARG1-of (u_5445 / say-01  :ARG0 (u_5449 / i)  :ARG1-of u_5448)))))))
+
+# ::snt You knew that the kids mentioned that the men knew that the lawyer knew that the women believed that you sneezed
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2(mentioned_coref,kids,TP_CP_2(knew_coref,men,TP_CP_2(knew_coref,lawyer,TP_CP_2(believed_coref,women,TP_intr_2(you_sneezed))))))
+# ::size0 6
+# ::size1 6
+(u_5461 / know-01  :ARG0 (r / you  :ARG0-of (u_5452 / sneeze-01  :ARG1-of (u_5450 / believe-01  :ARG0 (u_5457 / woman)  :ARG1-of (u_5453 / know-01  :ARG0 (m / lawyer)  :ARG1-of (u_5455 / know-01  :ARG0 (u_5460 / man)  :ARG1-of (u_5458 / mention-01  :ARG0 (u_5462 / kid)  :ARG1-of u_5461)))))))
+
+# ::snt The lawyer said that you believed that the girls mentioned that the doctor heard that the boys said that we believed that you slept
+# ::tree TP_3p(said,lawyer,TP_resolve_coref_2(believed_resolve_coref,you,TP_CP_2(mentioned_coref,girls,TP_CP_2(heard_coref,doctor,TP_CP_2(said_coref,boys,TP_CP_2_subj1p(believed_coref,we,TP_intr_2(you_slept)))))))
+# ::size0 6
+# ::size1 7
+(u_5476 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_5474 / believe-01  :ARG0 (r / you  :ARG0-of (u_5465 / sleep-01  :ARG1-of (u_5463 / believe-01  :ARG0 (u_5468 / we)  :ARG1-of (u_5466 / say-01  :ARG0 (u_5473 / boy)  :ARG1-of (u_5469 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_5471 / mention-01  :ARG0 (u_5475 / girl)  :ARG1-of u_5474))))))))
+
+# ::snt We heard that the men knew that I knew that the astronaut said that the women mentioned that you thought that we slept
+# ::tree TP_resolve_coref_1p(heard_resolve_coref,we,TP_CP_1p(knew_coref,men,TP_CP_1p_subj1s(knew_coref,I,TP_CP_1p(said_coref,astronaut,TP_CP_1p(mentioned_coref,women,TP_CP_1p_subj2(thought_coref,you,TP_intr_1p(we_slept)))))))
+# ::size0 7
+# ::size1 7
+(u_5491 / hear-01  :ARG0 (r / we  :ARG0-of (u_5479 / sleep-01  :ARG1-of (u_5477 / think-01  :ARG0 (u_5482 / you)  :ARG1-of (u_5480 / mention-01  :ARG0 (u_5487 / woman)  :ARG1-of (u_5483 / say-01  :ARG0 (a / astronaut)  :ARG1-of (u_5485 / know-01  :ARG0 (u_5490 / i)  :ARG1-of (u_5488 / know-01  :ARG0 (u_5492 / man)  :ARG1-of u_5491))))))))
+
+# ::snt We believed that the kids said that the women said that the girls said that I mentioned that the boys thought that the soldier hated us
+# ::tree TP_resolve_coref_1p(believed_resolve_coref,we,TP_CP_1p(said_coref,kids,TP_CP_1p(said_coref,women,TP_CP_1p(said_coref,girls,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(thought_coref,boys,TP_tr_1p(hated_us,soldier)))))))
+# ::size0 7
+# ::size1 7
+(u_5508 / believe-01  :ARG0 (r / we  :ARG1-of (u_5495 / hate-01  :ARG0 (s / soldier)  :ARG1-of (u_5493 / think-01  :ARG0 (u_5498 / boy)  :ARG1-of (u_5496 / mention-01  :ARG0 (u_5501 / i)  :ARG1-of (u_5499 / say-01  :ARG0 (u_5504 / girl)  :ARG1-of (u_5502 / say-01  :ARG0 (u_5507 / woman)  :ARG1-of (u_5505 / say-01  :ARG0 (u_5509 / kid)  :ARG1-of u_5508))))))))
+
+# ::snt We mentioned that you mentioned that the astronaut thought that I mentioned that the soldier believed that the lawyer heard that we sneezed
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p_subj2(mentioned_coref,you,TP_CP_1p(thought_coref,astronaut,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(believed_coref,soldier,TP_CP_1p(heard_coref,lawyer,TP_intr_1p(we_sneezed)))))))
+# ::size0 7
+# ::size1 7
+(u_5523 / mention-01  :ARG0 (r / we  :ARG0-of (u_5517 / sneeze-01  :ARG1-of (u_5510 / hear-01  :ARG0 (m / lawyer)  :ARG1-of (u_5512 / believe-01  :ARG0 (s / soldier)  :ARG1-of (u_5515 / mention-01  :ARG0 (u_5522 / i)  :ARG1-of (u_5518 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_5520 / mention-01  :ARG0 (u_5524 / you)  :ARG1-of u_5523))))))))
+
+# ::snt You thought that we believed that the soldier heard that the girls thought that the lawyer said that the kids thought that the men hated you
+# ::tree TP_resolve_coref_2(thought_resolve_coref,you,TP_CP_2_subj1p(believed_coref,we,TP_CP_2(heard_coref,soldier,TP_CP_2(thought_coref,girls,TP_CP_2(said_coref,lawyer,TP_CP_2(thought_coref,kids,TP_tr_2(hated_you,men)))))))
+# ::size0 7
+# ::size1 7
+(u_5535 / think-01  :ARG0 (r / you  :ARG1-of (u_5525 / hate-01  :ARG0 (u_5527 / man)  :ARG1-of (u_5526 / think-01  :ARG0 (u_5530 / kid)  :ARG1-of (u_5528 / say-01  :ARG0 (m / lawyer)  :ARG1-of (u_5529 / think-01  :ARG0 (u_5534 / girl)  :ARG1-of (u_5531 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_5532 / believe-01  :ARG0 (u_5536 / we)  :ARG1-of u_5535))))))))
+
+# ::snt We believed that I heard that the doctor knew that the astronaut mentioned that you knew that the girls mentioned that the kids liked us
+# ::tree TP_resolve_coref_1p(believed_resolve_coref,we,TP_CP_1p_subj1s(heard_coref,I,TP_CP_1p(knew_coref,doctor,TP_CP_1p(mentioned_coref,astronaut,TP_CP_1p_subj2(knew_coref,you,TP_CP_1p(mentioned_coref,girls,TP_tr_1p(liked_us,kids)))))))
+# ::size0 7
+# ::size1 7
+(u_5546 / believe-01  :ARG0 (r / we  :ARG1-of (u_5537 / like-01  :ARG0 (u_5539 / kid)  :ARG1-of (u_5538 / mention-01  :ARG0 (u_5541 / girl)  :ARG1-of (u_5540 / know-01  :ARG0 (u_5545 / you)  :ARG1-of (u_5542 / mention-01  :ARG0 (a / astronaut)  :ARG1-of (u_5543 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_5544 / hear-01  :ARG0 (u_5547 / i)  :ARG1-of u_5546))))))))
+
+# ::snt You knew that we heard that the women believed that the boys mentioned that the lawyer said that I heard that you slept
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2_subj1p(heard_coref,we,TP_CP_2(believed_coref,women,TP_CP_2(mentioned_coref,boys,TP_CP_2(said_coref,lawyer,TP_CP_2_subj1s(heard_coref,I,TP_intr_2(you_slept)))))))
+# ::size0 7
+# ::size1 7
+(u_5562 / know-01  :ARG0 (r / you  :ARG0-of (u_5550 / sleep-01  :ARG1-of (u_5548 / hear-01  :ARG0 (u_5555 / i)  :ARG1-of (u_5551 / say-01  :ARG0 (m / lawyer)  :ARG1-of (u_5553 / mention-01  :ARG0 (u_5558 / boy)  :ARG1-of (u_5556 / believe-01  :ARG0 (u_5561 / woman)  :ARG1-of (u_5559 / hear-01  :ARG0 (u_5563 / we)  :ARG1-of u_5562))))))))
+
+# ::snt We mentioned that you believed that the girls said that the men believed that the doctor heard that I mentioned that the soldier hated us
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p_subj2(believed_coref,you,TP_CP_1p(said_coref,girls,TP_CP_1p(believed_coref,men,TP_CP_1p(heard_coref,doctor,TP_CP_1p_subj1s(mentioned_coref,I,TP_tr_1p(hated_us,soldier)))))))
+# ::size0 7
+# ::size1 7
+(u_5578 / mention-01  :ARG0 (r / we  :ARG1-of (u_5566 / hate-01  :ARG0 (s / soldier)  :ARG1-of (u_5564 / mention-01  :ARG0 (u_5571 / i)  :ARG1-of (u_5567 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_5569 / believe-01  :ARG0 (u_5574 / man)  :ARG1-of (u_5572 / say-01  :ARG0 (u_5577 / girl)  :ARG1-of (u_5575 / believe-01  :ARG0 (u_5579 / you)  :ARG1-of u_5578))))))))
+
+# ::snt I thought that we said that the lawyer said that the kids thought that the doctor thought that the astronaut mentioned that the women liked me
+# ::tree TP_resolve_coref_1s(thought_resolve_coref,I,TP_CP_1s_subj1p(said_coref,we,TP_CP_1s(said_coref,lawyer,TP_CP_1s(thought_coref,kids,TP_CP_1s(thought_coref,doctor,TP_CP_1s(mentioned_coref,astronaut,TP_tr_1s(liked_me,women)))))))
+# ::size0 7
+# ::size1 7
+(u_5588 / think-01  :ARG0 (r / i  :ARG1-of (u_5580 / like-01  :ARG0 (u_5584 / woman)  :ARG1-of (u_5581 / mention-01  :ARG0 (a / astronaut)  :ARG1-of (u_5582 / think-01  :ARG0 (d / doctor)  :ARG1-of (u_5583 / think-01  :ARG0 (u_5587 / kid)  :ARG1-of (u_5585 / say-01  :ARG0 (m / lawyer)  :ARG1-of (u_5586 / say-01  :ARG0 (u_5589 / we)  :ARG1-of u_5588))))))))
+
+# ::snt I mentioned that the women knew that the kids knew that the men knew that the girls believed that we thought that I slept
+# ::tree TP_resolve_coref_1s(mentioned_resolve_coref,I,TP_CP_1s(knew_coref,women,TP_CP_1s(knew_coref,kids,TP_CP_1s(knew_coref,men,TP_CP_1s(believed_coref,girls,TP_CP_1s_subj1p(thought_coref,we,TP_intr_1s(I_slept)))))))
+# ::size0 7
+# ::size1 7
+(u_5605 / mention-01  :ARG0 (r / i  :ARG0-of (u_5592 / sleep-01  :ARG1-of (u_5590 / think-01  :ARG0 (u_5595 / we)  :ARG1-of (u_5593 / believe-01  :ARG0 (u_5598 / girl)  :ARG1-of (u_5596 / know-01  :ARG0 (u_5601 / man)  :ARG1-of (u_5599 / know-01  :ARG0 (u_5604 / kid)  :ARG1-of (u_5602 / know-01  :ARG0 (u_5606 / woman)  :ARG1-of u_5605))))))))
+
+# ::snt You thought that the lawyer knew that the girls mentioned that the doctor mentioned that the soldier knew that I thought that the astronaut liked you
+# ::tree TP_resolve_coref_2(thought_resolve_coref,you,TP_CP_2(knew_coref,lawyer,TP_CP_2(mentioned_coref,girls,TP_CP_2(mentioned_coref,doctor,TP_CP_2(knew_coref,soldier,TP_CP_2_subj1s(thought_coref,I,TP_tr_2(liked_you,astronaut)))))))
+# ::size0 7
+# ::size1 7
+(u_5617 / think-01  :ARG0 (r / you  :ARG1-of (u_5608 / like-01  :ARG0 (a / astronaut)  :ARG1-of (u_5607 / think-01  :ARG0 (u_5614 / i)  :ARG1-of (u_5609 / know-01  :ARG0 (s / soldier)  :ARG1-of (u_5610 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_5612 / mention-01  :ARG0 (u_5618 / girl)  :ARG1-of (u_5615 / know-01  :ARG0 (m / lawyer)  :ARG1-of u_5617))))))))
+
+# ::snt We mentioned that the doctor heard that the kids knew that the women thought that you thought that I mentioned that the astronaut knew that the lawyer hated us
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(heard_coref,doctor,TP_CP_1p(knew_coref,kids,TP_CP_1p(thought_coref,women,TP_CP_1p_subj2(thought_coref,you,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(knew_coref,astronaut,TP_tr_1p(hated_us,lawyer))))))))
+# ::size0 8
+# ::size1 8
+(u_5629 / mention-01  :ARG0 (r / we  :ARG1-of (u_5621 / hate-01  :ARG0 (m / lawyer)  :ARG1-of (u_5619 / know-01  :ARG0 (a / astronaut)  :ARG1-of (u_5620 / mention-01  :ARG0 (u_5623 / i)  :ARG1-of (u_5622 / think-01  :ARG0 (u_5625 / you)  :ARG1-of (u_5624 / think-01  :ARG0 (u_5627 / woman)  :ARG1-of (u_5626 / know-01  :ARG0 (u_5630 / kid)  :ARG1-of (u_5628 / hear-01  :ARG0 (d / doctor)  :ARG1-of u_5629)))))))))
+
+# ::snt We mentioned that the boys heard that the soldier thought that I believed that the women mentioned that the kids thought that the astronaut heard that we sneezed
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(heard_coref,boys,TP_CP_1p(thought_coref,soldier,TP_CP_1p_subj1s(believed_coref,I,TP_CP_1p(mentioned_coref,women,TP_CP_1p(thought_coref,kids,TP_CP_1p(heard_coref,astronaut,TP_intr_1p(we_sneezed))))))))
+# ::size0 8
+# ::size1 8
+(u_5648 / mention-01  :ARG0 (r / we  :ARG0-of (u_5635 / sneeze-01  :ARG1-of (u_5631 / hear-01  :ARG0 (a / astronaut)  :ARG1-of (u_5633 / think-01  :ARG0 (u_5638 / kid)  :ARG1-of (u_5636 / mention-01  :ARG0 (u_5641 / woman)  :ARG1-of (u_5639 / believe-01  :ARG0 (u_5647 / i)  :ARG1-of (u_5642 / think-01  :ARG0 (s / soldier)  :ARG1-of (u_5645 / hear-01  :ARG0 (u_5649 / boy)  :ARG1-of u_5648)))))))))
+
+# ::snt The kids thought that you mentioned that the soldier knew that we mentioned that the astronaut heard that the doctor believed that the women heard that I mentioned that the girls knew that the boys knew that the men liked us
+# ::tree TP_3p(thought,kids,TP_2(mentioned,you,TP_3p(knew,soldier,TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(heard_coref,astronaut,TP_CP_1p(believed_coref,doctor,TP_CP_1p(heard_coref,women,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(knew_coref,girls,TP_CP_1p(knew_coref,boys,TP_tr_1p(liked_us,men)))))))))))
+# ::size0 8
+# ::size1 11
+(u_5667 / think-01  :ARG0 (r / kid)  :ARG1 (u_5664 / mention-01  :ARG0 (u_5669 / you)  :ARG1 (u_5663 / know-01  :ARG0 (s / soldier)  :ARG1 (u_5661 / mention-01  :ARG0 (u_5666 / we  :ARG1-of (u_5650 / like-01  :ARG0 (u_5652 / man)  :ARG1-of (u_5651 / know-01  :ARG0 (u_5654 / boy)  :ARG1-of (u_5653 / know-01  :ARG0 (u_5656 / girl)  :ARG1-of (u_5655 / mention-01  :ARG0 (u_5658 / i)  :ARG1-of (u_5657 / hear-01  :ARG0 (u_5662 / woman)  :ARG1-of (u_5659 / believe-01  :ARG0 (d / doctor)  :ARG1-of (u_5660 / hear-01  :ARG0 (a / astronaut)  :ARG1-of u_5661))))))))))))
+
+# ::snt We heard that the girls knew that the boys heard that the astronaut mentioned that the soldier heard that the men believed that you heard that we sneezed
+# ::tree TP_resolve_coref_1p(heard_resolve_coref,we,TP_CP_1p(knew_coref,girls,TP_CP_1p(heard_coref,boys,TP_CP_1p(mentioned_coref,astronaut,TP_CP_1p(heard_coref,soldier,TP_CP_1p(believed_coref,men,TP_CP_1p_subj2(heard_coref,you,TP_intr_1p(we_sneezed))))))))
+# ::size0 8
+# ::size1 8
+(u_5687 / hear-01  :ARG0 (r / we  :ARG0-of (u_5672 / sneeze-01  :ARG1-of (u_5670 / hear-01  :ARG0 (u_5675 / you)  :ARG1-of (u_5673 / believe-01  :ARG0 (u_5683 / man)  :ARG1-of (u_5676 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_5679 / mention-01  :ARG0 (a / astronaut)  :ARG1-of (u_5681 / hear-01  :ARG0 (u_5686 / boy)  :ARG1-of (u_5684 / know-01  :ARG0 (u_5688 / girl)  :ARG1-of u_5687)))))))))
+
+# ::snt We believed that the women mentioned that I mentioned that the men knew that you thought that the girls believed that the astronaut said that we sneezed
+# ::tree TP_resolve_coref_1p(believed_resolve_coref,we,TP_CP_1p(mentioned_coref,women,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(knew_coref,men,TP_CP_1p_subj2(thought_coref,you,TP_CP_1p(believed_coref,girls,TP_CP_1p(said_coref,astronaut,TP_intr_1p(we_sneezed))))))))
+# ::size0 8
+# ::size1 8
+(u_5706 / believe-01  :ARG0 (r / we  :ARG0-of (u_5693 / sneeze-01  :ARG1-of (u_5689 / say-01  :ARG0 (a / astronaut)  :ARG1-of (u_5691 / believe-01  :ARG0 (u_5696 / girl)  :ARG1-of (u_5694 / think-01  :ARG0 (u_5699 / you)  :ARG1-of (u_5697 / know-01  :ARG0 (u_5702 / man)  :ARG1-of (u_5700 / mention-01  :ARG0 (u_5705 / i)  :ARG1-of (u_5703 / mention-01  :ARG0 (u_5707 / woman)  :ARG1-of u_5706)))))))))
+
+# ::snt We said that the girls knew that you thought that the doctor believed that the lawyer mentioned that I knew that the kids said that the astronaut liked us
+# ::tree TP_resolve_coref_1p(said_resolve_coref,we,TP_CP_1p(knew_coref,girls,TP_CP_1p_subj2(thought_coref,you,TP_CP_1p(believed_coref,doctor,TP_CP_1p(mentioned_coref,lawyer,TP_CP_1p_subj1s(knew_coref,I,TP_CP_1p(said_coref,kids,TP_tr_1p(liked_us,astronaut))))))))
+# ::size0 8
+# ::size1 8
+(u_5718 / say-01  :ARG0 (r / we  :ARG1-of (u_5709 / like-01  :ARG0 (a / astronaut)  :ARG1-of (u_5708 / say-01  :ARG0 (u_5711 / kid)  :ARG1-of (u_5710 / know-01  :ARG0 (u_5715 / i)  :ARG1-of (u_5712 / mention-01  :ARG0 (m / lawyer)  :ARG1-of (u_5713 / believe-01  :ARG0 (d / doctor)  :ARG1-of (u_5714 / think-01  :ARG0 (u_5717 / you)  :ARG1-of (u_5716 / know-01  :ARG0 (u_5719 / girl)  :ARG1-of u_5718)))))))))
+
+# ::snt The boys knew that you believed that we heard that I said that the girls heard that the kids believed that the lawyer knew that the doctor mentioned that you slept
+# ::tree TP_3p(knew,boys,TP_resolve_coref_2(believed_resolve_coref,you,TP_CP_2_subj1p(heard_coref,we,TP_CP_2_subj1s(said_coref,I,TP_CP_2(heard_coref,girls,TP_CP_2(believed_coref,kids,TP_CP_2(knew_coref,lawyer,TP_CP_2(mentioned_coref,doctor,TP_intr_2(you_slept)))))))))
+# ::size0 8
+# ::size1 9
+(u_5738 / know-01  :ARG0 (r / boy)  :ARG1 (u_5736 / believe-01  :ARG0 (u_5739 / you  :ARG0-of (u_5726 / sleep-01  :ARG1-of (u_5720 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_5722 / know-01  :ARG0 (m / lawyer)  :ARG1-of (u_5724 / believe-01  :ARG0 (u_5729 / kid)  :ARG1-of (u_5727 / hear-01  :ARG0 (u_5732 / girl)  :ARG1-of (u_5730 / say-01  :ARG0 (u_5735 / i)  :ARG1-of (u_5733 / hear-01  :ARG0 (u_5737 / we)  :ARG1-of u_5736))))))))))
+
+# ::snt I said that the soldier said that the boys believed that the astronaut knew that the girls knew that you believed that the men believed that the kids liked me
+# ::tree TP_resolve_coref_1s(said_resolve_coref,I,TP_CP_1s(said_coref,soldier,TP_CP_1s(believed_coref,boys,TP_CP_1s(knew_coref,astronaut,TP_CP_1s(knew_coref,girls,TP_CP_1s_subj2(believed_coref,you,TP_CP_1s(believed_coref,men,TP_tr_1s(liked_me,kids))))))))
+# ::size0 8
+# ::size1 8
+(u_5751 / say-01  :ARG0 (r / i  :ARG1-of (u_5740 / like-01  :ARG0 (u_5742 / kid)  :ARG1-of (u_5741 / believe-01  :ARG0 (u_5744 / man)  :ARG1-of (u_5743 / believe-01  :ARG0 (u_5746 / you)  :ARG1-of (u_5745 / know-01  :ARG0 (u_5749 / girl)  :ARG1-of (u_5747 / know-01  :ARG0 (a / astronaut)  :ARG1-of (u_5748 / believe-01  :ARG0 (u_5752 / boy)  :ARG1-of (u_5750 / say-01  :ARG0 (s / soldier)  :ARG1-of u_5751)))))))))
+
+# ::snt You said that the boys knew that the men heard that the lawyer believed that I thought that the doctor believed that we mentioned that you slept
+# ::tree TP_resolve_coref_2(said_resolve_coref,you,TP_CP_2(knew_coref,boys,TP_CP_2(heard_coref,men,TP_CP_2(believed_coref,lawyer,TP_CP_2_subj1s(thought_coref,I,TP_CP_2(believed_coref,doctor,TP_CP_2_subj1p(mentioned_coref,we,TP_intr_2(you_slept))))))))
+# ::size0 8
+# ::size1 8
+(u_5769 / say-01  :ARG0 (r / you  :ARG0-of (u_5755 / sleep-01  :ARG1-of (u_5753 / mention-01  :ARG0 (u_5760 / we)  :ARG1-of (u_5756 / believe-01  :ARG0 (d / doctor)  :ARG1-of (u_5758 / think-01  :ARG0 (u_5765 / i)  :ARG1-of (u_5761 / believe-01  :ARG0 (m / lawyer)  :ARG1-of (u_5763 / hear-01  :ARG0 (u_5768 / man)  :ARG1-of (u_5766 / know-01  :ARG0 (u_5770 / boy)  :ARG1-of u_5769)))))))))
+
+# ::snt We knew that the men knew that the boys believed that the soldier believed that I mentioned that the girls heard that the astronaut thought that we slept
+# ::tree TP_resolve_coref_1p(knew_resolve_coref,we,TP_CP_1p(knew_coref,men,TP_CP_1p(believed_coref,boys,TP_CP_1p(believed_coref,soldier,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(heard_coref,girls,TP_CP_1p(thought_coref,astronaut,TP_intr_1p(we_slept))))))))
+# ::size0 8
+# ::size1 8
+(u_5788 / know-01  :ARG0 (r / we  :ARG0-of (u_5775 / sleep-01  :ARG1-of (u_5771 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_5773 / hear-01  :ARG0 (u_5778 / girl)  :ARG1-of (u_5776 / mention-01  :ARG0 (u_5784 / i)  :ARG1-of (u_5779 / believe-01  :ARG0 (s / soldier)  :ARG1-of (u_5782 / believe-01  :ARG0 (u_5787 / boy)  :ARG1-of (u_5785 / know-01  :ARG0 (u_5789 / man)  :ARG1-of u_5788)))))))))
+
+# ::snt You knew that the astronaut said that we mentioned that the women knew that the girls said that the doctor heard that the men knew that the boys believed that you slept
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2(said_coref,astronaut,TP_CP_2_subj1p(mentioned_coref,we,TP_CP_2(knew_coref,women,TP_CP_2(said_coref,girls,TP_CP_2(heard_coref,doctor,TP_CP_2(knew_coref,men,TP_CP_2(believed_coref,boys,TP_intr_2(you_slept)))))))))
+# ::size0 9
+# ::size1 9
+(u_5809 / know-01  :ARG0 (r / you  :ARG0-of (u_5792 / sleep-01  :ARG1-of (u_5790 / believe-01  :ARG0 (u_5795 / boy)  :ARG1-of (u_5793 / know-01  :ARG0 (u_5800 / man)  :ARG1-of (u_5796 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_5798 / say-01  :ARG0 (u_5803 / girl)  :ARG1-of (u_5801 / know-01  :ARG0 (u_5806 / woman)  :ARG1-of (u_5804 / mention-01  :ARG0 (u_5810 / we)  :ARG1-of (u_5807 / say-01  :ARG0 (a / astronaut)  :ARG1-of u_5809))))))))))
+
+# ::snt The men said that you knew that I heard that the girls thought that the doctor heard that the boys believed that the soldier said that the women believed that the kids mentioned that you slept
+# ::tree TP_3p(said,men,TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2_subj1s(heard_coref,I,TP_CP_2(thought_coref,girls,TP_CP_2(heard_coref,doctor,TP_CP_2(believed_coref,boys,TP_CP_2(said_coref,soldier,TP_CP_2(believed_coref,women,TP_CP_2(mentioned_coref,kids,TP_intr_2(you_slept))))))))))
+# ::size0 9
+# ::size1 10
+(u_5833 / say-01  :ARG0 (r / man)  :ARG1 (u_5831 / know-01  :ARG0 (u_5835 / you  :ARG0-of (u_5813 / sleep-01  :ARG1-of (u_5811 / mention-01  :ARG0 (u_5816 / kid)  :ARG1-of (u_5814 / believe-01  :ARG0 (u_5822 / woman)  :ARG1-of (u_5817 / say-01  :ARG0 (s / soldier)  :ARG1-of (u_5820 / believe-01  :ARG0 (u_5827 / boy)  :ARG1-of (u_5823 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_5825 / think-01  :ARG0 (u_5830 / girl)  :ARG1-of (u_5828 / hear-01  :ARG0 (u_5832 / i)  :ARG1-of u_5831)))))))))))
+
+# ::snt You mentioned that the girls thought that the doctor mentioned that the lawyer mentioned that we thought that the women heard that the astronaut heard that I believed that the boys liked you
+# ::tree TP_resolve_coref_2(mentioned_resolve_coref,you,TP_CP_2(thought_coref,girls,TP_CP_2(mentioned_coref,doctor,TP_CP_2(mentioned_coref,lawyer,TP_CP_2_subj1p(thought_coref,we,TP_CP_2(heard_coref,women,TP_CP_2(heard_coref,astronaut,TP_CP_2_subj1s(believed_coref,I,TP_tr_2(liked_you,boys)))))))))
+# ::size0 9
+# ::size1 9
+(u_5848 / mention-01  :ARG0 (r / you  :ARG1-of (u_5836 / like-01  :ARG0 (u_5838 / boy)  :ARG1-of (u_5837 / believe-01  :ARG0 (u_5841 / i)  :ARG1-of (u_5839 / hear-01  :ARG0 (a / astronaut)  :ARG1-of (u_5840 / hear-01  :ARG0 (u_5843 / woman)  :ARG1-of (u_5842 / think-01  :ARG0 (u_5847 / we)  :ARG1-of (u_5844 / mention-01  :ARG0 (m / lawyer)  :ARG1-of (u_5845 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_5846 / think-01  :ARG0 (u_5849 / girl)  :ARG1-of u_5848))))))))))
+
+# ::snt The boys said that I heard that you mentioned that the astronaut thought that we said that the kids knew that the doctor knew that the soldier said that the girls believed that I sneezed
+# ::tree TP_3p(said,boys,TP_resolve_coref_1s(heard_resolve_coref,I,TP_CP_1s_subj2(mentioned_coref,you,TP_CP_1s(thought_coref,astronaut,TP_CP_1s_subj1p(said_coref,we,TP_CP_1s(knew_coref,kids,TP_CP_1s(knew_coref,doctor,TP_CP_1s(said_coref,soldier,TP_CP_1s(believed_coref,girls,TP_intr_1s(I_sneezed))))))))))
+# ::size0 9
+# ::size1 10
+(u_5871 / say-01  :ARG0 (r / boy)  :ARG1 (u_5869 / hear-01  :ARG0 (u_5873 / i  :ARG0-of (u_5852 / sneeze-01  :ARG1-of (u_5850 / believe-01  :ARG0 (u_5860 / girl)  :ARG1-of (u_5853 / say-01  :ARG0 (s / soldier)  :ARG1-of (u_5856 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_5858 / know-01  :ARG0 (u_5863 / kid)  :ARG1-of (u_5861 / say-01  :ARG0 (u_5868 / we)  :ARG1-of (u_5864 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_5866 / mention-01  :ARG0 (u_5870 / you)  :ARG1-of u_5869)))))))))))
+
+# ::snt We heard that I heard that the men believed that the astronaut heard that the doctor heard that you thought that the women believed that the soldier thought that we slept
+# ::tree TP_resolve_coref_1p(heard_resolve_coref,we,TP_CP_1p_subj1s(heard_coref,I,TP_CP_1p(believed_coref,men,TP_CP_1p(heard_coref,astronaut,TP_CP_1p(heard_coref,doctor,TP_CP_1p_subj2(thought_coref,you,TP_CP_1p(believed_coref,women,TP_CP_1p(thought_coref,soldier,TP_intr_1p(we_slept)))))))))
+# ::size0 9
+# ::size1 9
+(u_5893 / hear-01  :ARG0 (r / we  :ARG0-of (u_5879 / sleep-01  :ARG1-of (u_5874 / think-01  :ARG0 (s / soldier)  :ARG1-of (u_5877 / believe-01  :ARG0 (u_5882 / woman)  :ARG1-of (u_5880 / think-01  :ARG0 (u_5889 / you)  :ARG1-of (u_5883 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_5885 / hear-01  :ARG0 (a / astronaut)  :ARG1-of (u_5887 / believe-01  :ARG0 (u_5892 / man)  :ARG1-of (u_5890 / hear-01  :ARG0 (u_5894 / i)  :ARG1-of u_5893))))))))))
+
+# ::snt The doctor believed that you mentioned that the women said that I mentioned that the girls mentioned that the men knew that the astronaut believed that the kids mentioned that we thought that you sneezed
+# ::tree TP_3p(believed,doctor,TP_resolve_coref_2(mentioned_resolve_coref,you,TP_CP_2(said_coref,women,TP_CP_2_subj1s(mentioned_coref,I,TP_CP_2(mentioned_coref,girls,TP_CP_2(knew_coref,men,TP_CP_2(believed_coref,astronaut,TP_CP_2(mentioned_coref,kids,TP_CP_2_subj1p(thought_coref,we,TP_intr_2(you_sneezed))))))))))
+# ::size0 9
+# ::size1 10
+(u_5917 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_5915 / mention-01  :ARG0 (r / you  :ARG0-of (u_5897 / sneeze-01  :ARG1-of (u_5895 / think-01  :ARG0 (u_5900 / we)  :ARG1-of (u_5898 / mention-01  :ARG0 (u_5905 / kid)  :ARG1-of (u_5901 / believe-01  :ARG0 (a / astronaut)  :ARG1-of (u_5903 / know-01  :ARG0 (u_5908 / man)  :ARG1-of (u_5906 / mention-01  :ARG0 (u_5911 / girl)  :ARG1-of (u_5909 / mention-01  :ARG0 (u_5914 / i)  :ARG1-of (u_5912 / say-01  :ARG0 (u_5916 / woman)  :ARG1-of u_5915)))))))))))
+
+# ::snt We mentioned that the lawyer knew that I said that you heard that the doctor knew that the men heard that the boys heard that the girls knew that we slept
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(knew_coref,lawyer,TP_CP_1p_subj1s(said_coref,I,TP_CP_1p_subj2(heard_coref,you,TP_CP_1p(knew_coref,doctor,TP_CP_1p(heard_coref,men,TP_CP_1p(heard_coref,boys,TP_CP_1p(knew_coref,girls,TP_intr_1p(we_slept)))))))))
+# ::size0 9
+# ::size1 9
+(u_5937 / mention-01  :ARG0 (r / we  :ARG0-of (u_5920 / sleep-01  :ARG1-of (u_5918 / know-01  :ARG0 (u_5923 / girl)  :ARG1-of (u_5921 / hear-01  :ARG0 (u_5926 / boy)  :ARG1-of (u_5924 / hear-01  :ARG0 (u_5931 / man)  :ARG1-of (u_5927 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_5929 / hear-01  :ARG0 (u_5934 / you)  :ARG1-of (u_5932 / say-01  :ARG0 (u_5938 / i)  :ARG1-of (u_5935 / know-01  :ARG0 (m / lawyer)  :ARG1-of u_5937))))))))))
+
+# ::snt You knew that the kids heard that the girls thought that the soldier knew that the doctor knew that the men knew that we thought that I said that you sneezed
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_CP_2(heard_coref,kids,TP_CP_2(thought_coref,girls,TP_CP_2(knew_coref,soldier,TP_CP_2(knew_coref,doctor,TP_CP_2(knew_coref,men,TP_CP_2_subj1p(thought_coref,we,TP_CP_2_subj1s(said_coref,I,TP_intr_2(you_sneezed)))))))))
+# ::size0 9
+# ::size1 9
+(u_5959 / know-01  :ARG0 (r / you  :ARG0-of (u_5941 / sneeze-01  :ARG1-of (u_5939 / say-01  :ARG0 (u_5944 / i)  :ARG1-of (u_5942 / think-01  :ARG0 (u_5947 / we)  :ARG1-of (u_5945 / know-01  :ARG0 (u_5955 / man)  :ARG1-of (u_5948 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_5950 / know-01  :ARG0 (s / soldier)  :ARG1-of (u_5953 / think-01  :ARG0 (u_5958 / girl)  :ARG1-of (u_5956 / hear-01  :ARG0 (u_5960 / kid)  :ARG1-of u_5959))))))))))
+
+# ::snt I believed that the men said that the soldier heard that we mentioned that you said that the doctor knew that the lawyer believed that the women heard that the girls hated me
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_CP_1s(said_coref,men,TP_CP_1s(heard_coref,soldier,TP_CP_1s_subj1p(mentioned_coref,we,TP_CP_1s_subj2(said_coref,you,TP_CP_1s(knew_coref,doctor,TP_CP_1s(believed_coref,lawyer,TP_CP_1s(heard_coref,women,TP_tr_1s(hated_me,girls)))))))))
+# ::size0 9
+# ::size1 9
+(u_5974 / believe-01  :ARG0 (r / i  :ARG1-of (u_5961 / hate-01  :ARG0 (u_5963 / girl)  :ARG1-of (u_5962 / hear-01  :ARG0 (u_5967 / woman)  :ARG1-of (u_5964 / believe-01  :ARG0 (m / lawyer)  :ARG1-of (u_5965 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_5966 / say-01  :ARG0 (u_5969 / you)  :ARG1-of (u_5968 / mention-01  :ARG0 (u_5973 / we)  :ARG1-of (u_5970 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_5971 / say-01  :ARG0 (u_5975 / man)  :ARG1-of u_5974))))))))))
+
+# ::snt We mentioned that the soldier said that the astronaut thought that you believed that the kids thought that I mentioned that the boys believed that the women mentioned that we sneezed
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(said_coref,soldier,TP_CP_1p(thought_coref,astronaut,TP_CP_1p_subj2(believed_coref,you,TP_CP_1p(thought_coref,kids,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(believed_coref,boys,TP_CP_1p(mentioned_coref,women,TP_intr_1p(we_sneezed)))))))))
+# ::size0 9
+# ::size1 9
+(u_5996 / mention-01  :ARG0 (r / we  :ARG0-of (u_5978 / sneeze-01  :ARG1-of (u_5976 / mention-01  :ARG0 (u_5981 / woman)  :ARG1-of (u_5979 / believe-01  :ARG0 (u_5984 / boy)  :ARG1-of (u_5982 / mention-01  :ARG0 (u_5987 / i)  :ARG1-of (u_5985 / think-01  :ARG0 (u_5990 / kid)  :ARG1-of (u_5988 / believe-01  :ARG0 (u_5997 / you)  :ARG1-of (u_5991 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_5993 / say-01  :ARG0 (s / soldier)  :ARG1-of u_5996))))))))))
+
+# ::snt You thought that the lawyer thought that the soldier heard that the kids believed that the astronaut knew that we mentioned that the girls heard that I said that the women knew that you slept
+# ::tree TP_resolve_coref_2(thought_resolve_coref,you,TP_CP_2(thought_coref,lawyer,TP_CP_2(heard_coref,soldier,TP_CP_2(believed_coref,kids,TP_CP_2(knew_coref,astronaut,TP_CP_2_subj1p(mentioned_coref,we,TP_CP_2(heard_coref,girls,TP_CP_2_subj1s(said_coref,I,TP_CP_2(knew_coref,women,TP_intr_2(you_slept))))))))))
+# ::size0 10
+# ::size1 10
+(u_6020 / think-01  :ARG0 (r / you  :ARG0-of (u_6000 / sleep-01  :ARG1-of (u_5998 / know-01  :ARG0 (u_6003 / woman)  :ARG1-of (u_6001 / say-01  :ARG0 (u_6006 / i)  :ARG1-of (u_6004 / hear-01  :ARG0 (u_6009 / girl)  :ARG1-of (u_6007 / mention-01  :ARG0 (u_6014 / we)  :ARG1-of (u_6010 / know-01  :ARG0 (a / astronaut)  :ARG1-of (u_6012 / believe-01  :ARG0 (u_6021 / kid)  :ARG1-of (u_6015 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_6018 / think-01  :ARG0 (m / lawyer)  :ARG1-of u_6020)))))))))))
+
+# ::snt You believed that we mentioned that I said that the soldier heard that the lawyer heard that the women mentioned that the doctor said that the boys thought that the men said that the astronaut hated you
+# ::tree TP_resolve_coref_2(believed_resolve_coref,you,TP_CP_2_subj1p(mentioned_coref,we,TP_CP_2_subj1s(said_coref,I,TP_CP_2(heard_coref,soldier,TP_CP_2(heard_coref,lawyer,TP_CP_2(mentioned_coref,women,TP_CP_2(said_coref,doctor,TP_CP_2(thought_coref,boys,TP_CP_2(said_coref,men,TP_tr_2(hated_you,astronaut))))))))))
+# ::size0 10
+# ::size1 10
+(u_6037 / believe-01  :ARG0 (r / you  :ARG1-of (u_6023 / hate-01  :ARG0 (a / astronaut)  :ARG1-of (u_6022 / say-01  :ARG0 (u_6025 / man)  :ARG1-of (u_6024 / think-01  :ARG0 (u_6028 / boy)  :ARG1-of (u_6026 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_6027 / mention-01  :ARG0 (u_6033 / woman)  :ARG1-of (u_6029 / hear-01  :ARG0 (m / lawyer)  :ARG1-of (u_6030 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_6031 / say-01  :ARG0 (u_6036 / i)  :ARG1-of (u_6034 / mention-01  :ARG0 (u_6038 / we)  :ARG1-of u_6037)))))))))))
+
+# ::snt I believed that we believed that the doctor thought that the women heard that the astronaut believed that the lawyer said that you knew that the girls mentioned that the boys thought that I slept
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_CP_1s_subj1p(believed_coref,we,TP_CP_1s(thought_coref,doctor,TP_CP_1s(heard_coref,women,TP_CP_1s(believed_coref,astronaut,TP_CP_1s(said_coref,lawyer,TP_CP_1s_subj2(knew_coref,you,TP_CP_1s(mentioned_coref,girls,TP_CP_1s(thought_coref,boys,TP_intr_1s(I_slept))))))))))
+# ::size0 10
+# ::size1 10
+(u_6060 / believe-01  :ARG0 (r / i  :ARG0-of (u_6041 / sleep-01  :ARG1-of (u_6039 / think-01  :ARG0 (u_6044 / boy)  :ARG1-of (u_6042 / mention-01  :ARG0 (u_6047 / girl)  :ARG1-of (u_6045 / know-01  :ARG0 (u_6054 / you)  :ARG1-of (u_6048 / say-01  :ARG0 (m / lawyer)  :ARG1-of (u_6050 / believe-01  :ARG0 (a / astronaut)  :ARG1-of (u_6052 / hear-01  :ARG0 (u_6059 / woman)  :ARG1-of (u_6055 / think-01  :ARG0 (d / doctor)  :ARG1-of (u_6057 / believe-01  :ARG0 (u_6061 / we)  :ARG1-of u_6060)))))))))))
+
+# ::snt You heard that the lawyer thought that we said that the girls believed that the doctor said that the astronaut heard that I heard that the soldier heard that the boys knew that you sneezed
+# ::tree TP_resolve_coref_2(heard_resolve_coref,you,TP_CP_2(thought_coref,lawyer,TP_CP_2_subj1p(said_coref,we,TP_CP_2(believed_coref,girls,TP_CP_2(said_coref,doctor,TP_CP_2(heard_coref,astronaut,TP_CP_2_subj1s(heard_coref,I,TP_CP_2(heard_coref,soldier,TP_CP_2(knew_coref,boys,TP_intr_2(you_sneezed))))))))))
+# ::size0 10
+# ::size1 10
+(u_6083 / hear-01  :ARG0 (r / you  :ARG0-of (u_6064 / sneeze-01  :ARG1-of (u_6062 / know-01  :ARG0 (u_6070 / boy)  :ARG1-of (u_6065 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_6068 / hear-01  :ARG0 (u_6077 / i)  :ARG1-of (u_6071 / hear-01  :ARG0 (a / astronaut)  :ARG1-of (u_6073 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_6075 / believe-01  :ARG0 (u_6080 / girl)  :ARG1-of (u_6078 / say-01  :ARG0 (u_6084 / we)  :ARG1-of (u_6081 / think-01  :ARG0 (m / lawyer)  :ARG1-of u_6083)))))))))))
+
+# ::snt We said that the kids knew that you believed that the doctor knew that the astronaut heard that I mentioned that the women believed that the girls believed that the lawyer believed that the soldier hated us
+# ::tree TP_resolve_coref_1p(said_resolve_coref,we,TP_CP_1p(knew_coref,kids,TP_CP_1p_subj2(believed_coref,you,TP_CP_1p(knew_coref,doctor,TP_CP_1p(heard_coref,astronaut,TP_CP_1p_subj1s(mentioned_coref,I,TP_CP_1p(believed_coref,women,TP_CP_1p(believed_coref,girls,TP_CP_1p(believed_coref,lawyer,TP_tr_1p(hated_us,soldier))))))))))
+# ::size0 10
+# ::size1 10
+(u_6106 / say-01  :ARG0 (r / we  :ARG1-of (u_6089 / hate-01  :ARG0 (s / soldier)  :ARG1-of (u_6085 / believe-01  :ARG0 (m / lawyer)  :ARG1-of (u_6087 / believe-01  :ARG0 (u_6092 / girl)  :ARG1-of (u_6090 / believe-01  :ARG0 (u_6095 / woman)  :ARG1-of (u_6093 / mention-01  :ARG0 (u_6102 / i)  :ARG1-of (u_6096 / hear-01  :ARG0 (a / astronaut)  :ARG1-of (u_6098 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_6100 / believe-01  :ARG0 (u_6105 / you)  :ARG1-of (u_6103 / know-01  :ARG0 (u_6107 / kid)  :ARG1-of u_6106)))))))))))
+
+# ::snt You thought that I heard that the doctor heard that the soldier thought that the boys thought that we believed that the lawyer thought that the men heard that the girls knew that you sneezed
+# ::tree TP_resolve_coref_2(thought_resolve_coref,you,TP_CP_2_subj1s(heard_coref,I,TP_CP_2(heard_coref,doctor,TP_CP_2(thought_coref,soldier,TP_CP_2(thought_coref,boys,TP_CP_2_subj1p(believed_coref,we,TP_CP_2(thought_coref,lawyer,TP_CP_2(heard_coref,men,TP_CP_2(knew_coref,girls,TP_intr_2(you_sneezed))))))))))
+# ::size0 10
+# ::size1 10
+(u_6130 / think-01  :ARG0 (r / you  :ARG0-of (u_6110 / sneeze-01  :ARG1-of (u_6108 / know-01  :ARG0 (u_6113 / girl)  :ARG1-of (u_6111 / hear-01  :ARG0 (u_6118 / man)  :ARG1-of (u_6114 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_6116 / believe-01  :ARG0 (u_6121 / we)  :ARG1-of (u_6119 / think-01  :ARG0 (u_6129 / boy)  :ARG1-of (u_6122 / think-01  :ARG0 (s / soldier)  :ARG1-of (u_6125 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_6127 / hear-01  :ARG0 (u_6131 / i)  :ARG1-of u_6130)))))))))))
+
+# ::snt We believed that the doctor believed that the men said that the kids believed that I heard that the lawyer heard that the astronaut thought that you knew that the women mentioned that we sneezed
+# ::tree TP_resolve_coref_1p(believed_resolve_coref,we,TP_CP_1p(believed_coref,doctor,TP_CP_1p(said_coref,men,TP_CP_1p(believed_coref,kids,TP_CP_1p_subj1s(heard_coref,I,TP_CP_1p(heard_coref,lawyer,TP_CP_1p(thought_coref,astronaut,TP_CP_1p_subj2(knew_coref,you,TP_CP_1p(mentioned_coref,women,TP_intr_1p(we_sneezed))))))))))
+# ::size0 10
+# ::size1 10
+(u_6153 / believe-01  :ARG0 (r / we  :ARG0-of (u_6134 / sneeze-01  :ARG1-of (u_6132 / mention-01  :ARG0 (u_6137 / woman)  :ARG1-of (u_6135 / know-01  :ARG0 (u_6144 / you)  :ARG1-of (u_6138 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_6140 / hear-01  :ARG0 (m / lawyer)  :ARG1-of (u_6142 / hear-01  :ARG0 (u_6147 / i)  :ARG1-of (u_6145 / believe-01  :ARG0 (u_6150 / kid)  :ARG1-of (u_6148 / say-01  :ARG0 (u_6154 / man)  :ARG1-of (u_6151 / believe-01  :ARG0 (d / doctor)  :ARG1-of u_6153)))))))))))
+
+# ::snt You heard that I believed that the soldier believed that the lawyer knew that the doctor mentioned that the women believed that the men heard that the girls thought that the boys said that the kids hated you
+# ::tree TP_resolve_coref_2(heard_resolve_coref,you,TP_CP_2_subj1s(believed_coref,I,TP_CP_2(believed_coref,soldier,TP_CP_2(knew_coref,lawyer,TP_CP_2(mentioned_coref,doctor,TP_CP_2(believed_coref,women,TP_CP_2(heard_coref,men,TP_CP_2(thought_coref,girls,TP_CP_2(said_coref,boys,TP_tr_2(hated_you,kids))))))))))
+# ::size0 10
+# ::size1 10
+(u_6170 / hear-01  :ARG0 (r / you  :ARG1-of (u_6155 / hate-01  :ARG0 (u_6157 / kid)  :ARG1-of (u_6156 / say-01  :ARG0 (u_6159 / boy)  :ARG1-of (u_6158 / think-01  :ARG0 (u_6161 / girl)  :ARG1-of (u_6160 / hear-01  :ARG0 (u_6163 / man)  :ARG1-of (u_6162 / believe-01  :ARG0 (u_6169 / woman)  :ARG1-of (u_6164 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_6165 / know-01  :ARG0 (m / lawyer)  :ARG1-of (u_6166 / believe-01  :ARG0 (s / soldier)  :ARG1-of (u_6167 / believe-01  :ARG0 (u_6171 / i)  :ARG1-of u_6170)))))))))))
+
+# ::snt You thought that the boys knew that we thought that the men mentioned that I thought that the doctor said that the girls thought that the lawyer said that the kids thought that you sneezed
+# ::tree TP_resolve_coref_2(thought_resolve_coref,you,TP_CP_2(knew_coref,boys,TP_CP_2_subj1p(thought_coref,we,TP_CP_2(mentioned_coref,men,TP_CP_2_subj1s(thought_coref,I,TP_CP_2(said_coref,doctor,TP_CP_2(thought_coref,girls,TP_CP_2(said_coref,lawyer,TP_CP_2(thought_coref,kids,TP_intr_2(you_sneezed))))))))))
+# ::size0 10
+# ::size1 10
+(u_6194 / think-01  :ARG0 (r / you  :ARG0-of (u_6174 / sneeze-01  :ARG1-of (u_6172 / think-01  :ARG0 (u_6179 / kid)  :ARG1-of (u_6175 / say-01  :ARG0 (m / lawyer)  :ARG1-of (u_6177 / think-01  :ARG0 (u_6184 / girl)  :ARG1-of (u_6180 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_6182 / think-01  :ARG0 (u_6187 / i)  :ARG1-of (u_6185 / mention-01  :ARG0 (u_6190 / man)  :ARG1-of (u_6188 / think-01  :ARG0 (u_6193 / we)  :ARG1-of (u_6191 / know-01  :ARG0 (u_6195 / boy)  :ARG1-of u_6194)))))))))))
+
+# ::snt The girls heard that I thought that the men heard that we mentioned that the doctor heard that the soldier believed that the kids said that you heard that the astronaut mentioned that the lawyer mentioned that the boys hated me
+# ::tree TP_3p(heard,girls,TP_resolve_coref_1s(thought_resolve_coref,I,TP_CP_1s(heard_coref,men,TP_CP_1s_subj1p(mentioned_coref,we,TP_CP_1s(heard_coref,doctor,TP_CP_1s(believed_coref,soldier,TP_CP_1s(said_coref,kids,TP_CP_1s_subj2(heard_coref,you,TP_CP_1s(mentioned_coref,astronaut,TP_CP_1s(mentioned_coref,lawyer,TP_tr_1s(hated_me,boys)))))))))))
+# ::size0 10
+# ::size1 11
+(u_6214 / hear-01  :ARG0 (r / girl)  :ARG1 (u_6212 / think-01  :ARG0 (u_6216 / i  :ARG1-of (u_6196 / hate-01  :ARG0 (u_6200 / boy)  :ARG1-of (u_6197 / mention-01  :ARG0 (m / lawyer)  :ARG1-of (u_6198 / mention-01  :ARG0 (a / astronaut)  :ARG1-of (u_6199 / hear-01  :ARG0 (u_6202 / you)  :ARG1-of (u_6201 / say-01  :ARG0 (u_6208 / kid)  :ARG1-of (u_6203 / believe-01  :ARG0 (s / soldier)  :ARG1-of (u_6204 / hear-01  :ARG0 (d / doctor)  :ARG1-of (u_6206 / mention-01  :ARG0 (u_6211 / we)  :ARG1-of (u_6209 / hear-01  :ARG0 (u_6213 / man)  :ARG1-of u_6212))))))))))))
+
+# ::snt You mentioned that the women believed that the men thought that we knew that the soldier knew that the doctor said that the astronaut knew that the girls heard that I mentioned that the kids heard that the boys hated you
+# ::tree TP_resolve_coref_2(mentioned_resolve_coref,you,TP_CP_2(believed_coref,women,TP_CP_2(thought_coref,men,TP_CP_2_subj1p(knew_coref,we,TP_CP_2(knew_coref,soldier,TP_CP_2(said_coref,doctor,TP_CP_2(knew_coref,astronaut,TP_CP_2(heard_coref,girls,TP_CP_2_subj1s(mentioned_coref,I,TP_CP_2(heard_coref,kids,TP_tr_2(hated_you,boys)))))))))))
+# ::size0 11
+# ::size1 11
+(u_6236 / mention-01  :ARG0 (r / you  :ARG1-of (u_6217 / hate-01  :ARG0 (u_6219 / boy)  :ARG1-of (u_6218 / hear-01  :ARG0 (u_6221 / kid)  :ARG1-of (u_6220 / mention-01  :ARG0 (u_6223 / i)  :ARG1-of (u_6222 / hear-01  :ARG0 (u_6229 / girl)  :ARG1-of (u_6224 / know-01  :ARG0 (a / astronaut)  :ARG1-of (u_6225 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_6226 / know-01  :ARG0 (s / soldier)  :ARG1-of (u_6227 / know-01  :ARG0 (u_6232 / we)  :ARG1-of (u_6230 / think-01  :ARG0 (u_6235 / man)  :ARG1-of (u_6233 / believe-01  :ARG0 (u_6237 / woman)  :ARG1-of u_6236))))))))))))
+
+# ::snt The kids thought that we mentioned that the women mentioned that the astronaut mentioned that I knew that the girls knew that the lawyer knew that the boys thought that the men heard that you knew that the soldier thought that we sneezed
+# ::tree TP_3p(thought,kids,TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(mentioned_coref,women,TP_CP_1p(mentioned_coref,astronaut,TP_CP_1p_subj1s(knew_coref,I,TP_CP_1p(knew_coref,girls,TP_CP_1p(knew_coref,lawyer,TP_CP_1p(thought_coref,boys,TP_CP_1p(heard_coref,men,TP_CP_1p_subj2(knew_coref,you,TP_CP_1p(thought_coref,soldier,TP_intr_1p(we_sneezed))))))))))))
+# ::size0 11
+# ::size1 12
+(u_6265 / think-01  :ARG0 (r / kid)  :ARG1 (u_6263 / mention-01  :ARG0 (u_6267 / we  :ARG0-of (u_6243 / sneeze-01  :ARG1-of (u_6238 / think-01  :ARG0 (s / soldier)  :ARG1-of (u_6241 / know-01  :ARG0 (u_6246 / you)  :ARG1-of (u_6244 / hear-01  :ARG0 (u_6249 / man)  :ARG1-of (u_6247 / think-01  :ARG0 (u_6254 / boy)  :ARG1-of (u_6250 / know-01  :ARG0 (m / lawyer)  :ARG1-of (u_6252 / know-01  :ARG0 (u_6257 / girl)  :ARG1-of (u_6255 / know-01  :ARG0 (u_6262 / i)  :ARG1-of (u_6258 / mention-01  :ARG0 (a / astronaut)  :ARG1-of (u_6260 / mention-01  :ARG0 (u_6264 / woman)  :ARG1-of u_6263)))))))))))))
+
+# ::snt We said that the boys heard that the girls knew that the doctor knew that the lawyer believed that I knew that you believed that the soldier said that the women mentioned that the kids mentioned that the men hated us
+# ::tree TP_resolve_coref_1p(said_resolve_coref,we,TP_CP_1p(heard_coref,boys,TP_CP_1p(knew_coref,girls,TP_CP_1p(knew_coref,doctor,TP_CP_1p(believed_coref,lawyer,TP_CP_1p_subj1s(knew_coref,I,TP_CP_1p_subj2(believed_coref,you,TP_CP_1p(said_coref,soldier,TP_CP_1p(mentioned_coref,women,TP_CP_1p(mentioned_coref,kids,TP_tr_1p(hated_us,men)))))))))))
+# ::size0 11
+# ::size1 11
+(u_6290 / say-01  :ARG0 (r / we  :ARG1-of (u_6268 / hate-01  :ARG0 (u_6270 / man)  :ARG1-of (u_6269 / mention-01  :ARG0 (u_6272 / kid)  :ARG1-of (u_6271 / mention-01  :ARG0 (u_6276 / woman)  :ARG1-of (u_6273 / say-01  :ARG0 (s / soldier)  :ARG1-of (u_6274 / believe-01  :ARG0 (u_6279 / you)  :ARG1-of (u_6277 / know-01  :ARG0 (u_6286 / i)  :ARG1-of (u_6280 / believe-01  :ARG0 (m / lawyer)  :ARG1-of (u_6282 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_6284 / know-01  :ARG0 (u_6289 / girl)  :ARG1-of (u_6287 / hear-01  :ARG0 (u_6291 / boy)  :ARG1-of u_6290))))))))))))
+
+# ::snt You heard that the doctor thought that the girls said that I believed that the astronaut heard that the soldier said that the kids thought that we heard that the lawyer heard that the women thought that the men liked you
+# ::tree TP_resolve_coref_2(heard_resolve_coref,you,TP_CP_2(thought_coref,doctor,TP_CP_2(said_coref,girls,TP_CP_2_subj1s(believed_coref,I,TP_CP_2(heard_coref,astronaut,TP_CP_2(said_coref,soldier,TP_CP_2(thought_coref,kids,TP_CP_2_subj1p(heard_coref,we,TP_CP_2(heard_coref,lawyer,TP_CP_2(thought_coref,women,TP_tr_2(liked_you,men)))))))))))
+# ::size0 11
+# ::size1 11
+(u_6311 / hear-01  :ARG0 (r / you  :ARG1-of (u_6292 / like-01  :ARG0 (u_6294 / man)  :ARG1-of (u_6293 / think-01  :ARG0 (u_6297 / woman)  :ARG1-of (u_6295 / hear-01  :ARG0 (m / lawyer)  :ARG1-of (u_6296 / hear-01  :ARG0 (u_6299 / we)  :ARG1-of (u_6298 / think-01  :ARG0 (u_6305 / kid)  :ARG1-of (u_6300 / say-01  :ARG0 (s / soldier)  :ARG1-of (u_6301 / hear-01  :ARG0 (a / astronaut)  :ARG1-of (u_6303 / believe-01  :ARG0 (u_6308 / i)  :ARG1-of (u_6306 / say-01  :ARG0 (u_6312 / girl)  :ARG1-of (u_6309 / think-01  :ARG0 (d / doctor)  :ARG1-of u_6311))))))))))))
+
+# ::snt We mentioned that the kids mentioned that the boys knew that the men heard that you thought that the lawyer thought that the doctor believed that the girls knew that I thought that the women heard that we sneezed
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(mentioned_coref,kids,TP_CP_1p(knew_coref,boys,TP_CP_1p(heard_coref,men,TP_CP_1p_subj2(thought_coref,you,TP_CP_1p(thought_coref,lawyer,TP_CP_1p(believed_coref,doctor,TP_CP_1p(knew_coref,girls,TP_CP_1p_subj1s(thought_coref,I,TP_CP_1p(heard_coref,women,TP_intr_1p(we_sneezed)))))))))))
+# ::size0 11
+# ::size1 11
+(u_6338 / mention-01  :ARG0 (r / we  :ARG0-of (u_6315 / sneeze-01  :ARG1-of (u_6313 / hear-01  :ARG0 (u_6318 / woman)  :ARG1-of (u_6316 / think-01  :ARG0 (u_6321 / i)  :ARG1-of (u_6319 / know-01  :ARG0 (u_6328 / girl)  :ARG1-of (u_6322 / believe-01  :ARG0 (d / doctor)  :ARG1-of (u_6324 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_6326 / think-01  :ARG0 (u_6331 / you)  :ARG1-of (u_6329 / hear-01  :ARG0 (u_6334 / man)  :ARG1-of (u_6332 / know-01  :ARG0 (u_6337 / boy)  :ARG1-of (u_6335 / mention-01  :ARG0 (u_6339 / kid)  :ARG1-of u_6338))))))))))))
+
+# ::snt We mentioned that the soldier believed that the lawyer mentioned that the girls believed that you thought that the astronaut mentioned that the men heard that I believed that the women knew that the boys heard that we sneezed
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p(believed_coref,soldier,TP_CP_1p(mentioned_coref,lawyer,TP_CP_1p(believed_coref,girls,TP_CP_1p_subj2(thought_coref,you,TP_CP_1p(mentioned_coref,astronaut,TP_CP_1p(heard_coref,men,TP_CP_1p_subj1s(believed_coref,I,TP_CP_1p(knew_coref,women,TP_CP_1p(heard_coref,boys,TP_intr_1p(we_sneezed)))))))))))
+# ::size0 11
+# ::size1 11
+(u_6365 / mention-01  :ARG0 (r / we  :ARG0-of (u_6342 / sneeze-01  :ARG1-of (u_6340 / hear-01  :ARG0 (u_6345 / boy)  :ARG1-of (u_6343 / know-01  :ARG0 (u_6348 / woman)  :ARG1-of (u_6346 / believe-01  :ARG0 (u_6351 / i)  :ARG1-of (u_6349 / hear-01  :ARG0 (u_6356 / man)  :ARG1-of (u_6352 / mention-01  :ARG0 (a / astronaut)  :ARG1-of (u_6354 / think-01  :ARG0 (u_6359 / you)  :ARG1-of (u_6357 / believe-01  :ARG0 (u_6366 / girl)  :ARG1-of (u_6360 / mention-01  :ARG0 (m / lawyer)  :ARG1-of (u_6362 / believe-01  :ARG0 (s / soldier)  :ARG1-of u_6365))))))))))))
+
+# ::snt We thought that the kids heard that the soldier knew that the men said that you believed that the girls believed that the doctor knew that the lawyer believed that I said that the boys heard that the women hated us
+# ::tree TP_resolve_coref_1p(thought_resolve_coref,we,TP_CP_1p(heard_coref,kids,TP_CP_1p(knew_coref,soldier,TP_CP_1p(said_coref,men,TP_CP_1p_subj2(believed_coref,you,TP_CP_1p(believed_coref,girls,TP_CP_1p(knew_coref,doctor,TP_CP_1p(believed_coref,lawyer,TP_CP_1p_subj1s(said_coref,I,TP_CP_1p(heard_coref,boys,TP_tr_1p(hated_us,women)))))))))))
+# ::size0 11
+# ::size1 11
+(u_6384 / think-01  :ARG0 (r / we  :ARG1-of (u_6367 / hate-01  :ARG0 (u_6369 / woman)  :ARG1-of (u_6368 / hear-01  :ARG0 (u_6371 / boy)  :ARG1-of (u_6370 / say-01  :ARG0 (u_6375 / i)  :ARG1-of (u_6372 / believe-01  :ARG0 (m / lawyer)  :ARG1-of (u_6373 / know-01  :ARG0 (d / doctor)  :ARG1-of (u_6374 / believe-01  :ARG0 (u_6377 / girl)  :ARG1-of (u_6376 / believe-01  :ARG0 (u_6379 / you)  :ARG1-of (u_6378 / say-01  :ARG0 (u_6383 / man)  :ARG1-of (u_6380 / know-01  :ARG0 (s / soldier)  :ARG1-of (u_6381 / hear-01  :ARG0 (u_6385 / kid)  :ARG1-of u_6384))))))))))))
+
+# ::snt The men mentioned that you thought that I heard that the kids thought that the doctor mentioned that the boys thought that the soldier heard that the astronaut thought that we heard that the women knew that the girls believed that the lawyer knew that I sneezed
+# ::tree TP_3p(mentioned,men,TP_2(thought,you,TP_resolve_coref_1s(heard_resolve_coref,I,TP_CP_1s(thought_coref,kids,TP_CP_1s(mentioned_coref,doctor,TP_CP_1s(thought_coref,boys,TP_CP_1s(heard_coref,soldier,TP_CP_1s(thought_coref,astronaut,TP_CP_1s_subj1p(heard_coref,we,TP_CP_1s(knew_coref,women,TP_CP_1s(believed_coref,girls,TP_CP_1s(knew_coref,lawyer,TP_intr_1s(I_sneezed)))))))))))))
+# ::size0 11
+# ::size1 13
+(u_6415 / mention-01  :ARG0 (r / man)  :ARG1 (u_6412 / think-01  :ARG0 (u_6417 / you)  :ARG1 (u_6410 / hear-01  :ARG0 (u_6414 / i  :ARG0-of (u_6390 / sneeze-01  :ARG1-of (u_6386 / know-01  :ARG0 (m / lawyer)  :ARG1-of (u_6388 / believe-01  :ARG0 (u_6393 / girl)  :ARG1-of (u_6391 / know-01  :ARG0 (u_6396 / woman)  :ARG1-of (u_6394 / hear-01  :ARG0 (u_6404 / we)  :ARG1-of (u_6397 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_6399 / hear-01  :ARG0 (s / soldier)  :ARG1-of (u_6402 / think-01  :ARG0 (u_6409 / boy)  :ARG1-of (u_6405 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_6407 / think-01  :ARG0 (u_6411 / kid)  :ARG1-of u_6410))))))))))))))
+
+# ::snt I mentioned that we mentioned that you knew that the kids said that the soldier believed that the doctor mentioned that the boys believed that the lawyer mentioned that the girls mentioned that the women thought that the astronaut believed that we sneezed
+# ::tree TP_1s(mentioned,I,TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_CP_1p_subj2(knew_coref,you,TP_CP_1p(said_coref,kids,TP_CP_1p(believed_coref,soldier,TP_CP_1p(mentioned_coref,doctor,TP_CP_1p(believed_coref,boys,TP_CP_1p(mentioned_coref,lawyer,TP_CP_1p(mentioned_coref,girls,TP_CP_1p(thought_coref,women,TP_CP_1p(believed_coref,astronaut,TP_intr_1p(we_sneezed))))))))))))
+# ::size0 11
+# ::size1 12
+(u_6444 / mention-01  :ARG0 (r / i)  :ARG1 (u_6442 / mention-01  :ARG0 (u_6446 / we  :ARG0-of (u_6422 / sneeze-01  :ARG1-of (u_6418 / believe-01  :ARG0 (a / astronaut)  :ARG1-of (u_6420 / think-01  :ARG0 (u_6425 / woman)  :ARG1-of (u_6423 / mention-01  :ARG0 (u_6430 / girl)  :ARG1-of (u_6426 / mention-01  :ARG0 (m / lawyer)  :ARG1-of (u_6428 / believe-01  :ARG0 (u_6438 / boy)  :ARG1-of (u_6431 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_6433 / believe-01  :ARG0 (s / soldier)  :ARG1-of (u_6436 / say-01  :ARG0 (u_6441 / kid)  :ARG1-of (u_6439 / know-01  :ARG0 (u_6443 / you)  :ARG1-of u_6442)))))))))))))
+
+# ::snt I thought that the astronaut believed that you mentioned that the lawyer thought that the doctor mentioned that the women knew that the boys believed that the soldier thought that we believed that the kids said that I sneezed
+# ::tree TP_resolve_coref_1s(thought_resolve_coref,I,TP_CP_1s(believed_coref,astronaut,TP_CP_1s_subj2(mentioned_coref,you,TP_CP_1s(thought_coref,lawyer,TP_CP_1s(mentioned_coref,doctor,TP_CP_1s(knew_coref,women,TP_CP_1s(believed_coref,boys,TP_CP_1s(thought_coref,soldier,TP_CP_1s_subj1p(believed_coref,we,TP_CP_1s(said_coref,kids,TP_intr_1s(I_sneezed)))))))))))
+# ::size0 11
+# ::size1 11
+(u_6471 / think-01  :ARG0 (r / i  :ARG0-of (u_6449 / sneeze-01  :ARG1-of (u_6447 / say-01  :ARG0 (u_6452 / kid)  :ARG1-of (u_6450 / believe-01  :ARG0 (u_6458 / we)  :ARG1-of (u_6453 / think-01  :ARG0 (s / soldier)  :ARG1-of (u_6456 / believe-01  :ARG0 (u_6461 / boy)  :ARG1-of (u_6459 / know-01  :ARG0 (u_6468 / woman)  :ARG1-of (u_6462 / mention-01  :ARG0 (d / doctor)  :ARG1-of (u_6464 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_6466 / mention-01  :ARG0 (u_6472 / you)  :ARG1-of (u_6469 / believe-01  :ARG0 (a / astronaut)  :ARG1-of u_6471))))))))))))
+

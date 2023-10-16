@@ -47,18 +47,19 @@ public class SampleFromTemplateWithInfiniteLanguage {
         int numSamplesPerSize = 10;
 
 
-//        SampleFromTemplateWithInfiniteLanguage samplerCentreEmbedding = new SampleFromTemplateWithInfiniteLanguage(
-//                4, 8, 2,
-//                Collections.singletonList(SIZE_TYPE_TREE_DEPTH),
-//                "examples/amr_template_grammars/centre_embedding.irtg",
-//                "Randomly sampled examples of centre embedding. Created by a grammar. " +
-//                        "Here, size0 is the depth of the tree. The number of centre embeddings is (size0-2) / 2," +
-//                        "i.e. the sentences here have 1, 2 or 3 centre embeddings.",
-//                new HashSet<>(Arrays.asList("obj_rel", "NP_RC")),
-//                false,
-//                false
-//        );
-//        samplerCentreEmbedding.sampleFromGrammar(numSamplesPerSize, "examples/amr_template_grammars/centre_embedding.txt");
+        // centre embedding
+        SampleFromTemplateWithInfiniteLanguage samplerCentreEmbedding = new SampleFromTemplateWithInfiniteLanguage(
+                4, 8, 2,
+                Collections.singletonList(SIZE_TYPE_TREE_DEPTH),
+                "examples/amr_template_grammars/centre_embedding.irtg",
+                "Randomly sampled examples of centre embedding. Created by a grammar. " +
+                        "Here, size0 is the depth of the tree. The number of centre embeddings is (size0-2) / 2," +
+                        "i.e. the sentences here have 1, 2 or 3 centre embeddings.",
+                new HashSet<>(Arrays.asList("obj_rel", "NP_RC")),
+                false,
+                false
+        );
+        samplerCentreEmbedding.sampleFromGrammar(numSamplesPerSize, "examples/amr_template_grammars/centre_embedding.txt");
 
         // adjectives
         // we want all sentence lengths with at least 2 adjectives
@@ -122,23 +123,25 @@ public class SampleFromTemplateWithInfiniteLanguage {
         );
         samplerDeepRecursionPronouns.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_pronouns.txt");
 
+        // deep recursion 3rd singular
         // The 0-based tree depth is (1-based) number of CPs + 1
-        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursion3s = new SampleFromTemplateWithInfiniteLanguage(
-                3, 11, 1,
-                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF, SIZE_TYPE_TREE_DEPTH),
-                "examples/amr_template_grammars/deep_recursion_3s.irtg",
-                "Randomly sampled examples of deep CP recursion (with 3rd person singular coreference). Created by a grammar. " +
-                        "Here, size0 is the depth below the CP with the reentrancy (i.e., to get the recursion depth for" +
-                        "the reentrancy part, " +
-                        "subtract 1 from the value of size0 given in this file). And size1 is the depth of the whole tree " +
-                        "(to get the recursion depth of the tree in total, subtract 1 from size1).",
-                new HashSet<>(Arrays.asList("TP_CP", "TP_CP_coref", "make_singular", "thought", "said", "believed", "knew", "heard", "mentioned",
-                        "thought_coref", "said_coref", "believed_coref", "knew_coref", "heard_coref", "mentioned_coref")),
-                false,
-                false
-        );
-        samplerDeepRecursion3s.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_3s.txt");
+//        SampleFromTemplateWithInfiniteLanguage samplerDeepRecursion3s = new SampleFromTemplateWithInfiniteLanguage(
+//                3, 11, 1,
+//                Arrays.asList(SIZE_TYPE_DEPTH_BELOW_RESOLVE_COREF, SIZE_TYPE_TREE_DEPTH),
+//                "examples/amr_template_grammars/deep_recursion_3s.irtg",
+//                "Randomly sampled examples of deep CP recursion (with 3rd person singular coreference). Created by a grammar. " +
+//                        "Here, size0 is the depth below the CP with the reentrancy (i.e., to get the recursion depth for" +
+//                        "the reentrancy part, " +
+//                        "subtract 1 from the value of size0 given in this file). And size1 is the depth of the whole tree " +
+//                        "(to get the recursion depth of the tree in total, subtract 1 from size1).",
+//                new HashSet<>(Arrays.asList("TP_CP", "TP_CP_coref", "make_singular", "thought", "said", "believed", "knew", "heard", "mentioned",
+//                        "thought_coref", "said_coref", "believed_coref", "knew_coref", "heard_coref", "mentioned_coref")),
+//                false,
+//                false
+//        );
+//        samplerDeepRecursion3s.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_3s.txt");
 
+        // deep recursion with relative clauses
         // The 0-based tree depth is (1-based) number of CPs + 1
         SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionRC = new SampleFromTemplateWithInfiniteLanguage(
                 0, 5, 1,
@@ -158,6 +161,7 @@ public class SampleFromTemplateWithInfiniteLanguage {
         );
         samplerDeepRecursionRC.sampleFromGrammar(10, "examples/amr_template_grammars/deep_recursion_rc.txt");
 
+        // deep recursion with relative clause and contrastive focus
         // The 0-based tree depth is (1-based) number of CPs + 1
         SampleFromTemplateWithInfiniteLanguage samplerDeepRecursionRCCoref = new SampleFromTemplateWithInfiniteLanguage(
                 0, 6, 1,

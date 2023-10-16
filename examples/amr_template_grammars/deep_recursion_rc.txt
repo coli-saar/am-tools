@@ -1,0 +1,362 @@
+# Randomly sampled examples of deep CP recursion (with relative clauses). Created by a grammar. Here, size0 is the number of recursions within the relative clause minus 1 (i.e., to get the recursion depth forthe RC part, add 1 to the value of size0 given in this file). And size1 is the depth of the whole tree (to get the recursion depth of the tree in total, subtract 1 from size1) (Not exactly true, sincetree depth depends on the type of lowest DP).
+
+# ::snt The astronaut who I assumed won hated the girls
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(girls)),DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_gap_end_recursion(CP_with_gap_base(assumed,I)),won))))
+# ::size0 0
+# ::size1 6
+(u_6986 / hate-01  :ARG0 (a / astronaut  :ARG0-of (r / win-01  :ARG1-of (u_6987 / assume-02  :ARG0 (u_6988 / i))))  :ARG1 (u_6989 / girl))
+
+# ::snt The astronaut who we said won sneezed
+# ::tree TP_intr(sneezed,DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_gap_end_recursion(CP_with_gap_base(said,we)),won))))
+# ::size0 0
+# ::size1 6
+(u_6992 / sneeze-01  :ARG0 (a / astronaut  :ARG0-of (r / win-01  :ARG1-of (u_6990 / say-01  :ARG0 (u_6991 / we)))))
+
+# ::snt The soldier who I thought arrived liked the kids
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(kids)),DP_the_with_RC(DP_RC(soldier,subj_rel(CP_gap_end_recursion(CP_with_gap_base(thought,I)),arrived))))
+# ::size0 0
+# ::size1 6
+(u_6993 / like-01  :ARG0 (s / soldier  :ARG1-of (r / arrive-01  :ARG1-of (u_6994 / think-01  :ARG0 (u_6995 / i))))  :ARG1 (u_6996 / kid))
+
+# ::snt You claimed that the kids who we assumed arrived sneezed
+# ::tree TP_CP(claimed,you,TP_intr(sneezed,DP_the_with_RC(DP_RC(kids,subj_rel(CP_gap_end_recursion(CP_with_gap_base(assumed,we)),arrived)))))
+# ::size0 0
+# ::size1 7
+(u_7001 / claim-01  :ARG0 (r / you)  :ARG1 (u_7000 / sneeze-01  :ARG0 (u_7002 / kid  :ARG1-of (u_6999 / arrive-01  :ARG1-of (u_6997 / assume-02  :ARG0 (u_6998 / we))))))
+
+# ::snt The lawyer who the kids claimed slept sneezed
+# ::tree TP_intr(sneezed,DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(kids)))),slept))))
+# ::size0 0
+# ::size1 8
+(u_7005 / sneeze-01  :ARG0 (m / lawyer  :ARG0-of (r / sleep-01  :ARG1-of (u_7003 / claim-01  :ARG0 (u_7004 / kid)))))
+
+# ::snt The lawyer who you thought sneezed won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_gap_end_recursion(CP_with_gap_base(thought,you)),sneezed))))
+# ::size0 0
+# ::size1 6
+(u_7008 / win-01  :ARG0 (m / lawyer  :ARG0-of (r / sneeze-01  :ARG1-of (u_7006 / think-01  :ARG0 (u_7007 / you)))))
+
+# ::snt The lawyer who I assumed slept liked the doctor
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(doctor)),DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_gap_end_recursion(CP_with_gap_base(assumed,I)),slept))))
+# ::size0 0
+# ::size1 6
+(u_7011 / like-01  :ARG0 (m / lawyer  :ARG0-of (r / sleep-01  :ARG1-of (u_7009 / assume-02  :ARG0 (u_7010 / i))))  :ARG1 (d / doctor))
+
+# ::snt We said that the girls claimed that you said that the astronaut who I claimed arrived liked the soldier
+# ::tree TP_CP(said,we,TP_CP(claimed,DP_the(NP_unary(girls)),TP_CP(said,you,TP_tr(liked,DP_the_obj(NP_unary(soldier)),DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_gap_end_recursion(CP_with_gap_base(claimed,I)),arrived)))))))
+# ::size0 0
+# ::size1 9
+(u_7022 / say-01  :ARG0 (r / we)  :ARG1 (u_7019 / claim-01  :ARG0 (u_7024 / girl)  :ARG1 (u_7016 / say-01  :ARG0 (u_7021 / you)  :ARG1 (u_7015 / like-01  :ARG0 (a / astronaut  :ARG1-of (u_7018 / arrive-01  :ARG1-of (u_7013 / claim-01  :ARG0 (u_7014 / i))))  :ARG1 (s / soldier)))))
+
+# ::snt I thought that the girls thought that the kids who we assumed won hated the lawyer
+# ::tree TP_CP(thought,I,TP_CP(thought,DP_the(NP_unary(girls)),TP_tr(hated,DP_the_obj(NP_unary(lawyer)),DP_the_with_RC(DP_RC(kids,subj_rel(CP_gap_end_recursion(CP_with_gap_base(assumed,we)),won))))))
+# ::size0 0
+# ::size1 8
+(u_7031 / think-01  :ARG0 (r / i)  :ARG1 (u_7029 / think-01  :ARG0 (u_7032 / girl)  :ARG1 (u_7028 / hate-01  :ARG0 (u_7030 / kid  :ARG0-of (u_7027 / win-01  :ARG1-of (u_7025 / assume-02  :ARG0 (u_7026 / we))))  :ARG1 (m / lawyer))))
+
+# ::snt The doctor who I said slept hated the boys
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(boys)),DP_the_with_RC(DP_RC(doctor,subj_rel(CP_gap_end_recursion(CP_with_gap_base(said,I)),slept))))
+# ::size0 0
+# ::size1 6
+(u_7033 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / sleep-01  :ARG1-of (u_7034 / say-01  :ARG0 (u_7035 / i))))  :ARG1 (u_7036 / boy))
+
+# ::snt The lawyer who the soldier thought that you assumed slept hated the astronaut
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(astronaut)),DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(soldier))))),slept))))
+# ::size0 1
+# ::size1 9
+(u_7041 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / sleep-01  :ARG1-of (u_7037 / assume-02  :ARG0 (u_7039 / you)  :ARG1-of (u_7038 / think-01  :ARG0 (u_7040 / soldier)))))  :ARG1 (a / astronaut))
+
+# ::snt The doctor who the kids claimed that you assumed sneezed hated the astronaut
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(astronaut)),DP_the_with_RC(DP_RC(doctor,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(kids))))),sneezed))))
+# ::size0 1
+# ::size1 9
+(u_7046 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / sneeze-01  :ARG1-of (u_7042 / assume-02  :ARG0 (u_7045 / you)  :ARG1-of (u_7043 / claim-01  :ARG0 (u_7044 / kid)))))  :ARG1 (a / astronaut))
+
+# ::snt The girls who I claimed that you claimed sneezed liked the soldier
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(soldier)),DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_gap_end_recursion(CP_with_gap_base(claimed,I))),sneezed))))
+# ::size0 1
+# ::size1 7
+(u_7053 / like-01  :ARG0 (r / girl  :ARG0-of (u_7052 / sneeze-01  :ARG1-of (u_7048 / claim-01  :ARG0 (u_7051 / you)  :ARG1-of (u_7049 / claim-01  :ARG0 (u_7050 / i)))))  :ARG1 (s / soldier))
+
+# ::snt The boys who we claimed that the doctor said won slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(boys,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(doctor))),CP_gap_end_recursion(CP_with_gap_base(claimed,we))),won))))
+# ::size0 1
+# ::size1 8
+(u_7058 / sleep-01  :ARG0 (r / boy  :ARG0-of (u_7057 / win-01  :ARG1-of (u_7056 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_7054 / claim-01  :ARG0 (u_7055 / we))))))
+
+# ::snt The doctor who we said that you assumed won sneezed
+# ::tree TP_intr(sneezed,DP_the_with_RC(DP_RC(doctor,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(said,we))),won))))
+# ::size0 1
+# ::size1 7
+(u_7063 / sneeze-01  :ARG0 (d / doctor  :ARG0-of (r / win-01  :ARG1-of (u_7059 / assume-02  :ARG0 (u_7062 / you)  :ARG1-of (u_7060 / say-01  :ARG0 (u_7061 / we))))))
+
+# ::snt The astronaut who you claimed that we said slept won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(claimed,you))),slept))))
+# ::size0 1
+# ::size1 7
+(u_7068 / win-01  :ARG0 (a / astronaut  :ARG0-of (r / sleep-01  :ARG1-of (u_7064 / say-01  :ARG0 (u_7067 / we)  :ARG1-of (u_7065 / claim-01  :ARG0 (u_7066 / you))))))
+
+# ::snt The boys who we thought that you assumed slept hated the soldier
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(soldier)),DP_the_with_RC(DP_RC(boys,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(thought,we))),slept))))
+# ::size0 1
+# ::size1 7
+(u_7075 / hate-01  :ARG0 (r / boy  :ARG0-of (u_7074 / sleep-01  :ARG1-of (u_7070 / assume-02  :ARG0 (u_7073 / you)  :ARG1-of (u_7071 / think-01  :ARG0 (u_7072 / we)))))  :ARG1 (s / soldier))
+
+# ::snt The astronaut who you thought that I said slept won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,I),CP_gap_end_recursion(CP_with_gap_base(thought,you))),slept))))
+# ::size0 1
+# ::size1 7
+(u_7080 / win-01  :ARG0 (a / astronaut  :ARG0-of (r / sleep-01  :ARG1-of (u_7076 / say-01  :ARG0 (u_7079 / i)  :ARG1-of (u_7077 / think-01  :ARG0 (u_7078 / you))))))
+
+# ::snt The soldier who we claimed that you assumed arrived slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(claimed,we))),arrived))))
+# ::size0 1
+# ::size1 7
+(u_7085 / sleep-01  :ARG0 (s / soldier  :ARG1-of (r / arrive-01  :ARG1-of (u_7081 / assume-02  :ARG0 (u_7084 / you)  :ARG1-of (u_7082 / claim-01  :ARG0 (u_7083 / we))))))
+
+# ::snt The girls who we said that you claimed sneezed slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_gap_end_recursion(CP_with_gap_base(said,we))),sneezed))))
+# ::size0 1
+# ::size1 7
+(u_7091 / sleep-01  :ARG0 (r / girl  :ARG0-of (u_7090 / sneeze-01  :ARG1-of (u_7086 / claim-01  :ARG0 (u_7089 / you)  :ARG1-of (u_7087 / say-01  :ARG0 (u_7088 / we))))))
+
+# ::snt The girls who you assumed that we thought that the lawyer assumed slept arrived
+# ::tree TP_intr(arrived,DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(lawyer))),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_gap_end_recursion(CP_with_gap_base(assumed,you)))),slept))))
+# ::size0 2
+# ::size1 8
+(u_7098 / arrive-01  :ARG1 (r / girl  :ARG0-of (u_7097 / sleep-01  :ARG1-of (u_7096 / assume-02  :ARG0 (m / lawyer)  :ARG1-of (u_7092 / think-01  :ARG0 (u_7095 / we)  :ARG1-of (u_7093 / assume-02  :ARG0 (u_7094 / you)))))))
+
+# ::snt The astronaut who I said that the girls thought that you said slept arrived
+# ::tree TP_intr(arrived,DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(said,I)))),slept))))
+# ::size0 2
+# ::size1 9
+(u_7105 / arrive-01  :ARG1 (a / astronaut  :ARG0-of (r / sleep-01  :ARG1-of (u_7099 / say-01  :ARG0 (u_7104 / you)  :ARG1-of (u_7100 / think-01  :ARG0 (u_7103 / girl)  :ARG1-of (u_7101 / say-01  :ARG0 (u_7102 / i)))))))
+
+# ::snt The doctor thought that the boys who the kids claimed that we assumed that I said slept sneezed
+# ::tree TP_CP(thought,DP_the(NP_unary(doctor)),TP_intr(sneezed,DP_the_with_RC(DP_RC(boys,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(kids)))))),slept)))))
+# ::size0 2
+# ::size1 11
+(u_7114 / think-01  :ARG0 (d / doctor)  :ARG1 (u_7113 / sneeze-01  :ARG0 (r / boy  :ARG0-of (u_7112 / sleep-01  :ARG1-of (u_7106 / say-01  :ARG0 (u_7111 / i)  :ARG1-of (u_7107 / assume-02  :ARG0 (u_7110 / we)  :ARG1-of (u_7108 / claim-01  :ARG0 (u_7109 / kid))))))))
+
+# ::snt The boys who I thought that you claimed that we assumed slept liked the kids
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(kids)),DP_the_with_RC(DP_RC(boys,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_gap_end_recursion(CP_with_gap_base(thought,I)))),slept))))
+# ::size0 2
+# ::size1 8
+(u_7115 / like-01  :ARG0 (r / boy  :ARG0-of (u_7122 / sleep-01  :ARG1-of (u_7116 / assume-02  :ARG0 (u_7121 / we)  :ARG1-of (u_7117 / claim-01  :ARG0 (u_7120 / you)  :ARG1-of (u_7118 / think-01  :ARG0 (u_7119 / i))))))  :ARG1 (u_7123 / kid))
+
+# ::snt The girls who we said that you thought that I assumed sneezed arrived
+# ::tree TP_intr(arrived,DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(said,we)))),sneezed))))
+# ::size0 2
+# ::size1 8
+(u_7131 / arrive-01  :ARG1 (r / girl  :ARG0-of (u_7130 / sneeze-01  :ARG1-of (u_7124 / assume-02  :ARG0 (u_7129 / i)  :ARG1-of (u_7125 / think-01  :ARG0 (u_7128 / you)  :ARG1-of (u_7126 / say-01  :ARG0 (u_7127 / we)))))))
+
+# ::snt The doctor who you thought that we assumed that the soldier claimed won sneezed
+# ::tree TP_intr(sneezed,DP_the_with_RC(DP_RC(doctor,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(soldier))),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(thought,you)))),won))))
+# ::size0 2
+# ::size1 8
+(u_7138 / sneeze-01  :ARG0 (d / doctor  :ARG0-of (r / win-01  :ARG1-of (u_7136 / claim-01  :ARG0 (u_7137 / soldier)  :ARG1-of (u_7132 / assume-02  :ARG0 (u_7135 / we)  :ARG1-of (u_7133 / think-01  :ARG0 (u_7134 / you)))))))
+
+# ::snt You claimed that the girls who we thought that I thought that the kids said sneezed slept
+# ::tree TP_CP(claimed,you,TP_intr(slept,DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_gap_end_recursion(CP_with_gap_base(thought,we)))),sneezed)))))
+# ::size0 2
+# ::size1 9
+(u_7147 / claim-01  :ARG0 (r / you)  :ARG1 (u_7146 / sleep-01  :ARG0 (u_7148 / girl  :ARG0-of (u_7145 / sneeze-01  :ARG1-of (u_7139 / say-01  :ARG0 (u_7144 / kid)  :ARG1-of (u_7140 / think-01  :ARG0 (u_7143 / i)  :ARG1-of (u_7141 / think-01  :ARG0 (u_7142 / we))))))))
+
+# ::snt The astronaut who I thought that you thought that the girls said arrived liked the soldier
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(soldier)),DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(thought,I)))),arrived))))
+# ::size0 2
+# ::size1 8
+(u_7156 / like-01  :ARG0 (a / astronaut  :ARG1-of (r / arrive-01  :ARG1-of (u_7150 / say-01  :ARG0 (u_7155 / girl)  :ARG1-of (u_7151 / think-01  :ARG0 (u_7154 / you)  :ARG1-of (u_7152 / think-01  :ARG0 (u_7153 / i))))))  :ARG1 (s / soldier))
+
+# ::snt The boys who we thought that the astronaut said that I assumed arrived sneezed
+# ::tree TP_intr(sneezed,DP_the_with_RC(DP_RC(boys,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(astronaut))),CP_gap_end_recursion(CP_with_gap_base(thought,we)))),arrived))))
+# ::size0 2
+# ::size1 9
+(u_7163 / sneeze-01  :ARG0 (r / boy  :ARG1-of (u_7162 / arrive-01  :ARG1-of (u_7157 / assume-02  :ARG0 (u_7161 / i)  :ARG1-of (u_7160 / say-01  :ARG0 (a / astronaut)  :ARG1-of (u_7158 / think-01  :ARG0 (u_7159 / we)))))))
+
+# ::snt The soldier who we thought that the kids said that you thought sneezed arrived
+# ::tree TP_intr(arrived,DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_gap_end_recursion(CP_with_gap_base(thought,we)))),sneezed))))
+# ::size0 2
+# ::size1 9
+(u_7170 / arrive-01  :ARG1 (s / soldier  :ARG0-of (r / sneeze-01  :ARG1-of (u_7164 / think-01  :ARG0 (u_7169 / you)  :ARG1-of (u_7165 / say-01  :ARG0 (u_7168 / kid)  :ARG1-of (u_7166 / think-01  :ARG0 (u_7167 / we)))))))
+
+# ::snt The lawyer who you assumed that the girls said that I assumed that we assumed sneezed hated the boys
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(boys)),DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(assumed,you))))),sneezed))))
+# ::size0 3
+# ::size1 10
+(u_7171 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / sneeze-01  :ARG1-of (u_7172 / assume-02  :ARG0 (u_7179 / we)  :ARG1-of (u_7173 / assume-02  :ARG0 (u_7178 / i)  :ARG1-of (u_7174 / say-01  :ARG0 (u_7177 / girl)  :ARG1-of (u_7175 / assume-02  :ARG0 (u_7176 / you)))))))  :ARG1 (u_7180 / boy))
+
+# ::snt The girls who I claimed that the boys said that you assumed that we thought arrived liked the kids
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(kids)),DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(claimed,I))))),arrived))))
+# ::size0 3
+# ::size1 10
+(u_7181 / like-01  :ARG0 (r / girl  :ARG1-of (u_7190 / arrive-01  :ARG1-of (u_7182 / think-01  :ARG0 (u_7189 / we)  :ARG1-of (u_7183 / assume-02  :ARG0 (u_7188 / you)  :ARG1-of (u_7184 / say-01  :ARG0 (u_7187 / boy)  :ARG1-of (u_7185 / claim-01  :ARG0 (u_7186 / i)))))))  :ARG1 (u_7191 / kid))
+
+# ::snt The girls who we claimed that you said that the astronaut assumed that I assumed slept won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(astronaut))),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_gap_end_recursion(CP_with_gap_base(claimed,we))))),slept))))
+# ::size0 3
+# ::size1 9
+(u_7200 / win-01  :ARG0 (r / girl  :ARG0-of (u_7199 / sleep-01  :ARG1-of (u_7192 / assume-02  :ARG0 (u_7198 / i)  :ARG1-of (u_7197 / assume-02  :ARG0 (a / astronaut)  :ARG1-of (u_7193 / say-01  :ARG0 (u_7196 / you)  :ARG1-of (u_7194 / claim-01  :ARG0 (u_7195 / we))))))))
+
+# ::snt The lawyer who I claimed that we said that you assumed that the doctor thought arrived hated the girls
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(girls)),DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(claimed,I))))),arrived))))
+# ::size0 3
+# ::size1 9
+(u_7201 / hate-01  :ARG0 (m / lawyer  :ARG1-of (r / arrive-01  :ARG1-of (u_7208 / think-01  :ARG0 (d / doctor)  :ARG1-of (u_7202 / assume-02  :ARG0 (u_7207 / you)  :ARG1-of (u_7203 / say-01  :ARG0 (u_7206 / we)  :ARG1-of (u_7204 / claim-01  :ARG0 (u_7205 / i)))))))  :ARG1 (u_7209 / girl))
+
+# ::snt The kids who you claimed that we assumed that the girls said that I said slept liked the doctor
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(doctor)),DP_the_with_RC(DP_RC(kids,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(claimed,you))))),slept))))
+# ::size0 3
+# ::size1 9
+(u_7219 / like-01  :ARG0 (r / kid  :ARG0-of (u_7218 / sleep-01  :ARG1-of (u_7210 / say-01  :ARG0 (u_7217 / i)  :ARG1-of (u_7211 / say-01  :ARG0 (u_7216 / girl)  :ARG1-of (u_7212 / assume-02  :ARG0 (u_7215 / we)  :ARG1-of (u_7213 / claim-01  :ARG0 (u_7214 / you)))))))  :ARG1 (d / doctor))
+
+# ::snt The doctor who the lawyer claimed that you thought that we assumed that the boys said sneezed liked the kids
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(kids)),DP_the_with_RC(DP_RC(doctor,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(lawyer))))))),sneezed))))
+# ::size0 3
+# ::size1 11
+(u_7220 / like-01  :ARG0 (d / doctor  :ARG0-of (r / sneeze-01  :ARG1-of (u_7221 / say-01  :ARG0 (u_7227 / boy)  :ARG1-of (u_7222 / assume-02  :ARG0 (u_7226 / we)  :ARG1-of (u_7223 / think-01  :ARG0 (u_7225 / you)  :ARG1-of (u_7224 / claim-01  :ARG0 (m / lawyer)))))))  :ARG1 (u_7228 / kid))
+
+# ::snt The soldier who I said that the lawyer claimed that we claimed that you assumed won slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(lawyer))),CP_gap_end_recursion(CP_with_gap_base(said,I))))),won))))
+# ::size0 3
+# ::size1 10
+(u_7236 / sleep-01  :ARG0 (s / soldier  :ARG0-of (r / win-01  :ARG1-of (u_7229 / assume-02  :ARG0 (u_7235 / you)  :ARG1-of (u_7230 / claim-01  :ARG0 (u_7234 / we)  :ARG1-of (u_7233 / claim-01  :ARG0 (m / lawyer)  :ARG1-of (u_7231 / say-01  :ARG0 (u_7232 / i))))))))
+
+# ::snt The kids who we thought that the soldier claimed that I assumed that you claimed slept won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(kids,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(soldier))),CP_gap_end_recursion(CP_with_gap_base(thought,we))))),slept))))
+# ::size0 3
+# ::size1 10
+(u_7246 / win-01  :ARG0 (r / kid  :ARG0-of (u_7245 / sleep-01  :ARG1-of (u_7237 / claim-01  :ARG0 (u_7243 / you)  :ARG1-of (u_7238 / assume-02  :ARG0 (u_7242 / i)  :ARG1-of (u_7241 / claim-01  :ARG0 (u_7244 / soldier)  :ARG1-of (u_7239 / think-01  :ARG0 (u_7240 / we))))))))
+
+# ::snt The lawyer who I thought that the soldier thought that we thought that you assumed sneezed hated the astronaut
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(astronaut)),DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(soldier))),CP_gap_end_recursion(CP_with_gap_base(thought,I))))),sneezed))))
+# ::size0 3
+# ::size1 10
+(u_7255 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / sneeze-01  :ARG1-of (u_7247 / assume-02  :ARG0 (u_7253 / you)  :ARG1-of (u_7248 / think-01  :ARG0 (u_7252 / we)  :ARG1-of (u_7251 / think-01  :ARG0 (u_7254 / soldier)  :ARG1-of (u_7249 / think-01  :ARG0 (u_7250 / i)))))))  :ARG1 (a / astronaut))
+
+# ::snt The doctor who I said that the kids thought that you said that we assumed won liked the lawyer
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(lawyer)),DP_the_with_RC(DP_RC(doctor,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(kids))),CP_gap_end_recursion(CP_with_gap_base(said,I))))),won))))
+# ::size0 3
+# ::size1 10
+(u_7264 / like-01  :ARG0 (d / doctor  :ARG0-of (r / win-01  :ARG1-of (u_7256 / assume-02  :ARG0 (u_7263 / we)  :ARG1-of (u_7257 / say-01  :ARG0 (u_7262 / you)  :ARG1-of (u_7258 / think-01  :ARG0 (u_7261 / kid)  :ARG1-of (u_7259 / say-01  :ARG0 (u_7260 / i)))))))  :ARG1 (m / lawyer))
+
+# ::snt The soldier who I assumed that the astronaut said that you said that the doctor thought that we thought slept hated the lawyer
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(lawyer)),DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(astronaut))),CP_gap_end_recursion(CP_with_gap_base(assumed,I)))))),slept))))
+# ::size0 4
+# ::size1 11
+(u_7273 / hate-01  :ARG0 (s / soldier  :ARG0-of (r / sleep-01  :ARG1-of (u_7265 / think-01  :ARG0 (u_7272 / we)  :ARG1-of (u_7271 / think-01  :ARG0 (d / doctor)  :ARG1-of (u_7266 / say-01  :ARG0 (u_7270 / you)  :ARG1-of (u_7269 / say-01  :ARG0 (a / astronaut)  :ARG1-of (u_7267 / assume-02  :ARG0 (u_7268 / i))))))))  :ARG1 (m / lawyer))
+
+# ::snt The lawyer who I thought that the girls said that you assumed that the soldier thought that we claimed sneezed hated the kids
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(kids)),DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(soldier))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(thought,I)))))),sneezed))))
+# ::size0 4
+# ::size1 11
+(u_7274 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / sneeze-01  :ARG1-of (u_7275 / claim-01  :ARG0 (u_7283 / we)  :ARG1-of (u_7282 / think-01  :ARG0 (u_7284 / soldier)  :ARG1-of (u_7276 / assume-02  :ARG0 (u_7281 / you)  :ARG1-of (u_7277 / say-01  :ARG0 (u_7280 / girl)  :ARG1-of (u_7278 / think-01  :ARG0 (u_7279 / i))))))))  :ARG1 (u_7285 / kid))
+
+# ::snt The lawyer who the doctor thought that we assumed that you claimed that I thought that the soldier claimed slept hated the girls
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(girls)),DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(soldier))),CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(doctor)))))))),slept))))
+# ::size0 4
+# ::size1 12
+(u_7286 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / sleep-01  :ARG1-of (u_7294 / claim-01  :ARG0 (u_7295 / soldier)  :ARG1-of (u_7287 / think-01  :ARG0 (u_7293 / i)  :ARG1-of (u_7288 / claim-01  :ARG0 (u_7292 / you)  :ARG1-of (u_7289 / assume-02  :ARG0 (u_7291 / we)  :ARG1-of (u_7290 / think-01  :ARG0 (d / doctor))))))))  :ARG1 (u_7296 / girl))
+
+# ::snt The boys who we thought that you said that I said that the doctor said that the soldier claimed sneezed won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(boys,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(soldier))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_gap_end_recursion(CP_with_gap_base(thought,we)))))),sneezed))))
+# ::size0 4
+# ::size1 10
+(u_7307 / win-01  :ARG0 (r / boy  :ARG0-of (u_7306 / sneeze-01  :ARG1-of (u_7304 / claim-01  :ARG0 (u_7305 / soldier)  :ARG1-of (u_7303 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_7297 / say-01  :ARG0 (u_7302 / i)  :ARG1-of (u_7298 / say-01  :ARG0 (u_7301 / you)  :ARG1-of (u_7299 / think-01  :ARG0 (u_7300 / we)))))))))
+
+# ::snt The soldier who you said that I thought that we claimed that the boys assumed that the doctor claimed slept hated the astronaut
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(astronaut)),DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_gap_end_recursion(CP_with_gap_base(said,you)))))),slept))))
+# ::size0 4
+# ::size1 10
+(u_7317 / hate-01  :ARG0 (s / soldier  :ARG0-of (r / sleep-01  :ARG1-of (u_7316 / claim-01  :ARG0 (d / doctor)  :ARG1-of (u_7308 / assume-02  :ARG0 (u_7315 / boy)  :ARG1-of (u_7309 / claim-01  :ARG0 (u_7314 / we)  :ARG1-of (u_7310 / think-01  :ARG0 (u_7313 / i)  :ARG1-of (u_7311 / say-01  :ARG0 (u_7312 / you))))))))  :ARG1 (a / astronaut))
+
+# ::snt The girls who the astronaut thought that you assumed that I claimed that we assumed that the lawyer thought won liked the boys
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(boys)),DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(lawyer))),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(astronaut)))))))),won))))
+# ::size0 4
+# ::size1 12
+(u_7318 / like-01  :ARG0 (r / girl  :ARG0-of (u_7327 / win-01  :ARG1-of (u_7326 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_7319 / assume-02  :ARG0 (u_7325 / we)  :ARG1-of (u_7320 / claim-01  :ARG0 (u_7324 / i)  :ARG1-of (u_7321 / assume-02  :ARG0 (u_7323 / you)  :ARG1-of (u_7322 / think-01  :ARG0 (a / astronaut))))))))  :ARG1 (u_7328 / boy))
+
+# ::snt The doctor assumed that the girls who the astronaut thought that the boys claimed that you thought that we thought that I claimed sneezed arrived
+# ::tree TP_CP(assumed,DP_the(NP_unary(doctor)),TP_intr(arrived,DP_the_with_RC(DP_RC(girls,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(astronaut)))))))),sneezed)))))
+# ::size0 4
+# ::size1 13
+(u_7340 / assume-02  :ARG0 (d / doctor)  :ARG1 (u_7339 / arrive-01  :ARG1 (r / girl  :ARG0-of (u_7338 / sneeze-01  :ARG1-of (u_7329 / claim-01  :ARG0 (u_7337 / i)  :ARG1-of (u_7330 / think-01  :ARG0 (u_7336 / we)  :ARG1-of (u_7331 / think-01  :ARG0 (u_7335 / you)  :ARG1-of (u_7332 / claim-01  :ARG0 (u_7334 / boy)  :ARG1-of (u_7333 / think-01  :ARG0 (a / astronaut))))))))))
+
+# ::snt The doctor who the kids assumed that the girls said that you assumed that I assumed that we claimed won hated the astronaut
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(astronaut)),DP_the_with_RC(DP_RC(doctor,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(kids)))))))),won))))
+# ::size0 4
+# ::size1 12
+(u_7351 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / win-01  :ARG1-of (u_7341 / claim-01  :ARG0 (u_7350 / we)  :ARG1-of (u_7342 / assume-02  :ARG0 (u_7349 / i)  :ARG1-of (u_7343 / assume-02  :ARG0 (u_7348 / you)  :ARG1-of (u_7344 / say-01  :ARG0 (u_7347 / girl)  :ARG1-of (u_7345 / assume-02  :ARG0 (u_7346 / kid))))))))  :ARG1 (a / astronaut))
+
+# ::snt The doctor who the soldier thought that you assumed that we claimed that I claimed that the boys said sneezed won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(doctor,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(soldier)))))))),sneezed))))
+# ::size0 4
+# ::size1 12
+(u_7362 / win-01  :ARG0 (d / doctor  :ARG0-of (r / sneeze-01  :ARG1-of (u_7352 / say-01  :ARG0 (u_7360 / boy)  :ARG1-of (u_7353 / claim-01  :ARG0 (u_7359 / i)  :ARG1-of (u_7354 / claim-01  :ARG0 (u_7358 / we)  :ARG1-of (u_7355 / assume-02  :ARG0 (u_7357 / you)  :ARG1-of (u_7356 / think-01  :ARG0 (u_7361 / soldier)))))))))
+
+# ::snt The astronaut who I thought that the girls said that the boys said that the doctor thought that we thought sneezed liked the soldier
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(soldier)),DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(thought,I)))))),sneezed))))
+# ::size0 4
+# ::size1 11
+(u_7373 / like-01  :ARG0 (a / astronaut  :ARG0-of (r / sneeze-01  :ARG1-of (u_7364 / think-01  :ARG0 (u_7372 / we)  :ARG1-of (u_7371 / think-01  :ARG0 (d / doctor)  :ARG1-of (u_7365 / say-01  :ARG0 (u_7370 / boy)  :ARG1-of (u_7366 / say-01  :ARG0 (u_7369 / girl)  :ARG1-of (u_7367 / think-01  :ARG0 (u_7368 / i))))))))  :ARG1 (s / soldier))
+
+# ::snt The soldier who I claimed that we said that you said that the doctor said that the kids thought that the lawyer thought sneezed liked the boys
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(boys)),DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(lawyer))),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(claimed,I))))))),sneezed))))
+# ::size0 5
+# ::size1 11
+(u_7374 / like-01  :ARG0 (s / soldier  :ARG0-of (r / sneeze-01  :ARG1-of (u_7384 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_7375 / think-01  :ARG0 (u_7383 / kid)  :ARG1-of (u_7382 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_7376 / say-01  :ARG0 (u_7381 / you)  :ARG1-of (u_7377 / say-01  :ARG0 (u_7380 / we)  :ARG1-of (u_7378 / claim-01  :ARG0 (u_7379 / i)))))))))  :ARG1 (u_7385 / boy))
+
+# ::snt The boys who I assumed that the soldier claimed that the girls claimed that the lawyer claimed that you thought that we thought arrived won
+# ::tree TP_intr(won,DP_the_with_RC(DP_RC(boys,subj_rel(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(lawyer))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(soldier))),CP_gap_end_recursion(CP_with_gap_base(assumed,I))))))),arrived))))
+# ::size0 5
+# ::size1 12
+(u_7398 / win-01  :ARG0 (r / boy  :ARG1-of (u_7397 / arrive-01  :ARG1-of (u_7386 / think-01  :ARG0 (u_7395 / we)  :ARG1-of (u_7387 / think-01  :ARG0 (u_7394 / you)  :ARG1-of (u_7393 / claim-01  :ARG0 (m / lawyer)  :ARG1-of (u_7388 / claim-01  :ARG0 (u_7392 / girl)  :ARG1-of (u_7391 / claim-01  :ARG0 (u_7396 / soldier)  :ARG1-of (u_7389 / assume-02  :ARG0 (u_7390 / i))))))))))
+
+# ::snt The astronaut who I assumed that the boys claimed that the kids thought that you said that we thought that the doctor said won arrived
+# ::tree TP_intr(arrived,DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(assumed,I))))))),won))))
+# ::size0 5
+# ::size1 12
+(u_7410 / arrive-01  :ARG1 (a / astronaut  :ARG0-of (r / win-01  :ARG1-of (u_7409 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_7399 / think-01  :ARG0 (u_7408 / we)  :ARG1-of (u_7400 / say-01  :ARG0 (u_7407 / you)  :ARG1-of (u_7401 / think-01  :ARG0 (u_7406 / kid)  :ARG1-of (u_7402 / claim-01  :ARG0 (u_7405 / boy)  :ARG1-of (u_7403 / assume-02  :ARG0 (u_7404 / i))))))))))
+
+# ::snt The astronaut who the soldier assumed that we thought that the boys assumed that I claimed that you said that the kids claimed sneezed slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(soldier))))))))),sneezed))))
+# ::size0 5
+# ::size1 13
+(u_7423 / sleep-01  :ARG0 (a / astronaut  :ARG0-of (r / sneeze-01  :ARG1-of (u_7411 / claim-01  :ARG0 (u_7421 / kid)  :ARG1-of (u_7412 / say-01  :ARG0 (u_7420 / you)  :ARG1-of (u_7413 / claim-01  :ARG0 (u_7419 / i)  :ARG1-of (u_7414 / assume-02  :ARG0 (u_7418 / boy)  :ARG1-of (u_7415 / think-01  :ARG0 (u_7417 / we)  :ARG1-of (u_7416 / assume-02  :ARG0 (u_7422 / soldier))))))))))
+
+# ::snt The kids who the astronaut claimed that the girls assumed that the doctor claimed that you said that we thought that I claimed slept hated the boys
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(boys)),DP_the_with_RC(DP_RC(kids,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(doctor))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(astronaut))))))))),slept))))
+# ::size0 5
+# ::size1 13
+(u_7424 / hate-01  :ARG0 (r / kid  :ARG0-of (u_7435 / sleep-01  :ARG1-of (u_7425 / claim-01  :ARG0 (u_7434 / i)  :ARG1-of (u_7426 / think-01  :ARG0 (u_7433 / we)  :ARG1-of (u_7427 / say-01  :ARG0 (u_7432 / you)  :ARG1-of (u_7431 / claim-01  :ARG0 (d / doctor)  :ARG1-of (u_7428 / assume-02  :ARG0 (u_7430 / girl)  :ARG1-of (u_7429 / claim-01  :ARG0 (a / astronaut)))))))))  :ARG1 (u_7436 / boy))
+
+# ::snt The soldier who I said that the girls said that the boys said that you thought that the kids said that we assumed arrived hated the doctor
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(doctor)),DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(said,I))))))),arrived))))
+# ::size0 5
+# ::size1 12
+(u_7449 / hate-01  :ARG0 (s / soldier  :ARG1-of (r / arrive-01  :ARG1-of (u_7437 / assume-02  :ARG0 (u_7448 / we)  :ARG1-of (u_7438 / say-01  :ARG0 (u_7447 / kid)  :ARG1-of (u_7439 / think-01  :ARG0 (u_7446 / you)  :ARG1-of (u_7440 / say-01  :ARG0 (u_7445 / boy)  :ARG1-of (u_7441 / say-01  :ARG0 (u_7444 / girl)  :ARG1-of (u_7442 / say-01  :ARG0 (u_7443 / i)))))))))  :ARG1 (d / doctor))
+
+# ::snt The kids who the girls claimed that we thought that I said that the lawyer thought that you assumed that the boys claimed sneezed slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(kids,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(lawyer))),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(girls))))))))),sneezed))))
+# ::size0 5
+# ::size1 13
+(u_7462 / sleep-01  :ARG0 (r / kid  :ARG0-of (u_7461 / sneeze-01  :ARG1-of (u_7450 / claim-01  :ARG0 (u_7460 / boy)  :ARG1-of (u_7451 / assume-02  :ARG0 (u_7459 / you)  :ARG1-of (u_7458 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_7452 / say-01  :ARG0 (u_7457 / i)  :ARG1-of (u_7453 / think-01  :ARG0 (u_7456 / we)  :ARG1-of (u_7454 / claim-01  :ARG0 (u_7455 / girl))))))))))
+
+# ::snt The soldier who the astronaut claimed that you claimed that I assumed that the kids said that the lawyer claimed that we claimed won sneezed
+# ::tree TP_intr(sneezed,DP_the_with_RC(DP_RC(soldier,subj_rel(CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(lawyer))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(astronaut))))))))),won))))
+# ::size0 5
+# ::size1 13
+(u_7473 / sneeze-01  :ARG0 (s / soldier  :ARG0-of (r / win-01  :ARG1-of (u_7463 / claim-01  :ARG0 (u_7472 / we)  :ARG1-of (u_7471 / claim-01  :ARG0 (m / lawyer)  :ARG1-of (u_7464 / say-01  :ARG0 (u_7470 / kid)  :ARG1-of (u_7465 / assume-02  :ARG0 (u_7469 / i)  :ARG1-of (u_7466 / claim-01  :ARG0 (u_7468 / you)  :ARG1-of (u_7467 / claim-01  :ARG0 (a / astronaut))))))))))
+
+# ::snt The kids who the girls assumed that you claimed that the soldier claimed that the astronaut assumed that I said that we said arrived slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(kids,subj_rel(CP_with_gap_recursive(CP_with_gap_base(said,we),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(astronaut))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(soldier))),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(girls))))))))),arrived))))
+# ::size0 5
+# ::size1 13
+(u_7486 / sleep-01  :ARG0 (r / kid  :ARG1-of (u_7485 / arrive-01  :ARG1-of (u_7474 / say-01  :ARG0 (u_7483 / we)  :ARG1-of (u_7475 / say-01  :ARG0 (u_7482 / i)  :ARG1-of (u_7481 / assume-02  :ARG0 (a / astronaut)  :ARG1-of (u_7480 / claim-01  :ARG0 (u_7484 / soldier)  :ARG1-of (u_7476 / claim-01  :ARG0 (u_7479 / you)  :ARG1-of (u_7477 / assume-02  :ARG0 (u_7478 / girl))))))))))
+
+# ::snt The kids who the soldier assumed that the doctor said that we claimed that the lawyer assumed that you said that I assumed arrived hated the astronaut
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(astronaut)),DP_the_with_RC(DP_RC(kids,subj_rel(CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(lawyer))),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(doctor))),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(soldier))))))))),arrived))))
+# ::size0 5
+# ::size1 13
+(u_7498 / hate-01  :ARG0 (r / kid  :ARG1-of (u_7497 / arrive-01  :ARG1-of (u_7487 / assume-02  :ARG0 (u_7495 / i)  :ARG1-of (u_7488 / say-01  :ARG0 (u_7494 / you)  :ARG1-of (u_7493 / assume-02  :ARG0 (m / lawyer)  :ARG1-of (u_7489 / claim-01  :ARG0 (u_7492 / we)  :ARG1-of (u_7491 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_7490 / assume-02  :ARG0 (u_7496 / soldier)))))))))  :ARG1 (a / astronaut))
+

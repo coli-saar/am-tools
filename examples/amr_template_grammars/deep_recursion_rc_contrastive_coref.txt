@@ -1,0 +1,422 @@
+# Randomly sampled examples of deep CP recursion (with relative clauses and contrastive coref). Created by a grammar. Here, size0 is the number of recursions within the relative clause minus 1 (i.e., to get the recursion depth forthe RC part, add 1 to the value of size0 given in this file). And size1 is the depth of the whole tree (to get the recursion depth of the tree in total, subtract 1 from size1) (Not exactly true, sincetree depth depends on the type of lowest DP).
+
+# ::snt The girls who I said hated the astronaut actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(girls,subj_relB(CP_gap_end_recursion(CP_with_gap_base(said,I)),hated),astronaut)))
+# ::size0 0
+# ::size1 6
+(u_8192 / like-01  :ARG0 (r / girl  :ARG0-of (u_8190 / hate-01  :ARG1 (a / astronaut  :ARG1-of u_8192)  :ARG1-of (u_8188 / say-01  :ARG0 (u_8189 / i))))  :concession (a2 / after-all)  :ARG1-of (u_8191 / actual-02))
+
+# ::snt The men who I assumed hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(men,subj_relB(CP_gap_end_recursion(CP_with_gap_base(assumed,I)),hated),soldier)))
+# ::size0 0
+# ::size1 6
+(u_8197 / like-01  :ARG0 (r / man  :ARG0-of (u_8196 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8197)  :ARG1-of (u_8193 / assume-02  :ARG0 (u_8194 / i))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The doctor who we claimed hated the lawyer actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(doctor),subj_relB(CP_gap_end_recursion(CP_with_gap_base(claimed,we)),hated),lawyer)))
+# ::size0 0
+# ::size1 6
+(u_8200 / like-01  :ARG0 (d / doctor  :ARG0-of (r / hate-01  :ARG1 (m / lawyer  :ARG1-of u_8200)  :ARG1-of (u_8198 / claim-01  :ARG0 (u_8199 / we))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The astronaut who we said liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(astronaut),subj_relA(CP_gap_end_recursion(CP_with_gap_base(said,we)),liked),lawyer)))
+# ::size0 0
+# ::size1 6
+(u_8204 / hate-01  :ARG0 (a / astronaut  :ARG0-of (r / like-01  :ARG1 (m / lawyer  :ARG1-of u_8204)  :ARG1-of (u_8201 / say-01  :ARG0 (u_8202 / we))))  :concession (a2 / after-all)  :ARG1-of (u_8203 / actual-02))
+
+# ::snt The doctor who I thought liked the astronaut actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(doctor),subj_relA(CP_gap_end_recursion(CP_with_gap_base(thought,I)),liked),astronaut)))
+# ::size0 0
+# ::size1 6
+(u_8208 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / like-01  :ARG1 (a / astronaut  :ARG1-of u_8208)  :ARG1-of (u_8205 / think-01  :ARG0 (u_8206 / i))))  :concession (a2 / after-all)  :ARG1-of (u_8207 / actual-02))
+
+# ::snt The girls who we assumed hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(girls,subj_relB(CP_gap_end_recursion(CP_with_gap_base(assumed,we)),hated),soldier)))
+# ::size0 0
+# ::size1 6
+(u_8213 / like-01  :ARG0 (r / girl  :ARG0-of (u_8212 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8213)  :ARG1-of (u_8209 / assume-02  :ARG0 (u_8210 / we))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The astronaut who we claimed hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(astronaut),subj_relB(CP_gap_end_recursion(CP_with_gap_base(claimed,we)),hated),soldier)))
+# ::size0 0
+# ::size1 6
+(u_8218 / like-01  :ARG0 (a / astronaut  :ARG0-of (r / hate-01  :ARG1 (s / soldier  :ARG1-of u_8218)  :ARG1-of (u_8214 / claim-01  :ARG0 (u_8215 / we))))  :concession (a2 / after-all)  :ARG1-of (u_8217 / actual-02))
+
+# ::snt The lawyer who I assumed liked the soldier actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(lawyer),subj_relA(CP_gap_end_recursion(CP_with_gap_base(assumed,I)),liked),soldier)))
+# ::size0 0
+# ::size1 6
+(u_8222 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / like-01  :ARG1 (s / soldier  :ARG1-of u_8222)  :ARG1-of (u_8219 / assume-02  :ARG0 (u_8220 / i))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The soldier who you claimed hated the astronaut actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(soldier),subj_relB(CP_gap_end_recursion(CP_with_gap_base(claimed,you)),hated),astronaut)))
+# ::size0 0
+# ::size1 6
+(u_8226 / like-01  :ARG0 (s / soldier  :ARG0-of (r / hate-01  :ARG1 (a / astronaut  :ARG1-of u_8226)  :ARG1-of (u_8223 / claim-01  :ARG0 (u_8224 / you))))  :concession (a2 / after-all)  :ARG1-of (u_8225 / actual-02))
+
+# ::snt The doctor who you assumed liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(doctor),subj_relA(CP_gap_end_recursion(CP_with_gap_base(assumed,you)),liked),lawyer)))
+# ::size0 0
+# ::size1 6
+(u_8229 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / like-01  :ARG1 (m / lawyer  :ARG1-of u_8229)  :ARG1-of (u_8227 / assume-02  :ARG0 (u_8228 / you))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who you thought that we assumed hated the doctor actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(men,subj_relB(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(thought,you))),hated),doctor)))
+# ::size0 1
+# ::size1 7
+(u_8235 / like-01  :ARG0 (r / man  :ARG0-of (u_8234 / hate-01  :ARG1 (d / doctor  :ARG1-of u_8235)  :ARG1-of (u_8230 / assume-02  :ARG0 (u_8233 / we)  :ARG1-of (u_8231 / think-01  :ARG0 (u_8232 / you)))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The astronaut who we said that you thought liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(astronaut),subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(said,we))),liked),lawyer)))
+# ::size0 1
+# ::size1 7
+(u_8241 / hate-01  :ARG0 (a / astronaut  :ARG0-of (r / like-01  :ARG1 (m / lawyer  :ARG1-of u_8241)  :ARG1-of (u_8236 / think-01  :ARG0 (u_8239 / you)  :ARG1-of (u_8237 / say-01  :ARG0 (u_8238 / we)))))  :concession (a2 / after-all)  :ARG1-of (u_8240 / actual-02))
+
+# ::snt The lawyer who I thought that we thought hated the doctor actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(lawyer),subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_gap_end_recursion(CP_with_gap_base(thought,I))),hated),doctor)))
+# ::size0 1
+# ::size1 7
+(u_8246 / like-01  :ARG0 (m / lawyer  :ARG0-of (r / hate-01  :ARG1 (d / doctor  :ARG1-of u_8246)  :ARG1-of (u_8242 / think-01  :ARG0 (u_8245 / we)  :ARG1-of (u_8243 / think-01  :ARG0 (u_8244 / i)))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who you assumed that the girls assumed liked the soldier actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(men,subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(assumed,you))),liked),soldier)))
+# ::size0 1
+# ::size1 8
+(u_8253 / hate-01  :ARG0 (r / man  :ARG0-of (u_8252 / like-01  :ARG1 (s / soldier  :ARG1-of u_8253)  :ARG1-of (u_8247 / assume-02  :ARG0 (u_8250 / girl)  :ARG1-of (u_8248 / assume-02  :ARG0 (u_8249 / you)))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The kids who you assumed that I assumed liked the lawyer actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(kids,subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_gap_end_recursion(CP_with_gap_base(assumed,you))),liked),lawyer)))
+# ::size0 1
+# ::size1 7
+(u_8259 / hate-01  :ARG0 (r / kid  :ARG0-of (u_8258 / like-01  :ARG1 (m / lawyer  :ARG1-of u_8259)  :ARG1-of (u_8254 / assume-02  :ARG0 (u_8257 / i)  :ARG1-of (u_8255 / assume-02  :ARG0 (u_8256 / you)))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The lawyer who you thought that the boys claimed hated the doctor actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(lawyer),subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(thought,you))),hated),doctor)))
+# ::size0 1
+# ::size1 8
+(u_8264 / like-01  :ARG0 (m / lawyer  :ARG0-of (r / hate-01  :ARG1 (d / doctor  :ARG1-of u_8264)  :ARG1-of (u_8260 / claim-01  :ARG0 (u_8263 / boy)  :ARG1-of (u_8261 / think-01  :ARG0 (u_8262 / you)))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The lawyer who we thought that I said hated the astronaut actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(lawyer),subj_relB(CP_with_gap_recursive(CP_with_gap_base(said,I),CP_gap_end_recursion(CP_with_gap_base(thought,we))),hated),astronaut)))
+# ::size0 1
+# ::size1 7
+(u_8270 / like-01  :ARG0 (m / lawyer  :ARG0-of (r / hate-01  :ARG1 (a / astronaut  :ARG1-of u_8270)  :ARG1-of (u_8265 / say-01  :ARG0 (u_8268 / i)  :ARG1-of (u_8266 / think-01  :ARG0 (u_8267 / we)))))  :concession (a2 / after-all)  :ARG1-of (u_8269 / actual-02))
+
+# ::snt The astronaut who you said that I claimed hated the doctor actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(astronaut),subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_gap_end_recursion(CP_with_gap_base(said,you))),hated),doctor)))
+# ::size0 1
+# ::size1 7
+(u_8276 / like-01  :ARG0 (a / astronaut  :ARG0-of (r / hate-01  :ARG1 (d / doctor  :ARG1-of u_8276)  :ARG1-of (u_8271 / claim-01  :ARG0 (u_8274 / i)  :ARG1-of (u_8272 / say-01  :ARG0 (u_8273 / you)))))  :concession (a2 / after-all)  :ARG1-of (u_8275 / actual-02))
+
+# ::snt The girls who I claimed that you said liked the astronaut actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(girls,subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,you),CP_gap_end_recursion(CP_with_gap_base(claimed,I))),liked),astronaut)))
+# ::size0 1
+# ::size1 7
+(u_8283 / hate-01  :ARG0 (r / girl  :ARG0-of (u_8281 / like-01  :ARG1 (a / astronaut  :ARG1-of u_8283)  :ARG1-of (u_8277 / say-01  :ARG0 (u_8280 / you)  :ARG1-of (u_8278 / claim-01  :ARG0 (u_8279 / i)))))  :concession (a2 / after-all)  :ARG1-of (u_8282 / actual-02))
+
+# ::snt The girls who you thought that I thought liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(girls,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_gap_end_recursion(CP_with_gap_base(thought,you))),liked),soldier)))
+# ::size0 1
+# ::size1 7
+(u_8290 / hate-01  :ARG0 (r / girl  :ARG0-of (u_8289 / like-01  :ARG1 (s / soldier  :ARG1-of u_8290)  :ARG1-of (u_8284 / think-01  :ARG0 (u_8287 / i)  :ARG1-of (u_8285 / think-01  :ARG0 (u_8286 / you)))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The soldier who you thought that I assumed that we assumed liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(soldier),subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_gap_end_recursion(CP_with_gap_base(thought,you)))),liked),lawyer)))
+# ::size0 2
+# ::size1 8
+(u_8297 / hate-01  :ARG0 (s / soldier  :ARG0-of (r / like-01  :ARG1 (m / lawyer  :ARG1-of u_8297)  :ARG1-of (u_8291 / assume-02  :ARG0 (u_8296 / we)  :ARG1-of (u_8292 / assume-02  :ARG0 (u_8295 / i)  :ARG1-of (u_8293 / think-01  :ARG0 (u_8294 / you))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The girls who we said that I claimed that you said liked the doctor actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(girls,subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_gap_end_recursion(CP_with_gap_base(said,we)))),liked),doctor)))
+# ::size0 2
+# ::size1 8
+(u_8305 / hate-01  :ARG0 (r / girl  :ARG0-of (u_8304 / like-01  :ARG1 (d / doctor  :ARG1-of u_8305)  :ARG1-of (u_8298 / say-01  :ARG0 (u_8303 / you)  :ARG1-of (u_8299 / claim-01  :ARG0 (u_8302 / i)  :ARG1-of (u_8300 / say-01  :ARG0 (u_8301 / we))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The boys who you claimed that the women claimed that the girls thought hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(boys,subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(women))),CP_gap_end_recursion(CP_with_gap_base(claimed,you)))),hated),soldier)))
+# ::size0 2
+# ::size1 9
+(u_8314 / like-01  :ARG0 (r / boy  :ARG0-of (u_8313 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8314)  :ARG1-of (u_8306 / think-01  :ARG0 (u_8311 / girl)  :ARG1-of (u_8307 / claim-01  :ARG0 (u_8310 / woman)  :ARG1-of (u_8308 / claim-01  :ARG0 (u_8309 / you))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The boys who you thought that we assumed that I assumed hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(boys,subj_relB(CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(thought,you)))),hated),soldier)))
+# ::size0 2
+# ::size1 8
+(u_8323 / like-01  :ARG0 (r / boy  :ARG0-of (u_8322 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8323)  :ARG1-of (u_8315 / assume-02  :ARG0 (u_8320 / i)  :ARG1-of (u_8316 / assume-02  :ARG0 (u_8319 / we)  :ARG1-of (u_8317 / think-01  :ARG0 (u_8318 / you))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The girls who you thought that the doctor assumed that I thought liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(girls,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_gap_end_recursion(CP_with_gap_base(thought,you)))),liked),soldier)))
+# ::size0 2
+# ::size1 10
+(u_8331 / hate-01  :ARG0 (r / girl  :ARG0-of (u_8330 / like-01  :ARG1 (s / soldier  :ARG1-of u_8331)  :ARG1-of (u_8324 / think-01  :ARG0 (u_8328 / i)  :ARG1-of (u_8327 / assume-02  :ARG0 (d / doctor)  :ARG1-of (u_8325 / think-01  :ARG0 (u_8326 / you))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The kids who we assumed that you claimed that I thought liked the doctor actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(kids,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_gap_end_recursion(CP_with_gap_base(assumed,we)))),liked),doctor)))
+# ::size0 2
+# ::size1 8
+(u_8339 / hate-01  :ARG0 (r / kid  :ARG0-of (u_8338 / like-01  :ARG1 (d / doctor  :ARG1-of u_8339)  :ARG1-of (u_8332 / think-01  :ARG0 (u_8337 / i)  :ARG1-of (u_8333 / claim-01  :ARG0 (u_8336 / you)  :ARG1-of (u_8334 / assume-02  :ARG0 (u_8335 / we))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who you assumed that the girls said that I assumed liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(men,subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(assumed,you)))),liked),soldier)))
+# ::size0 2
+# ::size1 9
+(u_8348 / hate-01  :ARG0 (r / man  :ARG0-of (u_8347 / like-01  :ARG1 (s / soldier  :ARG1-of u_8348)  :ARG1-of (u_8340 / assume-02  :ARG0 (u_8345 / i)  :ARG1-of (u_8341 / say-01  :ARG0 (u_8344 / girl)  :ARG1-of (u_8342 / assume-02  :ARG0 (u_8343 / you))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The lawyer who the doctor assumed that the kids claimed that we thought liked the astronaut actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(lawyer),subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(kids))),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(doctor))))))),liked),astronaut)))
+# ::size0 2
+# ::size1 11
+(u_8355 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / like-01  :ARG1 (a / astronaut  :ARG1-of u_8355)  :ARG1-of (u_8349 / think-01  :ARG0 (u_8353 / we)  :ARG1-of (u_8350 / claim-01  :ARG0 (u_8352 / kid)  :ARG1-of (u_8351 / assume-02  :ARG0 (d / doctor))))))  :concession (a2 / after-all)  :ARG1-of (u_8354 / actual-02))
+
+# ::snt The soldier who you claimed that the boys assumed that the women said liked the astronaut actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(soldier),subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(claimed,you)))),liked),astronaut)))
+# ::size0 2
+# ::size1 9
+(u_8363 / hate-01  :ARG0 (s / soldier  :ARG0-of (r / like-01  :ARG1 (a / astronaut  :ARG1-of u_8363)  :ARG1-of (u_8356 / say-01  :ARG0 (u_8361 / woman)  :ARG1-of (u_8357 / assume-02  :ARG0 (u_8360 / boy)  :ARG1-of (u_8358 / claim-01  :ARG0 (u_8359 / you))))))  :concession (a2 / after-all)  :ARG1-of (u_8362 / actual-02))
+
+# ::snt The girls who I thought that we said that you thought hated the doctor actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(girls,subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(thought,I)))),hated),doctor)))
+# ::size0 2
+# ::size1 8
+(u_8371 / like-01  :ARG0 (r / girl  :ARG0-of (u_8370 / hate-01  :ARG1 (d / doctor  :ARG1-of u_8371)  :ARG1-of (u_8364 / think-01  :ARG0 (u_8369 / you)  :ARG1-of (u_8365 / say-01  :ARG0 (u_8368 / we)  :ARG1-of (u_8366 / think-01  :ARG0 (u_8367 / i))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The women who we assumed that you thought that I assumed that the doctor assumed hated the lawyer actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(women,subj_relB(CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(assumed,we))))),hated),lawyer)))
+# ::size0 3
+# ::size1 9
+(u_8380 / like-01  :ARG0 (r / woman  :ARG0-of (u_8379 / hate-01  :ARG1 (m / lawyer  :ARG1-of u_8380)  :ARG1-of (u_8378 / assume-02  :ARG0 (d / doctor)  :ARG1-of (u_8372 / assume-02  :ARG0 (u_8377 / i)  :ARG1-of (u_8373 / think-01  :ARG0 (u_8376 / you)  :ARG1-of (u_8374 / assume-02  :ARG0 (u_8375 / we)))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The women who I said that the kids assumed that you claimed that we thought liked the lawyer actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(women,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(kids))),CP_gap_end_recursion(CP_with_gap_base(said,I))))),liked),lawyer)))
+# ::size0 3
+# ::size1 10
+(u_8390 / hate-01  :ARG0 (r / woman  :ARG0-of (u_8389 / like-01  :ARG1 (m / lawyer  :ARG1-of u_8390)  :ARG1-of (u_8381 / think-01  :ARG0 (u_8388 / we)  :ARG1-of (u_8382 / claim-01  :ARG0 (u_8387 / you)  :ARG1-of (u_8383 / assume-02  :ARG0 (u_8386 / kid)  :ARG1-of (u_8384 / say-01  :ARG0 (u_8385 / i)))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The women who the astronaut claimed that I said that we claimed that the men claimed hated the doctor actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(women,subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(astronaut)))))))),hated),doctor)))
+# ::size0 3
+# ::size1 12
+(u_8400 / like-01  :ARG0 (r / woman  :ARG0-of (u_8398 / hate-01  :ARG1 (d / doctor  :ARG1-of u_8400)  :ARG1-of (u_8391 / claim-01  :ARG0 (u_8397 / man)  :ARG1-of (u_8392 / claim-01  :ARG0 (u_8396 / we)  :ARG1-of (u_8393 / say-01  :ARG0 (u_8395 / i)  :ARG1-of (u_8394 / claim-01  :ARG0 (a / astronaut)))))))  :concession (a2 / after-all)  :ARG1-of (u_8399 / actual-02))
+
+# ::snt The soldier who we assumed that the men assumed that I said that you claimed hated the lawyer actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(soldier),subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(men))),CP_gap_end_recursion(CP_with_gap_base(assumed,we))))),hated),lawyer)))
+# ::size0 3
+# ::size1 10
+(u_8409 / like-01  :ARG0 (s / soldier  :ARG0-of (r / hate-01  :ARG1 (m / lawyer  :ARG1-of u_8409)  :ARG1-of (u_8401 / claim-01  :ARG0 (u_8408 / you)  :ARG1-of (u_8402 / say-01  :ARG0 (u_8407 / i)  :ARG1-of (u_8403 / assume-02  :ARG0 (u_8406 / man)  :ARG1-of (u_8404 / assume-02  :ARG0 (u_8405 / we)))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The women who you claimed that the soldier said that I thought that the boys said hated the astronaut actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(women,subj_relB(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_gap_end_recursion(CP_with_gap_base(claimed,you))))),hated),astronaut)))
+# ::size0 3
+# ::size1 11
+(u_8420 / like-01  :ARG0 (r / woman  :ARG0-of (u_8418 / hate-01  :ARG1 (a / astronaut  :ARG1-of u_8420)  :ARG1-of (u_8410 / say-01  :ARG0 (u_8416 / boy)  :ARG1-of (u_8411 / think-01  :ARG0 (u_8415 / i)  :ARG1-of (u_8414 / say-01  :ARG0 (u_8417 / soldier)  :ARG1-of (u_8412 / claim-01  :ARG0 (u_8413 / you)))))))  :concession (a2 / after-all)  :ARG1-of (u_8419 / actual-02))
+
+# ::snt The soldier who the kids assumed that you thought that I said that we thought hated the doctor actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(soldier),subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(kids))))))),hated),doctor)))
+# ::size0 3
+# ::size1 11
+(u_8429 / like-01  :ARG0 (s / soldier  :ARG0-of (r / hate-01  :ARG1 (d / doctor  :ARG1-of u_8429)  :ARG1-of (u_8421 / think-01  :ARG0 (u_8428 / we)  :ARG1-of (u_8422 / say-01  :ARG0 (u_8427 / i)  :ARG1-of (u_8423 / think-01  :ARG0 (u_8426 / you)  :ARG1-of (u_8424 / assume-02  :ARG0 (u_8425 / kid)))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The lawyer who the soldier claimed that we claimed that I assumed that you said liked the astronaut actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(lawyer),subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(soldier)))))))),liked),astronaut)))
+# ::size0 3
+# ::size1 12
+(u_8439 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / like-01  :ARG1 (a / astronaut  :ARG1-of u_8439)  :ARG1-of (u_8430 / say-01  :ARG0 (u_8436 / you)  :ARG1-of (u_8431 / assume-02  :ARG0 (u_8435 / i)  :ARG1-of (u_8432 / claim-01  :ARG0 (u_8434 / we)  :ARG1-of (u_8433 / claim-01  :ARG0 (u_8437 / soldier)))))))  :concession (a2 / after-all)  :ARG1-of (u_8438 / actual-02))
+
+# ::snt The men who I claimed that you assumed that the women said that we assumed liked the doctor actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(men,subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(claimed,I))))),liked),doctor)))
+# ::size0 3
+# ::size1 9
+(u_8449 / hate-01  :ARG0 (r / man  :ARG0-of (u_8448 / like-01  :ARG1 (d / doctor  :ARG1-of u_8449)  :ARG1-of (u_8440 / assume-02  :ARG0 (u_8447 / we)  :ARG1-of (u_8441 / say-01  :ARG0 (u_8446 / woman)  :ARG1-of (u_8442 / assume-02  :ARG0 (u_8445 / you)  :ARG1-of (u_8443 / claim-01  :ARG0 (u_8444 / i)))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The lawyer who the women said that you claimed that we said that I thought liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(lawyer),subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_gap_end_recursion(CP_with_gap_base(said,DP_the(NP_unary(women))))))),liked),soldier)))
+# ::size0 3
+# ::size1 11
+(u_8459 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / like-01  :ARG1 (s / soldier  :ARG1-of u_8459)  :ARG1-of (u_8450 / think-01  :ARG0 (u_8457 / i)  :ARG1-of (u_8451 / say-01  :ARG0 (u_8456 / we)  :ARG1-of (u_8452 / claim-01  :ARG0 (u_8455 / you)  :ARG1-of (u_8453 / say-01  :ARG0 (u_8454 / woman)))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The kids who you said that we assumed that I assumed that the girls assumed hated the doctor actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(kids,subj_relB(CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(said,you))))),hated),doctor)))
+# ::size0 3
+# ::size1 9
+(u_8469 / like-01  :ARG0 (r / kid  :ARG0-of (u_8468 / hate-01  :ARG1 (d / doctor  :ARG1-of u_8469)  :ARG1-of (u_8460 / assume-02  :ARG0 (u_8467 / girl)  :ARG1-of (u_8461 / assume-02  :ARG0 (u_8466 / i)  :ARG1-of (u_8462 / assume-02  :ARG0 (u_8465 / we)  :ARG1-of (u_8463 / say-01  :ARG0 (u_8464 / you)))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The boys who the girls claimed that I said that the men said that we assumed that the soldier thought hated the doctor actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(boys,subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(girls)))))))),hated),doctor)))
+# ::size0 4
+# ::size1 12
+(u_8481 / like-01  :ARG0 (r / boy  :ARG0-of (u_8480 / hate-01  :ARG1 (d / doctor  :ARG1-of u_8481)  :ARG1-of (u_8478 / think-01  :ARG0 (u_8479 / soldier)  :ARG1-of (u_8470 / assume-02  :ARG0 (u_8477 / we)  :ARG1-of (u_8471 / say-01  :ARG0 (u_8476 / man)  :ARG1-of (u_8472 / say-01  :ARG0 (u_8475 / i)  :ARG1-of (u_8473 / claim-01  :ARG0 (u_8474 / girl))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The doctor who we thought that the soldier thought that you claimed that the men said that the boys claimed liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(doctor),subj_relA(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_gap_end_recursion(CP_with_gap_base(thought,we)))))),liked),lawyer)))
+# ::size0 4
+# ::size1 12
+(u_8492 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / like-01  :ARG1 (m / lawyer  :ARG1-of u_8492)  :ARG1-of (u_8482 / claim-01  :ARG0 (u_8490 / boy)  :ARG1-of (u_8483 / say-01  :ARG0 (u_8489 / man)  :ARG1-of (u_8484 / claim-01  :ARG0 (u_8488 / you)  :ARG1-of (u_8487 / think-01  :ARG0 (u_8491 / soldier)  :ARG1-of (u_8485 / think-01  :ARG0 (u_8486 / we))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who I claimed that we said that the women claimed that the lawyer thought that you assumed liked the soldier actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(men,subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(claimed,I)))))),liked),soldier)))
+# ::size0 4
+# ::size1 10
+(u_8504 / hate-01  :ARG0 (r / man  :ARG0-of (u_8503 / like-01  :ARG1 (s / soldier  :ARG1-of u_8504)  :ARG1-of (u_8493 / assume-02  :ARG0 (u_8501 / you)  :ARG1-of (u_8500 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_8494 / claim-01  :ARG0 (u_8499 / woman)  :ARG1-of (u_8495 / say-01  :ARG0 (u_8498 / we)  :ARG1-of (u_8496 / claim-01  :ARG0 (u_8497 / i))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who we assumed that you thought that the kids assumed that I assumed that the women thought hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(men,subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(assumed,we)))))),hated),soldier)))
+# ::size0 4
+# ::size1 10
+(u_8517 / like-01  :ARG0 (r / man  :ARG0-of (u_8516 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8517)  :ARG1-of (u_8505 / think-01  :ARG0 (u_8514 / woman)  :ARG1-of (u_8506 / assume-02  :ARG0 (u_8513 / i)  :ARG1-of (u_8507 / assume-02  :ARG0 (u_8512 / kid)  :ARG1-of (u_8508 / think-01  :ARG0 (u_8511 / you)  :ARG1-of (u_8509 / assume-02  :ARG0 (u_8510 / we))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who I thought that we said that the kids said that you claimed that the girls assumed hated the doctor actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(men,subj_relB(CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(thought,I)))))),hated),doctor)))
+# ::size0 4
+# ::size1 10
+(u_8529 / like-01  :ARG0 (r / man  :ARG0-of (u_8528 / hate-01  :ARG1 (d / doctor  :ARG1-of u_8529)  :ARG1-of (u_8518 / assume-02  :ARG0 (u_8527 / girl)  :ARG1-of (u_8519 / claim-01  :ARG0 (u_8526 / you)  :ARG1-of (u_8520 / say-01  :ARG0 (u_8525 / kid)  :ARG1-of (u_8521 / say-01  :ARG0 (u_8524 / we)  :ARG1-of (u_8522 / think-01  :ARG0 (u_8523 / i))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The women who we said that the soldier thought that I thought that the doctor thought that you assumed liked the astronaut actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(women,subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_gap_end_recursion(CP_with_gap_base(said,we)))))),liked),astronaut)))
+# ::size0 4
+# ::size1 12
+(u_8541 / hate-01  :ARG0 (r / woman  :ARG0-of (u_8539 / like-01  :ARG1 (a / astronaut  :ARG1-of u_8541)  :ARG1-of (u_8530 / assume-02  :ARG0 (u_8537 / you)  :ARG1-of (u_8536 / think-01  :ARG0 (d / doctor)  :ARG1-of (u_8531 / think-01  :ARG0 (u_8535 / i)  :ARG1-of (u_8534 / think-01  :ARG0 (u_8538 / soldier)  :ARG1-of (u_8532 / say-01  :ARG0 (u_8533 / we))))))))  :concession (a2 / after-all)  :ARG1-of (u_8540 / actual-02))
+
+# ::snt The boys who you said that I claimed that the men assumed that the girls assumed that we assumed liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(boys,subj_relA(CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_gap_end_recursion(CP_with_gap_base(said,you)))))),liked),lawyer)))
+# ::size0 4
+# ::size1 10
+(u_8553 / hate-01  :ARG0 (r / boy  :ARG0-of (u_8552 / like-01  :ARG1 (m / lawyer  :ARG1-of u_8553)  :ARG1-of (u_8542 / assume-02  :ARG0 (u_8551 / we)  :ARG1-of (u_8543 / assume-02  :ARG0 (u_8550 / girl)  :ARG1-of (u_8544 / assume-02  :ARG0 (u_8549 / man)  :ARG1-of (u_8545 / claim-01  :ARG0 (u_8548 / i)  :ARG1-of (u_8546 / say-01  :ARG0 (u_8547 / you))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The women who we thought that the men thought that you thought that the girls said that I thought liked the lawyer actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(women,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(men))),CP_gap_end_recursion(CP_with_gap_base(thought,we)))))),liked),lawyer)))
+# ::size0 4
+# ::size1 11
+(u_8565 / hate-01  :ARG0 (r / woman  :ARG0-of (u_8564 / like-01  :ARG1 (m / lawyer  :ARG1-of u_8565)  :ARG1-of (u_8554 / think-01  :ARG0 (u_8563 / i)  :ARG1-of (u_8555 / say-01  :ARG0 (u_8562 / girl)  :ARG1-of (u_8556 / think-01  :ARG0 (u_8561 / you)  :ARG1-of (u_8557 / think-01  :ARG0 (u_8560 / man)  :ARG1-of (u_8558 / think-01  :ARG0 (u_8559 / we))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The women who the astronaut claimed that I assumed that you said that the lawyer assumed that we said hated the soldier actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(women,subj_relB(CP_with_gap_recursive(CP_with_gap_base(said,we),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(astronaut))))))))),hated),soldier)))
+# ::size0 4
+# ::size1 13
+(u_8577 / like-01  :ARG0 (r / woman  :ARG0-of (u_8575 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8577)  :ARG1-of (u_8566 / say-01  :ARG0 (u_8573 / we)  :ARG1-of (u_8572 / assume-02  :ARG0 (m / lawyer)  :ARG1-of (u_8567 / say-01  :ARG0 (u_8571 / you)  :ARG1-of (u_8568 / assume-02  :ARG0 (u_8570 / i)  :ARG1-of (u_8569 / claim-01  :ARG0 (a / astronaut))))))))  :concession (a2 / after-all)  :ARG1-of (u_8576 / actual-02))
+
+# ::snt The boys who the doctor thought that we assumed that you assumed that the men thought that I said liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(boys,subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(doctor))))))))),liked),soldier)))
+# ::size0 4
+# ::size1 13
+(u_8589 / hate-01  :ARG0 (r / boy  :ARG0-of (u_8588 / like-01  :ARG1 (s / soldier  :ARG1-of u_8589)  :ARG1-of (u_8578 / say-01  :ARG0 (u_8586 / i)  :ARG1-of (u_8579 / think-01  :ARG0 (u_8585 / man)  :ARG1-of (u_8580 / assume-02  :ARG0 (u_8584 / you)  :ARG1-of (u_8581 / assume-02  :ARG0 (u_8583 / we)  :ARG1-of (u_8582 / think-01  :ARG0 (d / doctor))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The boys who the lawyer said that we assumed that you claimed that the kids said that the astronaut claimed that I claimed hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(boys,subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(astronaut)))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_gap_end_recursion(CP_with_gap_base(said,DP_the(NP_unary(unary_N_adapter(lawyer)))))))))),hated),soldier)))
+# ::size0 5
+# ::size1 14
+(u_8603 / like-01  :ARG0 (r / boy  :ARG0-of (u_8601 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8603)  :ARG1-of (u_8590 / claim-01  :ARG0 (u_8599 / i)  :ARG1-of (u_8598 / claim-01  :ARG0 (a / astronaut)  :ARG1-of (u_8591 / say-01  :ARG0 (u_8597 / kid)  :ARG1-of (u_8592 / claim-01  :ARG0 (u_8596 / you)  :ARG1-of (u_8593 / assume-02  :ARG0 (u_8595 / we)  :ARG1-of (u_8594 / say-01  :ARG0 (m / lawyer)))))))))  :concession (a2 / after-all)  :ARG1-of (u_8602 / actual-02))
+
+# ::snt The women who you said that we said that I claimed that the lawyer thought that the boys assumed that the men thought liked the soldier actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(women,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(claimed,I),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(said,you))))))),liked),soldier)))
+# ::size0 5
+# ::size1 11
+(u_8617 / hate-01  :ARG0 (r / woman  :ARG0-of (u_8616 / like-01  :ARG1 (s / soldier  :ARG1-of u_8617)  :ARG1-of (u_8604 / think-01  :ARG0 (u_8614 / man)  :ARG1-of (u_8605 / assume-02  :ARG0 (u_8613 / boy)  :ARG1-of (u_8612 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_8606 / claim-01  :ARG0 (u_8611 / i)  :ARG1-of (u_8607 / say-01  :ARG0 (u_8610 / we)  :ARG1-of (u_8608 / say-01  :ARG0 (u_8609 / you)))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The girls who we said that you assumed that the men assumed that the astronaut thought that I said that the women claimed liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(girls,subj_relA(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(astronaut)))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(said,we))))))),liked),lawyer)))
+# ::size0 5
+# ::size1 11
+(u_8631 / hate-01  :ARG0 (r / girl  :ARG0-of (u_8629 / like-01  :ARG1 (m / lawyer  :ARG1-of u_8631)  :ARG1-of (u_8618 / claim-01  :ARG0 (u_8628 / woman)  :ARG1-of (u_8619 / say-01  :ARG0 (u_8627 / i)  :ARG1-of (u_8626 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_8620 / assume-02  :ARG0 (u_8625 / man)  :ARG1-of (u_8621 / assume-02  :ARG0 (u_8624 / you)  :ARG1-of (u_8622 / say-01  :ARG0 (u_8623 / we)))))))))  :concession (a2 / after-all)  :ARG1-of (u_8630 / actual-02))
+
+# ::snt The kids who the lawyer claimed that the girls claimed that I said that you said that the doctor claimed that we thought hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(kids,subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(lawyer)))))))))),hated),soldier)))
+# ::size0 5
+# ::size1 14
+(u_8644 / like-01  :ARG0 (r / kid  :ARG0-of (u_8643 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8644)  :ARG1-of (u_8632 / think-01  :ARG0 (u_8641 / we)  :ARG1-of (u_8640 / claim-01  :ARG0 (d / doctor)  :ARG1-of (u_8633 / say-01  :ARG0 (u_8639 / you)  :ARG1-of (u_8634 / say-01  :ARG0 (u_8638 / i)  :ARG1-of (u_8635 / claim-01  :ARG0 (u_8637 / girl)  :ARG1-of (u_8636 / claim-01  :ARG0 (m / lawyer)))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The soldier who the astronaut said that the men assumed that the doctor claimed that you thought that we assumed that I thought liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(soldier),subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(men))),CP_gap_end_recursion(CP_with_gap_base(said,DP_the(NP_unary(unary_N_adapter(astronaut)))))))))),liked),lawyer)))
+# ::size0 5
+# ::size1 14
+(u_8656 / hate-01  :ARG0 (s / soldier  :ARG0-of (r / like-01  :ARG1 (m / lawyer  :ARG1-of u_8656)  :ARG1-of (u_8645 / think-01  :ARG0 (u_8654 / i)  :ARG1-of (u_8646 / assume-02  :ARG0 (u_8653 / we)  :ARG1-of (u_8647 / think-01  :ARG0 (u_8652 / you)  :ARG1-of (u_8651 / claim-01  :ARG0 (d / doctor)  :ARG1-of (u_8648 / assume-02  :ARG0 (u_8650 / man)  :ARG1-of (u_8649 / say-01  :ARG0 (a / astronaut)))))))))  :concession (a2 / after-all)  :ARG1-of (u_8655 / actual-02))
+
+# ::snt The soldier who the men said that we said that the boys assumed that the girls thought that I said that you said liked the doctor actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(soldier),subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(said,DP_the(NP_unary(men))))))))),liked),doctor)))
+# ::size0 5
+# ::size1 13
+(u_8669 / hate-01  :ARG0 (s / soldier  :ARG0-of (r / like-01  :ARG1 (d / doctor  :ARG1-of u_8669)  :ARG1-of (u_8657 / say-01  :ARG0 (u_8668 / you)  :ARG1-of (u_8658 / say-01  :ARG0 (u_8667 / i)  :ARG1-of (u_8659 / think-01  :ARG0 (u_8666 / girl)  :ARG1-of (u_8660 / assume-02  :ARG0 (u_8665 / boy)  :ARG1-of (u_8661 / say-01  :ARG0 (u_8664 / we)  :ARG1-of (u_8662 / say-01  :ARG0 (u_8663 / man)))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The doctor who the soldier claimed that I assumed that you thought that the astronaut thought that the boys thought that we thought liked the lawyer actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(doctor),subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(astronaut)))),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(soldier)))))))))),liked),lawyer)))
+# ::size0 5
+# ::size1 14
+(u_8682 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / like-01  :ARG1 (m / lawyer  :ARG1-of u_8682)  :ARG1-of (u_8670 / think-01  :ARG0 (u_8679 / we)  :ARG1-of (u_8671 / think-01  :ARG0 (u_8678 / boy)  :ARG1-of (u_8677 / think-01  :ARG0 (a / astronaut)  :ARG1-of (u_8672 / think-01  :ARG0 (u_8676 / you)  :ARG1-of (u_8673 / assume-02  :ARG0 (u_8675 / i)  :ARG1-of (u_8674 / claim-01  :ARG0 (u_8680 / soldier)))))))))  :concession (a2 / after-all)  :ARG1-of (u_8681 / actual-02))
+
+# ::snt The doctor who I assumed that you assumed that the girls thought that the kids said that the lawyer assumed that we said liked the astronaut actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(doctor),subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,we),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_gap_end_recursion(CP_with_gap_base(assumed,I))))))),liked),astronaut)))
+# ::size0 5
+# ::size1 11
+(u_8695 / hate-01  :ARG0 (d / doctor  :ARG0-of (r / like-01  :ARG1 (a / astronaut  :ARG1-of u_8695)  :ARG1-of (u_8683 / say-01  :ARG0 (u_8693 / we)  :ARG1-of (u_8692 / assume-02  :ARG0 (m / lawyer)  :ARG1-of (u_8684 / say-01  :ARG0 (u_8691 / kid)  :ARG1-of (u_8685 / think-01  :ARG0 (u_8690 / girl)  :ARG1-of (u_8686 / assume-02  :ARG0 (u_8689 / you)  :ARG1-of (u_8687 / assume-02  :ARG0 (u_8688 / i)))))))))  :concession (a2 / after-all)  :ARG1-of (u_8694 / actual-02))
+
+# ::snt The astronaut who we thought that the doctor said that you said that the lawyer thought that I said that the boys said liked the soldier actually hated her after all
+# ::tree TP_intrA(hated_fake_intransitive_her,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(astronaut),subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_gap_end_recursion(CP_with_gap_base(thought,we))))))),liked),soldier)))
+# ::size0 5
+# ::size1 13
+(u_8708 / hate-01  :ARG0 (a / astronaut  :ARG0-of (r / like-01  :ARG1 (s / soldier  :ARG1-of u_8708)  :ARG1-of (u_8696 / say-01  :ARG0 (u_8705 / boy)  :ARG1-of (u_8697 / say-01  :ARG0 (u_8704 / i)  :ARG1-of (u_8703 / think-01  :ARG0 (m / lawyer)  :ARG1-of (u_8698 / say-01  :ARG0 (u_8702 / you)  :ARG1-of (u_8701 / say-01  :ARG0 (d / doctor)  :ARG1-of (u_8699 / think-01  :ARG0 (u_8700 / we)))))))))  :concession (a2 / after-all)  :ARG1-of (u_8707 / actual-02))
+
+# ::snt The soldier who the boys assumed that the girls thought that we thought that you assumed that I assumed that the women claimed hated the lawyer actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(soldier),subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(girls))),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(boys))))))))),hated),lawyer)))
+# ::size0 5
+# ::size1 13
+(u_8721 / like-01  :ARG0 (s / soldier  :ARG0-of (r / hate-01  :ARG1 (m / lawyer  :ARG1-of u_8721)  :ARG1-of (u_8709 / claim-01  :ARG0 (u_8720 / woman)  :ARG1-of (u_8710 / assume-02  :ARG0 (u_8719 / i)  :ARG1-of (u_8711 / assume-02  :ARG0 (u_8718 / you)  :ARG1-of (u_8712 / think-01  :ARG0 (u_8717 / we)  :ARG1-of (u_8713 / think-01  :ARG0 (u_8716 / girl)  :ARG1-of (u_8714 / assume-02  :ARG0 (u_8715 / boy)))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The kids who I thought that we said that the men claimed that you claimed that the doctor assumed that the boys thought that the women thought liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(kids,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_gap_end_recursion(CP_with_gap_base(thought,I)))))))),liked),soldier)))
+# ::size0 6
+# ::size1 12
+(u_8737 / hate-01  :ARG0 (r / kid  :ARG0-of (u_8736 / like-01  :ARG1 (s / soldier  :ARG1-of u_8737)  :ARG1-of (u_8722 / think-01  :ARG0 (u_8734 / woman)  :ARG1-of (u_8723 / think-01  :ARG0 (u_8733 / boy)  :ARG1-of (u_8732 / assume-02  :ARG0 (d / doctor)  :ARG1-of (u_8724 / claim-01  :ARG0 (u_8731 / you)  :ARG1-of (u_8725 / claim-01  :ARG0 (u_8730 / man)  :ARG1-of (u_8726 / say-01  :ARG0 (u_8729 / we)  :ARG1-of (u_8727 / think-01  :ARG0 (u_8728 / i))))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who the girls assumed that the boys thought that I said that the lawyer claimed that the soldier claimed that you claimed that we said hated the astronaut actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(men,subj_relB(CP_with_gap_recursive(CP_with_gap_base(said,we),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(girls)))))))))),hated),astronaut)))
+# ::size0 6
+# ::size1 14
+(u_8753 / like-01  :ARG0 (r / man  :ARG0-of (u_8751 / hate-01  :ARG1 (a / astronaut  :ARG1-of u_8753)  :ARG1-of (u_8738 / say-01  :ARG0 (u_8749 / we)  :ARG1-of (u_8739 / claim-01  :ARG0 (u_8748 / you)  :ARG1-of (u_8747 / claim-01  :ARG0 (u_8750 / soldier)  :ARG1-of (u_8746 / claim-01  :ARG0 (m / lawyer)  :ARG1-of (u_8740 / say-01  :ARG0 (u_8745 / i)  :ARG1-of (u_8741 / think-01  :ARG0 (u_8744 / boy)  :ARG1-of (u_8742 / assume-02  :ARG0 (u_8743 / girl))))))))))  :concession (a2 / after-all)  :ARG1-of (u_8752 / actual-02))
+
+# ::snt The boys who the women assumed that the doctor assumed that the soldier claimed that we said that you claimed that I said that the men claimed hated the lawyer actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(boys,subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(women)))))))))),hated),lawyer)))
+# ::size0 6
+# ::size1 14
+(u_8768 / like-01  :ARG0 (r / boy  :ARG0-of (u_8767 / hate-01  :ARG1 (m / lawyer  :ARG1-of u_8768)  :ARG1-of (u_8754 / claim-01  :ARG0 (u_8765 / man)  :ARG1-of (u_8755 / say-01  :ARG0 (u_8764 / i)  :ARG1-of (u_8756 / claim-01  :ARG0 (u_8763 / you)  :ARG1-of (u_8757 / say-01  :ARG0 (u_8762 / we)  :ARG1-of (u_8761 / claim-01  :ARG0 (u_8766 / soldier)  :ARG1-of (u_8760 / assume-02  :ARG0 (d / doctor)  :ARG1-of (u_8758 / assume-02  :ARG0 (u_8759 / woman))))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who you said that the boys assumed that the lawyer assumed that we claimed that the girls said that the kids assumed that I thought liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(men,subj_relA(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(said,you)))))))),liked),soldier)))
+# ::size0 6
+# ::size1 13
+(u_8784 / hate-01  :ARG0 (r / man  :ARG0-of (u_8783 / like-01  :ARG1 (s / soldier  :ARG1-of u_8784)  :ARG1-of (u_8769 / think-01  :ARG0 (u_8781 / i)  :ARG1-of (u_8770 / assume-02  :ARG0 (u_8780 / kid)  :ARG1-of (u_8771 / say-01  :ARG0 (u_8779 / girl)  :ARG1-of (u_8772 / claim-01  :ARG0 (u_8778 / we)  :ARG1-of (u_8777 / assume-02  :ARG0 (m / lawyer)  :ARG1-of (u_8773 / assume-02  :ARG0 (u_8776 / boy)  :ARG1-of (u_8774 / say-01  :ARG0 (u_8775 / you))))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The boys who we assumed that you thought that the doctor claimed that I thought that the soldier assumed that the women thought that the kids thought hated the astronaut actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(boys,subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_with_gap_recursive(CP_with_gap_base(thought,you),CP_gap_end_recursion(CP_with_gap_base(assumed,we)))))))),hated),astronaut)))
+# ::size0 6
+# ::size1 13
+(u_8800 / like-01  :ARG0 (r / boy  :ARG0-of (u_8798 / hate-01  :ARG1 (a / astronaut  :ARG1-of u_8800)  :ARG1-of (u_8785 / think-01  :ARG0 (u_8796 / kid)  :ARG1-of (u_8786 / think-01  :ARG0 (u_8795 / woman)  :ARG1-of (u_8794 / assume-02  :ARG0 (u_8797 / soldier)  :ARG1-of (u_8787 / think-01  :ARG0 (u_8793 / i)  :ARG1-of (u_8792 / claim-01  :ARG0 (d / doctor)  :ARG1-of (u_8788 / think-01  :ARG0 (u_8791 / you)  :ARG1-of (u_8789 / assume-02  :ARG0 (u_8790 / we))))))))))  :concession (a2 / after-all)  :ARG1-of (u_8799 / actual-02))
+
+# ::snt The lawyer who the doctor claimed that the boys claimed that we said that the kids said that the girls thought that I said that you claimed liked the soldier actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(unary_N_adapter(lawyer),subj_relA(CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(said,I),CP_with_gap_recursive(CP_with_gap_base(thought,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(said,we),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(boys))),CP_gap_end_recursion(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(doctor))))))))))),liked),soldier)))
+# ::size0 6
+# ::size1 15
+(u_8815 / hate-01  :ARG0 (m / lawyer  :ARG0-of (r / like-01  :ARG1 (s / soldier  :ARG1-of u_8815)  :ARG1-of (u_8801 / claim-01  :ARG0 (u_8813 / you)  :ARG1-of (u_8802 / say-01  :ARG0 (u_8812 / i)  :ARG1-of (u_8803 / think-01  :ARG0 (u_8811 / girl)  :ARG1-of (u_8804 / say-01  :ARG0 (u_8810 / kid)  :ARG1-of (u_8805 / say-01  :ARG0 (u_8809 / we)  :ARG1-of (u_8806 / claim-01  :ARG0 (u_8808 / boy)  :ARG1-of (u_8807 / claim-01  :ARG0 (d / doctor))))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who the doctor assumed that we thought that I assumed that you assumed that the boys claimed that the lawyer claimed that the girls claimed hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(men,subj_relB(CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(girls))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_with_gap_recursive(CP_with_gap_base(thought,we),CP_gap_end_recursion(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(doctor))))))))))),hated),soldier)))
+# ::size0 6
+# ::size1 15
+(u_8830 / like-01  :ARG0 (r / man  :ARG0-of (u_8829 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8830)  :ARG1-of (u_8816 / claim-01  :ARG0 (u_8827 / girl)  :ARG1-of (u_8826 / claim-01  :ARG0 (m / lawyer)  :ARG1-of (u_8817 / claim-01  :ARG0 (u_8825 / boy)  :ARG1-of (u_8818 / assume-02  :ARG0 (u_8824 / you)  :ARG1-of (u_8819 / assume-02  :ARG0 (u_8823 / i)  :ARG1-of (u_8820 / think-01  :ARG0 (u_8822 / we)  :ARG1-of (u_8821 / assume-02  :ARG0 (d / doctor))))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who the astronaut thought that the kids said that the women assumed that we claimed that the lawyer assumed that I thought that you said hated the soldier actually liked him after all
+# ::tree TP_intrB(liked_fake_intransitive_him,DP_the_with_RC_B(DP_RC_B(men,subj_relB(CP_with_gap_recursive(CP_with_gap_base(said,you),CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(lawyer)))),CP_with_gap_recursive(CP_with_gap_base(claimed,we),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(kids))),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(unary_N_adapter(astronaut))))))))))),hated),soldier)))
+# ::size0 6
+# ::size1 15
+(u_8846 / like-01  :ARG0 (r / man  :ARG0-of (u_8844 / hate-01  :ARG1 (s / soldier  :ARG1-of u_8846)  :ARG1-of (u_8831 / say-01  :ARG0 (u_8842 / you)  :ARG1-of (u_8832 / think-01  :ARG0 (u_8841 / i)  :ARG1-of (u_8840 / assume-02  :ARG0 (m / lawyer)  :ARG1-of (u_8833 / claim-01  :ARG0 (u_8839 / we)  :ARG1-of (u_8834 / assume-02  :ARG0 (u_8838 / woman)  :ARG1-of (u_8835 / say-01  :ARG0 (u_8837 / kid)  :ARG1-of (u_8836 / think-01  :ARG0 (a / astronaut))))))))))  :concession (a2 / after-all)  :ARG1-of (u_8845 / actual-02))
+
+# ::snt The lawyer who we assumed that the kids assumed that the men assumed that the boys said that the soldier assumed that you claimed that I thought hated the doctor actually liked her after all
+# ::tree TP_intrB(liked_fake_intransitive_her,DP_the_with_RC_B(DP_RC_B(unary_N_adapter(lawyer),subj_relB(CP_with_gap_recursive(CP_with_gap_base(thought,I),CP_with_gap_recursive(CP_with_gap_base(claimed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(unary_N_adapter(soldier)))),CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(boys))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(men))),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(kids))),CP_gap_end_recursion(CP_with_gap_base(assumed,we)))))))),hated),doctor)))
+# ::size0 6
+# ::size1 13
+(u_8861 / like-01  :ARG0 (m / lawyer  :ARG0-of (r / hate-01  :ARG1 (d / doctor  :ARG1-of u_8861)  :ARG1-of (u_8847 / think-01  :ARG0 (u_8859 / i)  :ARG1-of (u_8848 / claim-01  :ARG0 (u_8858 / you)  :ARG1-of (u_8857 / assume-02  :ARG0 (u_8860 / soldier)  :ARG1-of (u_8849 / say-01  :ARG0 (u_8856 / boy)  :ARG1-of (u_8850 / assume-02  :ARG0 (u_8855 / man)  :ARG1-of (u_8851 / assume-02  :ARG0 (u_8854 / kid)  :ARG1-of (u_8852 / assume-02  :ARG0 (u_8853 / we))))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+
+# ::snt The men who the boys thought that I assumed that the kids assumed that you assumed that the doctor claimed that we assumed that the women said liked the lawyer actually hated him after all
+# ::tree TP_intrA(hated_fake_intransitive_him,DP_the_with_RC_A(DP_RC_A(men,subj_relA(CP_with_gap_recursive(CP_with_gap_base(said,DP_the(NP_unary(women))),CP_with_gap_recursive(CP_with_gap_base(assumed,we),CP_with_gap_recursive(CP_with_gap_base(claimed,DP_the(NP_unary(unary_N_adapter(doctor)))),CP_with_gap_recursive(CP_with_gap_base(assumed,you),CP_with_gap_recursive(CP_with_gap_base(assumed,DP_the(NP_unary(kids))),CP_with_gap_recursive(CP_with_gap_base(assumed,I),CP_gap_end_recursion(CP_with_gap_base(thought,DP_the(NP_unary(boys)))))))))),liked),lawyer)))
+# ::size0 6
+# ::size1 14
+(u_8876 / hate-01  :ARG0 (r / man  :ARG0-of (u_8875 / like-01  :ARG1 (m / lawyer  :ARG1-of u_8876)  :ARG1-of (u_8862 / say-01  :ARG0 (u_8874 / woman)  :ARG1-of (u_8863 / assume-02  :ARG0 (u_8873 / we)  :ARG1-of (u_8872 / claim-01  :ARG0 (d / doctor)  :ARG1-of (u_8864 / assume-02  :ARG0 (u_8871 / you)  :ARG1-of (u_8865 / assume-02  :ARG0 (u_8870 / kid)  :ARG1-of (u_8866 / assume-02  :ARG0 (u_8869 / i)  :ARG1-of (u_8867 / think-01  :ARG0 (u_8868 / boy))))))))))  :concession (a2 / after-all)  :ARG1-of (a / actual-02))
+

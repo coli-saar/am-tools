@@ -1,0 +1,502 @@
+# Randomly sampled examples of deep CP recursion (standard version). Created by a grammar. Size (size0) here is number of CPs + 1 (i.e., to get the recursion depth, subtract 1 from the value of size0 given in this file).
+
+# ::snt The girls said that we arrived
+# ::tree TP_CP(said,girls,TP_intr(arrived,we))
+# ::size0 2
+(u_2446 / say-01  :ARG0 (r / girl)  :ARG1 (u_2445 / arrive-01  :ARG1 (u_2447 / we)))
+
+# ::snt The astronaut knew that we won
+# ::tree TP_CP(knew,astronaut,TP_intr(won,we))
+# ::size0 2
+(u_2449 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_2448 / win-01  :ARG0 (r / we)))
+
+# ::snt The men thought that the boys sneezed
+# ::tree TP_CP(thought,men,TP_intr(sneezed,boys))
+# ::size0 2
+(u_2451 / think-01  :ARG0 (r / man)  :ARG1 (u_2450 / sneeze-01  :ARG0 (u_2452 / boy)))
+
+# ::snt The doctor said that the soldier arrived
+# ::tree TP_CP(said,doctor,TP_intr(arrived,soldier))
+# ::size0 2
+(u_2453 / say-01  :ARG0 (d / doctor)  :ARG1 (r / arrive-01  :ARG1 (s / soldier)))
+
+# ::snt The kids said that the men slept
+# ::tree TP_CP(said,kids,TP_intr(slept,men))
+# ::size0 2
+(u_2456 / say-01  :ARG0 (r / kid)  :ARG1 (u_2455 / sleep-01  :ARG0 (u_2457 / man)))
+
+# ::snt I said that the boys won
+# ::tree TP_CP(said,I,TP_intr(won,boys))
+# ::size0 2
+(u_2459 / say-01  :ARG0 (r / i)  :ARG1 (u_2458 / win-01  :ARG0 (u_2460 / boy)))
+
+# ::snt The boys heard that the men sneezed
+# ::tree TP_CP(heard,boys,TP_intr(sneezed,men))
+# ::size0 2
+(u_2462 / hear-01  :ARG0 (r / boy)  :ARG1 (u_2461 / sneeze-01  :ARG0 (u_2463 / man)))
+
+# ::snt We believed that the soldier slept
+# ::tree TP_CP(believed,we,TP_intr(slept,soldier))
+# ::size0 2
+(u_2464 / believe-01  :ARG0 (r / we)  :ARG1 (u_2466 / sleep-01  :ARG0 (s / soldier)))
+
+# ::snt The kids believed that the men sneezed
+# ::tree TP_CP(believed,kids,TP_intr(sneezed,men))
+# ::size0 2
+(u_2468 / believe-01  :ARG0 (r / kid)  :ARG1 (u_2467 / sneeze-01  :ARG0 (u_2469 / man)))
+
+# ::snt The women mentioned that we won
+# ::tree TP_CP(mentioned,women,TP_intr(won,we))
+# ::size0 2
+(u_2471 / mention-01  :ARG0 (r / woman)  :ARG1 (u_2470 / win-01  :ARG0 (u_2472 / we)))
+
+# ::snt I thought that the lawyer said that the men slept
+# ::tree TP_CP(thought,I,TP_CP(said,lawyer,TP_intr(slept,men)))
+# ::size0 3
+(u_2475 / think-01  :ARG0 (r / i)  :ARG1 (u_2474 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_2473 / sleep-01  :ARG0 (u_2476 / man))))
+
+# ::snt We said that the women mentioned that the astronaut arrived
+# ::tree TP_CP(said,we,TP_CP(mentioned,women,TP_intr(arrived,astronaut)))
+# ::size0 3
+(u_2479 / say-01  :ARG0 (r / we)  :ARG1 (u_2477 / mention-01  :ARG0 (u_2480 / woman)  :ARG1 (u_2478 / arrive-01  :ARG1 (a / astronaut))))
+
+# ::snt The astronaut said that the soldier heard that the lawyer won
+# ::tree TP_CP(said,astronaut,TP_CP(heard,soldier,TP_intr(won,lawyer)))
+# ::size0 3
+(u_2482 / say-01  :ARG0 (a / astronaut)  :ARG1 (u_2481 / hear-01  :ARG0 (s / soldier)  :ARG1 (r / win-01  :ARG0 (m / lawyer))))
+
+# ::snt The boys thought that the kids said that the astronaut arrived
+# ::tree TP_CP(thought,boys,TP_CP(said,kids,TP_intr(arrived,astronaut)))
+# ::size0 3
+(u_2486 / think-01  :ARG0 (r / boy)  :ARG1 (u_2484 / say-01  :ARG0 (u_2487 / kid)  :ARG1 (u_2485 / arrive-01  :ARG1 (a / astronaut))))
+
+# ::snt The men heard that the women mentioned that the kids won
+# ::tree TP_CP(heard,men,TP_CP(mentioned,women,TP_intr(won,kids)))
+# ::size0 3
+(u_2491 / hear-01  :ARG0 (r / man)  :ARG1 (u_2489 / mention-01  :ARG0 (u_2492 / woman)  :ARG1 (u_2488 / win-01  :ARG0 (u_2490 / kid))))
+
+# ::snt The men knew that we heard that you sneezed
+# ::tree TP_CP(knew,men,TP_CP(heard,we,TP_intr(sneezed,you)))
+# ::size0 3
+(u_2496 / know-01  :ARG0 (r / man)  :ARG1 (u_2494 / hear-01  :ARG0 (u_2497 / we)  :ARG1 (u_2493 / sneeze-01  :ARG0 (u_2495 / you))))
+
+# ::snt The doctor knew that the soldier thought that the women won
+# ::tree TP_CP(knew,doctor,TP_CP(thought,soldier,TP_intr(won,women)))
+# ::size0 3
+(u_2500 / know-01  :ARG0 (d / doctor)  :ARG1 (u_2499 / think-01  :ARG0 (s / soldier)  :ARG1 (u_2498 / win-01  :ARG0 (r / woman))))
+
+# ::snt The girls mentioned that the women knew that the lawyer sneezed
+# ::tree TP_CP(mentioned,girls,TP_CP(knew,women,TP_intr(sneezed,lawyer)))
+# ::size0 3
+(u_2504 / mention-01  :ARG0 (r / girl)  :ARG1 (u_2502 / know-01  :ARG0 (u_2505 / woman)  :ARG1 (u_2503 / sneeze-01  :ARG0 (m / lawyer))))
+
+# ::snt The doctor mentioned that the soldier knew that the girls sneezed
+# ::tree TP_CP(mentioned,doctor,TP_CP(knew,soldier,TP_intr(sneezed,girls)))
+# ::size0 3
+(u_2508 / mention-01  :ARG0 (d / doctor)  :ARG1 (u_2507 / know-01  :ARG0 (s / soldier)  :ARG1 (u_2506 / sneeze-01  :ARG0 (r / girl))))
+
+# ::snt The men mentioned that the astronaut believed that the soldier won
+# ::tree TP_CP(mentioned,men,TP_CP(believed,astronaut,TP_intr(won,soldier)))
+# ::size0 3
+(u_2512 / mention-01  :ARG0 (r / man)  :ARG1 (u_2510 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_2514 / win-01  :ARG0 (s / soldier))))
+
+# ::snt The women mentioned that the kids believed that the girls mentioned that the soldier arrived
+# ::tree TP_CP(mentioned,women,TP_CP(believed,kids,TP_CP(mentioned,girls,TP_intr(arrived,soldier))))
+# ::size0 4
+(u_2521 / mention-01  :ARG0 (r / woman)  :ARG1 (u_2518 / believe-01  :ARG0 (u_2523 / kid)  :ARG1 (u_2515 / mention-01  :ARG0 (u_2520 / girl)  :ARG1 (u_2517 / arrive-01  :ARG1 (s / soldier)))))
+
+# ::snt The soldier mentioned that you heard that we knew that I arrived
+# ::tree TP_CP(mentioned,soldier,TP_CP(heard,you,TP_CP(knew,we,TP_intr(arrived,I))))
+# ::size0 4
+(u_2529 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_2527 / hear-01  :ARG0 (r / you)  :ARG1 (u_2525 / know-01  :ARG0 (u_2528 / we)  :ARG1 (u_2524 / arrive-01  :ARG1 (u_2526 / i)))))
+
+# ::snt The astronaut believed that the girls said that you believed that the boys arrived
+# ::tree TP_CP(believed,astronaut,TP_CP(said,girls,TP_CP(believed,you,TP_intr(arrived,boys))))
+# ::size0 4
+(u_2535 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_2533 / say-01  :ARG0 (r / girl)  :ARG1 (u_2531 / believe-01  :ARG0 (u_2534 / you)  :ARG1 (u_2530 / arrive-01  :ARG1 (u_2532 / boy)))))
+
+# ::snt You thought that the boys heard that the lawyer heard that the kids won
+# ::tree TP_CP(thought,you,TP_CP(heard,boys,TP_CP(heard,lawyer,TP_intr(won,kids))))
+# ::size0 4
+(u_2540 / think-01  :ARG0 (r / you)  :ARG1 (u_2538 / hear-01  :ARG0 (u_2541 / boy)  :ARG1 (u_2537 / hear-01  :ARG0 (m / lawyer)  :ARG1 (u_2536 / win-01  :ARG0 (u_2539 / kid)))))
+
+# ::snt The boys believed that the men said that I heard that the astronaut arrived
+# ::tree TP_CP(believed,boys,TP_CP(said,men,TP_CP(heard,I,TP_intr(arrived,astronaut))))
+# ::size0 4
+(u_2546 / believe-01  :ARG0 (r / boy)  :ARG1 (u_2544 / say-01  :ARG0 (u_2547 / man)  :ARG1 (u_2542 / hear-01  :ARG0 (u_2545 / i)  :ARG1 (u_2543 / arrive-01  :ARG1 (a / astronaut)))))
+
+# ::snt The men said that the girls heard that the kids said that the soldier slept
+# ::tree TP_CP(said,men,TP_CP(heard,girls,TP_CP(said,kids,TP_intr(slept,soldier))))
+# ::size0 4
+(u_2554 / say-01  :ARG0 (r / man)  :ARG1 (u_2551 / hear-01  :ARG0 (u_2556 / girl)  :ARG1 (u_2548 / say-01  :ARG0 (u_2553 / kid)  :ARG1 (u_2550 / sleep-01  :ARG0 (s / soldier)))))
+
+# ::snt I heard that we believed that the boys said that the girls sneezed
+# ::tree TP_CP(heard,I,TP_CP(believed,we,TP_CP(said,boys,TP_intr(sneezed,girls))))
+# ::size0 4
+(u_2562 / hear-01  :ARG0 (r / i)  :ARG1 (u_2560 / believe-01  :ARG0 (u_2563 / we)  :ARG1 (u_2558 / say-01  :ARG0 (u_2561 / boy)  :ARG1 (u_2557 / sneeze-01  :ARG0 (u_2559 / girl)))))
+
+# ::snt The boys mentioned that you heard that the doctor believed that the men arrived
+# ::tree TP_CP(mentioned,boys,TP_CP(heard,you,TP_CP(believed,doctor,TP_intr(arrived,men))))
+# ::size0 4
+(u_2568 / mention-01  :ARG0 (r / boy)  :ARG1 (u_2566 / hear-01  :ARG0 (u_2569 / you)  :ARG1 (u_2565 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_2564 / arrive-01  :ARG1 (u_2567 / man)))))
+
+# ::snt The boys said that the women mentioned that the astronaut believed that the soldier slept
+# ::tree TP_CP(said,boys,TP_CP(mentioned,women,TP_CP(believed,astronaut,TP_intr(slept,soldier))))
+# ::size0 4
+(u_2575 / say-01  :ARG0 (r / boy)  :ARG1 (u_2572 / mention-01  :ARG0 (u_2577 / woman)  :ARG1 (u_2570 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_2574 / sleep-01  :ARG0 (s / soldier)))))
+
+# ::snt The girls thought that the lawyer said that the soldier mentioned that you arrived
+# ::tree TP_CP(thought,girls,TP_CP(said,lawyer,TP_CP(mentioned,soldier,TP_intr(arrived,you))))
+# ::size0 4
+(u_2582 / think-01  :ARG0 (r / girl)  :ARG1 (u_2580 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_2579 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_2578 / arrive-01  :ARG1 (u_2584 / you)))))
+
+# ::snt I said that you heard that the girls mentioned that the soldier mentioned that the doctor slept
+# ::tree TP_CP(said,I,TP_CP(heard,you,TP_CP(mentioned,girls,TP_CP(mentioned,soldier,TP_intr(slept,doctor)))))
+# ::size0 5
+(u_2592 / say-01  :ARG0 (r / i)  :ARG1 (u_2589 / hear-01  :ARG0 (u_2594 / you)  :ARG1 (u_2586 / mention-01  :ARG0 (u_2591 / girl)  :ARG1 (u_2585 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_2588 / sleep-01  :ARG0 (d / doctor))))))
+
+# ::snt The doctor believed that the lawyer mentioned that you knew that the men thought that the girls slept
+# ::tree TP_CP(believed,doctor,TP_CP(mentioned,lawyer,TP_CP(knew,you,TP_CP(thought,men,TP_intr(slept,girls)))))
+# ::size0 5
+(u_2601 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_2600 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_2598 / know-01  :ARG0 (r / you)  :ARG1 (u_2596 / think-01  :ARG0 (u_2599 / man)  :ARG1 (u_2595 / sleep-01  :ARG0 (u_2597 / girl))))))
+
+# ::snt The boys believed that the soldier heard that the women mentioned that the lawyer mentioned that the kids arrived
+# ::tree TP_CP(believed,boys,TP_CP(heard,soldier,TP_CP(mentioned,women,TP_CP(mentioned,lawyer,TP_intr(arrived,kids)))))
+# ::size0 5
+(u_2607 / believe-01  :ARG0 (r / boy)  :ARG1 (u_2606 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_2604 / mention-01  :ARG0 (u_2609 / woman)  :ARG1 (u_2603 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_2602 / arrive-01  :ARG1 (u_2605 / kid))))))
+
+# ::snt You thought that the men knew that we said that the boys believed that the soldier sneezed
+# ::tree TP_CP(thought,you,TP_CP(knew,men,TP_CP(said,we,TP_CP(believed,boys,TP_intr(sneezed,soldier)))))
+# ::size0 5
+(u_2619 / think-01  :ARG0 (r / you)  :ARG1 (u_2616 / know-01  :ARG0 (u_2621 / man)  :ARG1 (u_2613 / say-01  :ARG0 (u_2618 / we)  :ARG1 (u_2610 / believe-01  :ARG0 (u_2615 / boy)  :ARG1 (u_2612 / sneeze-01  :ARG0 (s / soldier))))))
+
+# ::snt The soldier believed that you mentioned that the kids thought that the astronaut thought that I sneezed
+# ::tree TP_CP(believed,soldier,TP_CP(mentioned,you,TP_CP(thought,kids,TP_CP(thought,astronaut,TP_intr(sneezed,I)))))
+# ::size0 5
+(u_2628 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_2626 / mention-01  :ARG0 (r / you)  :ARG1 (u_2624 / think-01  :ARG0 (u_2627 / kid)  :ARG1 (u_2623 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_2622 / sneeze-01  :ARG0 (u_2625 / i))))))
+
+# ::snt You thought that the girls mentioned that the kids knew that the doctor knew that the soldier arrived
+# ::tree TP_CP(thought,you,TP_CP(mentioned,girls,TP_CP(knew,kids,TP_CP(knew,doctor,TP_intr(arrived,soldier)))))
+# ::size0 5
+(u_2637 / think-01  :ARG0 (r / you)  :ARG1 (u_2634 / mention-01  :ARG0 (u_2639 / girl)  :ARG1 (u_2631 / know-01  :ARG0 (u_2636 / kid)  :ARG1 (u_2629 / know-01  :ARG0 (d / doctor)  :ARG1 (u_2633 / arrive-01  :ARG1 (s / soldier))))))
+
+# ::snt The men mentioned that the soldier thought that I mentioned that the kids believed that the lawyer won
+# ::tree TP_CP(mentioned,men,TP_CP(thought,soldier,TP_CP(mentioned,I,TP_CP(believed,kids,TP_intr(won,lawyer)))))
+# ::size0 5
+(u_2645 / mention-01  :ARG0 (r / man)  :ARG1 (u_2644 / think-01  :ARG0 (s / soldier)  :ARG1 (u_2642 / mention-01  :ARG0 (u_2647 / i)  :ARG1 (u_2640 / believe-01  :ARG0 (u_2643 / kid)  :ARG1 (u_2641 / win-01  :ARG0 (m / lawyer))))))
+
+# ::snt The women heard that the boys believed that you knew that the astronaut knew that the girls slept
+# ::tree TP_CP(heard,women,TP_CP(believed,boys,TP_CP(knew,you,TP_CP(knew,astronaut,TP_intr(slept,girls)))))
+# ::size0 5
+(u_2654 / hear-01  :ARG0 (r / woman)  :ARG1 (u_2652 / believe-01  :ARG0 (u_2655 / boy)  :ARG1 (u_2650 / know-01  :ARG0 (u_2653 / you)  :ARG1 (u_2649 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_2648 / sleep-01  :ARG0 (u_2651 / girl))))))
+
+# ::snt The doctor believed that the lawyer knew that I mentioned that you said that the women sneezed
+# ::tree TP_CP(believed,doctor,TP_CP(knew,lawyer,TP_CP(mentioned,I,TP_CP(said,you,TP_intr(sneezed,women)))))
+# ::size0 5
+(u_2662 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_2661 / know-01  :ARG0 (m / lawyer)  :ARG1 (u_2659 / mention-01  :ARG0 (r / i)  :ARG1 (u_2657 / say-01  :ARG0 (u_2660 / you)  :ARG1 (u_2656 / sneeze-01  :ARG0 (u_2658 / woman))))))
+
+# ::snt The lawyer thought that the soldier heard that I thought that the boys thought that the women slept
+# ::tree TP_CP(thought,lawyer,TP_CP(heard,soldier,TP_CP(thought,I,TP_CP(thought,boys,TP_intr(slept,women)))))
+# ::size0 5
+(u_2669 / think-01  :ARG0 (m / lawyer)  :ARG1 (u_2668 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_2666 / think-01  :ARG0 (r / i)  :ARG1 (u_2664 / think-01  :ARG0 (u_2667 / boy)  :ARG1 (u_2663 / sleep-01  :ARG0 (u_2665 / woman))))))
+
+# ::snt The men heard that the soldier believed that the kids believed that the lawyer said that the doctor said that I sneezed
+# ::tree TP_CP(heard,men,TP_CP(believed,soldier,TP_CP(believed,kids,TP_CP(said,lawyer,TP_CP(said,doctor,TP_intr(sneezed,I))))))
+# ::size0 6
+(u_2677 / hear-01  :ARG0 (r / man)  :ARG1 (u_2676 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_2674 / believe-01  :ARG0 (u_2679 / kid)  :ARG1 (u_2673 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_2672 / say-01  :ARG0 (d / doctor)  :ARG1 (u_2671 / sneeze-01  :ARG0 (u_2675 / i)))))))
+
+# ::snt The lawyer believed that the men thought that the kids said that the women mentioned that we heard that the doctor arrived
+# ::tree TP_CP(believed,lawyer,TP_CP(thought,men,TP_CP(said,kids,TP_CP(mentioned,women,TP_CP(heard,we,TP_intr(arrived,doctor))))))
+# ::size0 6
+(u_2688 / believe-01  :ARG0 (m / lawyer)  :ARG1 (u_2686 / think-01  :ARG0 (r / man)  :ARG1 (u_2684 / say-01  :ARG0 (u_2687 / kid)  :ARG1 (u_2682 / mention-01  :ARG0 (u_2685 / woman)  :ARG1 (u_2680 / hear-01  :ARG0 (u_2683 / we)  :ARG1 (u_2681 / arrive-01  :ARG1 (d / doctor)))))))
+
+# ::snt The boys said that the astronaut believed that the kids mentioned that the soldier knew that the men said that I arrived
+# ::tree TP_CP(said,boys,TP_CP(believed,astronaut,TP_CP(mentioned,kids,TP_CP(knew,soldier,TP_CP(said,men,TP_intr(arrived,I))))))
+# ::size0 6
+(u_2698 / say-01  :ARG0 (r / boy)  :ARG1 (u_2696 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_2693 / mention-01  :ARG0 (u_2700 / kid)  :ARG1 (u_2692 / know-01  :ARG0 (s / soldier)  :ARG1 (u_2690 / say-01  :ARG0 (u_2695 / man)  :ARG1 (u_2689 / arrive-01  :ARG1 (u_2691 / i)))))))
+
+# ::snt The kids said that the girls thought that the lawyer mentioned that I knew that the women thought that the boys sneezed
+# ::tree TP_CP(said,kids,TP_CP(thought,girls,TP_CP(mentioned,lawyer,TP_CP(knew,I,TP_CP(thought,women,TP_intr(sneezed,boys))))))
+# ::size0 6
+(u_2709 / say-01  :ARG0 (r / kid)  :ARG1 (u_2707 / think-01  :ARG0 (u_2710 / girl)  :ARG1 (u_2706 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_2704 / know-01  :ARG0 (u_2708 / i)  :ARG1 (u_2702 / think-01  :ARG0 (u_2705 / woman)  :ARG1 (u_2701 / sneeze-01  :ARG0 (u_2703 / boy)))))))
+
+# ::snt The lawyer said that the women heard that the men knew that I mentioned that the soldier knew that the girls arrived
+# ::tree TP_CP(said,lawyer,TP_CP(heard,women,TP_CP(knew,men,TP_CP(mentioned,I,TP_CP(knew,soldier,TP_intr(arrived,girls))))))
+# ::size0 6
+(u_2722 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_2719 / hear-01  :ARG0 (r / woman)  :ARG1 (u_2716 / know-01  :ARG0 (u_2721 / man)  :ARG1 (u_2713 / mention-01  :ARG0 (u_2718 / i)  :ARG1 (u_2712 / know-01  :ARG0 (s / soldier)  :ARG1 (u_2711 / arrive-01  :ARG1 (u_2715 / girl)))))))
+
+# ::snt I heard that the doctor knew that you mentioned that the lawyer mentioned that the astronaut believed that the soldier sneezed
+# ::tree TP_CP(heard,I,TP_CP(knew,doctor,TP_CP(mentioned,you,TP_CP(mentioned,lawyer,TP_CP(believed,astronaut,TP_intr(sneezed,soldier))))))
+# ::size0 6
+(u_2733 / hear-01  :ARG0 (r / i)  :ARG1 (u_2731 / know-01  :ARG0 (d / doctor)  :ARG1 (u_2728 / mention-01  :ARG0 (u_2735 / you)  :ARG1 (u_2726 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_2724 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_2730 / sneeze-01  :ARG0 (s / soldier)))))))
+
+# ::snt The doctor knew that you mentioned that the soldier knew that the girls mentioned that the kids thought that the lawyer won
+# ::tree TP_CP(knew,doctor,TP_CP(mentioned,you,TP_CP(knew,soldier,TP_CP(mentioned,girls,TP_CP(thought,kids,TP_intr(won,lawyer))))))
+# ::size0 6
+(u_2744 / know-01  :ARG0 (d / doctor)  :ARG1 (u_2741 / mention-01  :ARG0 (r / you)  :ARG1 (u_2740 / know-01  :ARG0 (s / soldier)  :ARG1 (u_2738 / mention-01  :ARG0 (u_2743 / girl)  :ARG1 (u_2736 / think-01  :ARG0 (u_2739 / kid)  :ARG1 (u_2737 / win-01  :ARG0 (m / lawyer)))))))
+
+# ::snt The doctor heard that I thought that the astronaut thought that the boys heard that the women heard that the girls slept
+# ::tree TP_CP(heard,doctor,TP_CP(thought,I,TP_CP(thought,astronaut,TP_CP(heard,boys,TP_CP(heard,women,TP_intr(slept,girls))))))
+# ::size0 6
+(u_2754 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_2752 / think-01  :ARG0 (r / i)  :ARG1 (u_2751 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_2749 / hear-01  :ARG0 (u_2753 / boy)  :ARG1 (u_2747 / hear-01  :ARG0 (u_2750 / woman)  :ARG1 (u_2746 / sleep-01  :ARG0 (u_2748 / girl)))))))
+
+# ::snt The lawyer thought that the astronaut mentioned that the kids knew that the soldier thought that the women believed that I won
+# ::tree TP_CP(thought,lawyer,TP_CP(mentioned,astronaut,TP_CP(knew,kids,TP_CP(thought,soldier,TP_CP(believed,women,TP_intr(won,I))))))
+# ::size0 6
+(u_2764 / think-01  :ARG0 (m / lawyer)  :ARG1 (u_2762 / mention-01  :ARG0 (a / astronaut)  :ARG1 (u_2759 / know-01  :ARG0 (r / kid)  :ARG1 (u_2758 / think-01  :ARG0 (s / soldier)  :ARG1 (u_2756 / believe-01  :ARG0 (u_2761 / woman)  :ARG1 (u_2755 / win-01  :ARG0 (u_2757 / i)))))))
+
+# ::snt The astronaut thought that the doctor thought that the boys mentioned that the kids mentioned that the girls said that the soldier won
+# ::tree TP_CP(thought,astronaut,TP_CP(thought,doctor,TP_CP(mentioned,boys,TP_CP(mentioned,kids,TP_CP(said,girls,TP_intr(won,soldier))))))
+# ::size0 6
+(u_2777 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_2775 / think-01  :ARG0 (d / doctor)  :ARG1 (u_2772 / mention-01  :ARG0 (r / boy)  :ARG1 (u_2769 / mention-01  :ARG0 (u_2774 / kid)  :ARG1 (u_2766 / say-01  :ARG0 (u_2771 / girl)  :ARG1 (u_2768 / win-01  :ARG0 (s / soldier)))))))
+
+# ::snt The lawyer knew that you believed that the astronaut mentioned that I thought that the boys thought that the kids believed that the girls won
+# ::tree TP_CP(knew,lawyer,TP_CP(believed,you,TP_CP(mentioned,astronaut,TP_CP(thought,I,TP_CP(thought,boys,TP_CP(believed,kids,TP_intr(won,girls)))))))
+# ::size0 7
+(u_2789 / know-01  :ARG0 (m / lawyer)  :ARG1 (u_2787 / believe-01  :ARG0 (r / you)  :ARG1 (u_2786 / mention-01  :ARG0 (a / astronaut)  :ARG1 (u_2784 / think-01  :ARG0 (u_2788 / i)  :ARG1 (u_2782 / think-01  :ARG0 (u_2785 / boy)  :ARG1 (u_2780 / believe-01  :ARG0 (u_2783 / kid)  :ARG1 (u_2779 / win-01  :ARG0 (u_2781 / girl))))))))
+
+# ::snt The women heard that the boys knew that the girls knew that the lawyer believed that the doctor heard that the kids believed that the men won
+# ::tree TP_CP(heard,women,TP_CP(knew,boys,TP_CP(knew,girls,TP_CP(believed,lawyer,TP_CP(heard,doctor,TP_CP(believed,kids,TP_intr(won,men)))))))
+# ::size0 7
+(u_2799 / hear-01  :ARG0 (r / woman)  :ARG1 (u_2797 / know-01  :ARG0 (u_2800 / boy)  :ARG1 (u_2795 / know-01  :ARG0 (u_2798 / girl)  :ARG1 (u_2794 / believe-01  :ARG0 (m / lawyer)  :ARG1 (u_2793 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_2791 / believe-01  :ARG0 (u_2796 / kid)  :ARG1 (u_2790 / win-01  :ARG0 (u_2792 / man))))))))
+
+# ::snt The astronaut thought that we knew that you believed that I heard that the soldier thought that the women mentioned that the doctor arrived
+# ::tree TP_CP(thought,astronaut,TP_CP(knew,we,TP_CP(believed,you,TP_CP(heard,I,TP_CP(thought,soldier,TP_CP(mentioned,women,TP_intr(arrived,doctor)))))))
+# ::size0 7
+(u_2813 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_2810 / know-01  :ARG0 (r / we)  :ARG1 (u_2807 / believe-01  :ARG0 (u_2812 / you)  :ARG1 (u_2804 / hear-01  :ARG0 (u_2809 / i)  :ARG1 (u_2803 / think-01  :ARG0 (s / soldier)  :ARG1 (u_2801 / mention-01  :ARG0 (u_2806 / woman)  :ARG1 (u_2802 / arrive-01  :ARG1 (d / doctor))))))))
+
+# ::snt The soldier said that the lawyer said that the astronaut knew that the doctor thought that the girls thought that the men thought that the kids slept
+# ::tree TP_CP(said,soldier,TP_CP(said,lawyer,TP_CP(knew,astronaut,TP_CP(thought,doctor,TP_CP(thought,girls,TP_CP(thought,men,TP_intr(slept,kids)))))))
+# ::size0 7
+(u_2823 / say-01  :ARG0 (s / soldier)  :ARG1 (u_2822 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_2821 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_2820 / think-01  :ARG0 (d / doctor)  :ARG1 (u_2818 / think-01  :ARG0 (r / girl)  :ARG1 (u_2816 / think-01  :ARG0 (u_2819 / man)  :ARG1 (u_2815 / sleep-01  :ARG0 (u_2817 / kid))))))))
+
+# ::snt We heard that I knew that the doctor knew that you heard that the kids mentioned that the soldier knew that the astronaut arrived
+# ::tree TP_CP(heard,we,TP_CP(knew,I,TP_CP(knew,doctor,TP_CP(heard,you,TP_CP(mentioned,kids,TP_CP(knew,soldier,TP_intr(arrived,astronaut)))))))
+# ::size0 7
+(u_2836 / hear-01  :ARG0 (r / we)  :ARG1 (u_2833 / know-01  :ARG0 (u_2838 / i)  :ARG1 (u_2831 / know-01  :ARG0 (d / doctor)  :ARG1 (u_2828 / hear-01  :ARG0 (u_2835 / you)  :ARG1 (u_2825 / mention-01  :ARG0 (u_2830 / kid)  :ARG1 (u_2824 / know-01  :ARG0 (s / soldier)  :ARG1 (u_2827 / arrive-01  :ARG1 (a / astronaut))))))))
+
+# ::snt We said that the men believed that the kids mentioned that the boys believed that the women knew that the girls heard that the doctor slept
+# ::tree TP_CP(said,we,TP_CP(believed,men,TP_CP(mentioned,kids,TP_CP(believed,boys,TP_CP(knew,women,TP_CP(heard,girls,TP_intr(slept,doctor)))))))
+# ::size0 7
+(u_2849 / say-01  :ARG0 (r / we)  :ARG1 (u_2847 / believe-01  :ARG0 (u_2850 / man)  :ARG1 (u_2845 / mention-01  :ARG0 (u_2848 / kid)  :ARG1 (u_2843 / believe-01  :ARG0 (u_2846 / boy)  :ARG1 (u_2841 / know-01  :ARG0 (u_2844 / woman)  :ARG1 (u_2839 / hear-01  :ARG0 (u_2842 / girl)  :ARG1 (u_2840 / sleep-01  :ARG0 (d / doctor))))))))
+
+# ::snt You said that the astronaut heard that the doctor believed that the men believed that the kids mentioned that the women said that the boys arrived
+# ::tree TP_CP(said,you,TP_CP(heard,astronaut,TP_CP(believed,doctor,TP_CP(believed,men,TP_CP(mentioned,kids,TP_CP(said,women,TP_intr(arrived,boys)))))))
+# ::size0 7
+(u_2860 / say-01  :ARG0 (r / you)  :ARG1 (u_2859 / hear-01  :ARG0 (a / astronaut)  :ARG1 (u_2858 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_2856 / believe-01  :ARG0 (u_2861 / man)  :ARG1 (u_2854 / mention-01  :ARG0 (u_2857 / kid)  :ARG1 (u_2852 / say-01  :ARG0 (u_2855 / woman)  :ARG1 (u_2851 / arrive-01  :ARG1 (u_2853 / boy))))))))
+
+# ::snt The lawyer believed that the women mentioned that the kids heard that you thought that the boys knew that the doctor knew that the girls sneezed
+# ::tree TP_CP(believed,lawyer,TP_CP(mentioned,women,TP_CP(heard,kids,TP_CP(thought,you,TP_CP(knew,boys,TP_CP(knew,doctor,TP_intr(sneezed,girls)))))))
+# ::size0 7
+(u_2872 / believe-01  :ARG0 (m / lawyer)  :ARG1 (u_2870 / mention-01  :ARG0 (r / woman)  :ARG1 (u_2868 / hear-01  :ARG0 (u_2871 / kid)  :ARG1 (u_2866 / think-01  :ARG0 (u_2869 / you)  :ARG1 (u_2864 / know-01  :ARG0 (u_2867 / boy)  :ARG1 (u_2863 / know-01  :ARG0 (d / doctor)  :ARG1 (u_2862 / sneeze-01  :ARG0 (u_2865 / girl))))))))
+
+# ::snt I believed that the boys mentioned that the astronaut thought that the doctor said that the men believed that we thought that the kids won
+# ::tree TP_CP(believed,I,TP_CP(mentioned,boys,TP_CP(thought,astronaut,TP_CP(said,doctor,TP_CP(believed,men,TP_CP(thought,we,TP_intr(won,kids)))))))
+# ::size0 7
+(u_2882 / believe-01  :ARG0 (r / i)  :ARG1 (u_2880 / mention-01  :ARG0 (u_2883 / boy)  :ARG1 (u_2879 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_2878 / say-01  :ARG0 (d / doctor)  :ARG1 (u_2876 / believe-01  :ARG0 (u_2881 / man)  :ARG1 (u_2874 / think-01  :ARG0 (u_2877 / we)  :ARG1 (u_2873 / win-01  :ARG0 (u_2875 / kid))))))))
+
+# ::snt The women mentioned that the men said that the girls believed that the boys said that the astronaut knew that I mentioned that you slept
+# ::tree TP_CP(mentioned,women,TP_CP(said,men,TP_CP(believed,girls,TP_CP(said,boys,TP_CP(knew,astronaut,TP_CP(mentioned,I,TP_intr(slept,you)))))))
+# ::size0 7
+(u_2894 / mention-01  :ARG0 (r / woman)  :ARG1 (u_2892 / say-01  :ARG0 (u_2895 / man)  :ARG1 (u_2890 / believe-01  :ARG0 (u_2893 / girl)  :ARG1 (u_2888 / say-01  :ARG0 (u_2891 / boy)  :ARG1 (u_2887 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_2885 / mention-01  :ARG0 (u_2889 / i)  :ARG1 (u_2884 / sleep-01  :ARG0 (u_2886 / you))))))))
+
+# ::snt I said that the men said that the boys believed that the lawyer mentioned that the astronaut knew that the doctor mentioned that you heard that the kids slept
+# ::tree TP_CP(said,I,TP_CP(said,men,TP_CP(believed,boys,TP_CP(mentioned,lawyer,TP_CP(knew,astronaut,TP_CP(mentioned,doctor,TP_CP(heard,you,TP_intr(slept,kids))))))))
+# ::size0 8
+(u_2906 / say-01  :ARG0 (r / i)  :ARG1 (u_2904 / say-01  :ARG0 (u_2907 / man)  :ARG1 (u_2902 / believe-01  :ARG0 (u_2905 / boy)  :ARG1 (u_2901 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_2900 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_2899 / mention-01  :ARG0 (d / doctor)  :ARG1 (u_2897 / hear-01  :ARG0 (u_2903 / you)  :ARG1 (u_2896 / sleep-01  :ARG0 (u_2898 / kid)))))))))
+
+# ::snt The astronaut thought that the boys heard that the men mentioned that the girls mentioned that the women said that the soldier heard that you mentioned that I sneezed
+# ::tree TP_CP(thought,astronaut,TP_CP(heard,boys,TP_CP(mentioned,men,TP_CP(mentioned,girls,TP_CP(said,women,TP_CP(heard,soldier,TP_CP(mentioned,you,TP_intr(sneezed,I))))))))
+# ::size0 8
+(u_2924 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_2921 / hear-01  :ARG0 (r / boy)  :ARG1 (u_2918 / mention-01  :ARG0 (u_2923 / man)  :ARG1 (u_2915 / mention-01  :ARG0 (u_2920 / girl)  :ARG1 (u_2912 / say-01  :ARG0 (u_2917 / woman)  :ARG1 (u_2911 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_2909 / mention-01  :ARG0 (u_2914 / you)  :ARG1 (u_2908 / sneeze-01  :ARG0 (u_2910 / i)))))))))
+
+# ::snt The girls said that the women knew that the kids thought that the astronaut believed that the soldier mentioned that we said that I knew that the boys slept
+# ::tree TP_CP(said,girls,TP_CP(knew,women,TP_CP(thought,kids,TP_CP(believed,astronaut,TP_CP(mentioned,soldier,TP_CP(said,we,TP_CP(knew,I,TP_intr(slept,boys))))))))
+# ::size0 8
+(u_2940 / say-01  :ARG0 (r / girl)  :ARG1 (u_2937 / know-01  :ARG0 (u_2942 / woman)  :ARG1 (u_2934 / think-01  :ARG0 (u_2939 / kid)  :ARG1 (u_2932 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_2931 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_2929 / say-01  :ARG0 (u_2936 / we)  :ARG1 (u_2927 / know-01  :ARG0 (u_2930 / i)  :ARG1 (u_2926 / sleep-01  :ARG0 (u_2928 / boy)))))))))
+
+# ::snt The boys believed that the girls mentioned that the women believed that we said that I believed that the doctor heard that the soldier believed that the kids won
+# ::tree TP_CP(believed,boys,TP_CP(mentioned,girls,TP_CP(believed,women,TP_CP(said,we,TP_CP(believed,I,TP_CP(heard,doctor,TP_CP(believed,soldier,TP_intr(won,kids))))))))
+# ::size0 8
+(u_2959 / believe-01  :ARG0 (r / boy)  :ARG1 (u_2956 / mention-01  :ARG0 (u_2961 / girl)  :ARG1 (u_2953 / believe-01  :ARG0 (u_2958 / woman)  :ARG1 (u_2950 / say-01  :ARG0 (u_2955 / we)  :ARG1 (u_2947 / believe-01  :ARG0 (u_2952 / i)  :ARG1 (u_2945 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_2944 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_2943 / win-01  :ARG0 (u_2949 / kid)))))))))
+
+# ::snt The astronaut knew that we believed that the soldier knew that you heard that the girls thought that the lawyer thought that I thought that the men arrived
+# ::tree TP_CP(knew,astronaut,TP_CP(believed,we,TP_CP(knew,soldier,TP_CP(heard,you,TP_CP(thought,girls,TP_CP(thought,lawyer,TP_CP(thought,I,TP_intr(arrived,men))))))))
+# ::size0 8
+(u_2974 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_2971 / believe-01  :ARG0 (r / we)  :ARG1 (u_2970 / know-01  :ARG0 (s / soldier)  :ARG1 (u_2968 / hear-01  :ARG0 (u_2973 / you)  :ARG1 (u_2966 / think-01  :ARG0 (u_2969 / girl)  :ARG1 (u_2965 / think-01  :ARG0 (m / lawyer)  :ARG1 (u_2963 / think-01  :ARG0 (u_2967 / i)  :ARG1 (u_2962 / arrive-01  :ARG1 (u_2964 / man)))))))))
+
+# ::snt You mentioned that the men said that the women mentioned that the soldier heard that the kids thought that the boys knew that the doctor knew that the girls won
+# ::tree TP_CP(mentioned,you,TP_CP(said,men,TP_CP(mentioned,women,TP_CP(heard,soldier,TP_CP(thought,kids,TP_CP(knew,boys,TP_CP(knew,doctor,TP_intr(won,girls))))))))
+# ::size0 8
+(u_2989 / mention-01  :ARG0 (r / you)  :ARG1 (u_2986 / say-01  :ARG0 (u_2991 / man)  :ARG1 (u_2983 / mention-01  :ARG0 (u_2988 / woman)  :ARG1 (u_2982 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_2980 / think-01  :ARG0 (u_2985 / kid)  :ARG1 (u_2978 / know-01  :ARG0 (u_2981 / boy)  :ARG1 (u_2977 / know-01  :ARG0 (d / doctor)  :ARG1 (u_2976 / win-01  :ARG0 (u_2979 / girl)))))))))
+
+# ::snt You mentioned that the soldier heard that the girls said that we mentioned that the men heard that the boys knew that I knew that the doctor arrived
+# ::tree TP_CP(mentioned,you,TP_CP(heard,soldier,TP_CP(said,girls,TP_CP(mentioned,we,TP_CP(heard,men,TP_CP(knew,boys,TP_CP(knew,I,TP_intr(arrived,doctor))))))))
+# ::size0 8
+(u_3003 / mention-01  :ARG0 (r / you)  :ARG1 (u_3002 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_3000 / say-01  :ARG0 (u_3005 / girl)  :ARG1 (u_2998 / mention-01  :ARG0 (u_3001 / we)  :ARG1 (u_2996 / hear-01  :ARG0 (u_2999 / man)  :ARG1 (u_2994 / know-01  :ARG0 (u_2997 / boy)  :ARG1 (u_2992 / know-01  :ARG0 (u_2995 / i)  :ARG1 (u_2993 / arrive-01  :ARG1 (d / doctor)))))))))
+
+# ::snt The doctor thought that the lawyer heard that the men mentioned that the boys believed that the girls thought that the kids believed that you believed that we won
+# ::tree TP_CP(thought,doctor,TP_CP(heard,lawyer,TP_CP(mentioned,men,TP_CP(believed,boys,TP_CP(thought,girls,TP_CP(believed,kids,TP_CP(believed,you,TP_intr(won,we))))))))
+# ::size0 8
+(u_3018 / think-01  :ARG0 (d / doctor)  :ARG1 (u_3017 / hear-01  :ARG0 (m / lawyer)  :ARG1 (u_3015 / mention-01  :ARG0 (r / man)  :ARG1 (u_3013 / believe-01  :ARG0 (u_3016 / boy)  :ARG1 (u_3011 / think-01  :ARG0 (u_3014 / girl)  :ARG1 (u_3009 / believe-01  :ARG0 (u_3012 / kid)  :ARG1 (u_3007 / believe-01  :ARG0 (u_3010 / you)  :ARG1 (u_3006 / win-01  :ARG0 (u_3008 / we)))))))))
+
+# ::snt The kids said that the lawyer said that the girls mentioned that the women knew that the doctor thought that the astronaut knew that you thought that the soldier sneezed
+# ::tree TP_CP(said,kids,TP_CP(said,lawyer,TP_CP(mentioned,girls,TP_CP(knew,women,TP_CP(thought,doctor,TP_CP(knew,astronaut,TP_CP(thought,you,TP_intr(sneezed,soldier))))))))
+# ::size0 8
+(u_3034 / say-01  :ARG0 (r / kid)  :ARG1 (u_3032 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_3029 / mention-01  :ARG0 (u_3036 / girl)  :ARG1 (u_3026 / know-01  :ARG0 (u_3031 / woman)  :ARG1 (u_3024 / think-01  :ARG0 (d / doctor)  :ARG1 (u_3022 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_3019 / think-01  :ARG0 (u_3028 / you)  :ARG1 (u_3021 / sneeze-01  :ARG0 (s / soldier)))))))))
+
+# ::snt The lawyer said that the astronaut thought that the girls thought that I believed that the doctor thought that the women thought that you said that the kids slept
+# ::tree TP_CP(said,lawyer,TP_CP(thought,astronaut,TP_CP(thought,girls,TP_CP(believed,I,TP_CP(thought,doctor,TP_CP(thought,women,TP_CP(said,you,TP_intr(slept,kids))))))))
+# ::size0 8
+(u_3048 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_3047 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_3045 / think-01  :ARG0 (r / girl)  :ARG1 (u_3043 / believe-01  :ARG0 (u_3046 / i)  :ARG1 (u_3042 / think-01  :ARG0 (d / doctor)  :ARG1 (u_3040 / think-01  :ARG0 (u_3044 / woman)  :ARG1 (u_3038 / say-01  :ARG0 (u_3041 / you)  :ARG1 (u_3037 / sleep-01  :ARG0 (u_3039 / kid)))))))))
+
+# ::snt The doctor believed that the girls thought that the men thought that you mentioned that I said that the women knew that the astronaut believed that the boys knew that the kids arrived
+# ::tree TP_CP(believed,doctor,TP_CP(thought,girls,TP_CP(thought,men,TP_CP(mentioned,you,TP_CP(said,I,TP_CP(knew,women,TP_CP(believed,astronaut,TP_CP(knew,boys,TP_intr(arrived,kids)))))))))
+# ::size0 9
+(u_3063 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_3061 / think-01  :ARG0 (r / girl)  :ARG1 (u_3059 / think-01  :ARG0 (u_3062 / man)  :ARG1 (u_3057 / mention-01  :ARG0 (u_3060 / you)  :ARG1 (u_3055 / say-01  :ARG0 (u_3058 / i)  :ARG1 (u_3053 / know-01  :ARG0 (u_3056 / woman)  :ARG1 (u_3052 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_3050 / know-01  :ARG0 (u_3054 / boy)  :ARG1 (u_3049 / arrive-01  :ARG1 (u_3051 / kid))))))))))
+
+# ::snt The astronaut heard that the soldier mentioned that you mentioned that the men believed that the boys thought that I heard that the girls said that the women knew that we won
+# ::tree TP_CP(heard,astronaut,TP_CP(mentioned,soldier,TP_CP(mentioned,you,TP_CP(believed,men,TP_CP(thought,boys,TP_CP(heard,I,TP_CP(said,girls,TP_CP(knew,women,TP_intr(won,we)))))))))
+# ::size0 9
+(u_3078 / hear-01  :ARG0 (a / astronaut)  :ARG1 (u_3077 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_3075 / mention-01  :ARG0 (r / you)  :ARG1 (u_3073 / believe-01  :ARG0 (u_3076 / man)  :ARG1 (u_3071 / think-01  :ARG0 (u_3074 / boy)  :ARG1 (u_3069 / hear-01  :ARG0 (u_3072 / i)  :ARG1 (u_3067 / say-01  :ARG0 (u_3070 / girl)  :ARG1 (u_3065 / know-01  :ARG0 (u_3068 / woman)  :ARG1 (u_3064 / win-01  :ARG0 (u_3066 / we))))))))))
+
+# ::snt The boys said that the men thought that you knew that the girls believed that the astronaut said that the women heard that the soldier mentioned that the kids mentioned that the lawyer arrived
+# ::tree TP_CP(said,boys,TP_CP(thought,men,TP_CP(knew,you,TP_CP(believed,girls,TP_CP(said,astronaut,TP_CP(heard,women,TP_CP(mentioned,soldier,TP_CP(mentioned,kids,TP_intr(arrived,lawyer)))))))))
+# ::size0 9
+(u_3097 / say-01  :ARG0 (r / boy)  :ARG1 (u_3094 / think-01  :ARG0 (u_3099 / man)  :ARG1 (u_3091 / know-01  :ARG0 (u_3096 / you)  :ARG1 (u_3088 / believe-01  :ARG0 (u_3093 / girl)  :ARG1 (u_3086 / say-01  :ARG0 (a / astronaut)  :ARG1 (u_3083 / hear-01  :ARG0 (u_3090 / woman)  :ARG1 (u_3082 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_3080 / mention-01  :ARG0 (u_3085 / kid)  :ARG1 (u_3081 / arrive-01  :ARG1 (m / lawyer))))))))))
+
+# ::snt I mentioned that the boys said that the women thought that the lawyer mentioned that the doctor said that the men believed that you knew that the astronaut heard that the soldier slept
+# ::tree TP_CP(mentioned,I,TP_CP(said,boys,TP_CP(thought,women,TP_CP(mentioned,lawyer,TP_CP(said,doctor,TP_CP(believed,men,TP_CP(knew,you,TP_CP(heard,astronaut,TP_intr(slept,soldier)))))))))
+# ::size0 9
+(u_3118 / mention-01  :ARG0 (r / i)  :ARG1 (u_3115 / say-01  :ARG0 (u_3120 / boy)  :ARG1 (u_3112 / think-01  :ARG0 (u_3117 / woman)  :ARG1 (u_3110 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_3108 / say-01  :ARG0 (d / doctor)  :ARG1 (u_3105 / believe-01  :ARG0 (u_3114 / man)  :ARG1 (u_3102 / know-01  :ARG0 (u_3107 / you)  :ARG1 (u_3100 / hear-01  :ARG0 (a / astronaut)  :ARG1 (u_3104 / sleep-01  :ARG0 (s / soldier))))))))))
+
+# ::snt You heard that the boys thought that the kids heard that the men thought that the lawyer believed that the women mentioned that we thought that the girls said that the doctor slept
+# ::tree TP_CP(heard,you,TP_CP(thought,boys,TP_CP(heard,kids,TP_CP(thought,men,TP_CP(believed,lawyer,TP_CP(mentioned,women,TP_CP(thought,we,TP_CP(said,girls,TP_intr(slept,doctor)))))))))
+# ::size0 9
+(u_3134 / hear-01  :ARG0 (r / you)  :ARG1 (u_3132 / think-01  :ARG0 (u_3135 / boy)  :ARG1 (u_3130 / hear-01  :ARG0 (u_3133 / kid)  :ARG1 (u_3128 / think-01  :ARG0 (u_3131 / man)  :ARG1 (u_3127 / believe-01  :ARG0 (m / lawyer)  :ARG1 (u_3125 / mention-01  :ARG0 (u_3129 / woman)  :ARG1 (u_3123 / think-01  :ARG0 (u_3126 / we)  :ARG1 (u_3121 / say-01  :ARG0 (u_3124 / girl)  :ARG1 (u_3122 / sleep-01  :ARG0 (d / doctor))))))))))
+
+# ::snt The kids said that the girls mentioned that the women knew that the boys mentioned that I mentioned that the men heard that the doctor believed that the lawyer heard that you won
+# ::tree TP_CP(said,kids,TP_CP(mentioned,girls,TP_CP(knew,women,TP_CP(mentioned,boys,TP_CP(mentioned,I,TP_CP(heard,men,TP_CP(believed,doctor,TP_CP(heard,lawyer,TP_intr(won,you)))))))))
+# ::size0 9
+(u_3149 / say-01  :ARG0 (r / kid)  :ARG1 (u_3147 / mention-01  :ARG0 (u_3150 / girl)  :ARG1 (u_3145 / know-01  :ARG0 (u_3148 / woman)  :ARG1 (u_3143 / mention-01  :ARG0 (u_3146 / boy)  :ARG1 (u_3141 / mention-01  :ARG0 (u_3144 / i)  :ARG1 (u_3139 / hear-01  :ARG0 (u_3142 / man)  :ARG1 (u_3138 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_3137 / hear-01  :ARG0 (m / lawyer)  :ARG1 (u_3136 / win-01  :ARG0 (u_3140 / you))))))))))
+
+# ::snt The women mentioned that the lawyer said that the doctor heard that you thought that the men heard that the kids believed that we heard that the soldier believed that the astronaut won
+# ::tree TP_CP(mentioned,women,TP_CP(said,lawyer,TP_CP(heard,doctor,TP_CP(thought,you,TP_CP(heard,men,TP_CP(believed,kids,TP_CP(heard,we,TP_CP(believed,soldier,TP_intr(won,astronaut)))))))))
+# ::size0 9
+(u_3168 / mention-01  :ARG0 (r / woman)  :ARG1 (u_3166 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_3164 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_3161 / think-01  :ARG0 (u_3170 / you)  :ARG1 (u_3158 / hear-01  :ARG0 (u_3163 / man)  :ARG1 (u_3155 / believe-01  :ARG0 (u_3160 / kid)  :ARG1 (u_3152 / hear-01  :ARG0 (u_3157 / we)  :ARG1 (u_3151 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_3154 / win-01  :ARG0 (a / astronaut))))))))))
+
+# ::snt You said that the lawyer said that the soldier mentioned that the men thought that the women knew that the girls mentioned that we believed that the boys thought that the doctor slept
+# ::tree TP_CP(said,you,TP_CP(said,lawyer,TP_CP(mentioned,soldier,TP_CP(thought,men,TP_CP(knew,women,TP_CP(mentioned,girls,TP_CP(believed,we,TP_CP(thought,boys,TP_intr(slept,doctor)))))))))
+# ::size0 9
+(u_3184 / say-01  :ARG0 (r / you)  :ARG1 (u_3182 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_3181 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_3179 / think-01  :ARG0 (u_3186 / man)  :ARG1 (u_3177 / know-01  :ARG0 (u_3180 / woman)  :ARG1 (u_3175 / mention-01  :ARG0 (u_3178 / girl)  :ARG1 (u_3173 / believe-01  :ARG0 (u_3176 / we)  :ARG1 (u_3171 / think-01  :ARG0 (u_3174 / boy)  :ARG1 (u_3172 / sleep-01  :ARG0 (d / doctor))))))))))
+
+# ::snt The men said that the lawyer said that the astronaut believed that the soldier heard that the doctor believed that the kids knew that the women heard that I knew that the girls slept
+# ::tree TP_CP(said,men,TP_CP(said,lawyer,TP_CP(believed,astronaut,TP_CP(heard,soldier,TP_CP(believed,doctor,TP_CP(knew,kids,TP_CP(heard,women,TP_CP(knew,I,TP_intr(slept,girls)))))))))
+# ::size0 9
+(u_3200 / say-01  :ARG0 (r / man)  :ARG1 (u_3198 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_3196 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_3195 / hear-01  :ARG0 (s / soldier)  :ARG1 (u_3194 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_3192 / know-01  :ARG0 (u_3202 / kid)  :ARG1 (u_3190 / hear-01  :ARG0 (u_3193 / woman)  :ARG1 (u_3188 / know-01  :ARG0 (u_3191 / i)  :ARG1 (u_3187 / sleep-01  :ARG0 (u_3189 / girl))))))))))
+
+# ::snt The doctor believed that the kids mentioned that the boys knew that I heard that the girls said that the soldier knew that we said that the men mentioned that the astronaut won
+# ::tree TP_CP(believed,doctor,TP_CP(mentioned,kids,TP_CP(knew,boys,TP_CP(heard,I,TP_CP(said,girls,TP_CP(knew,soldier,TP_CP(said,we,TP_CP(mentioned,men,TP_intr(won,astronaut)))))))))
+# ::size0 9
+(u_3220 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_3217 / mention-01  :ARG0 (r / kid)  :ARG1 (u_3214 / know-01  :ARG0 (u_3219 / boy)  :ARG1 (u_3211 / hear-01  :ARG0 (u_3216 / i)  :ARG1 (u_3208 / say-01  :ARG0 (u_3213 / girl)  :ARG1 (u_3207 / know-01  :ARG0 (s / soldier)  :ARG1 (u_3205 / say-01  :ARG0 (u_3210 / we)  :ARG1 (u_3203 / mention-01  :ARG0 (u_3206 / man)  :ARG1 (u_3204 / win-01  :ARG0 (a / astronaut))))))))))
+
+# ::snt The boys heard that you thought that the soldier knew that the women heard that the lawyer heard that I knew that the doctor mentioned that the kids believed that we said that the men won
+# ::tree TP_CP(heard,boys,TP_CP(thought,you,TP_CP(knew,soldier,TP_CP(heard,women,TP_CP(heard,lawyer,TP_CP(knew,I,TP_CP(mentioned,doctor,TP_CP(believed,kids,TP_CP(said,we,TP_intr(won,men))))))))))
+# ::size0 10
+(u_3237 / hear-01  :ARG0 (r / boy)  :ARG1 (u_3234 / think-01  :ARG0 (u_3239 / you)  :ARG1 (u_3233 / know-01  :ARG0 (s / soldier)  :ARG1 (u_3231 / hear-01  :ARG0 (u_3236 / woman)  :ARG1 (u_3230 / hear-01  :ARG0 (m / lawyer)  :ARG1 (u_3228 / know-01  :ARG0 (u_3232 / i)  :ARG1 (u_3227 / mention-01  :ARG0 (d / doctor)  :ARG1 (u_3225 / believe-01  :ARG0 (u_3229 / kid)  :ARG1 (u_3223 / say-01  :ARG0 (u_3226 / we)  :ARG1 (u_3222 / win-01  :ARG0 (u_3224 / man)))))))))))
+
+# ::snt The doctor believed that the men knew that we knew that the soldier believed that the astronaut said that the boys mentioned that the kids thought that you heard that I said that the girls slept
+# ::tree TP_CP(believed,doctor,TP_CP(knew,men,TP_CP(knew,we,TP_CP(believed,soldier,TP_CP(said,astronaut,TP_CP(mentioned,boys,TP_CP(thought,kids,TP_CP(heard,you,TP_CP(said,I,TP_intr(slept,girls))))))))))
+# ::size0 10
+(u_3257 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_3254 / know-01  :ARG0 (r / man)  :ARG1 (u_3251 / know-01  :ARG0 (u_3256 / we)  :ARG1 (u_3250 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_3249 / say-01  :ARG0 (a / astronaut)  :ARG1 (u_3247 / mention-01  :ARG0 (u_3253 / boy)  :ARG1 (u_3245 / think-01  :ARG0 (u_3248 / kid)  :ARG1 (u_3243 / hear-01  :ARG0 (u_3246 / you)  :ARG1 (u_3241 / say-01  :ARG0 (u_3244 / i)  :ARG1 (u_3240 / sleep-01  :ARG0 (u_3242 / girl)))))))))))
+
+# ::snt The kids thought that the astronaut knew that I thought that the boys thought that the girls believed that the doctor heard that the lawyer mentioned that the men thought that the soldier believed that the women arrived
+# ::tree TP_CP(thought,kids,TP_CP(knew,astronaut,TP_CP(thought,I,TP_CP(thought,boys,TP_CP(believed,girls,TP_CP(heard,doctor,TP_CP(mentioned,lawyer,TP_CP(thought,men,TP_CP(believed,soldier,TP_intr(arrived,women))))))))))
+# ::size0 10
+(u_3279 / think-01  :ARG0 (r / kid)  :ARG1 (u_3277 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_3274 / think-01  :ARG0 (u_3281 / i)  :ARG1 (u_3271 / think-01  :ARG0 (u_3276 / boy)  :ARG1 (u_3268 / believe-01  :ARG0 (u_3273 / girl)  :ARG1 (u_3266 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_3264 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_3261 / think-01  :ARG0 (u_3270 / man)  :ARG1 (u_3260 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_3259 / arrive-01  :ARG1 (u_3263 / woman)))))))))))
+
+# ::snt The women heard that the lawyer heard that the astronaut heard that we knew that the kids thought that the boys said that I thought that the doctor knew that the girls believed that the soldier arrived
+# ::tree TP_CP(heard,women,TP_CP(heard,lawyer,TP_CP(heard,astronaut,TP_CP(knew,we,TP_CP(thought,kids,TP_CP(said,boys,TP_CP(thought,I,TP_CP(knew,doctor,TP_CP(believed,girls,TP_intr(arrived,soldier))))))))))
+# ::size0 10
+(u_3303 / hear-01  :ARG0 (r / woman)  :ARG1 (u_3301 / hear-01  :ARG0 (m / lawyer)  :ARG1 (u_3299 / hear-01  :ARG0 (a / astronaut)  :ARG1 (u_3296 / know-01  :ARG0 (u_3305 / we)  :ARG1 (u_3293 / think-01  :ARG0 (u_3298 / kid)  :ARG1 (u_3290 / say-01  :ARG0 (u_3295 / boy)  :ARG1 (u_3287 / think-01  :ARG0 (u_3292 / i)  :ARG1 (u_3285 / know-01  :ARG0 (d / doctor)  :ARG1 (u_3282 / believe-01  :ARG0 (u_3289 / girl)  :ARG1 (u_3284 / arrive-01  :ARG1 (s / soldier)))))))))))
+
+# ::snt I mentioned that the doctor heard that the girls knew that the astronaut said that the men knew that the soldier mentioned that the women knew that you mentioned that the boys believed that the kids slept
+# ::tree TP_CP(mentioned,I,TP_CP(heard,doctor,TP_CP(knew,girls,TP_CP(said,astronaut,TP_CP(knew,men,TP_CP(mentioned,soldier,TP_CP(knew,women,TP_CP(mentioned,you,TP_CP(believed,boys,TP_intr(slept,kids))))))))))
+# ::size0 10
+(u_3324 / mention-01  :ARG0 (r / i)  :ARG1 (u_3322 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_3319 / know-01  :ARG0 (u_3326 / girl)  :ARG1 (u_3317 / say-01  :ARG0 (a / astronaut)  :ARG1 (u_3314 / know-01  :ARG0 (u_3321 / man)  :ARG1 (u_3313 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_3311 / know-01  :ARG0 (u_3316 / woman)  :ARG1 (u_3309 / mention-01  :ARG0 (u_3312 / you)  :ARG1 (u_3307 / believe-01  :ARG0 (u_3310 / boy)  :ARG1 (u_3306 / sleep-01  :ARG0 (u_3308 / kid)))))))))))
+
+# ::snt The soldier knew that the lawyer heard that the astronaut heard that I mentioned that the men said that the doctor heard that the kids mentioned that the boys believed that the girls heard that we arrived
+# ::tree TP_CP(knew,soldier,TP_CP(heard,lawyer,TP_CP(heard,astronaut,TP_CP(mentioned,I,TP_CP(said,men,TP_CP(heard,doctor,TP_CP(mentioned,kids,TP_CP(believed,boys,TP_CP(heard,girls,TP_intr(arrived,we))))))))))
+# ::size0 10
+(u_3341 / know-01  :ARG0 (s / soldier)  :ARG1 (u_3340 / hear-01  :ARG0 (m / lawyer)  :ARG1 (u_3339 / hear-01  :ARG0 (a / astronaut)  :ARG1 (u_3337 / mention-01  :ARG0 (r / i)  :ARG1 (u_3335 / say-01  :ARG0 (u_3338 / man)  :ARG1 (u_3334 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_3332 / mention-01  :ARG0 (u_3336 / kid)  :ARG1 (u_3330 / believe-01  :ARG0 (u_3333 / boy)  :ARG1 (u_3328 / hear-01  :ARG0 (u_3331 / girl)  :ARG1 (u_3327 / arrive-01  :ARG1 (u_3329 / we)))))))))))
+
+# ::snt You said that the girls thought that the lawyer said that the doctor heard that the men heard that we believed that the boys knew that the kids thought that I thought that the women arrived
+# ::tree TP_CP(said,you,TP_CP(thought,girls,TP_CP(said,lawyer,TP_CP(heard,doctor,TP_CP(heard,men,TP_CP(believed,we,TP_CP(knew,boys,TP_CP(thought,kids,TP_CP(thought,I,TP_intr(arrived,women))))))))))
+# ::size0 10
+(u_3357 / say-01  :ARG0 (r / you)  :ARG1 (u_3355 / think-01  :ARG0 (u_3358 / girl)  :ARG1 (u_3354 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_3353 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_3351 / hear-01  :ARG0 (u_3356 / man)  :ARG1 (u_3349 / believe-01  :ARG0 (u_3352 / we)  :ARG1 (u_3347 / know-01  :ARG0 (u_3350 / boy)  :ARG1 (u_3345 / think-01  :ARG0 (u_3348 / kid)  :ARG1 (u_3343 / think-01  :ARG0 (u_3346 / i)  :ARG1 (u_3342 / arrive-01  :ARG1 (u_3344 / woman)))))))))))
+
+# ::snt I believed that the astronaut mentioned that you believed that the doctor heard that the lawyer said that the soldier knew that the boys believed that the kids heard that we believed that the women slept
+# ::tree TP_CP(believed,I,TP_CP(mentioned,astronaut,TP_CP(believed,you,TP_CP(heard,doctor,TP_CP(said,lawyer,TP_CP(knew,soldier,TP_CP(believed,boys,TP_CP(heard,kids,TP_CP(believed,we,TP_intr(slept,women))))))))))
+# ::size0 10
+(u_3376 / believe-01  :ARG0 (r / i)  :ARG1 (u_3374 / mention-01  :ARG0 (a / astronaut)  :ARG1 (u_3371 / believe-01  :ARG0 (u_3378 / you)  :ARG1 (u_3369 / hear-01  :ARG0 (d / doctor)  :ARG1 (u_3367 / say-01  :ARG0 (m / lawyer)  :ARG1 (u_3366 / know-01  :ARG0 (s / soldier)  :ARG1 (u_3364 / believe-01  :ARG0 (u_3373 / boy)  :ARG1 (u_3362 / hear-01  :ARG0 (u_3365 / kid)  :ARG1 (u_3360 / believe-01  :ARG0 (u_3363 / we)  :ARG1 (u_3359 / sleep-01  :ARG0 (u_3361 / woman)))))))))))
+
+# ::snt You mentioned that the doctor mentioned that the men said that I mentioned that the astronaut believed that the kids said that the women thought that we mentioned that the lawyer believed that the soldier won
+# ::tree TP_CP(mentioned,you,TP_CP(mentioned,doctor,TP_CP(said,men,TP_CP(mentioned,I,TP_CP(believed,astronaut,TP_CP(said,kids,TP_CP(thought,women,TP_CP(mentioned,we,TP_CP(believed,lawyer,TP_intr(won,soldier))))))))))
+# ::size0 10
+(u_3400 / mention-01  :ARG0 (r / you)  :ARG1 (u_3398 / mention-01  :ARG0 (d / doctor)  :ARG1 (u_3395 / say-01  :ARG0 (u_3402 / man)  :ARG1 (u_3392 / mention-01  :ARG0 (u_3397 / i)  :ARG1 (u_3390 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_3387 / say-01  :ARG0 (u_3394 / kid)  :ARG1 (u_3384 / think-01  :ARG0 (u_3389 / woman)  :ARG1 (u_3381 / mention-01  :ARG0 (u_3386 / we)  :ARG1 (u_3379 / believe-01  :ARG0 (m / lawyer)  :ARG1 (u_3383 / win-01  :ARG0 (s / soldier)))))))))))
+
+# ::snt The women said that the girls believed that the lawyer heard that you knew that the boys heard that I knew that the kids mentioned that the doctor mentioned that the men heard that we slept
+# ::tree TP_CP(said,women,TP_CP(believed,girls,TP_CP(heard,lawyer,TP_CP(knew,you,TP_CP(heard,boys,TP_CP(knew,I,TP_CP(mentioned,kids,TP_CP(mentioned,doctor,TP_CP(heard,men,TP_intr(slept,we))))))))))
+# ::size0 10
+(u_3418 / say-01  :ARG0 (r / woman)  :ARG1 (u_3416 / believe-01  :ARG0 (u_3419 / girl)  :ARG1 (u_3415 / hear-01  :ARG0 (m / lawyer)  :ARG1 (u_3413 / know-01  :ARG0 (u_3417 / you)  :ARG1 (u_3411 / hear-01  :ARG0 (u_3414 / boy)  :ARG1 (u_3409 / know-01  :ARG0 (u_3412 / i)  :ARG1 (u_3407 / mention-01  :ARG0 (u_3410 / kid)  :ARG1 (u_3406 / mention-01  :ARG0 (d / doctor)  :ARG1 (u_3404 / hear-01  :ARG0 (u_3408 / man)  :ARG1 (u_3403 / sleep-01  :ARG0 (u_3405 / we)))))))))))
+
+# ::snt You knew that the girls heard that I said that the soldier thought that the astronaut knew that the women mentioned that the boys knew that we knew that the doctor believed that the kids believed that the men won
+# ::tree TP_CP(knew,you,TP_CP(heard,girls,TP_CP(said,I,TP_CP(thought,soldier,TP_CP(knew,astronaut,TP_CP(mentioned,women,TP_CP(knew,boys,TP_CP(knew,we,TP_CP(believed,doctor,TP_CP(believed,kids,TP_intr(won,men)))))))))))
+# ::size0 11
+(u_3438 / know-01  :ARG0 (r / you)  :ARG1 (u_3435 / hear-01  :ARG0 (u_3440 / girl)  :ARG1 (u_3432 / say-01  :ARG0 (u_3437 / i)  :ARG1 (u_3431 / think-01  :ARG0 (s / soldier)  :ARG1 (u_3430 / know-01  :ARG0 (a / astronaut)  :ARG1 (u_3428 / mention-01  :ARG0 (u_3434 / woman)  :ARG1 (u_3426 / know-01  :ARG0 (u_3429 / boy)  :ARG1 (u_3424 / know-01  :ARG0 (u_3427 / we)  :ARG1 (u_3423 / believe-01  :ARG0 (d / doctor)  :ARG1 (u_3421 / believe-01  :ARG0 (u_3425 / kid)  :ARG1 (u_3420 / win-01  :ARG0 (u_3422 / man))))))))))))
+
+# ::snt The men heard that the boys knew that we believed that I knew that the kids said that the girls believed that the women mentioned that you heard that the doctor thought that the soldier mentioned that the astronaut won
+# ::tree TP_CP(heard,men,TP_CP(knew,boys,TP_CP(believed,we,TP_CP(knew,I,TP_CP(said,kids,TP_CP(believed,girls,TP_CP(mentioned,women,TP_CP(heard,you,TP_CP(thought,doctor,TP_CP(mentioned,soldier,TP_intr(won,astronaut)))))))))))
+# ::size0 11
+(u_3465 / hear-01  :ARG0 (r / man)  :ARG1 (u_3462 / know-01  :ARG0 (u_3467 / boy)  :ARG1 (u_3459 / believe-01  :ARG0 (u_3464 / we)  :ARG1 (u_3456 / know-01  :ARG0 (u_3461 / i)  :ARG1 (u_3453 / say-01  :ARG0 (u_3458 / kid)  :ARG1 (u_3450 / believe-01  :ARG0 (u_3455 / girl)  :ARG1 (u_3447 / mention-01  :ARG0 (u_3452 / woman)  :ARG1 (u_3444 / hear-01  :ARG0 (u_3449 / you)  :ARG1 (u_3442 / think-01  :ARG0 (d / doctor)  :ARG1 (u_3441 / mention-01  :ARG0 (s / soldier)  :ARG1 (u_3446 / win-01  :ARG0 (a / astronaut))))))))))))
+
+# ::snt The soldier knew that the women mentioned that the kids thought that you believed that the girls mentioned that the astronaut mentioned that I heard that the lawyer thought that the doctor mentioned that the boys thought that we won
+# ::tree TP_CP(knew,soldier,TP_CP(mentioned,women,TP_CP(thought,kids,TP_CP(believed,you,TP_CP(mentioned,girls,TP_CP(mentioned,astronaut,TP_CP(heard,I,TP_CP(thought,lawyer,TP_CP(mentioned,doctor,TP_CP(thought,boys,TP_intr(won,we)))))))))))
+# ::size0 11
+(u_3484 / know-01  :ARG0 (s / soldier)  :ARG1 (u_3482 / mention-01  :ARG0 (r / woman)  :ARG1 (u_3480 / think-01  :ARG0 (u_3483 / kid)  :ARG1 (u_3478 / believe-01  :ARG0 (u_3481 / you)  :ARG1 (u_3476 / mention-01  :ARG0 (u_3479 / girl)  :ARG1 (u_3475 / mention-01  :ARG0 (a / astronaut)  :ARG1 (u_3473 / hear-01  :ARG0 (u_3477 / i)  :ARG1 (u_3472 / think-01  :ARG0 (m / lawyer)  :ARG1 (u_3471 / mention-01  :ARG0 (d / doctor)  :ARG1 (u_3469 / think-01  :ARG0 (u_3474 / boy)  :ARG1 (u_3468 / win-01  :ARG0 (u_3470 / we))))))))))))
+
+# ::snt The girls said that the lawyer mentioned that the women mentioned that the soldier believed that you heard that the astronaut thought that we knew that the kids knew that I mentioned that the doctor said that the boys won
+# ::tree TP_CP(said,girls,TP_CP(mentioned,lawyer,TP_CP(mentioned,women,TP_CP(believed,soldier,TP_CP(heard,you,TP_CP(thought,astronaut,TP_CP(knew,we,TP_CP(knew,kids,TP_CP(mentioned,I,TP_CP(said,doctor,TP_intr(won,boys)))))))))))
+# ::size0 11
+(u_3502 / say-01  :ARG0 (r / girl)  :ARG1 (u_3500 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_3497 / mention-01  :ARG0 (u_3504 / woman)  :ARG1 (u_3496 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_3494 / hear-01  :ARG0 (u_3499 / you)  :ARG1 (u_3493 / think-01  :ARG0 (a / astronaut)  :ARG1 (u_3491 / know-01  :ARG0 (u_3495 / we)  :ARG1 (u_3489 / know-01  :ARG0 (u_3492 / kid)  :ARG1 (u_3487 / mention-01  :ARG0 (u_3490 / i)  :ARG1 (u_3486 / say-01  :ARG0 (d / doctor)  :ARG1 (u_3485 / win-01  :ARG0 (u_3488 / boy))))))))))))
+
+# ::snt The kids believed that the soldier believed that we believed that I mentioned that the lawyer knew that the girls said that you believed that the women knew that the men believed that the boys believed that the astronaut sneezed
+# ::tree TP_CP(believed,kids,TP_CP(believed,soldier,TP_CP(believed,we,TP_CP(mentioned,I,TP_CP(knew,lawyer,TP_CP(said,girls,TP_CP(believed,you,TP_CP(knew,women,TP_CP(believed,men,TP_CP(believed,boys,TP_intr(sneezed,astronaut)))))))))))
+# ::size0 11
+(u_3521 / believe-01  :ARG0 (r / kid)  :ARG1 (u_3520 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_3518 / believe-01  :ARG0 (u_3523 / we)  :ARG1 (u_3516 / mention-01  :ARG0 (u_3519 / i)  :ARG1 (u_3515 / know-01  :ARG0 (m / lawyer)  :ARG1 (u_3513 / say-01  :ARG0 (u_3517 / girl)  :ARG1 (u_3511 / believe-01  :ARG0 (u_3514 / you)  :ARG1 (u_3509 / know-01  :ARG0 (u_3512 / woman)  :ARG1 (u_3507 / believe-01  :ARG0 (u_3510 / man)  :ARG1 (u_3505 / believe-01  :ARG0 (u_3508 / boy)  :ARG1 (u_3506 / sneeze-01  :ARG0 (a / astronaut))))))))))))
+
+# ::snt The soldier believed that the lawyer believed that the girls knew that the men said that I believed that the astronaut heard that the doctor said that the kids thought that you thought that the boys heard that the women slept
+# ::tree TP_CP(believed,soldier,TP_CP(believed,lawyer,TP_CP(knew,girls,TP_CP(said,men,TP_CP(believed,I,TP_CP(heard,astronaut,TP_CP(said,doctor,TP_CP(thought,kids,TP_CP(thought,you,TP_CP(heard,boys,TP_intr(slept,women)))))))))))
+# ::size0 11
+(u_3540 / believe-01  :ARG0 (s / soldier)  :ARG1 (u_3539 / believe-01  :ARG0 (m / lawyer)  :ARG1 (u_3537 / know-01  :ARG0 (r / girl)  :ARG1 (u_3535 / say-01  :ARG0 (u_3538 / man)  :ARG1 (u_3533 / believe-01  :ARG0 (u_3536 / i)  :ARG1 (u_3532 / hear-01  :ARG0 (a / astronaut)  :ARG1 (u_3531 / say-01  :ARG0 (d / doctor)  :ARG1 (u_3529 / think-01  :ARG0 (u_3534 / kid)  :ARG1 (u_3527 / think-01  :ARG0 (u_3530 / you)  :ARG1 (u_3525 / hear-01  :ARG0 (u_3528 / boy)  :ARG1 (u_3524 / sleep-01  :ARG0 (u_3526 / woman))))))))))))
+
+# ::snt The kids thought that you thought that the boys said that the lawyer mentioned that the women knew that the girls mentioned that I knew that the astronaut said that the soldier knew that the men said that we sneezed
+# ::tree TP_CP(thought,kids,TP_CP(thought,you,TP_CP(said,boys,TP_CP(mentioned,lawyer,TP_CP(knew,women,TP_CP(mentioned,girls,TP_CP(knew,I,TP_CP(said,astronaut,TP_CP(knew,soldier,TP_CP(said,men,TP_intr(sneezed,we)))))))))))
+# ::size0 11
+(u_3564 / think-01  :ARG0 (r / kid)  :ARG1 (u_3561 / think-01  :ARG0 (u_3566 / you)  :ARG1 (u_3558 / say-01  :ARG0 (u_3563 / boy)  :ARG1 (u_3556 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_3553 / know-01  :ARG0 (u_3560 / woman)  :ARG1 (u_3550 / mention-01  :ARG0 (u_3555 / girl)  :ARG1 (u_3547 / know-01  :ARG0 (u_3552 / i)  :ARG1 (u_3545 / say-01  :ARG0 (a / astronaut)  :ARG1 (u_3544 / know-01  :ARG0 (s / soldier)  :ARG1 (u_3542 / say-01  :ARG0 (u_3549 / man)  :ARG1 (u_3541 / sneeze-01  :ARG0 (u_3543 / we))))))))))))
+
+# ::snt The astronaut said that the kids knew that you heard that we heard that the lawyer thought that the women believed that the doctor thought that the boys heard that the girls thought that I knew that the men won
+# ::tree TP_CP(said,astronaut,TP_CP(knew,kids,TP_CP(heard,you,TP_CP(heard,we,TP_CP(thought,lawyer,TP_CP(believed,women,TP_CP(thought,doctor,TP_CP(heard,boys,TP_CP(thought,girls,TP_CP(knew,I,TP_intr(won,men)))))))))))
+# ::size0 11
+(u_3584 / say-01  :ARG0 (a / astronaut)  :ARG1 (u_3582 / know-01  :ARG0 (r / kid)  :ARG1 (u_3580 / hear-01  :ARG0 (u_3583 / you)  :ARG1 (u_3578 / hear-01  :ARG0 (u_3581 / we)  :ARG1 (u_3577 / think-01  :ARG0 (m / lawyer)  :ARG1 (u_3575 / believe-01  :ARG0 (u_3579 / woman)  :ARG1 (u_3574 / think-01  :ARG0 (d / doctor)  :ARG1 (u_3572 / hear-01  :ARG0 (u_3576 / boy)  :ARG1 (u_3570 / think-01  :ARG0 (u_3573 / girl)  :ARG1 (u_3568 / know-01  :ARG0 (u_3571 / i)  :ARG1 (u_3567 / win-01  :ARG0 (u_3569 / man))))))))))))
+
+# ::snt The astronaut believed that the women heard that the doctor thought that the girls said that you mentioned that the kids said that I knew that we said that the lawyer mentioned that the soldier knew that the men slept
+# ::tree TP_CP(believed,astronaut,TP_CP(heard,women,TP_CP(thought,doctor,TP_CP(said,girls,TP_CP(mentioned,you,TP_CP(said,kids,TP_CP(knew,I,TP_CP(said,we,TP_CP(mentioned,lawyer,TP_CP(knew,soldier,TP_intr(slept,men)))))))))))
+# ::size0 11
+(u_3609 / believe-01  :ARG0 (a / astronaut)  :ARG1 (u_3606 / hear-01  :ARG0 (r / woman)  :ARG1 (u_3604 / think-01  :ARG0 (d / doctor)  :ARG1 (u_3601 / say-01  :ARG0 (u_3608 / girl)  :ARG1 (u_3598 / mention-01  :ARG0 (u_3603 / you)  :ARG1 (u_3595 / say-01  :ARG0 (u_3600 / kid)  :ARG1 (u_3592 / know-01  :ARG0 (u_3597 / i)  :ARG1 (u_3589 / say-01  :ARG0 (u_3594 / we)  :ARG1 (u_3587 / mention-01  :ARG0 (m / lawyer)  :ARG1 (u_3586 / know-01  :ARG0 (s / soldier)  :ARG1 (u_3585 / sleep-01  :ARG0 (u_3591 / man))))))))))))
+
+# ::snt The lawyer believed that the girls believed that the astronaut mentioned that the kids thought that the women said that I thought that the men mentioned that the doctor said that you mentioned that the boys said that we sneezed
+# ::tree TP_CP(believed,lawyer,TP_CP(believed,girls,TP_CP(mentioned,astronaut,TP_CP(thought,kids,TP_CP(said,women,TP_CP(thought,I,TP_CP(mentioned,men,TP_CP(said,doctor,TP_CP(mentioned,you,TP_CP(said,boys,TP_intr(sneezed,we)))))))))))
+# ::size0 11
+(u_3628 / believe-01  :ARG0 (m / lawyer)  :ARG1 (u_3626 / believe-01  :ARG0 (r / girl)  :ARG1 (u_3625 / mention-01  :ARG0 (a / astronaut)  :ARG1 (u_3623 / think-01  :ARG0 (u_3627 / kid)  :ARG1 (u_3621 / say-01  :ARG0 (u_3624 / woman)  :ARG1 (u_3619 / think-01  :ARG0 (u_3622 / i)  :ARG1 (u_3617 / mention-01  :ARG0 (u_3620 / man)  :ARG1 (u_3616 / say-01  :ARG0 (d / doctor)  :ARG1 (u_3614 / mention-01  :ARG0 (u_3618 / you)  :ARG1 (u_3612 / say-01  :ARG0 (u_3615 / boy)  :ARG1 (u_3611 / sneeze-01  :ARG0 (u_3613 / we))))))))))))
+
