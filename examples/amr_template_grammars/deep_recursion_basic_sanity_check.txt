@@ -1,0 +1,26 @@
+# Systematically sampled sanity checks for the deep CP recursion (standard version) dataset. Created by the grammar deep_recursion_basic.irtg. 
+
+# ::snt The lawyer mentioned that the astronaut won
+# ::tree TP_CP(mentioned,lawyer,TP_intr(won,astronaut))
+(u_73 / mention-01  :ARG0 (m / lawyer)  :ARG1 (r / win-01  :ARG0 (a / astronaut)))
+
+# ::snt The doctor said that the women slept
+# ::tree TP_CP(said,doctor,TP_intr(slept,women))
+(u_75 / say-01  :ARG0 (d / doctor)  :ARG1 (u_74 / sleep-01  :ARG0 (r / woman)))
+
+# ::snt The men believed that the soldier sneezed
+# ::tree TP_CP(believed,men,TP_intr(sneezed,soldier))
+(u_76 / believe-01  :ARG0 (r / man)  :ARG1 (u_78 / sneeze-01  :ARG0 (s / soldier)))
+
+# ::snt We heard that you arrived
+# ::tree TP_CP(heard,we,TP_intr(arrived,you))
+(u_80 / hear-01  :ARG0 (r / we)  :ARG1 (u_79 / arrive-01  :ARG1 (u_81 / you)))
+
+# ::snt I knew that the boys won
+# ::tree TP_CP(knew,I,TP_intr(won,boys))
+(u_83 / know-01  :ARG0 (r / i)  :ARG1 (u_82 / win-01  :ARG0 (u_84 / boy)))
+
+# ::snt The girls thought that the kids slept
+# ::tree TP_CP(thought,girls,TP_intr(slept,kids))
+(u_86 / think-01  :ARG0 (r / girl)  :ARG1 (u_85 / sleep-01  :ARG0 (u_87 / kid)))
+

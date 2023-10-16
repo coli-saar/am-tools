@@ -1,0 +1,18 @@
+# Systematically sampled sanity checks for the deep CP recursion (with relative clauses) dataset. Created by the grammar deep_recursion_rc.irtg. 
+
+# ::snt The boys who I thought sneezed hated the doctor
+# ::tree TP_tr(hated,DP_the_obj(NP_unary(doctor)),DP_the_with_RC(DP_RC(boys,subj_rel(CP_gap_end_recursion(CP_with_gap_base(thought,I)),sneezed))))
+(u_180 / hate-01  :ARG0 (r / boy  :ARG0-of (u_179 / sneeze-01  :ARG1-of (u_177 / think-01  :ARG0 (u_178 / i))))  :ARG1 (d / doctor))
+
+# ::snt The lawyer who you claimed arrived slept
+# ::tree TP_intr(slept,DP_the_with_RC(DP_RC(lawyer,subj_rel(CP_gap_end_recursion(CP_with_gap_base(claimed,you)),arrived))))
+(u_183 / sleep-01  :ARG0 (m / lawyer  :ARG1-of (r / arrive-01  :ARG1-of (u_181 / claim-01  :ARG0 (u_182 / you)))))
+
+# ::snt The astronaut who we assumed won liked the soldier
+# ::tree TP_tr(liked,DP_the_obj(NP_unary(soldier)),DP_the_with_RC(DP_RC(astronaut,subj_rel(CP_gap_end_recursion(CP_with_gap_base(assumed,we)),won))))
+(u_187 / like-01  :ARG0 (a / astronaut  :ARG0-of (r / win-01  :ARG1-of (u_185 / assume-02  :ARG0 (u_186 / we))))  :ARG1 (s / soldier))
+
+# ::snt The girls who the kids said slept sneezed
+# ::tree TP_intr(sneezed,DP_the_with_RC(DP_RC(girls,subj_rel(CP_gap_end_recursion(CP_with_gap_base(said,DP_the(NP_unary(kids)))),slept))))
+(u_191 / sneeze-01  :ARG0 (r / girl  :ARG0-of (u_190 / sleep-01  :ARG1-of (u_188 / say-01  :ARG0 (u_189 / kid)))))
+

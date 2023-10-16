@@ -3,7 +3,8 @@ interpretation graph: de.up.ling.irtg.algebra.graph.ApplyModifyGraphAlgebra
 
 // non-terminals and their types
 // F!: ()
-// Open_S_inf: (s)  : NT + sleep, jump, attend
+// Open_S_inf: (s)  : NT + sleep, jump, attend, eat, focus
+// Open_S_inf (s) : slept, jumped, attended, ate, focused
 // SubjCrtl: (s, o(s)) : attempt, want, hate, love, refuse
 // ObjCrtl: (s, o, o2(s->o)) : persuade, ask, beg, force
 // Subj: () : girl, boy, kid (Oct 15, 2023: added kid)

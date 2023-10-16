@@ -1,0 +1,54 @@
+# Systematically sampled sanity checks for the nested centre embedding dataset. Created by the grammar centre_embedding.irtg. 
+
+# ::snt The doctor likes the girl
+# ::tree TP(Vbar_tr(likes,girl),finish_NP(doctor))
+(u_39 / like-01  :ARG0 (r / doctor)  :ARG1 (u_40 / girl))
+
+# ::snt The woman saw the child
+# ::tree TP(Vbar_tr(saw,child),finish_NP(woman))
+(u_41 / see-01  :ARG0 (r / woman)  :ARG1 (u_42 / child))
+
+# ::snt The astronaut met the boy
+# ::tree TP(Vbar_tr(met,boy),finish_NP(astronaut))
+(u_43 / meet-02  :ARG0 (r / astronaut)  :ARG1 (u_44 / boy))
+
+# ::snt The doctor hugged the mechanic
+# ::tree TP(Vbar_tr(hugged,mechanic),finish_NP(doctor))
+(u_45 / hug-01  :ARG0 (r / doctor)  :ARG1 (u_46 / mechanic))
+
+# ::snt The woman taught the girl
+# ::tree TP(Vbar_tr(taught,girl),finish_NP(woman))
+(u_47 / teach-01  :ARG0 (r / woman)  :ARG2 (u_48 / girl))
+
+# ::snt The astronaut amused the child
+# ::tree TP(Vbar_tr(amused,child),finish_NP(astronaut))
+(u_49 / amuse-01  :ARG0 (r / astronaut)  :ARG1 (u_50 / child))
+
+# ::snt The boy sneezed
+# ::tree TP(Vbar_intr(sneezed),finish_NP(boy))
+(u_51 / sneeze-01  :ARG0 (r / boy))
+
+# ::snt The mechanic slept
+# ::tree TP(Vbar_intr(slept),finish_NP(mechanic))
+(u_52 / sleep-01  :ARG0 (r / mechanic))
+
+# ::snt The girl jumped
+# ::tree TP(Vbar_intr(jumped),finish_NP(girl))
+(u_53 / jump-03  :ARG0 (r / girl))
+
+# ::snt The woman attended
+# ::tree TP(Vbar_intr(attended),finish_NP(woman))
+(u_54 / attend-01  :ARG0 (r / woman))
+
+# ::snt The child ate
+# ::tree TP(Vbar_intr(ate),finish_NP(child))
+(u_55 / eat-01  :ARG0 (r / child))
+
+# ::snt The doctor focused
+# ::tree TP(Vbar_intr(focused),finish_NP(doctor))
+(u_56 / focus-01  :ARG0 (r / doctor))
+
+# ::snt The girl laughed
+# ::tree TP(Vbar_intr(laughed),finish_NP(girl))
+(u_57 / laugh-01  :ARG0 (r / girl))
+

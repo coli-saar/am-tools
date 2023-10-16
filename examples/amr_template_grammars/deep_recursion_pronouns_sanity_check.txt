@@ -1,0 +1,66 @@
+# Systematically sampled sanity checks for the deep CP recursion (with 1st/second person singular/plural pronoun coreference) dataset. Created by the grammar deep_recursion_pronouns.irtg. 
+
+# ::snt You knew that you sneezed
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_intr_2(you_sneezed))
+(u_125 / know-01  :ARG0 (r / you  :ARG0-of (u_126 / sneeze-01  :ARG1-of u_125)))
+
+# ::snt I believed that the boys liked me
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_tr_1s(liked_me,boys))
+(u_128 / believe-01  :ARG0 (r / i  :ARG1-of (u_127 / like-01  :ARG0 (u_129 / boy)  :ARG1-of u_128)))
+
+# ::snt We thought that the doctor liked us
+# ::tree TP_resolve_coref_1p(thought_resolve_coref,we,TP_tr_1p(liked_us,doctor))
+(u_130 / think-01  :ARG0 (r / we  :ARG1-of (u_131 / like-01  :ARG0 (d / doctor)  :ARG1-of u_130)))
+
+# ::snt You heard that the girls hated you
+# ::tree TP_resolve_coref_2(heard_resolve_coref,you,TP_tr_2(hated_you,girls))
+(u_133 / hear-01  :ARG0 (r / you  :ARG1-of (u_132 / hate-01  :ARG0 (u_134 / girl)  :ARG1-of u_133)))
+
+# ::snt I said that I sneezed
+# ::tree TP_resolve_coref_1s(said_resolve_coref,I,TP_intr_1s(I_sneezed))
+(u_135 / say-01  :ARG0 (r / i  :ARG0-of (u_136 / sneeze-01  :ARG1-of u_135)))
+
+# ::snt We mentioned that we sneezed
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_intr_1p(we_sneezed))
+(u_137 / mention-01  :ARG0 (r / we  :ARG0-of (u_138 / sneeze-01  :ARG1-of u_137)))
+
+# ::snt You knew that you slept
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_intr_2(you_slept))
+(u_139 / know-01  :ARG0 (r / you  :ARG0-of (u_140 / sleep-01  :ARG1-of u_139)))
+
+# ::snt I believed that the men hated me
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_tr_1s(hated_me,men))
+(u_142 / believe-01  :ARG0 (r / i  :ARG1-of (u_141 / hate-01  :ARG0 (u_143 / man)  :ARG1-of u_142)))
+
+# ::snt We thought that the lawyer hated us
+# ::tree TP_resolve_coref_1p(thought_resolve_coref,we,TP_tr_1p(hated_us,lawyer))
+(u_144 / think-01  :ARG0 (r / we  :ARG1-of (u_145 / hate-01  :ARG0 (m / lawyer)  :ARG1-of u_144)))
+
+# ::snt You heard that the astronaut liked you
+# ::tree TP_resolve_coref_2(heard_resolve_coref,you,TP_tr_2(liked_you,astronaut))
+(u_146 / hear-01  :ARG0 (r / you  :ARG1-of (u_147 / like-01  :ARG0 (a / astronaut)  :ARG1-of u_146)))
+
+# ::snt I said that I slept
+# ::tree TP_resolve_coref_1s(said_resolve_coref,I,TP_intr_1s(I_slept))
+(u_148 / say-01  :ARG0 (r / i  :ARG0-of (u_149 / sleep-01  :ARG1-of u_148)))
+
+# ::snt We mentioned that we slept
+# ::tree TP_resolve_coref_1p(mentioned_resolve_coref,we,TP_intr_1p(we_slept))
+(u_150 / mention-01  :ARG0 (r / we  :ARG0-of (u_151 / sleep-01  :ARG1-of u_150)))
+
+# ::snt You knew that you sneezed
+# ::tree TP_resolve_coref_2(knew_resolve_coref,you,TP_intr_2(you_sneezed))
+(u_152 / know-01  :ARG0 (r / you  :ARG0-of (u_153 / sneeze-01  :ARG1-of u_152)))
+
+# ::snt I believed that the soldier liked me
+# ::tree TP_resolve_coref_1s(believed_resolve_coref,I,TP_tr_1s(liked_me,soldier))
+(u_154 / believe-01  :ARG0 (r / i  :ARG1-of (u_155 / like-01  :ARG0 (s / soldier)  :ARG1-of u_154)))
+
+# ::snt We thought that the women liked us
+# ::tree TP_resolve_coref_1p(thought_resolve_coref,we,TP_tr_1p(liked_us,women))
+(u_157 / think-01  :ARG0 (r / we  :ARG1-of (u_156 / like-01  :ARG0 (u_158 / woman)  :ARG1-of u_157)))
+
+# ::snt You heard that the kids hated you
+# ::tree TP_resolve_coref_2(heard_resolve_coref,you,TP_tr_2(hated_you,kids))
+(u_160 / hear-01  :ARG0 (r / you  :ARG1-of (u_159 / hate-01  :ARG0 (u_161 / kid)  :ARG1-of u_160)))
+
