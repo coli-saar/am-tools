@@ -55,7 +55,7 @@ tasks.withType(JavaCompile) {
 
 project.compileJava.dependsOn(createVersionFile)
 dependencies {
-    implementation 'com.github.coli-saar:alto:2.3.7'
+    implementation 'com.github.coli-saar:alto:0fc2b61a03'
     
     implementation 'com.github.semantic-dependency-parsing:toolkit:v2.0-alpha'
     implementation 'me.tongfei:progressbar:0.7.2'
