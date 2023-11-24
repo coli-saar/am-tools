@@ -64,8 +64,9 @@ public class EvaluateCorpus {
     
     
     public static final String AL_LABEL_SEP = "|";
-
     
+    private static Relabel relabeler = null;
+
     public static void main(String[] args) throws FileNotFoundException, IOException, ParseException, ParserException, AlignedAMDependencyTree.ConllParserException, MalformedURLException, InterruptedException{      
         EvaluateCorpus cli = new EvaluateCorpus();
         JCommander commander = new JCommander(cli);
@@ -95,12 +96,12 @@ public class EvaluateCorpus {
         PrintWriter l = null;
         PrintWriter indices = null;
         
-        Relabel relabeler = null;
         
         if (!cli.relabel){
             l = new PrintWriter(cli.outPath+"/labels.txt");
             indices = new PrintWriter(cli.outPath+"/indices.txt");
         } else {
+            if (relabeler == null)
              relabeler = new Relabel(cli.wordnet, null, cli.lookup, cli.threshold, 0,false);
         }
 
