@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.apache.commons.text.StringEscapeUtils;
 import org.jgrapht.DirectedGraph;
 import org.jgrapht.alg.ConnectivityInspector;
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
@@ -185,6 +186,76 @@ public class SGraphConverter {
         }
         return output;
         
+    }
+    
+    
+    /**
+     * Converts an SGraph constructed from an AM dependency tree (set align=true!) into a json String representation.
+     * 
+     * Example: 
+     * {"tokens" : ["This", "is", "a", "test", "."], "edges": [[3, "BV", 4], [2, "ARG1", 1], [2, "ARG2", 4]]}
+     * 
+     * @param sg
+     * @param words
+     * @return 
+     */
+    
+    public static String toSDPJson(SGraph sg, List<String> words){
+        StringBuilder r = new StringBuilder();
+        r.append("{\"tokens\": [");
+        
+       // find artificial root:
+       GraphNode artRoot = null;
+       for (GraphNode n : sg.getGraph().vertexSet()){ 
+          Pair<Integer,Pair<String,String>> triple = AlignedAMDependencyTree.decodeNode(n);
+          if (triple.left == words.size()) { // the artifical root is the node with index n+1
+              artRoot = n;
+              break;
+          }
+       }
+        
+        int i = 0;
+        for (String word: words){
+            if (i == words.size()-1) break; //reached the artificial root, break out
+            if (i > 0){
+                r.append(", ");
+            }
+            r.append("\"");
+            r.append(StringEscapeUtils.escapeJson(word));
+            r.append("\"");
+            
+            i++;
+                    
+        }
+        r.append("], \"edges\": [");
+        
+        // Now add the edges
+        
+        i = 0;
+        for (GraphEdge edg : sg.getGraph().edgeSet()){
+            if (! edg.getSource().equals(artRoot) && ! edg.getTarget().equals(artRoot)){
+                Pair<Integer,Pair<String,String>> tripleSource = AlignedAMDependencyTree.decodeNode(edg.getSource());
+                Pair<Integer,Pair<String,String>> tripleTarget = AlignedAMDependencyTree.decodeNode(edg.getTarget());
+                
+                r.append("[");
+                r.append(tripleSource.left);
+                r.append(", ");
+                r.append("\"");
+                r.append(StringEscapeUtils.escapeJson(edg.getLabel()));
+                r.append("\", ");
+                r.append(tripleTarget.left);
+                r.append("]");
+                
+                if (i < sg.getGraph().edgeSet().size()-2){
+                    r.append(", ");
+                }
+                i ++;
+            }
+        }
+        
+        r.append("]}");
+        
+        return r.toString();
     }
     
     private static boolean NodelabelOk(String label){
