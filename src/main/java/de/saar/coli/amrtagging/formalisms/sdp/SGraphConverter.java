@@ -237,6 +237,10 @@ public class SGraphConverter {
                 Pair<Integer,Pair<String,String>> tripleSource = AlignedAMDependencyTree.decodeNode(edg.getSource());
                 Pair<Integer,Pair<String,String>> tripleTarget = AlignedAMDependencyTree.decodeNode(edg.getTarget());
                 
+                if (i > 0){
+                    r.append(", ");
+                }
+                
                 r.append("[");
                 r.append(tripleSource.left);
                 r.append(", ");
@@ -246,9 +250,6 @@ public class SGraphConverter {
                 r.append(tripleTarget.left);
                 r.append("]");
                 
-                if (i < sg.getGraph().edgeSet().size()-2){
-                    r.append(", ");
-                }
                 i ++;
             }
         }
